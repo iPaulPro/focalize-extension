@@ -1,0 +1,15 @@
+overwrite: true
+schema: "https://api.lens.dev"
+documents: "src/**/*.gql"
+generates:
+  ./src/graph/lens-service.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "graphql-codegen-svelte-apollo"
+    config:
+      clientPath: "../apollo-client"
+      asyncQuery: true
+  ./graphql.schema.json:
+    plugins:
+      - "introspection"

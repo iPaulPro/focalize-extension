@@ -237,3 +237,6 @@ dist
 package
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,svelte,node
+
+graphql.schema.json
+src/graph/lens-service.ts
