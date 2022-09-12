@@ -1,29 +1,43 @@
 <script lang="ts">
-    import Editor from '../lib/Editor.svelte'
+    import Editor from '../lib/Editor.svelte';
 
-    // chrome.runtime.onMessage.addListener(
-    //     function(request, sender, sendResponse) {
-    //         console.log(sender.tab ?
-    //             "from a content script:" + sender.tab.url :
-    //             "from the extension");
-    //         if (request.greeting === "hello")
-    //             sendResponse({farewell: "goodbye"});
-    //     }
-    // );
-
-    let markdown
+    let getMarkdown: () => string;
+    let defaultValue: string;
 
     const submit = () => {
+        const markdown = getMarkdown();
+        console.log(`Sending ${markdown}`);
         chrome.runtime.sendMessage(chrome.runtime.id, {markdown}, response => {
-            console.log(`Page got response`, response)
+            console.log(`Page got response`, response);
         });
     }
 
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const url = urlParams.get('url');
+    const title = urlParams.get('title');
+    const desc = urlParams.get('desc');
+    console.log(url, title, desc);
+
+    defaultValue = `
+**${title}**\n
+> ${desc}\n
+<${url}>
+`
 </script>
 
-<main>
-  <Editor defaultValue="# Milkdown 💗 Svelte" bind:markdown />
-  <button on:click={submit}>Submit</button>
+<main class="w-full h-full">
+  <div class="container mx-auto">
+
+    <div class="flex flex-col">
+
+      <Editor bind:getMarkdown {defaultValue} />
+
+    </div>
+
+    <button on:click={submit}>Submit</button>
+
+  </div><!-- container -->
 </main>
 
 <style>

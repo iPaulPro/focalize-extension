@@ -1,4 +1,3 @@
-
 const parseOGTags = () => {
     return {
         url: document.querySelector("meta[property='og:url']")?.getAttribute("content") ||
@@ -9,12 +8,12 @@ const parseOGTags = () => {
 }
 
 const shareUrl = (tags) => {
-    const path = chrome.runtime.getURL('src/new-post/')
+    const url = `src/new-post/?url=${encodeURIComponent(tags.url)}&title=${encodeURIComponent(tags.title)}&desc=${encodeURIComponent(tags.description)}`
+    const path = chrome.runtime.getURL(url)
     chrome.tabs.create({url: path})
         .then(tab => {
             console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
-            // chrome.tabs.sendMessage(tab.id, {greeting: "hello"},
-            //     // @ts-ignore
+            // chrome.tabs.sendMessage(tab.id, {tags}, null,
             //     (response) => {
             //         console.log(response);
             //     }
