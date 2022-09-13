@@ -4,17 +4,25 @@ import {crx} from '@crxjs/vite-plugin'
 // @ts-ignore WebStorm reads tsconfig.node.json and incorrectly marks this as an error
 import manifest from './manifest.json'
 
-// https://vitejs.dev/config/
 export default defineConfig({
     build: {
         rollupOptions: {
             input: {
-                newpost: 'src/new-post/index.html',
+                options: 'src/options/index.html',
+                newpost: 'src/new-post/index.html'
             }
-        },
+        }
     },
     plugins: [
         svelte(),
         crx({manifest})
-    ]
+    ],
+    resolve: {
+        alias: {
+            process: "process/browser",
+            stream: "stream-browserify",
+            zlib: "browserify-zlib",
+            util: 'util'
+        }
+    },
 })

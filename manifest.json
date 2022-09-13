@@ -5,8 +5,9 @@
   "version_name": "0.1.0-alpha",
   "description": "Extension for Lens Protocol",
   "permissions": [
-    "activeTab", "scripting"
+    "activeTab", "scripting", "storage"
   ],
+  "options_page": "src/options/index.html",
   "action": {
     "default_title": "Share on Lens"
   },
@@ -15,6 +16,7 @@
     "type": "module"
   },
   "host_permissions": [
+    "https://api-mumbai.lens.dev/",
     "https://api.lens.dev/"
   ]
 }
