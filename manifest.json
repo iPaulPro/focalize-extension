@@ -16,7 +16,10 @@
     "type": "module"
   },
   "host_permissions": [
-    "https://api-mumbai.lens.dev/",
-    "https://api.lens.dev/"
-  ]
+    "https://api-mumbai.lens.dev/*",
+    "https://api.lens.dev/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; connect-src https://api.lens.dev ws://localhost:3000 http://localhost:3000; object-src 'self'; frame-ancestors 'none';"
+  }
 }
