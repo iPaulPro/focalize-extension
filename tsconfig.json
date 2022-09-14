@@ -21,8 +21,7 @@
     "src/**/*.d.ts",
     "src/**/*.ts",
     "src/**/*.js",
-    "src/**/*.svelte",
-    "../../../../opt/homebrew/lib/node_modules/chrome-types/_all.d.ts"
+    "src/**/*.svelte"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

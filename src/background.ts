@@ -13,18 +13,12 @@ const shareUrl = (tags) => {
     chrome.tabs.create({url: path})
         .then(tab => {
             console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
-            // chrome.tabs.sendMessage(tab.id, {tags}, null,
-            //     (response) => {
-            //         console.log(response);
-            //     }
-            // );
         })
         .catch(console.error)
 }
 
 chrome.runtime.onMessage.addListener(
-    // @ts-ignore
-    (request: any, sender: chrome["runtime.MessageSender"], sendResponse: (response: any) => {}) => {
+    (request, sender, sendResponse) => {
         console.log(`Got a message from ${sender.id}: ${request.markdown}`);
         if (sender.id !== chrome.runtime.id || sender.frameId !== 0) {
             return;
