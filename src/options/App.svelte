@@ -3,37 +3,42 @@
     import { Lens } from 'lens-protocol';
     import {ethers} from "ethers";
     import {onMount} from "svelte";
+    import Button from '@smui/button'
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
 
-    const authenticate = async (address) => {
+    const authenticate = async () => {
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        console.log('Authenticating with address', address);
+
         // Getting the challenge from the server
         const data = await Lens.getChallenge(address);
         let message = data.data.challenge.text;
+        console.log('Got Lens challenge text', message);
+
         // Signing the challenge with the wallet
-        const signer = provider.getSigner();
         const signature = await signer.signMessage(message);
-        console.log(signature);
+        console.log('Signed Lens challenge', signature);
 
         const response = await Lens.Authenticate(address, signature);
-        console.log(response);
+        console.log('Lens auth response', response);
     };
 
     const login = async () => {
         provider.send('eth_requestAccounts', [])
             .then(accounts => {
-                const address = accounts[0]
-                authenticate(address)
+                console.log('Got accounts from provider', accounts);
             })
-            .catch(console.error)
+            .catch(console.error);
     }
 
     // Subscribe to accounts change
     provider.on("accountsChanged", (accounts: string[]) => {
         console.log("accountsChanged", accounts);
-        const address = accounts[0]
-        authenticate(address)
+        const address = accounts[0];
+        authenticate(address);
     });
 
     // Subscribe to chainId change
@@ -64,6 +69,8 @@
 <main class="w-full h-full">
 
   <h1>Hi</h1>
+
+  <Button on:click={authenticate}>Login</Button>
 
 </main>
 
