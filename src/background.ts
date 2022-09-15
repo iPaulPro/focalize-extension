@@ -1,16 +1,38 @@
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+        chrome.runtime.openOptionsPage();
+    }
+});
+
+
 const parseOGTags = () => {
     return {
         url: document.querySelector("meta[property='og:url']")?.getAttribute("content") ||
             document.querySelector("link[rel='canonical']")?.getAttribute("href"),
         title: document.querySelector("meta[property='og:title']")?.getAttribute("content"),
-        description: document.querySelector("meta[property='og:description']")?.getAttribute("content")
+        description: document.querySelector("meta[property='og:description']")?.getAttribute("content") ||
+            document.querySelector("meta[name='twitter:description']")?.getAttribute("content")
     }
 }
 
 const shareUrl = (tags) => {
-    const url = `src/new-post/?url=${encodeURIComponent(tags.url)}&title=${encodeURIComponent(tags.title)}&desc=${encodeURIComponent(tags.description)}`
-    const path = chrome.runtime.getURL(url)
-    chrome.tabs.create({url: path})
+    console.log('shareUrl called with', tags);
+    const path = chrome.runtime.getURL('src/new-post/');
+    const url = new URL(path);
+
+    if (tags.url) {
+        url.searchParams.append('url', tags.url);
+    }
+
+    if (tags.title) {
+        url.searchParams.append('title', tags.title);
+    }
+
+    if (tags.description) {
+        url.searchParams.append('desc', tags.description);
+    }
+
+    chrome.tabs.create({url: url.toString()})
         .then(tab => {
             console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
         })
@@ -36,6 +58,16 @@ chrome.action.onClicked.addListener(tab => {
 
     const url = tab.url
     const title = tab.title
+
+    if (url.startsWith('chrome://') || url.startsWith('brave://')) {
+        chrome.tabs.update(
+            tab.id,
+            {
+                url: chrome.runtime.getURL('src/new-post/')
+            }
+        ).catch(console.error);
+        return;
+    }
 
     chrome.scripting.executeScript(
         {

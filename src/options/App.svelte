@@ -12,18 +12,33 @@
         const signer = provider.getSigner();
         const address = await signer.getAddress();
         console.log('Authenticating with address', address);
+        if (!address) {
+            // TODO
+            return;
+        }
 
         // Getting the challenge from the server
-        const data = await Lens.getChallenge(address);
-        let message = data.data.challenge.text;
+        const challenge = await Lens.getChallenge(address);
+        if (challenge.error) {
+            // TODO
+            return;
+        }
+        let message = challenge.data.challenge.text;
         console.log('Got Lens challenge text', message);
 
         // Signing the challenge with the wallet
         const signature = await signer.signMessage(message);
         console.log('Signed Lens challenge', signature);
 
-        const response = await Lens.Authenticate(address, signature);
-        console.log('Lens auth response', response);
+        const auth = await Lens.Authenticate(address, signature);
+        console.log('Lens auth response', auth);
+        if (auth.error) {
+            // TODO
+            return;
+        }
+
+        const profile = await Lens.defaultProfile(address);
+        console.log('Got profile', profile.data.defaultProfile);
     };
 
     const login = async () => {

@@ -24,12 +24,25 @@
     const parseDefaultValue = () => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-        const url = urlParams.get('url');
-        const title = urlParams.get('title');
-        const desc = urlParams.get('desc');
-        console.log(url, title, desc);
 
-        defaultValue = `**${title}**\n> ${desc}\n\n <${url}>`
+        let value = '';
+
+        if (urlParams.has('title')) {
+            const title = urlParams.get('title');
+            value += `**${title}**\n`
+        }
+
+        if (urlParams.has('desc')) {
+            const desc = urlParams.get('desc').replaceAll('\n', '\n> ');
+            value += `> ${desc}\n\n`
+        }
+
+        if (urlParams.has('url')) {
+            const url = urlParams.get('url');
+            value += `<${url}>`
+        }
+
+        defaultValue = value
     };
 
     parseDefaultValue();

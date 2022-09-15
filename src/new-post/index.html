@@ -15,6 +15,16 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/svelte-material-ui@6.0.0/bare.min.css"
     />
+    <script type="module">
+      import process from "process";
+      import { Buffer } from "buffer";
+      import EventEmitter from "events";
+
+      window.global = window;
+      window.Buffer = Buffer;
+      window.process = process;
+      window.EventEmitter = EventEmitter;
+    </script>
   </head>
   <body>
     <div id="app"></div>
