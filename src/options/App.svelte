@@ -1,12 +1,16 @@
 <script lang="ts">
     import createMetaMaskProvider from "metamask-extension-provider";
-    import { Lens } from 'lens-protocol';
+    import {Lens} from 'lens-protocol';
     import {ethers} from "ethers";
     import {onMount} from "svelte";
     import Button from '@smui/button'
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
+
+    chrome.storage.local.get(['accessToken', 'refreshToken'], function (result) {
+        console.log('Saved tokens', result);
+    });
 
     const authenticate = async () => {
         const signer = provider.getSigner();
@@ -37,6 +41,14 @@
             return;
         }
 
+        if (auth.data) {
+            const accessToken = auth.data?.authenticate?.accessToken;
+            const refreshToken = auth.data?.authenticate?.refreshToken;
+            chrome.storage.local.set({accessToken, refreshToken}, function () {
+                console.log('Saved tokens to local storage');
+            });
+        }
+
         const profile = await Lens.defaultProfile(address);
         console.log('Got profile', profile.data.defaultProfile);
     };
@@ -49,7 +61,7 @@
             .catch(console.error);
     }
 
-    // Subscribe to accounts change
+    // Subscribe to account change
     provider.on("accountsChanged", (accounts: string[]) => {
         console.log("accountsChanged", accounts);
         const address = accounts[0];
