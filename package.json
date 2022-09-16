@@ -42,6 +42,7 @@
     "events": "^3.3.0",
     "graphql": "^16.5.0",
     "graphql-codegen-svelte-apollo": "^1.1.0",
+    "jose": "^4.9.3",
     "lens-protocol": "^0.1.5",
     "metamask-extension-provider": "^3.0.0",
     "postcss": "^8.4.14",
