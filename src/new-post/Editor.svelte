@@ -38,7 +38,7 @@
                 ctx.set(defaultValueCtx, defaultValue);
             })
             .use(nord)
-            .use(emoji)
+            // .use(emoji)
             .use(commonmark)
             .use(tooltip)
             .use(history)

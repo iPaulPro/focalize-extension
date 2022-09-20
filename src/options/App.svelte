@@ -4,6 +4,8 @@
     import {ethers} from "ethers";
     import {onMount} from "svelte";
     import Button from '@smui/button'
+    import {getSigner} from "../lib/ethers-service";
+    import {getDefaultProfile} from "../lib/lens-auth";
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
@@ -13,9 +15,9 @@
     });
 
     const authenticate = async () => {
-        const signer = provider.getSigner();
+        const signer = getSigner();
         const address = await signer.getAddress();
-        console.log('Authenticating with address', address);
+        console.log('authenticate: Authenticating with address', address);
         if (!address) {
             // TODO
             return;
@@ -23,21 +25,23 @@
 
         // Getting the challenge from the server
         const challenge = await Lens.getChallenge(address);
+        console.log('authenticate: Lens challenge response', challenge);
         if (challenge.error) {
             // TODO
+            console.error(challenge.error)
             return;
         }
         let message = challenge.data.challenge.text;
-        console.log('Got Lens challenge text', message);
 
         // Signing the challenge with the wallet
         const signature = await signer.signMessage(message);
-        console.log('Signed Lens challenge', signature);
+        console.log('authenticate: Signed Lens challenge', signature);
 
         const auth = await Lens.Authenticate(address, signature);
-        console.log('Lens auth response', auth);
+        console.log('authenticate: Lens auth response', auth);
         if (auth.error) {
             // TODO
+            console.error(auth.error)
             return;
         }
 
@@ -45,48 +49,22 @@
             const accessToken = auth.data?.authenticate?.accessToken;
             const refreshToken = auth.data?.authenticate?.refreshToken;
             chrome.storage.local.set({accessToken, refreshToken}, function () {
-                console.log('Saved tokens to local storage');
+                console.log('authenticate: Saved tokens to local storage');
             });
         }
 
         const profile = await Lens.defaultProfile(address);
-        console.log('Got profile', profile.data.defaultProfile);
+        console.log('authenticate: Default profile', profile.data.defaultProfile);
+
+        if (!profile.data.defaultProfile) {
+            // TODO Check if any profile, prompt to choose a default profile
+        }
     };
 
     const login = async () => {
-        provider.send('eth_requestAccounts', [])
-            .then(accounts => {
-                console.log('Got accounts from provider', accounts);
-            })
-            .catch(console.error);
+        const defaultProfile = await getDefaultProfile();
+        console.log('Got default profile', defaultProfile);
     }
-
-    // Subscribe to account change
-    provider.on("accountsChanged", (accounts: string[]) => {
-        console.log("accountsChanged", accounts);
-        const address = accounts[0];
-        authenticate(address);
-    });
-
-    // Subscribe to chainId change
-    provider.on("chainChanged", (chainId: number) => {
-        console.log("chainChanged", chainId);
-    });
-
-    // Subscribe to provider connection
-    provider.on("connect", (info: { chainId: number }) => {
-        console.log("connect", info);
-    });
-
-    // Subscribe to provider disconnection
-    provider.on("disconnect", (error: { code: number; message: string }) => {
-        console.log("disconnect", error);
-    });
-
-    provider.on('error', (error) => {
-        // Failed to connect to MetaMask, fallback logic.
-        console.error(error);
-    });
 
     onMount(async () => {
         await login();

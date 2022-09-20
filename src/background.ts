@@ -59,7 +59,7 @@ chrome.action.onClicked.addListener(tab => {
     const url = tab.url
     const title = tab.title
 
-    if (url.startsWith('chrome://') || url.startsWith('brave://')) {
+    if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
         chrome.tabs.update(
             tab.id,
             {
