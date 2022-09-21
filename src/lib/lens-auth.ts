@@ -1,29 +1,37 @@
 import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
 import {init} from "./ethers-service";
+import {Duration} from "luxon";
 
 import type {Profile} from "../graph/lens-service";
 
 export const getOrRefreshAccessToken = async (): Promise<string> => {
     let accessToken = await getAccessToken();
-    const accessTokenExpiration = decodeJwt(accessToken).exp * 1000; // convert to ms
-
-    const now = Date.now();
-    if (accessTokenExpiration < now) {
-        console.log('Access token is expired.');
-
-        const savedRefreshToken = await getRefreshToken();
-        const refreshToken = decodeJwt(savedRefreshToken);
-        const refreshTokenExpiration = refreshToken.exp * 1000; // convert to ms
-
-        if (refreshTokenExpiration > now) {
-            await refreshAccessToken(savedRefreshToken);
-        } else {
-            console.log('Refresh token is expired')
-        }
+    console.log('getOrRefreshAccessToken: saved access token', accessToken);
+    if (!accessToken) {
+        return Promise.reject('No saved access token found');
     }
 
-    return Promise.resolve(accessToken);
+    const now = Date.now();
+
+    const accessTokenExpiration = decodeJwt(accessToken).exp * 1000; // convert to ms
+    if (accessTokenExpiration > now) {
+        const duration = Duration.fromMillis(accessTokenExpiration - now).shiftTo('minutes');
+        console.log(`getOrRefreshAccessToken: saved access token expires in ${duration.toHuman()}`);
+        return Promise.resolve(accessToken);
+    }
+
+    console.log('getOrRefreshAccessToken: Access token is expired.');
+
+    const savedRefreshToken = await getRefreshToken();
+    console.log('getOrRefreshAccessToken: saved refresh token', savedRefreshToken)
+
+    const refreshTokenExpiration = decodeJwt(savedRefreshToken).exp * 1000; // convert to ms
+    if (refreshTokenExpiration > now) {
+        return refreshAccessToken(savedRefreshToken);
+    } else {
+        return Promise.reject('Refresh token is expired');
+    }
 }
 
 export const getAccessToken = async (): Promise<string> => {

@@ -4,7 +4,7 @@
     import {ethers} from "ethers";
 
     import {getSigner} from "../lib/ethers-service";
-    import {getDefaultProfile} from "../lib/lens-auth";
+    import {getOrRefreshAccessToken} from "../lib/lens-auth";
 
     import InlineSVG from 'svelte-inline-svg';
     import lensLogoSmall from '../assets/lens-logo-small.svg';
@@ -15,9 +15,7 @@
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
 
-    chrome.storage.local.get(['accessToken', 'refreshToken'], function (result) {
-        console.log('Saved tokens', result);
-    });
+    let loading = true;
 
     const authenticate = async () => {
         const signer = getSigner();
@@ -66,30 +64,51 @@
         }
     };
 
-    const login = async () => {
-        const defaultProfile = await getDefaultProfile();
-        console.log('Got default profile', defaultProfile);
+    const checkForAccessToken = async () => {
+        let accessToken;
+        try {
+            // If there is already an access token, try to get
+            accessToken = await getOrRefreshAccessToken();
+        } catch (e) {
+            console.error(e);
+        }
+
+        if (accessToken) {
+            console.log('Got valid access token, showing welcome screen...')
+            // TODO Show welcome
+        }
+
+        loading = false;
     }
 
     onMount(async () => {
-        await login();
+        await checkForAccessToken();
     });
 </script>
 
 <main class="w-full h-full flex justify-center items-center">
 
-  <div class="flex flex-col items-center gap-4 mb-36">
-    <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24" />
+  {#if loading}
 
-    <h1 class="mt-24">Welcome to Focalize!</h1>
+    <span class="echo-loader">Loading…</span>
 
-    <button type="button" on:click={authenticate}
-            class="py-0 pr-6 pl-3 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white w-full transition ease-in duration-200 text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
-      <InlineSVG src={lensLogoSmall} alt="Lens Logo" class="text-white w-12 h-12" />
-      Sign in with Lens
-    </button>
-  </div>
+  {:else}
 
+    <div class="flex flex-col items-center gap-4 mb-36">
+
+      <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24" />
+
+      <h1 class="mt-24">Welcome to Focalize!</h1>
+
+      <button type="button" on:click={authenticate}
+              class="py-0 pr-6 pl-3 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white w-full transition ease-in duration-200 text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
+        <InlineSVG src={lensLogoSmall} alt="Lens Logo" class="text-white w-12 h-12" />
+        Sign in with Lens
+      </button>
+
+    </div>
+
+  {/if}
 </main>
 
 <style>

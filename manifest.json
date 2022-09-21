@@ -9,7 +9,23 @@
   ],
   "options_page": "src/options/index.html",
   "action": {
-    "default_title": "Share on Lens"
+    "default_title": "Share on Lens",
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "24": "images/icon-24.png",
+      "32": "images/icon-32.png",
+      "64": "images/icon-64.png",
+      "128": "images/icon-128.png",
+      "512": "images/icon-512.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon-16.png",
+    "24": "images/icon-24.png",
+    "32": "images/icon-32.png",
+    "64": "images/icon-64.png",
+    "128": "images/icon-128.png",
+    "512": "images/icon-512.png"
   },
   "background": {
     "service_worker": "src/background.ts",
