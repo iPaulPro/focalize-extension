@@ -17,6 +17,8 @@ const getParam = (name: string) => {
     return param;
 };
 
+export const APP_ID = "Focalize";
+
 export const LENS_API = getParamOrExit('VITE_LENS_API');
 
 export const LENS_HUB_CONTRACT = getParamOrExit('VITE_LENS_HUB_CONTRACT');

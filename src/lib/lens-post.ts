@@ -2,6 +2,7 @@ import type {MetadataAttributeOutput, PublicationMainFocus} from "../graph/lens-
 import {v4 as uuidv4} from "uuid";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {BigNumber, utils} from "ethers";
+import {APP_ID} from "../config";
 
 interface MetadataMedia {
     item: string;
@@ -21,8 +22,8 @@ export const makeMetadataFile = (
         imageMimeType,
         media,
         animationUrl,
-        attributes,
-        locale
+        attributes = [],
+        locale = 'en'
     }: {
         name: string,
         mainContentFocus: PublicationMainFocus
@@ -39,20 +40,19 @@ export const makeMetadataFile = (
     const obj = {
         version: '2.0.0',
         metadata_id: uuidv4(),
-        content: content,
-        mainContentFocus: mainContentFocus,
+        content,
+        mainContentFocus,
         external_url: externalUrl,
-        name: name,
-        attributes: attributes ?? [],
-        image: image,
-        imageMimeType: imageMimeType,
-        media: media,
+        name,
+        attributes,
+        image,
+        imageMimeType,
+        media,
         animation_url: animationUrl,
-        locale: locale ?? 'en',
-        appId: 'Focalize'
+        locale,
+        appId: APP_ID
     }
     const blob = new Blob([JSON.stringify(obj)], {type: 'application/json'})
-
     return new File([blob], `metadata.json`)
 };
 

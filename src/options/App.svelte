@@ -2,10 +2,15 @@
     import createMetaMaskProvider from "metamask-extension-provider";
     import {Lens} from 'lens-protocol';
     import {ethers} from "ethers";
-    import {onMount} from "svelte";
-    import Button from '@smui/button'
+
     import {getSigner} from "../lib/ethers-service";
     import {getDefaultProfile} from "../lib/lens-auth";
+
+    import InlineSVG from 'svelte-inline-svg';
+    import lensLogoSmall from '../assets/lens-logo-small.svg';
+    import focalizeLogo from '../assets/focalize-logo-large.svg';
+
+    import {onMount} from "svelte";
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
@@ -71,11 +76,19 @@
     });
 </script>
 
-<main class="w-full h-full">
+<main class="w-full h-full flex justify-center items-center">
 
-  <h1>Hi</h1>
+  <div class="flex flex-col items-center gap-4 mb-36">
+    <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24" />
 
-  <Button on:click={authenticate}>Login</Button>
+    <h1 class="mt-24">Welcome to Focalize!</h1>
+
+    <button type="button" on:click={authenticate}
+            class="py-0 pr-6 pl-3 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white w-full transition ease-in duration-200 text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
+      <InlineSVG src={lensLogoSmall} alt="Lens Logo" class="text-white w-12 h-12" />
+      Sign in with Lens
+    </button>
+  </div>
 
 </main>
 
