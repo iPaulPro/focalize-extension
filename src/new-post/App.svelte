@@ -143,7 +143,7 @@
 
 <main class="w-full h-full">
 
-  <div class="container mx-auto">
+  <div class="container max-w-screen-lg mx-auto">
 
     <div class="flex flex-col mt-6">
       <Editor bind:getMarkdown {defaultValue}/>

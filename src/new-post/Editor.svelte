@@ -4,12 +4,12 @@
         rootCtx,
         defaultValueCtx,
         editorViewCtx,
-        serializerCtx
+        serializerCtx,
+        ThemeColor
     } from "@milkdown/core";
     import {clipboard} from '@milkdown/plugin-clipboard';
-    import { emoji } from "@milkdown/plugin-emoji";
     import {history} from '@milkdown/plugin-history';
-    import {listener, listenerCtx} from '@milkdown/plugin-listener';
+    import {listener} from '@milkdown/plugin-listener';
     import {menu} from '@milkdown/plugin-menu';
     import {tooltip} from '@milkdown/plugin-tooltip';
     import {commonmark} from "@milkdown/preset-commonmark";
@@ -32,13 +32,45 @@
     };
 
     const makeEditor = async dom => {
+        const myTheme = nord.override((emotion, manager) => {
+            manager.set(ThemeColor, ([key, opacity]) => {
+                switch (key) {
+                    // The primary color. Used in large color blocks.
+                    case 'primary':
+                        return `rgba(255, 96, 20, ${opacity})`;
+                    // The secondary color. Used in tips area.
+                    case 'secondary':
+                        return `rgba(107, 35, 0, ${opacity})`;
+                    // The color of text.
+                    case 'neutral':
+                        return `rgba(17, 17, 17, ${opacity})`;
+                    // The color of widgets, such as buttons.
+                    case 'solid':
+                        return `rgba(17, 17, 17, ${opacity})`;
+                    // The color of box shadow.
+                    case 'shadow':
+                        return `rgba(17, 17, 17, ${opacity})`;
+                    // The color of line, such as border.
+                    case 'line':
+                        return `rgba(204, 204, 204, ${opacity})`;
+                    // The foreground color.
+                    case 'surface':
+                        return `rgba(255, 255, 255, ${opacity})`;
+                    // The background color.
+                    case 'background':
+                        return `rgba(238, 238, 238, ${opacity})`;
+                    default:
+                        return `rgba(0, 0, 0, ${opacity})`;
+                }
+            });
+        });
+
         editor = await Editor.make()
             .config(ctx => {
                 ctx.set(rootCtx, dom);
                 ctx.set(defaultValueCtx, defaultValue);
             })
             .use(nord)
-            // .use(emoji)
             .use(commonmark)
             .use(tooltip)
             .use(history)
