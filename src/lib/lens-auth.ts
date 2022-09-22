@@ -100,10 +100,10 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
  */
 export const getDefaultProfile = async (): Promise<Profile> => {
     const account = await init();
-    console.log('Got account from provider', account);
+    console.log('getDefaultProfile: Got account from provider', account);
 
     const profile = await Lens.defaultProfile(account);
 
     // @ts-ignore
-    return profile.data.defaultProfile;
+    return Promise.resolve(profile.data.defaultProfile);
 }

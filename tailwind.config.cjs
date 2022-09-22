@@ -24,6 +24,8 @@ const config = {
   plugins: [
     require('@tailwindcss/typography')
   ],
+
+  darkMode: 'class',
 };
 
 module.exports = config;

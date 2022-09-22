@@ -4,18 +4,20 @@
     import {ethers} from "ethers";
 
     import {getSigner} from "../lib/ethers-service";
-    import {getOrRefreshAccessToken} from "../lib/lens-auth";
+    import {getDefaultProfile, getOrRefreshAccessToken} from "../lib/lens-auth";
 
     import InlineSVG from 'svelte-inline-svg';
     import lensLogoSmall from '../assets/lens-logo-small.svg';
     import focalizeLogo from '../assets/focalize-logo-large.svg';
 
     import {onMount} from "svelte";
+    import Welcome from '../lib/Welcome.svelte'
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
 
     let loading = true;
+    let profile = null;
 
     const authenticate = async () => {
         const signer = getSigner();
@@ -56,12 +58,14 @@
             });
         }
 
-        const profile = await Lens.defaultProfile(address);
-        console.log('authenticate: Default profile', profile.data.defaultProfile);
+        const profileRes = await Lens.defaultProfile(address);
+        console.log('authenticate: Default profile', profileRes.data.defaultProfile);
 
-        if (!profile.data.defaultProfile) {
+        if (!profileRes.data.defaultProfile) {
             // TODO Check if any profile, prompt to choose a default profile
         }
+
+        profile = profileRes.data.defaultProfile;
     };
 
     const checkForAccessToken = async () => {
@@ -75,6 +79,7 @@
 
         if (accessToken) {
             console.log('Got valid access token, showing welcome screen...')
+            profile = await getDefaultProfile();
             // TODO Show welcome
         }
 
@@ -86,30 +91,48 @@
     });
 </script>
 
-<main class="w-full h-full flex justify-center items-center">
+{#if loading}
 
-  {#if loading}
+  <main class="w-full h-full">
 
-    <span class="echo-loader">Loading…</span>
+    <div class="w-full h-full flex justify-center items-center">
+      <span class="echo-loader">Loading…</span>
+    </div>
+
+  </main>
+
+{:else}
+
+  {#if profile}
+
+    <Welcome {profile} />
 
   {:else}
 
-    <div class="flex flex-col items-center gap-4 mb-36">
+    <main class="w-full h-full">
 
-      <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24" />
+      <div class="w-full h-full flex justify-center items-center">
 
-      <h1 class="mt-24">Welcome to Focalize!</h1>
+        <div class="flex flex-col items-center gap-4 mb-36">
 
-      <button type="button" on:click={authenticate}
-              class="py-0 pr-6 pl-3 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white w-full transition ease-in duration-200 text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
-        <InlineSVG src={lensLogoSmall} alt="Lens Logo" class="text-white w-12 h-12" />
-        Sign in with Lens
-      </button>
+          <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24"/>
 
-    </div>
+          <h1 class="mt-24">Welcome to Focalize!</h1>
+
+          <button type="button" on:click={authenticate}
+                  class="py-0 pr-6 pl-3 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white w-full transition ease-in duration-200 text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
+            <InlineSVG src={lensLogoSmall} alt="Lens Logo" class="text-white w-12 h-12"/>
+            Sign in with Lens
+          </button>
+
+        </div>
+
+      </div>
+    </main>
 
   {/if}
-</main>
+
+{/if}
 
 <style>
 
