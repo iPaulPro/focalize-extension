@@ -1,8 +1,16 @@
-import type {MetadataAttributeOutput, PublicationMainFocus} from "../graph/lens-service";
 import {v4 as uuidv4} from "uuid";
-import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {BigNumber, utils} from "ethers";
+import {Lens} from "lens-protocol";
+
 import {APP_ID} from "../config";
+import {PublicationMainFocus} from "../graph/lens-service";
+import {pollUntilIndexed} from "./has-transaction-been-indexed";
+import {getDefaultProfile, getOrRefreshAccessToken} from "./lens-auth";
+import {uploadFile} from "./ipfs-service";
+import {getLensHub} from "../lens-hub";
+
+import type {MetadataAttributeOutput} from "../graph/lens-service";
+import type {OperationResult} from "urql";
 
 interface MetadataMedia {
     item: string;
@@ -12,7 +20,7 @@ interface MetadataMedia {
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 export const EMPTY_REFERENCE_MODULE = {followerOnlyReferenceModule: false};
 
-export const makeMetadataFile = (
+const makeMetadataFile = (
     {
         content,
         mainContentFocus,
@@ -56,23 +64,60 @@ export const makeMetadataFile = (
     return new File([blob], `metadata.json`)
 };
 
-export const getPublicationId = async (tx) => {
+const getPublicationId = async (tx) => {
     const indexedResult = await pollUntilIndexed(tx.hash);
 
     const logs = indexedResult.txReceipt.logs;
-    console.log('submitPost: logs', logs);
-
     const topicId = utils.id(
         'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
     );
-    console.log('submitPost: topicid we care about', topicId);
 
     const profileCreatedLog = logs.find((l: any) => l.topics[0] === topicId);
-    console.log('submitPost: created log', profileCreatedLog);
-
     let profileCreatedEventLog = profileCreatedLog.topics;
-    console.log('submitPost: created event logs', profileCreatedEventLog);
 
     const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
     return BigNumber.from(publicationId).toHexString();
 }
+
+export const submitPost = async (markdown: string) => {
+    const accessToken = await getOrRefreshAccessToken();
+    const profile = await getDefaultProfile();
+
+    const metadata: File = makeMetadataFile({
+        name: `Post by @${profile.handle}`,
+        content: markdown,
+        mainContentFocus: PublicationMainFocus.TextOnly
+    })
+    const metadataCid = await uploadFile(metadata);
+
+    const postResult = await Lens.CreatePostTypedData(
+        profile.id,
+        `ipfs://${metadataCid}`,
+        FREE_COLLECT_MODULE,
+        EMPTY_REFERENCE_MODULE,
+        accessToken
+    ) as OperationResult
+    if (postResult.error) {
+        // TODO
+        console.error(postResult.error);
+        return;
+    }
+
+    const typedData = postResult.data.createPostTypedData.typedData;
+
+    const lensHub = getLensHub();
+    const tx = await lensHub.post({
+        profileId: typedData.value.profileId,
+        contentURI: typedData.value.contentURI,
+        collectModule: typedData.value.collectModule,
+        collectModuleInitData: typedData.value.collectModuleInitData,
+        referenceModule: typedData.value.referenceModule,
+        referenceModuleInitData: typedData.value.referenceModuleInitData
+    });
+    console.log('submitPost: submitted transaction', tx);
+
+    const publicationId = await getPublicationId(tx);
+
+    console.log('submitPost: post has been indexed', postResult.data);
+    console.log(`submitPost: internal publication id ${profile.id} - ${publicationId}`);
+};

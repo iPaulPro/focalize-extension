@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "generate-types": "typechain --target=ethers-v5 'src/abis/*.json'",
     "codegen": "graphql-codegen --config codegen.yml"
   },
   "devDependencies": {
@@ -35,6 +36,7 @@
     "@sveltejs/vite-plugin-svelte": "^1.0.1",
     "@tailwindcss/typography": "^0.5.7",
     "@tsconfig/svelte": "^3.0.0",
+    "@typechain/ethers-v5": "^10.1.0",
     "@types/chrome": "^0.0.196",
     "autoprefixer": "^10.4.7",
     "browserify-zlib": "^0.2.0",
@@ -60,7 +62,9 @@
     "svelte-preprocess": "^4.10.7",
     "tailwindcss": "^3.1.5",
     "tslib": "^2.4.0",
+    "typechain": "^8.1.0",
     "typescript": "^4.6.4",
+    "urql": "^3.0.3",
     "util": "^0.12.4",
     "uuidv4": "^6.2.13",
     "vite": "^2.9.5",

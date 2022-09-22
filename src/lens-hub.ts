@@ -1,5 +1,7 @@
-import {Contract} from "ethers"
-import {LENS_HUB_ABI, LENS_HUB_CONTRACT} from './config';
+import {LENS_HUB_CONTRACT} from './config';
 import {getSigner} from "./lib/ethers-service";
+import {LensHub__factory} from "../types/ethers-contracts";
 
-export const getLensHub = (): Contract => new Contract(LENS_HUB_CONTRACT, LENS_HUB_ABI, getSigner());
+import type {LensHub} from "../types/ethers-contracts";
+
+export const getLensHub = (): LensHub => LensHub__factory.connect(LENS_HUB_CONTRACT, getSigner());

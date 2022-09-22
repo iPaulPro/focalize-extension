@@ -1,4 +1,4 @@
-import lensHubAbi from './abis/lens-hub-contract-abi.json';
+import lensHubAbi from './abis/LensHub.json';
 
 const getParamOrExit = (name: string) => {
     const param = import.meta.env[name];
@@ -17,10 +17,10 @@ const getParam = (name: string) => {
     return param;
 };
 
-export const APP_ID = "Focalize";
+export const APP_ID: string = "Focalize";
 
-export const LENS_API = getParamOrExit('VITE_LENS_API');
+export const LENS_API: string = getParamOrExit('VITE_LENS_API');
 
-export const LENS_HUB_CONTRACT = getParamOrExit('VITE_LENS_HUB_CONTRACT');
+export const LENS_HUB_CONTRACT: string = getParamOrExit('VITE_LENS_HUB_CONTRACT');
 
-export const LENS_HUB_ABI = lensHubAbi;
+export const LENS_HUB_ABI: {} = lensHubAbi;

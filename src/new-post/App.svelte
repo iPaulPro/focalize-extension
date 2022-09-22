@@ -1,13 +1,8 @@
 <script lang="ts">
-    import {Lens} from "lens-protocol";
     import {decodeJwt} from 'jose'
 
-    import {getLensHub} from "../lens-hub";
-    import {signedTypeData, splitSignature} from '../lib/ethers-service';
-    import {getPublicationId, makeMetadataFile, FREE_COLLECT_MODULE, EMPTY_REFERENCE_MODULE} from "../lib/lens-post";
-    import {getDefaultProfile, getOrRefreshAccessToken, refreshAccessToken} from "../lib/lens-auth";
-    import {uploadFile} from "../lib/ipfs-service";
-    import {PublicationMainFocus} from "../graph/lens-service";
+    import {submitPost} from '../lib/lens-post.js'
+    import {refreshAccessToken} from "../lib/lens-auth";
 
     import Editor from './Editor.svelte';
     import Button from '@smui/button';
@@ -23,69 +18,6 @@
      * Editor prop
      */
     let defaultValue: string;
-
-    const submitPost = async () => {
-        const markdown = getMarkdown();
-
-        let accessToken = await getOrRefreshAccessToken();
-        console.log('submitPost: access token', accessToken);
-
-        const profile = await getDefaultProfile();
-        console.log('submitPost: Lens profile', profile);
-
-        const metadata: File = makeMetadataFile({
-            name: `Post by @${profile.handle}`,
-            content: markdown,
-            mainContentFocus: PublicationMainFocus.TextOnly
-        })
-        console.log('submitPost: metadata file', metadata);
-        const metadataCid = await uploadFile(metadata);
-        console.log('submitPost: metadata CID', metadataCid);
-
-        const postResult = await Lens.CreatePostTypedData(
-            profile.id,
-            `ipfs://${metadataCid}`,
-            FREE_COLLECT_MODULE,
-            EMPTY_REFERENCE_MODULE,
-            accessToken
-        )
-        console.log('submitPost: CreatePostTypedData result', postResult)
-        if (postResult.error) {
-            // TODO
-            console.error(postResult.error);
-            return;
-        }
-
-        const typedData = postResult.data.createPostTypedData.typedData;
-        console.log('submitPost: typedData', typedData)
-
-        const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
-        console.log('submitPost: signature', signature);
-        const { v, r, s } = splitSignature(signature);
-        console.log('submitPost: split signature', v, r, s);
-
-        const lensHub = getLensHub();
-        const tx = await lensHub.postWithSig({
-            profileId: typedData.value.profileId,
-            contentURI: typedData.value.contentURI,
-            collectModule: typedData.value.collectModule,
-            collectModuleInitData: typedData.value.collectModuleInitData,
-            referenceModule: typedData.value.referenceModule,
-            referenceModuleData: typedData.value.referenceModuleInitData,
-            sig: {
-                v,
-                r,
-                s,
-                deadline: typedData.value.deadline,
-            },
-        });
-        console.log('submitPost: submitted transaction', tx);
-
-        const publicationId = await getPublicationId(tx);
-
-        console.log('submitPost: post has been indexed', postResult.data);
-        console.log(`submitPost: internal publication id ${profile.id} - ${publicationId}`);
-    };
 
     const parseDefaultValue = () => {
         const queryString = window.location.search;
@@ -134,6 +66,11 @@
         });
     });
 
+    const onSubmitClick = async () => {
+        const markdown = getMarkdown();
+        await submitPost(markdown);
+    }
+
     // const updateProfile = async () => {
     //     const uri = `ipfs://QmNxPXa4DYEoqGhFVfHArUi2uhWyDVQBmrnA4rZ18rRLvF`
     //     const profile = await getProfile();
@@ -151,7 +88,7 @@
 
     <div class="flex justify-end">
 
-      <Button on:click={submitPost} variant="raised" class="mt-6">
+      <Button on:click={onSubmitClick} variant="raised" class="mt-6">
         <Label>Submit</Label>
       </Button>
 
