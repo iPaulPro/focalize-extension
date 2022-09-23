@@ -9,7 +9,6 @@
     } from "@milkdown/core";
     import {clipboard} from '@milkdown/plugin-clipboard';
     import {history} from '@milkdown/plugin-history';
-    import {listener} from '@milkdown/plugin-listener';
     import {menu} from '@milkdown/plugin-menu';
     import {tooltip} from '@milkdown/plugin-tooltip';
     import {commonmark} from "@milkdown/preset-commonmark";
@@ -17,6 +16,8 @@
     import { insert } from '@milkdown/utils';
 
     export let defaultValue;
+
+    export let isRichText = false
 
     let editor;
 
@@ -32,7 +33,7 @@
     };
 
     const makeEditor = async dom => {
-        const myTheme = nord.override((emotion, manager) => {
+        nord.override((emotion, manager) => {
             manager.set(ThemeColor, ([key, opacity]) => {
                 switch (key) {
                     // The primary color. Used in large color blocks.
@@ -65,19 +66,22 @@
             });
         });
 
-        editor = await Editor.make()
+        const builder = Editor.make()
             .config(ctx => {
                 ctx.set(rootCtx, dom);
                 ctx.set(defaultValueCtx, defaultValue);
             })
-            .use(nord)
-            .use(commonmark)
-            .use(tooltip)
-            .use(history)
-            .use(clipboard)
-            .use(menu)
-            .use(listener)
-            .create();
+            .use(nord);
+
+        if (isRichText) {
+            builder.use(menu)
+                .use(commonmark)
+                .use(tooltip)
+                .use(history)
+                .use(clipboard);
+        }
+
+        editor = await builder.create();
     };
 </script>
 

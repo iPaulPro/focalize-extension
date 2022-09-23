@@ -2,9 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .tab {
+    @apply bg-white hover:text-gray-700 hover:bg-gray-50 focus:ring-4 focus:ring-blue-300 focus:outline-none dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700;
+  }
+  .tab.active {
+    @apply text-gray-900 bg-gray-100 focus:outline-none dark:bg-gray-700 dark:text-white;
+  }
+}
+
 html, body, #app {
 	width: 100%;
 	height: 100%;
+}
+
+body {
+  background-color: #eee;
+}
+
+.milkdown {
+  box-shadow: none !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif !important;
 }
 
 .milkdown .editor {

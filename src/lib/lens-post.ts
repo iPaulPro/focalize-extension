@@ -1,4 +1,4 @@
-import {v4 as uuidv4} from "uuid";
+import {v4 as uuid} from "uuid";
 import {BigNumber, utils} from "ethers";
 import {Lens} from "lens-protocol";
 
@@ -9,7 +9,7 @@ import {getDefaultProfile, getOrRefreshAccessToken} from "./lens-auth";
 import {uploadFile} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 
-import type {MetadataAttributeOutput} from "../graph/lens-service";
+import type {MetadataAttributeOutput, Profile} from "../graph/lens-service";
 import type {OperationResult} from "urql";
 
 interface MetadataMedia {
@@ -47,7 +47,7 @@ const makeMetadataFile = (
 ): File => {
     const obj = {
         version: '2.0.0',
-        metadata_id: uuidv4(),
+        metadata_id: uuid(),
         content,
         mainContentFocus,
         external_url: externalUrl,
@@ -79,14 +79,17 @@ const getPublicationId = async (tx) => {
     return BigNumber.from(publicationId).toHexString();
 }
 
-export const submitPost = async (markdown: string) => {
+export const submitPost = async (
+    profile: Profile,
+    content: string,
+    mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly
+): Promise<string> => {
     const accessToken = await getOrRefreshAccessToken();
-    const profile = await getDefaultProfile();
 
     const metadata: File = makeMetadataFile({
         name: `Post by @${profile.handle}`,
-        content: markdown,
-        mainContentFocus: PublicationMainFocus.TextOnly
+        content,
+        mainContentFocus
     })
     const metadataCid = await uploadFile(metadata);
 
@@ -119,5 +122,5 @@ export const submitPost = async (markdown: string) => {
     const publicationId = await getPublicationId(tx);
 
     console.log('submitPost: post has been indexed', postResult.data);
-    console.log(`submitPost: internal publication id ${profile.id} - ${publicationId}`);
+    return publicationId;
 };

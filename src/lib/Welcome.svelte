@@ -104,7 +104,7 @@
             </ul>
 
             <a href="/src/new-post/"
-                    class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white transition ease-in duration-200 text-center text-lg font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg  w-auto">
+                    class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white transition ease-in duration-200 text-center text-lg font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="mr-2"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 11.08V8l-6-6H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h6"/>
@@ -125,7 +125,7 @@
 
     </section>
 
-    <section class="container max-w-screen-lg px-4 mt-20">
+    <section class="container max-w-screen-xl px-4 mt-20">
 
       <div id="welcome-footer" class="bg-emerald-600 dark:bg-gray-800 rounded-xl overflow-hidden">
 
@@ -133,7 +133,7 @@
 
           <InlineSVG src={lensLogo} class="w-32 h-32" />
 
-          <div class="ml-6">
+          <div class="ml-8">
             <h2 class="text-2xl leading-8 font-extrabold tracking-tight text-white sm:text-3xl sm:leading-9">
               Follow Focalize to unlock media uploads
             </h2>

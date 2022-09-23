@@ -20,6 +20,8 @@ const shareUrl = (tags) => {
     const path = chrome.runtime.getURL('src/new-post/');
     const url = new URL(path);
 
+    url.searchParams.append('type', 'link');
+
     if (tags.url) {
         url.searchParams.append('url', tags.url);
     }
@@ -32,11 +34,19 @@ const shareUrl = (tags) => {
         url.searchParams.append('desc', tags.description);
     }
 
-    chrome.tabs.create({url: url.toString()})
-        .then(tab => {
-            console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
-        })
-        .catch(console.error)
+    chrome.windows.create({
+        url: url.toString(),
+        focused: true,
+        type: 'popup',
+        width: 800,
+        height: 600
+    }).catch(console.error);
+
+    // chrome.tabs.create({url: url.toString()})
+    //     .then(tab => {
+    //         console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
+    //     })
+    //     .catch(console.error);
 }
 
 chrome.runtime.onMessage.addListener(
