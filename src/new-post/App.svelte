@@ -5,8 +5,9 @@
     import {getDefaultProfile, refreshAccessToken} from "../lib/lens-auth";
 
     import Editor from './Editor.svelte';
+    import PostTags from './PostTags.svelte';
     import {onMount} from "svelte";
-    import {PublicationMainFocus} from "../graph/lens-service";
+    import {PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
     import type {Profile} from "../graph/lens-service";
 
     /**
@@ -25,11 +26,18 @@
     let getMarkdown: () => string;
 
     /**
+     * Bound to the tag component
+     */
+    let getTags: () => string[];
+
+    /**
      * Editor prop
      */
     let defaultValue: string;
 
     let postType: PublicationMainFocus;
+
+    let postContentWarning: PublicationContentWarning;
 
     let profile: Profile;
 
@@ -124,7 +132,8 @@
                 content = plainText;
         }
 
-        const publicationId = await submitPost(profile, content, postType);
+        const tags = getTags();
+        const publicationId = await submitPost(profile, content, postType, tags, postContentWarning);
         console.log(`onSubmitClick: publication id ${profile.id} - ${publicationId}`);
     }
 
@@ -155,7 +164,7 @@
       sm:flex dark:divide-gray-700 dark:text-gray-400">
         <li class="w-full">
           <a on:click={() => postType = PublicationMainFocus.TextOnly} class="{postType === PublicationMainFocus.TextOnly ? 'active' : ''}
-          tab rounded-l-lg inline-block p-3 w-full cursor-pointer" aria-current="page">
+          tab rounded-l-xl inline-block p-3 w-full cursor-pointer" aria-current="page">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
               <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
@@ -189,7 +198,7 @@
         </li>
         <li class="w-full">
           <a on:click={() => postType = PublicationMainFocus.Article} class="{postType === PublicationMainFocus.Article ? 'active' : ''}
-          tab rounded-r-lg inline-block p-3 w-full cursor-pointer">
+          tab rounded-r-xl inline-block p-3 w-full cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
               <path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
@@ -208,7 +217,7 @@
         {#if profile}
           <img src={profile.picture.original.url} alt="Profile image" class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
         {/if}
-        <textarea class="w-full text-xl my-3 mr-3" rows="6" bind:value={plainText} placeholder="What's happening?"></textarea>
+        <textarea class="w-full text-xl my-3 mr-3 border-none focus:ring-0" rows="6" bind:value={plainText} placeholder="What's happening?"></textarea>
       </div>
 
     {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video}
@@ -216,7 +225,7 @@
     {:else if postType === PublicationMainFocus.Link}
 
       <div class="mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4">
-        <textarea class="w-full text-lg" rows="6" bind:value={linkText}></textarea>
+        <textarea class="w-full text-lg border-none focus:ring-0" rows="6" bind:value={linkText}></textarea>
       </div>
 
     {:else if postType === PublicationMainFocus.Article}
@@ -227,13 +236,36 @@
 
     {/if}
 
+    <div class="flex border-b border-neutral-300 items-center overflow-x-auto py-1">
+
+      <select bind:value={postContentWarning}
+          class="h-fit bg-white hover:bg-gray-50 rounded-xl shadow-sm pl-3 pr-10 py-3 text-left cursor-pointer
+          border-none focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" name="warning">
+        <option value="">
+          No Content Warning
+        </option>
+        <option value={PublicationContentWarning.Nsfw}>
+          NSFW
+        </option>
+        <option value={PublicationContentWarning.Spoiler}>
+          Spoiler
+        </option>
+        <option value={PublicationContentWarning.Sensitive}>
+          Sensitive
+        </option>
+      </select>
+
+      <PostTags bind:getTags />
+
+    </div>
+
     <div class="flex justify-end">
 
       <button on:click={onSubmitClick}
-          class="mt-6 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto
+          class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto
           bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white text-center text-lg
           transition ease-in duration-200 font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2">
-        Submit
+        Post
       </button>
 
     </div>

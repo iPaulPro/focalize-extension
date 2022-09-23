@@ -3,7 +3,7 @@ import {BigNumber, utils} from "ethers";
 import {Lens} from "lens-protocol";
 
 import {APP_ID} from "../config";
-import {PublicationMainFocus} from "../graph/lens-service";
+import {PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {getDefaultProfile, getOrRefreshAccessToken} from "./lens-auth";
 import {uploadFile} from "./ipfs-service";
@@ -31,6 +31,8 @@ const makeMetadataFile = (
         media,
         animationUrl,
         attributes = [],
+        tags = [],
+        contentWarning,
         locale = 'en'
     }: {
         name: string,
@@ -42,6 +44,8 @@ const makeMetadataFile = (
         media?: MetadataMedia[],
         animationUrl?: string,
         attributes?: MetadataAttributeOutput[],
+        tags?: string[],
+        contentWarning?: PublicationContentWarning,
         locale?: string
     }
 ): File => {
@@ -57,6 +61,8 @@ const makeMetadataFile = (
         imageMimeType,
         media,
         animation_url: animationUrl,
+        tags,
+        contentWarning,
         locale,
         appId: APP_ID
     }
@@ -82,14 +88,18 @@ const getPublicationId = async (tx) => {
 export const submitPost = async (
     profile: Profile,
     content: string,
-    mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly
+    mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly,
+    tags?: string[],
+    contentWarning?: PublicationContentWarning
 ): Promise<string> => {
     const accessToken = await getOrRefreshAccessToken();
 
     const metadata: File = makeMetadataFile({
         name: `Post by @${profile.handle}`,
         content,
-        mainContentFocus
+        mainContentFocus,
+        tags,
+        contentWarning
     })
     const metadataCid = await uploadFile(metadata);
 

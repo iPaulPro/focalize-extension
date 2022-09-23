@@ -34,6 +34,7 @@
     "@smui/tab": "^6.1.0",
     "@smui/tab-bar": "^6.1.0",
     "@sveltejs/vite-plugin-svelte": "^1.0.1",
+    "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.7",
     "@tsconfig/svelte": "^3.0.0",
     "@typechain/ethers-v5": "^10.1.0",

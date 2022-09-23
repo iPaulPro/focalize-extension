@@ -24,7 +24,7 @@
         <div class="ml-4 flex items-center md:ml-6">
 
           <a href="/src/new-post/"
-             class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+             class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
 
             <span class="sr-only">
                 New post
@@ -44,7 +44,7 @@
 
               <div>
                 <button type="button" on:click={() => isMenuOpen = !isMenuOpen}
-                        class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
+                        class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
                         id="options-menu">
 
                   {#if profile}
