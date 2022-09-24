@@ -1,10 +1,10 @@
 <script lang="ts">
     import Tribute from "tributejs";
-    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../lib/lens-search";
+    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {onMount} from "svelte";
 
-    import type {PublicationMainFocus} from "../graph/lens-service";
-    import {PublicationMainFocus} from "../graph/lens-service";
+    import type {PublicationMainFocus} from "../../graph/lens-service";
+    import {PublicationMainFocus} from "../../graph/lens-service";
 
     export let plainText: string;
 
@@ -44,5 +44,5 @@
 </script>
 
 <textarea id="plainTextInput" bind:value={plainText} placeholder={placeholder} on:input={handleInputEvent}
-          rows={postType === PublicationMainFocus.Link ? 4 : 6}
+          rows={postType === PublicationMainFocus.Link ? 4 : 5}
           class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden"></textarea>

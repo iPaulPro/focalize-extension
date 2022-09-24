@@ -100,7 +100,8 @@ export const submitPost = async (
     content: string,
     mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly,
     tags?: string[],
-    contentWarning?: PublicationContentWarning
+    contentWarning?: PublicationContentWarning,
+    followerOnlyReference: boolean = false
 ): Promise<string> => {
     const accessToken = await getOrRefreshAccessToken();
 
@@ -113,11 +114,13 @@ export const submitPost = async (
     })
     const metadataCid = await uploadFile(metadata);
 
+    const referenceModule = {followerOnlyReferenceModule: followerOnlyReference}
+
     const postResult = await Lens.CreatePostTypedData(
         profile.id,
         `ipfs://${metadataCid}`,
         FREE_COLLECT_MODULE,
-        EMPTY_REFERENCE_MODULE,
+        referenceModule,
         accessToken
     ) as OperationResult
     if (postResult.error) {
