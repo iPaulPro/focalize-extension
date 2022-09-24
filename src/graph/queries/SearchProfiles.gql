@@ -1,0 +1,17 @@
+query SearchProfiles($request: SearchQueryRequest!) {
+    search(request: $request) {
+        ... on ProfileSearchResult {
+            __typename
+            items {
+                handle
+                name
+                onChainIdentity {
+                    ens {
+                        name
+                    }
+                }
+                ownedBy
+            }
+        }
+    }
+}

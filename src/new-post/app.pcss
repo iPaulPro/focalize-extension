@@ -32,3 +32,40 @@ body {
 .milkdown .editor>* {
     margin: 20px 0 !important;
 }
+
+.tribute-container {
+  filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.25));
+  margin-top: 0.75rem;
+}
+
+.tribute-container ul {
+  padding: 0 !important;
+  background: white !important;
+  border-radius: 12px !important;
+  min-width: 220px !important;
+  max-width: 320px !important;
+  overflow: hidden;
+}
+
+.tribute-container li {
+  padding: 12px;
+  font-size: 1.2em;
+}
+
+.tribute-container li:not(:last-child) {
+  border-bottom: 1px solid #CCC !important;
+}
+
+.tribute-container li.highlight {
+  background: #CCC !important;
+}
+
+.tribute-container li:first-child.highlight {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.tribute-container li:last-child.highlight {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}

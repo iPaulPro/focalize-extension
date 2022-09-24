@@ -4,11 +4,12 @@
     import {submitPost} from '../lib/lens-post.js'
     import {getDefaultProfile, refreshAccessToken} from "../lib/lens-auth";
 
-    import Editor from './Editor.svelte';
+    import Editor from './MarkdownEditor.svelte';
     import PostTags from './PostTags.svelte';
     import {onMount} from "svelte";
     import {PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
     import type {Profile} from "../graph/lens-service";
+    import PlainTextEditor from './PlainTextEditor.svelte'
 
     /**
      * Bound to the plain text editor
@@ -214,18 +215,27 @@
     {#if postType === PublicationMainFocus.TextOnly}
 
       <div class="flex mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4">
+
         {#if profile}
           <img src={profile.picture.original.url} alt="Profile image" class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
         {/if}
-        <textarea class="w-full text-xl my-3 mr-3 border-none focus:ring-0" rows="6" bind:value={plainText} placeholder="What's happening?"></textarea>
+
+        <PlainTextEditor {plainText} {postType} />
+
       </div>
 
     {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video}
 
     {:else if postType === PublicationMainFocus.Link}
 
-      <div class="mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4">
-        <textarea class="w-full text-lg border-none focus:ring-0" rows="6" bind:value={linkText}></textarea>
+      <div class="flex mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4">
+
+        {#if profile}
+          <img src={profile.picture.original.url} alt="Profile image" class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
+        {/if}
+
+        <PlainTextEditor {linkText} {postType} />
+
       </div>
 
     {:else if postType === PublicationMainFocus.Article}
