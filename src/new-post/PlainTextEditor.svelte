@@ -7,6 +7,7 @@
     import {PublicationMainFocus} from "../graph/lens-service";
 
     export let plainText: string;
+
     export let postType: PublicationMainFocus;
 
     let placeholder: string;
@@ -15,6 +16,15 @@
         placeholder = "Text (optional)";
     } else {
         placeholder = "What's happening?";
+    }
+
+    function updateInputHeight(view) {
+        view.style.height = 'inherit';
+        view.style.height = `${view.scrollHeight}px`;
+    }
+
+    const handleInputEvent = (e) => {
+        updateInputHeight(e.target);
     }
 
     onMount(() => {
@@ -33,6 +43,6 @@
     });
 </script>
 
-<textarea id="plainTextInput" bind:value={plainText} placeholder={placeholder}
-          rows={postType === PublicationMainFocus.Link ? 3 : 6}
-          class="w-full text-xl my-3 mr-3 border-none focus:ring-0"></textarea>
+<textarea id="plainTextInput" bind:value={plainText} placeholder={placeholder} on:input={handleInputEvent}
+          rows={postType === PublicationMainFocus.Link ? 4 : 6}
+          class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden"></textarea>

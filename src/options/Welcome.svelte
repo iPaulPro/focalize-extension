@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Toolbar from './Toolbar.svelte';
+    import Toolbar from '../lib/Toolbar.svelte';
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '../../public/images/focalize.svg';
     import focalizeLogoName from '../assets/focalize-logo-name.svg';

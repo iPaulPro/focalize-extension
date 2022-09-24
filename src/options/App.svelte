@@ -11,7 +11,7 @@
     import focalizeLogo from '../assets/focalize-logo-large.svg';
 
     import {onMount} from "svelte";
-    import Welcome from '../lib/Welcome.svelte'
+    import Welcome from './Welcome.svelte'
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)

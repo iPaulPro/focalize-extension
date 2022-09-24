@@ -40,6 +40,8 @@
 
     let postContentWarning: PublicationContentWarning;
 
+    let shareUrl: string;
+
     let profile: Profile;
 
     const parseSearchParams = () => {
@@ -73,19 +75,19 @@
 
         if (urlParams.has('title')) {
             const title = urlParams.get('title');
-            linkText += `${title}\n\n`;
+            linkText += `"${title}"\n\n`;
             markdown += `**${title}**\n`;
         }
 
         if (urlParams.has('desc')) {
             const desc = urlParams.get('desc').replaceAll('\n', '\n> ');
-            linkText += `${desc}\n\n`;
+            linkText += `"${desc}"`;
             markdown += `> ${desc}\n\n`;
         }
 
         if (urlParams.has('url')) {
             const url = urlParams.get('url');
-            linkText += `${url}`;
+            shareUrl = url;
             markdown += `<${url}>`;
         }
 
@@ -122,12 +124,14 @@
     const onSubmitClick = async () => {
         let content: string;
 
+        // TODO validation
+
         switch (postType) {
             case PublicationMainFocus.Article:
                 content = getMarkdown();
                 break;
             case PublicationMainFocus.Link:
-                content = linkText;
+                content = linkText + '\n\n' + shareUrl;
                 break
             default:
                 content = plainText;
@@ -145,9 +149,9 @@
 
 <main class="w-full h-full">
 
-  <div class="container max-w-screen-md mx-auto">
+  <div class="container max-w-screen-md mx-auto pt-8">
 
-    <div class="flex mt-12">
+    <div class="flex">
 
       <div class="sm:hidden">
         <label for="tabs" class="sr-only">Select your country</label>
@@ -234,7 +238,17 @@
           <img src={profile.picture.original.url} alt="Profile image" class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
         {/if}
 
-        <PlainTextEditor {linkText} {postType} />
+        <div class="flex flex-col grow">
+
+          <PlainTextEditor plainText={linkText} {postType} />
+
+          <div class="p-2">
+            <input type="url" id="post-url"  placeholder="Url" bind:value={shareUrl}
+                   class="appearance-none border border-gray-300 w-full py-3 px-4 bg-white text-gray-800 rounded-lg
+                   placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-purple-600
+                   focus:border-transparent"/>
+          </div>
+        </div>
 
       </div>
 

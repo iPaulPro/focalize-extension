@@ -53,7 +53,6 @@ const makeMetadataFile = (
         version: '2.0.0',
         metadata_id: uuid(),
         content,
-        mainContentFocus,
         external_url: externalUrl,
         name,
         attributes,
@@ -61,11 +60,22 @@ const makeMetadataFile = (
         imageMimeType,
         media,
         animation_url: animationUrl,
-        tags,
-        contentWarning,
         locale,
         appId: APP_ID
     }
+
+    if (tags?.length > 0) {
+        obj['tags'] = tags;
+    }
+
+    if (contentWarning) {
+        obj['contentWarning'] = contentWarning;
+    }
+
+    if (mainContentFocus) {
+        obj['mainContentFocus'] = mainContentFocus;
+    }
+
     const blob = new Blob([JSON.stringify(obj)], {type: 'application/json'})
     return new File([blob], `metadata.json`)
 };

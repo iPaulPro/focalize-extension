@@ -39,7 +39,7 @@ const shareUrl = (tags) => {
         focused: true,
         type: 'popup',
         width: 800,
-        height: 600
+        height: 700
     }).catch(console.error);
 
     // chrome.tabs.create({url: url.toString()})
