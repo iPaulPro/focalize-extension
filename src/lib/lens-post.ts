@@ -3,14 +3,19 @@ import {BigNumber, utils} from "ethers";
 import {Lens} from "lens-protocol";
 
 import {APP_ID} from "../config";
-import {PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
+import {
+    AsyncEnabledModuleCurrencies,
+    PublicationContentWarning,
+    PublicationMainFocus
+} from "../graph/lens-service";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
-import {getDefaultProfile, getOrRefreshAccessToken} from "./lens-auth";
+import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadFile} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 
-import type {MetadataAttributeOutput, Profile} from "../graph/lens-service";
+import type {CollectModuleParams, EnabledModuleCurrenciesQuery, Erc20, MetadataAttributeOutput, Profile} from "../graph/lens-service";
 import type {OperationResult} from "urql";
+import type {ApolloQueryResult} from "@apollo/client";
 
 interface MetadataMedia {
     item: string;
@@ -18,7 +23,7 @@ interface MetadataMedia {
 }
 
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
-export const EMPTY_REFERENCE_MODULE = {followerOnlyReferenceModule: false};
+export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
 
 const makeMetadataFile = (
     {
@@ -101,7 +106,8 @@ export const submitPost = async (
     mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
-    followerOnlyReference: boolean = false
+    followersOnly: boolean = false,
+    collectModule: CollectModuleParams = FREE_COLLECT_MODULE
 ): Promise<string> => {
     const accessToken = await getOrRefreshAccessToken();
 
@@ -113,13 +119,15 @@ export const submitPost = async (
         contentWarning
     })
     const metadataCid = await uploadFile(metadata);
+    // TODO check for upload failure
+    const contentURI = `ipfs://${metadataCid}`;
 
-    const referenceModule = {followerOnlyReferenceModule: followerOnlyReference}
+    const referenceModule = {followerOnlyReferenceModule: followersOnly}
 
     const postResult = await Lens.CreatePostTypedData(
         profile.id,
-        `ipfs://${metadataCid}`,
-        FREE_COLLECT_MODULE,
+        contentURI,
+        collectModule,
         referenceModule,
         accessToken
     ) as OperationResult
@@ -147,3 +155,11 @@ export const submitPost = async (
     console.log('submitPost: post has been indexed', postResult.data);
     return publicationId;
 };
+
+export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
+    const res: ApolloQueryResult<EnabledModuleCurrenciesQuery> = await AsyncEnabledModuleCurrencies({})
+    if (res.error) {
+        return Promise.reject(res.error);
+    }
+    return Promise.resolve(res.data.enabledModuleCurrencies);
+}
