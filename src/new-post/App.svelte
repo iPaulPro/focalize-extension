@@ -13,15 +13,6 @@
 
     import type {Profile} from "../graph/lens-service";
 
-    /**
-     * Bound to the plain text editor
-     */
-    let plainText: string;
-
-    /**
-     * Bound to the link text editor
-     */
-    let linkText: string;
 
     /**
      * Bound to the rich text editor
@@ -34,9 +25,15 @@
     let getTags: () => string[];
 
     /**
-     * Editor prop
+     * Bound to the plain text editor
      */
-    let defaultValue: string;
+    let getText: () => string[];
+
+    let initialMarkdownText: string;
+
+    let initialPlainText: string;
+
+    let initialLinkText: string;
 
     let postType: PublicationMainFocus;
 
@@ -47,11 +44,6 @@
     let followerOnlyReference: boolean;
 
     let profile: Profile;
-
-    const followerOnlyReferenceOptions = [
-        {value: false, label: 'Everyone can reply or repost'},
-        {value: true, label: 'Only followers can reply or repost'},
-    ]
 
     const parseSearchParams = () => {
         const queryString = window.location.search;
@@ -80,17 +72,16 @@
         postType = type;
 
         let markdown = '';
-        linkText = '';
 
         if (urlParams.has('title')) {
             const title = urlParams.get('title');
-            linkText += `"${title}"\n\n`;
+            initialLinkText += `"${title}"\n\n`;
             markdown += `**${title}**\n`;
         }
 
         if (urlParams.has('desc')) {
             const desc = urlParams.get('desc').replaceAll('\n', '\n> ');
-            linkText += `"${desc}"`;
+            initialLinkText += `"${desc}"`;
             markdown += `> ${desc}\n\n`;
         }
 
@@ -101,10 +92,10 @@
         }
 
         if (urlParams.has('text')) {
-            plainText = urlParams.get('text');
+            initialPlainText = urlParams.get('text');
         }
 
-        defaultValue = markdown
+        initialMarkdownText = markdown
     };
 
     parseSearchParams();
@@ -140,13 +131,15 @@
                 content = getMarkdown();
                 break;
             case PublicationMainFocus.Link:
-                content = linkText + '\n\n' + shareUrl;
+                content = getText() + '\n\n' + shareUrl;
                 break
             default:
-                content = plainText;
+                content = getText();
+                break;
         }
 
         const tags = getTags();
+
         const publicationId = await submitPost(
             profile,
             content,
@@ -251,7 +244,7 @@
                  class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
           {/if}
 
-          <PlainTextEditor {plainText} {postType}/>
+          <PlainTextEditor initialText={initialPlainText} {postType} bind:getText />
 
         </div>
 
@@ -267,12 +260,12 @@
 
           <div class="flex flex-col grow">
 
-            <PlainTextEditor plainText={linkText} {postType}/>
+            <PlainTextEditor initialText={initialLinkText} {postType} bind:getText />
 
             <div class="p-2">
               <input type="url" id="post-url" placeholder="Url" bind:value={shareUrl}
                      class="appearance-none border border-gray-300 w-full py-3 px-4 bg-white text-gray-800 rounded-lg
-                   placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-purple-600
+                   placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-600
                    focus:border-transparent"/>
             </div>
           </div>
@@ -280,7 +273,7 @@
 
       {:else if postType === PublicationMainFocus.Article}
 
-        <MarkdownEditor bind:getMarkdown {defaultValue} isRichText={true} />
+        <MarkdownEditor bind:getMarkdown {initialMarkdownText} isRichText={true} />
 
       {/if}
 

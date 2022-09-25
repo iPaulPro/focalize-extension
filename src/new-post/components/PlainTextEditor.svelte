@@ -3,14 +3,17 @@
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {onMount} from "svelte";
 
-    import type {PublicationMainFocus} from "../../graph/lens-service";
     import {PublicationMainFocus} from "../../graph/lens-service";
 
-    export let plainText: string;
-
-    export let postType: PublicationMainFocus;
+    let plainText: string;
 
     let placeholder: string;
+
+    export let initialText: string;
+
+    export const getText = (): string => plainText;
+
+    export let postType: PublicationMainFocus;
 
     if (postType === PublicationMainFocus.Link) {
         placeholder = "Text (optional)";
@@ -43,7 +46,7 @@
             plainTextTribute.attach(plainTextInput);
         }
 
-        await sleep(1000);
+        plainText = initialText;
         updateInputHeight(plainTextInput);
 
         const padding = window.outerHeight - document.body.offsetHeight;
