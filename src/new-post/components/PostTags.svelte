@@ -6,6 +6,8 @@
 
     export const getTags = (): string[] => {return tags};
 
+    export let disabled: boolean;
+
     const addTag = () => {
         const emptyTags = tags.filter(tag => tag.length === 0);
         if (emptyTags.length > 0) {
@@ -43,7 +45,7 @@
 <div class="flex flex-wrap gap-3 p-4">
 
   {#if tags.length < 5}
-    <button on:click={addTag}
+    <button on:click={addTag} disabled={disabled}
         class="px-4 py-2  text-sm rounded-full bg-white hover:bg-gray-50 shadow-sm  flex justify-center items-center gap-2">
       Add tag
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6 text-neutral-600"
@@ -61,7 +63,7 @@
       <input type="text" size={Math.max(tag?.length + 1 || 0, 5)} bind:value={tag} on:keypress={onKeyPress}
              class="border-none leading-4 focus:ring-0" maxlength="50">
 
-      <button class="bg-transparent hover" on:click={() => removeTag(tag)}>
+      <button class="bg-transparent hover" on:click={() => removeTag(tag)} disabled={disabled}>
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class=""
              viewBox="0 0 1792 1792">
             <path

@@ -15,6 +15,8 @@
 
     export let postType: PublicationMainFocus;
 
+    export let disabled: boolean;
+
     if (postType === PublicationMainFocus.Link) {
         placeholder = "Text (optional)";
     } else {
@@ -55,5 +57,5 @@
 </script>
 
 <textarea id="plainTextInput" bind:value={plainText} placeholder={placeholder} on:input={handleInputEvent}
-          rows={postType === PublicationMainFocus.Link ? 4 : 5}
-          class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden"></textarea>
+          rows={postType === PublicationMainFocus.Link ? 4 : 5} disabled={disabled}
+          class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent"></textarea>

@@ -45,6 +45,8 @@
 
     let profile: Profile;
 
+    let isSubmittingPost = false;
+
     const parseSearchParams = () => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
@@ -121,7 +123,7 @@
         });
     });
 
-    const onSubmitClick = async () => {
+    const getContent = (): string => {
         let content: string;
 
         // TODO validation
@@ -138,17 +140,27 @@
                 break;
         }
 
-        const tags = getTags();
+        return content;
+    }
 
-        const publicationId = await submitPost(
-            profile,
-            content,
-            postType,
-            tags,
-            postContentWarning,
-            followerOnlyReference
-        );
-        console.log(`onSubmitClick: publication id ${profile.id} - ${publicationId}`);
+    const onSubmitClick = async () => {
+        isSubmittingPost = true;
+        try {
+            const publicationId = await submitPost(
+                profile,
+                getContent(),
+                postType,
+                getTags(),
+                postContentWarning,
+                followerOnlyReference
+            );
+            console.log(`onSubmitClick: publication id ${profile.id} - ${publicationId}`);
+        } catch (e) {
+            // TODO
+            console.error(e);
+        } finally {
+            isSubmittingPost = false;
+        }
     }
 
     onMount(async () => {
@@ -177,7 +189,7 @@
       <ul class="hidden w-full text-sm font-medium text-center text-gray-500 rounded-lg divide-x divide-gray-200 shadow
       sm:flex dark:divide-gray-700 dark:text-gray-400">
         <li class="w-full">
-          <a on:click={() => postType = PublicationMainFocus.TextOnly}
+          <button on:click={() => postType = PublicationMainFocus.TextOnly} disabled={isSubmittingPost}
              class="{postType === PublicationMainFocus.TextOnly ? 'active' : ''}
           tab rounded-l-xl inline-block p-3 w-full cursor-pointer" aria-current="page">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -187,10 +199,10 @@
               <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
             </svg>
             Post
-          </a>
+          </button>
         </li>
         <li class="w-full">
-          <a on:click={() => postType = PublicationMainFocus.Image}
+          <button on:click={() => postType = PublicationMainFocus.Image} disabled={isSubmittingPost}
              class="{postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video ? 'active' : ''}
           tab inline-block p-3 w-full cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -201,10 +213,10 @@
               <path d="M20.4 14.5L16 10 4 20"/>
             </svg>
             Images & Video
-          </a>
+          </button>
         </li>
         <li class="w-full">
-          <a on:click={() => postType = PublicationMainFocus.Link}
+          <button on:click={() => postType = PublicationMainFocus.Link} disabled={isSubmittingPost}
              class="{postType === PublicationMainFocus.Link ? 'active' : ''}
           tab inline-block p-3 w-full cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -214,10 +226,10 @@
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
             </svg>
             Link
-          </a>
+          </button>
         </li>
         <li class="w-full">
-          <a on:click={() => postType = PublicationMainFocus.Article}
+          <button on:click={() => postType = PublicationMainFocus.Article} disabled={isSubmittingPost}
              class="{postType === PublicationMainFocus.Article ? 'active' : ''}
           tab rounded-r-xl inline-block p-3 w-full cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -227,13 +239,13 @@
               <path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/>
             </svg>
             Article
-          </a>
+          </button>
         </li>
       </ul>
 
     </div>
 
-    <div class="mt-6 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4">
+    <div class="mt-6 dark:bg-gray-800 shadow-lg rounded-xl p-4 {isSubmittingPost ? 'bg-neutral-300' : 'bg-white'}">
 
       {#if postType === PublicationMainFocus.TextOnly}
 
@@ -244,7 +256,7 @@
                  class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
           {/if}
 
-          <PlainTextEditor initialText={initialPlainText} {postType} bind:getText />
+          <PlainTextEditor initialText={initialPlainText} {postType} bind:getText disabled={isSubmittingPost} />
 
         </div>
 
@@ -260,11 +272,11 @@
 
           <div class="flex flex-col grow">
 
-            <PlainTextEditor initialText={initialLinkText} {postType} bind:getText />
+            <PlainTextEditor initialText={initialLinkText} {postType} bind:getText disabled={isSubmittingPost} />
 
             <div class="p-2">
-              <input type="url" id="post-url" placeholder="Url" bind:value={shareUrl}
-                     class="appearance-none border border-gray-300 w-full py-3 px-4 bg-white text-gray-800 rounded-lg
+              <input type="url" id="post-url" placeholder="Url" bind:value={shareUrl} disabled={isSubmittingPost}
+                     class="appearance-none border border-gray-300 w-full py-3 px-4 text-gray-800 rounded-lg
                    placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-600
                    focus:border-transparent"/>
             </div>
@@ -295,9 +307,10 @@
           {/if}
         </div>
 
-        <select bind:value={followerOnlyReference} name="followerOnly"
+        <select bind:value={followerOnlyReference} name="followerOnly"  disabled={isSubmittingPost}
                 class="h-fit hover:bg-gray-50 rounded-xl px-2 text-left text-orange-700 hover:text-orange-900 font-semibold
-                cursor-pointer border-none ring-0 focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none">
+                cursor-pointer border-none ring-0 focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none
+                disabled:bg-transparent">
           <option value={false}>
             Everyone can reply or repost
           </option>
@@ -311,7 +324,7 @@
 
     <div class="flex border-b border-neutral-300 items-center overflow-x-auto py-1">
 
-      <select bind:value={postContentWarning}
+      <select bind:value={postContentWarning} disabled={isSubmittingPost}
               class="h-fit bg-white hover:bg-gray-50 rounded-xl shadow-sm pl-3 pr-10 py-3 text-left cursor-pointer
           border-none focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               name="warning">
@@ -329,17 +342,26 @@
         </option>
       </select>
 
-      <PostTags bind:getTags/>
+      <PostTags bind:getTags disabled={isSubmittingPost} />
 
     </div>
 
     <div class="flex justify-end pb-6">
 
-      <button on:click={onSubmitClick}
-              class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto
+      <button on:click={onSubmitClick} disabled={isSubmittingPost}
+              class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto disabled:bg-neutral-400
           bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white text-center text-lg
           transition ease-in duration-200 font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2">
-        Post
+
+        {#if isSubmittingPost}
+          <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+          </svg>
+          Creating post...
+        {:else}
+          Post
+        {/if}
       </button>
 
     </div>

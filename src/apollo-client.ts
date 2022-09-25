@@ -1,9 +1,9 @@
-import {ApolloClient, ApolloLink, from, HttpLink, InMemoryCache,} from '@apollo/client/core';
+import {ApolloClient, ApolloLink, from, fromPromise, HttpLink, InMemoryCache,} from '@apollo/client/core';
 import type {DefaultOptions} from '@apollo/client/core';
-import { onError } from '@apollo/client/link/error';
+import {onError} from '@apollo/client/link/error';
 import fetch from 'cross-fetch';
 import {LENS_API} from "./config";
-import {getAccessToken} from "./lib/lens-auth";
+import {getAccessToken, getOrRefreshAccessToken} from "./lib/lens-auth";
 
 const defaultOptions: DefaultOptions = {
     watchQuery: {
@@ -22,11 +22,36 @@ const httpLink = new HttpLink({
     fetch
 });
 
-const errorLink = onError(({ graphQLErrors, networkError }) => {
+const errorLink = onError(({graphQLErrors, networkError, operation, forward}) => {
     if (graphQLErrors)
-        graphQLErrors.forEach(({ message, locations, path }) =>
+        graphQLErrors.forEach(({message, locations, path, extensions}) => {
+
             console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
-        );
+
+            switch (extensions.code) {
+                case "UNAUTHENTICATED":
+                    return fromPromise(
+                        getOrRefreshAccessToken().catch((error) => {
+                            // TODO Handle token refresh errors e.g clear stored tokens, redirect to login
+                            return;
+                        })
+                    )
+                        .filter((value) => Boolean(value))
+                        .flatMap((accessToken) => {
+                            const oldHeaders = operation.getContext().headers;
+                            // modify the operation context with a new token
+                            operation.setContext({
+                                headers: {
+                                    ...oldHeaders,
+                                    authorization: `Bearer ${accessToken}`,
+                                },
+                            });
+
+                            // retry the request, returning the new observable
+                            return forward(operation);
+                        });
+            }
+        });
 
     if (networkError) console.log(`[Network error]: ${networkError}`);
 });
