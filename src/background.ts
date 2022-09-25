@@ -7,8 +7,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 const parseOGTags = () => {
     return {
-        url: document.querySelector("meta[property='og:url']")?.getAttribute("content") ||
-            document.querySelector("link[rel='canonical']")?.getAttribute("href"),
+        url: document.querySelector("meta[property='og:url']")?.getAttribute("content"),
         title: document.querySelector("meta[property='og:title']")?.getAttribute("content"),
         description: document.querySelector("meta[property='og:description']")?.getAttribute("content") ||
             document.querySelector("meta[name='twitter:description']")?.getAttribute("content")
@@ -41,12 +40,6 @@ const shareUrl = (tags) => {
         width: 800,
         height: 700
     }).catch(console.error);
-
-    // chrome.tabs.create({url: url.toString()})
-    //     .then(tab => {
-    //         console.log(`Created new post tab ${tab.id} for ${JSON.stringify(tags)}`)
-    //     })
-    //     .catch(console.error);
 }
 
 chrome.runtime.onMessage.addListener(
@@ -87,10 +80,12 @@ chrome.action.onClicked.addListener(tab => {
     ).then(results => {
         const tags = results[0]?.result
         if (tags) {
+            console.log('found open graph tags', tags);
             if (!tags.url) tags.url = url
             if (!tags.title) tags.title = title
             shareUrl(tags)
         } else {
+            console.log('no tags found')
             shareUrl({title, url})
         }
     }).catch(e => {
