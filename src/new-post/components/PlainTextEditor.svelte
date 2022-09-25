@@ -27,7 +27,9 @@
         updateInputHeight(e.target);
     }
 
-    onMount(() => {
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    onMount(async () => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, cb),
             menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
@@ -40,6 +42,12 @@
         if (plainTextInput) {
             plainTextTribute.attach(plainTextInput);
         }
+
+        await sleep(1000);
+        updateInputHeight(plainTextInput);
+
+        const padding = window.outerHeight - document.body.offsetHeight;
+        window.resizeTo(window.outerWidth, document.body.scrollHeight + padding)
     });
 </script>
 

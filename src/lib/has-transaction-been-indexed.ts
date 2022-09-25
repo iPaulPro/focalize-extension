@@ -1,101 +1,13 @@
-import { gql } from '@apollo/client/core';
-import ApolloClient from '../apollo-client';
+import {AsyncHasTransactionBeenIndexed, PublicationMetadataStatusType} from "../graph/lens-service";
 
-const HAS_TX_BEEN_INDEXED = `
-  query($request: HasTxHashBeenIndexedRequest!) {
-    hasTxHashBeenIndexed(request: $request) { 
-	    ... on TransactionIndexedResult {
-            indexed
-            txReceipt {
-                to
-                from
-                contractAddress
-                transactionIndex
-                root
-                gasUsed
-                logsBloom
-                blockHash
-                transactionHash
-                blockNumber
-                confirmations
-                cumulativeGasUsed
-                effectiveGasPrice
-                byzantium
-                type
-                status
-                logs {
-                    blockNumber
-                    blockHash
-                    transactionIndex
-                    removed
-                    address
-                    data
-                    topics
-                    transactionHash
-                    logIndex
-                }
-            }
-            metadataStatus {
-              status
-              reason
-            }
-        }
-        ... on TransactionError {
-            reason
-            txReceipt {
-                to
-                from
-                contractAddress
-                transactionIndex
-                root
-                gasUsed
-                logsBloom
-                blockHash
-                transactionHash
-                blockNumber
-                confirmations
-                cumulativeGasUsed
-                effectiveGasPrice
-                byzantium
-                type
-                status
-                logs {
-                    blockNumber
-                    blockHash
-                    transactionIndex
-                    removed
-                    address
-                    data
-                    topics
-                    transactionHash
-                    logIndex
-             }
-            }
-        },
-        __typename
-    }
-  }
-`;
+import type {HasTxHashBeenIndexedRequest} from "../graph/lens-service";
 
-const hasTxBeenIndexed = (txHash: string) => {
-    return ApolloClient.query({
-        query: gql(HAS_TX_BEEN_INDEXED),
-        variables: {
-            request: {
-                txHash,
-            },
-        },
-        fetchPolicy: 'network-only',
-    });
-};
-
-function sleep(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
-}
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const pollUntilIndexed = async (txHash: string) => {
     while (true) {
-        const result = await hasTxBeenIndexed(txHash);
+        const request: HasTxHashBeenIndexedRequest = {txHash}
+        const result = await AsyncHasTransactionBeenIndexed({variables: {request}});
         console.log('pool until indexed: result', result.data);
 
         const response = result.data.hasTxHashBeenIndexed;
@@ -104,11 +16,11 @@ export const pollUntilIndexed = async (txHash: string) => {
             console.log('pool until metadataStatus: metadataStatus', response.metadataStatus);
 
             if (response.metadataStatus) {
-                if (response.metadataStatus.status === 'SUCCESS') {
+                if (response.metadataStatus.status === PublicationMetadataStatusType.Success) {
                     return response;
                 }
 
-                if (response.metadataStatus.status === 'METADATA_VALIDATION_FAILED') {
+                if (response.metadataStatus.status === PublicationMetadataStatusType.MetadataValidationFailed) {
                     throw new Error(response.metadataStatus.reason);
                 }
             } else {

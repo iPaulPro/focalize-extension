@@ -284,7 +284,7 @@
 
       {/if}
 
-      <div class="flex ml-24 pt-3 pb-1">
+      <div class="flex pt-3 pb-1 {postType === PublicationMainFocus.Article ? 'ml-4' : 'ml-24'}">
 
         <div class="mt-2">
           {#if followerOnlyReference}
@@ -303,8 +303,8 @@
         </div>
 
         <select bind:value={followerOnlyReference} name="followerOnly"
-                class="h-fit hover:bg-gray-50 rounded-xl px-2 text-left text-orange-700 font-semibold cursor-pointer border-none ring-0
-                focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none">
+                class="h-fit hover:bg-gray-50 rounded-xl px-2 text-left text-orange-700 hover:text-orange-900 font-semibold
+                cursor-pointer border-none ring-0 focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none">
           <option value={false}>
             Everyone can reply or repost
           </option>
@@ -340,7 +340,7 @@
 
     </div>
 
-    <div class="flex justify-end">
+    <div class="flex justify-end pb-6">
 
       <button on:click={onSubmitClick}
               class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto
