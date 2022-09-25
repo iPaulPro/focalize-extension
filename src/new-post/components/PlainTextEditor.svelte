@@ -49,6 +49,7 @@
         }
 
         plainText = initialText;
+        await sleep(1000);
         updateInputHeight(plainTextInput);
 
         const padding = window.outerHeight - document.body.offsetHeight;

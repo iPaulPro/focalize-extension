@@ -12,6 +12,7 @@
     import {onMount} from "svelte";
 
     import type {Profile} from "../graph/lens-service";
+    import PostTabs from './components/PostTabs.svelte'
 
 
     /**
@@ -73,17 +74,17 @@
         }
         postType = type;
 
-        let markdown = '';
+        let markdown = '', linkText = '', plainText = '';
 
         if (urlParams.has('title')) {
             const title = urlParams.get('title');
-            initialLinkText += `"${title}"\n\n`;
+            linkText += `"${title}"\n\n`;
             markdown += `**${title}**\n`;
         }
 
         if (urlParams.has('desc')) {
             const desc = urlParams.get('desc').replaceAll('\n', '\n> ');
-            initialLinkText += `"${desc}"`;
+            linkText += `"${desc}"`;
             markdown += `> ${desc}\n\n`;
         }
 
@@ -94,11 +95,17 @@
         }
 
         if (urlParams.has('text')) {
-            initialPlainText = urlParams.get('text');
+            plainText = urlParams.get('text');
         }
 
-        initialMarkdownText = markdown
+        initialMarkdownText = markdown;
+        initialLinkText = linkText;
+        initialPlainText = plainText;
     };
+
+    const onPostTypeChange = (e) => {
+        postType = e.detail;
+    }
 
     parseSearchParams();
 
@@ -172,78 +179,7 @@
 
   <div class="container max-w-screen-md mx-auto pt-8">
 
-    <div id="post-tabs" class="flex">
-
-      <div class="sm:hidden">
-        <label for="tabs" class="sr-only">Select your country</label>
-        <select id="tabs" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500
-         focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-         dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-          <option>Post</option>
-          <option>Images & Video</option>
-          <option>Link</option>
-          <option>Article</option>
-        </select>
-      </div>
-
-      <ul class="hidden w-full text-sm font-medium text-center text-gray-500 rounded-lg divide-x divide-gray-200 shadow
-      sm:flex dark:divide-gray-700 dark:text-gray-400">
-        <li class="w-full">
-          <button on:click={() => postType = PublicationMainFocus.TextOnly} disabled={isSubmittingPost}
-             class="{postType === PublicationMainFocus.TextOnly ? 'active' : ''}
-          tab rounded-l-xl inline-block p-3 w-full cursor-pointer" aria-current="page">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
-              <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
-              <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
-            </svg>
-            Post
-          </button>
-        </li>
-        <li class="w-full">
-          <button on:click={() => postType = PublicationMainFocus.Image} disabled={isSubmittingPost}
-             class="{postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video ? 'active' : ''}
-          tab inline-block p-3 w-full cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
-              <rect x="3" y="3" width="18" height="18" rx="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <path d="M20.4 14.5L16 10 4 20"/>
-            </svg>
-            Images & Video
-          </button>
-        </li>
-        <li class="w-full">
-          <button on:click={() => postType = PublicationMainFocus.Link} disabled={isSubmittingPost}
-             class="{postType === PublicationMainFocus.Link ? 'active' : ''}
-          tab inline-block p-3 w-full cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-            </svg>
-            Link
-          </button>
-        </li>
-        <li class="w-full">
-          <button on:click={() => postType = PublicationMainFocus.Article} disabled={isSubmittingPost}
-             class="{postType === PublicationMainFocus.Article ? 'active' : ''}
-          tab rounded-r-xl inline-block p-3 w-full cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-1">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
-              <path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/>
-            </svg>
-            Article
-          </button>
-        </li>
-      </ul>
-
-    </div>
+    <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost} />
 
     <div class="mt-6 dark:bg-gray-800 shadow-lg rounded-xl p-4 {isSubmittingPost ? 'bg-neutral-300' : 'bg-white'}">
 
@@ -285,7 +221,7 @@
 
       {:else if postType === PublicationMainFocus.Article}
 
-        <MarkdownEditor bind:getMarkdown {initialMarkdownText} isRichText={true} />
+        <MarkdownEditor bind:getMarkdown defaultValue={initialMarkdownText} isRichText={true} />
 
       {/if}
 
