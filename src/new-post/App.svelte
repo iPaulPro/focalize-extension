@@ -253,7 +253,7 @@
           <div class="flex">
 
             {#if profile}
-              <img src={profile.picture.original.url} alt="Profile image"
+              <img src={profile.picture.original.url} alt="Profile avatar"
                    class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
             {/if}
 
@@ -266,7 +266,7 @@
           <div class="h-48 w-full flex flex-col justify-center items-center gap-4 py-12">
 
             <div class="text-lg">
-              Drag and drop images or <a href="#" class="font-semibold text-orange">Upload</a>
+              Drag and drop images or <button class="font-semibold text-orange">Upload</button>
             </div>
 
             <div class="text-lg">
@@ -283,7 +283,7 @@
 
           <div class="flex">
             {#if profile}
-              <img src={profile.picture.original.url} alt="Profile image"
+              <img src={profile.picture.original.url} alt="Profile avatar"
                    class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
             {/if}
 

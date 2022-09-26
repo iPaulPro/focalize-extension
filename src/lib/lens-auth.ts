@@ -7,10 +7,10 @@ import type {Profile} from "../graph/lens-service";
 
 export const getOrRefreshAccessToken = async (): Promise<string> => {
     let accessToken = await getAccessToken();
-    console.log('getOrRefreshAccessToken: saved access token', accessToken);
     if (!accessToken) {
         return Promise.reject('No saved access token found');
     }
+    console.log('getOrRefreshAccessToken: found saved access token', accessToken);
 
     const now = Date.now();
 

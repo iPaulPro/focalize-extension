@@ -1,6 +1,5 @@
 import {AsyncSearchProfiles, SearchRequestTypes} from "../graph/lens-service";
 import type {Profile, SearchQueryRequest} from "../graph/lens-service";
-import {doc} from "@milkdown/preset-commonmark";
 
 export const searchProfiles = (query: string) => {
     const request: SearchQueryRequest = {query, type: SearchRequestTypes.Profile, limit: 5}
@@ -11,7 +10,6 @@ export const searchHandles = (query, cb) => {
     searchProfiles(query)
         .then(res => {
             if (res.data.search.__typename === "ProfileSearchResult") {
-                console.log('returning profile search results', res.data.search.items)
                 return res.data.search.items;
             }
             return undefined;

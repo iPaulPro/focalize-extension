@@ -48,7 +48,7 @@
                         id="options-menu">
 
                   {#if profile}
-                    <img src={profile.picture.original.url} alt="Profile image"
+                    <img src={profile.picture.original.url} alt="Profile avatar"
                          class="w-7 h-7 object-cover rounded-full">
                   {:else}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -69,27 +69,7 @@
 
                   <div class="py-1 " role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
 
-                    <a href="#"
-                       class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600"
-                       role="menuitem">
-                          <span class="flex flex-col">
-                              <span>
-                                  Settings
-                              </span>
-                          </span>
-                    </a>
-
-                    <a href="#"
-                       class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600"
-                       role="menuitem">
-                          <span class="flex flex-col">
-                              <span>
-                                  Account
-                              </span>
-                          </span>
-                    </a>
-
-                    <a href="#"
+                    <button
                        class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600"
                        role="menuitem">
                           <span class="flex flex-col">
@@ -97,7 +77,7 @@
                                   Logout
                               </span>
                           </span>
-                    </a>
+                    </button>
 
                   </div>
 

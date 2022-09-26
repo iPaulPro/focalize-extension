@@ -1,9 +1,11 @@
 import {ApolloClient, ApolloLink, from, fromPromise, HttpLink, InMemoryCache,} from '@apollo/client/core';
-import type {DefaultOptions} from '@apollo/client/core';
+import { setContext } from '@apollo/client/link/context'
 import {onError} from '@apollo/client/link/error';
 import fetch from 'cross-fetch';
 import {LENS_API} from "./config";
 import {getAccessToken, getOrRefreshAccessToken} from "./lib/lens-auth";
+
+import type {DefaultOptions} from '@apollo/client/core';
 
 const defaultOptions: DefaultOptions = {
     watchQuery: {
@@ -26,16 +28,16 @@ const errorLink = onError(({graphQLErrors, networkError, operation, forward}) =>
     if (graphQLErrors)
         graphQLErrors.forEach(({message, locations, path, extensions}) => {
 
-            console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`)
+            console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}, Extensions: ${extensions}`)
 
             switch (extensions.code) {
                 case "UNAUTHENTICATED":
                     return fromPromise(
                         getOrRefreshAccessToken().catch((error) => {
+                            console.error('Error refreshing access token', error)
                             // TODO Handle token refresh errors e.g clear stored tokens, redirect to login
                             return;
-                        })
-                    )
+                        }))
                         .filter((value) => Boolean(value))
                         .flatMap((accessToken) => {
                             const oldHeaders = operation.getContext().headers;
@@ -47,6 +49,7 @@ const errorLink = onError(({graphQLErrors, networkError, operation, forward}) =>
                                 },
                             });
 
+                            console.log('Retrying the request with a new access token', accessToken);
                             // retry the request, returning the new observable
                             return forward(operation);
                         });
@@ -54,6 +57,16 @@ const errorLink = onError(({graphQLErrors, networkError, operation, forward}) =>
         });
 
     if (networkError) console.log(`[Network error]: ${networkError}`);
+});
+
+const authenticationLink = setContext(async (_, { headers }) => {
+    const token = await getOrRefreshAccessToken();
+    return {
+        headers: {
+            ...headers,
+            'x-access-token': token ? `Bearer ${token}` : '',
+        }
+    }
 });
 
 // example how you can pass in the x-access-token into requests using `ApolloLink`
@@ -75,7 +88,7 @@ const getAuthLink = async () => {
 }
 
 export default new ApolloClient({
-    link: from([errorLink, await getAuthLink(), httpLink]),
+    link: from([errorLink, authenticationLink, httpLink]),
     cache: new InMemoryCache(),
     defaultOptions: defaultOptions,
 });
