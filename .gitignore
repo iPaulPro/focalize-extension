@@ -240,3 +240,5 @@ package
 
 graphql.schema.json
 src/graph/lens-service.ts
+
+dist.pem

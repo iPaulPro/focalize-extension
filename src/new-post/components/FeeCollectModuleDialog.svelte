@@ -88,10 +88,10 @@
                 $
             </span>
       </div>
-      <input type="text" name="price" id="price" bind:value={price}
+      <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00"
+             bind:value={price}
              class="focus:ring-orange-500 border-l border-b border-t border-gray-300 py-2 px-4 focus:border-orange-500
-             block w-full pl-7 pr-12 rounded-md text-base"
-             placeholder="0.00"/>
+             block w-full pl-7 pr-12 rounded-md text-base" />
       <div class="absolute inset-y-0 right-0 flex items-center">
         <label for="currency" class="sr-only">
           Currency
@@ -138,7 +138,8 @@
       </span>
     </div>
 
-    <input type="number" id="collectLimitInput" placeholder="No. available" bind:value={limit} disabled={!limited}
+    <input type="number" id="collectLimitInput" placeholder="No. available" autocomplete="off"
+           bind:value={limit} disabled={!limited}
            class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:border-gray-300 py-2 px-4 bg-white w-40
              text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-500
              focus:border-transparent"/>

@@ -3,15 +3,11 @@
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {onMount} from "svelte";
 
+    import {content} from "../state";
+
     import {PublicationMainFocus} from "../../graph/lens-service";
 
-    let plainText: string;
-
     let placeholder: string;
-
-    export let initialText: string;
-
-    export const getText = (): string => plainText;
 
     export let postType: PublicationMainFocus;
 
@@ -48,7 +44,6 @@
             plainTextTribute.attach(plainTextInput);
         }
 
-        plainText = initialText;
         await sleep(1000);
         updateInputHeight(plainTextInput);
 
@@ -57,6 +52,6 @@
     });
 </script>
 
-<textarea id="plainTextInput" bind:value={plainText} placeholder={placeholder} on:input={handleInputEvent}
+<textarea id="plainTextInput" bind:value={$content} placeholder={placeholder} on:input={handleInputEvent}
           rows={postType === PublicationMainFocus.Link ? 4 : 5} disabled={disabled}
           class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent"></textarea>

@@ -3,82 +3,37 @@ import {BigNumber, utils} from "ethers";
 import {Lens} from "lens-protocol";
 
 import {APP_ID} from "../config";
+
 import {
     AsyncEnabledModuleCurrencies,
     PublicationContentWarning,
-    PublicationMainFocus
+    PublicationMainFocus,
 } from "../graph/lens-service";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadFile} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 
-import type {CollectModuleParams, EnabledModuleCurrenciesQuery, Erc20, MetadataAttributeOutput, Profile} from "../graph/lens-service";
 import type {OperationResult} from "urql";
 import type {ApolloQueryResult} from "@apollo/client";
-
-interface MetadataMedia {
-    item: string;
-    type: string;
-}
+import type {
+    CollectModuleParams,
+    EnabledModuleCurrenciesQuery,
+    Erc20,
+    PublicationMetadataV2Input,
+    PublicationMetadataMediaInput
+} from "../graph/lens-service";
 
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
 
-const makeMetadataFile = (
-    {
-        content,
-        mainContentFocus,
-        externalUrl,
-        name,
-        image,
-        imageMimeType,
-        media,
-        animationUrl,
-        attributes = [],
-        tags = [],
-        contentWarning,
-        locale = 'en'
-    }: {
-        name: string,
-        mainContentFocus: PublicationMainFocus
-        content?: string,
-        externalUrl?: string,
-        image?: string,
-        imageMimeType?: string,
-        media?: MetadataMedia[],
-        animationUrl?: string,
-        attributes?: MetadataAttributeOutput[],
-        tags?: string[],
-        contentWarning?: PublicationContentWarning,
-        locale?: string
-    }
-): File => {
+const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
         version: '2.0.0',
         metadata_id: uuid(),
-        content,
-        external_url: externalUrl,
-        name,
-        attributes,
-        image,
-        imageMimeType,
-        media,
-        animation_url: animationUrl,
-        locale,
-        appId: APP_ID
-    }
-
-    if (tags?.length > 0) {
-        obj['tags'] = tags;
-    }
-
-    if (contentWarning) {
-        obj['contentWarning'] = contentWarning;
-    }
-
-    if (mainContentFocus) {
-        obj['mainContentFocus'] = mainContentFocus;
+        appId: APP_ID,
+        locale: 'en',
+        ...metadata
     }
 
     const blob = new Blob([JSON.stringify(obj)], {type: 'application/json'})
@@ -100,32 +55,84 @@ const getPublicationId = async (tx) => {
     return BigNumber.from(publicationId).toHexString();
 }
 
-export const submitPost = async (
-    profile: Profile,
+export const generateTextPostMetadata = (
+    handle: string,
     content: string,
-    mainContentFocus: PublicationMainFocus = PublicationMainFocus.TextOnly,
+    mainContentFocus: PublicationMainFocus,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
+): PublicationMetadataV2Input => (
+    {
+        name: `Post by @${handle}`,
+        content,
+        mainContentFocus,
+        tags,
+        contentWarning
+    } as PublicationMetadataV2Input
+)
+
+export const generateImagePostMetadata = (
+    handle: string,
+    media: PublicationMetadataMediaInput,
+    title?: string,
+    content?: string,
+    tags?: string[],
+    contentWarning?: PublicationContentWarning,
+    image: string = media.item,
+    imageMimeType: string = media.type,
+): PublicationMetadataV2Input => (
+    {
+        name: title || `Post by @${handle}`,
+        media: [media],
+        image,
+        imageMimeType,
+        content: title ? `${title}\n\n${content}` : content,
+        description: content,
+        mainContentFocus: PublicationMainFocus.Image,
+        tags,
+        contentWarning
+    } as PublicationMetadataV2Input
+)
+
+export const generateVideoPostMetadata = (
+    handle: string,
+    media: PublicationMetadataMediaInput,
+    title?: string,
+    content?: string,
+    tags?: string[],
+    contentWarning?: PublicationContentWarning,
+    animationUrl: string = media.item,
+): PublicationMetadataV2Input => (
+    {
+        name: title || `Post by @${handle}`,
+        media: [media],
+        animation_url: animationUrl,
+        content: title ? `${title}\n\n${content}` : content,
+        description: content,
+        mainContentFocus: PublicationMainFocus.Video,
+        tags,
+        contentWarning
+    } as PublicationMetadataV2Input
+)
+
+export const submitPost = async (
+    profileId: string,
+    metadata: PublicationMetadataV2Input,
     followersOnly: boolean = false,
     collectModule: CollectModuleParams = FREE_COLLECT_MODULE
 ): Promise<string> => {
     const accessToken = await getOrRefreshAccessToken();
 
-    const metadata: File = makeMetadataFile({
-        name: `Post by @${profile.handle}`,
-        content,
-        mainContentFocus,
-        tags,
-        contentWarning
-    })
-    const metadataCid = await uploadFile(metadata);
+    const metadataFile: File = makeMetadataFile(metadata);
+    const metadataCid = await uploadFile(metadataFile);
     // TODO check for upload failure
+
     const contentURI = `ipfs://${metadataCid}`;
 
     const referenceModule = {followerOnlyReferenceModule: followersOnly}
 
     const postResult = await Lens.CreatePostTypedData(
-        profile.id,
+        profileId,
         contentURI,
         collectModule,
         referenceModule,

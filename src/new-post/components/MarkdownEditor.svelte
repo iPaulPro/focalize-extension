@@ -1,36 +1,22 @@
 <script lang="ts">
-    import {
-        Editor,
-        rootCtx,
-        defaultValueCtx,
-        editorViewCtx,
-        serializerCtx,
-        ThemeColor
-    } from "@milkdown/core";
+    import {Editor, rootCtx, defaultValueCtx, ThemeColor} from "@milkdown/core";
     import {clipboard} from '@milkdown/plugin-clipboard';
     import {history} from '@milkdown/plugin-history';
     import {menu} from '@milkdown/plugin-menu';
     import {tooltip} from '@milkdown/plugin-tooltip';
     import {commonmark} from "@milkdown/preset-commonmark";
     import {nord} from "@milkdown/theme-nord";
-    import { insert } from '@milkdown/utils';
+    import { insert, getMarkdown } from '@milkdown/utils';
 
     export let defaultValue;
 
-    export let isRichText = false
+    export let isRichText = true;
 
     let editor;
 
-    export const getMarkdown = (): string =>
-        editor.action((ctx) => {
-            const editorView = ctx.get(editorViewCtx);
-            const serializer = ctx.get(serializerCtx);
-            return serializer(editorView.state.doc);
-        });
+    export const getText = (): string => editor.action(getMarkdown());
 
-    export const insertText = (text: string) => {
-        editor.action(insert(text));
-    };
+    export const insertText = (text: string) => editor.action(insert(text));
 
     const makeEditor = async dom => {
         nord.override((emotion, manager) => {
@@ -69,7 +55,9 @@
         const builder = Editor.make()
             .config(ctx => {
                 ctx.set(rootCtx, dom);
-                ctx.set(defaultValueCtx, defaultValue);
+                if (defaultValue) {
+                    ctx.set(defaultValueCtx, defaultValue);
+                }
             })
             .use(nord);
 
@@ -84,8 +72,5 @@
         editor = await builder.create();
     };
 </script>
-
-<style>
-</style>
 
 <div use:makeEditor></div>
