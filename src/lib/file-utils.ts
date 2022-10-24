@@ -4,10 +4,15 @@ export const SUPPORTED_MIME_TYPES = [
     'image/gif',
     'image/jpeg',
     'image/png',
+    'image/svg+xml',
+    'image/tiff',
     'image/webp',
+    'image/x-ms-bmp',
     'video/ogg',
+    'video/ogv',
     'video/mp4',
-    'video/webm'
+    'video/webm',
+    'video/x-m4v'
 ]
 
 export const supportedMimeTypesJoined = () => {
