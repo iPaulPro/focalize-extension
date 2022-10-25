@@ -42,7 +42,7 @@
     }
 </script>
 
-<div class="flex flex-wrap gap-3 p-4">
+<div class="flex flex-wrap gap-3">
 
   {#if tags.length < 5}
     <button on:click={addTag} disabled={disabled}

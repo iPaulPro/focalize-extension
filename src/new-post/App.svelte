@@ -15,6 +15,10 @@
 
     import {attachment, content, title} from "./state";
 
+    import Select from 'svelte-select';
+    import ModuleChoiceItem from "./components/ModuleChoiceItem.svelte";
+    import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
+
     import MarkdownEditor from './components/MarkdownEditor.svelte';
     import PlainTextEditor from './components/PlainTextEditor.svelte'
     import PostTags from './components/PostTags.svelte';
@@ -24,6 +28,24 @@
 
     import {onMount} from "svelte";
     import {generateImagePostMetadata, generateVideoPostMetadata} from "../lib/lens-post";
+
+    const followerOnlyItems = [
+        {value: false, label: 'Everyone can engage', summary: 'Anyone can reply, repost, and collect', icon: 'earth'},
+        {value: true, label: 'Followers only', summary: 'Only your followers can reply, repost, and collect', icon: 'followers'},
+    ];
+
+    const collectItems = [
+        {value: CollectModules.FreeCollectModule, label: 'Free to Collect', summary: 'Post can be collected as an NFT for free', icon: 'collect_free'},
+        {value: CollectModules.FeeCollectModule, label: 'Sell NFT', summary: 'Charge for NFT collection', icon: 'collect_paid'},
+        {value: CollectModules.RevertCollectModule, label: 'Disable Collection', summary: 'Do not allow the post to be collected as an NFT', icon: 'collect_disabled'},
+    ];
+
+    const contentWarningItems = [
+        {value: undefined, label: 'No content warning'},
+        {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
+        {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
+        {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
+    ]
 
     /**
      * Bound to the rich text editor
@@ -38,11 +60,12 @@
     let initialMarkdownText: string;
 
     let postType: PublicationMainFocus;
-    let postContentWarning: PublicationContentWarning;
-    let followerOnly: boolean;
     let shareUrl: string;
 
-    let collectModule: CollectModules;
+    let postContentWarning = contentWarningItems[0];
+    let followerOnly = followerOnlyItems[0];
+    let collectModule = collectItems[0];
+
     let feeCollectModule: CollectModule;
 
     let profile: Profile;
@@ -51,31 +74,29 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
 
+    const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
+        if (!urlParams.has('type')) {
+            return PublicationMainFocus.TextOnly;
+        }
+
+        switch (urlParams.get('type')) {
+            case 'image':
+            case 'video':
+                return PublicationMainFocus.Image;
+            case 'link':
+                return PublicationMainFocus.Link;
+            case 'article':
+                return PublicationMainFocus.Article;
+            default:
+                return PublicationMainFocus.TextOnly;
+        }
+    };
+
     const parseSearchParams = () => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
 
-        let type: PublicationMainFocus = PublicationMainFocus.TextOnly;
-        if (urlParams.has('type')) {
-            switch (urlParams.get('type')) {
-                case 'text':
-                    type = PublicationMainFocus.TextOnly;
-                    break;
-                case 'image':
-                    type = PublicationMainFocus.Image;
-                    break;
-                case 'video':
-                    type = PublicationMainFocus.Video;
-                    break;
-                case 'link':
-                    type = PublicationMainFocus.Link;
-                    break;
-                case 'article':
-                    type = PublicationMainFocus.Article;
-                    break;
-            }
-        }
-        postType = type;
+        postType = getMainFocusFromUrlParams(urlParams);
 
         let markdown = '', linkText = '';
 
@@ -114,7 +135,7 @@
     }
 
     const onCollectModuleChange = (e) => {
-        if (e.target.value === CollectModules.FeeCollectModule) {
+        if (e.detail.value === CollectModules.FeeCollectModule) {
             const dialog: HTMLDialogElement = document.getElementById('collectFees');
             dialog.showModal();
         }
@@ -130,29 +151,6 @@
     }
 
     parseSearchParams();
-
-    onMount(async () => {
-        chrome.storage.local.get(['accessToken', 'refreshToken'], async result => {
-            console.log('Got saved tokens', result);
-            const accessToken = decodeJwt(result.accessToken);
-            const accessTokenExpiration = accessToken.exp * 1000; // convert to ms
-
-            const now = Date.now();
-            if (accessTokenExpiration < now) {
-                console.log('Access token is expired.');
-                const refreshToken = decodeJwt(result.refreshToken);
-                const refreshTokenExpiration = refreshToken.exp * 1000; // convert to ms
-
-                if (refreshTokenExpiration > now) {
-                    await refreshAccessToken(result.refreshToken);
-                } else {
-                    console.log('Refresh token is expired')
-                    // TODO new login required
-                    alert('Authentication expired');
-                }
-            }
-        });
-    });
 
     const getContent = (): string => {
         switch (postType) {
@@ -175,7 +173,7 @@
                 content,
                 postType,
                 getTags(),
-                postContentWarning,
+                postContentWarning.value,
             );
         }
 
@@ -191,7 +189,7 @@
                 $title,
                 $content,
                 getTags(),
-                postContentWarning,
+                postContentWarning.value,
             );
         } else if ($attachment.type.startsWith('video/')) {
             return generateVideoPostMetadata(
@@ -200,7 +198,7 @@
                 $title,
                 $content,
                 getTags(),
-                postContentWarning,
+                postContentWarning.value,
             );
         }
 
@@ -211,9 +209,9 @@
         isSubmittingPost = true;
 
         let collect: CollectModuleParams;
-        switch (collectModule) {
+        switch (collectModule.value) {
             case CollectModules.FreeCollectModule:
-                collect = {freeCollectModule: {followerOnly}};
+                collect = {freeCollectModule: {followerOnly: followerOnly.value}};
                 break;
             case CollectModules.RevertCollectModule:
                 collect = REVERT_COLLECT_MODULE;
@@ -229,7 +227,7 @@
             const publicationId = await submitPost(
                 profile.id,
                 metadata,
-                followerOnly,
+                followerOnly.value,
                 collect
             );
 
@@ -357,74 +355,43 @@
 
         {/if}
 
-        <div class="flex pt-3 pb-1 {postType === PublicationMainFocus.Article ? 'ml-4' : 'ml-24'}">
+        <div class="flex pt-2 pb-1 {postType === PublicationMainFocus.Article ? 'ml-4' : 'ml-20'}">
 
           <div class="flex">
 
-            <div class="mt-2">
-              {#if followerOnly}
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-orange-700"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="8.5" cy="7" r="4"></circle>
-                  <polyline points="17 11 19 13 23 9"></polyline>
-                </svg>
-              {:else}
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                     class="text-orange-700"
-                     fill="currentColor">
-                  <path
-                      d="M12 22.2q-2.1 0-3.962-.8-1.863-.8-3.25-2.175Q3.4 17.85 2.6 15.988 1.8 14.125 1.8 12t.8-3.988q.8-1.862 2.188-3.237Q6.175 3.4 8.038 2.6 9.9 1.8 12 1.8q2.125 0 3.988.8 1.862.8 3.237 2.175Q20.6 6.15 21.4 8.012q.8 1.863.8 3.988t-.8 3.988q-.8 1.862-2.175 3.237Q17.85 20.6 15.988 21.4q-1.863.8-3.988.8Zm-1-2.325v-1.95q-.8 0-1.387-.575-.588-.575-.588-1.4v-.975L4.275 10.2q-.075.45-.137.9-.063.45-.063.9 0 3 1.975 5.25T11 19.875Zm6.85-2.525q.5-.55.888-1.175.387-.625.65-1.313.262-.687.4-1.412.137-.725.137-1.45 0-2.425-1.338-4.438-1.337-2.012-3.612-2.887v.375q0 .825-.587 1.4-.588.575-1.388.575h-2v2q0 .4-.287.687-.288.288-.688.288h-2v2h5.95q.425 0 .713.287.287.288.287.688v2.975h1q.65 0 1.163.387.512.388.712 1.013Z"/>
-                </svg>
-              {/if}
-            </div>
+            <Select bind:value={followerOnly} items={followerOnlyItems}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
+                    class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
 
-            <select bind:value={followerOnly} name="followerOnly" disabled={isSubmittingPost}
-                    class="h-fit hover:bg-gray-50 rounded-xl px-2 text-left text-orange-700 hover:text-orange-900 font-semibold
-                cursor-pointer border-none ring-0 focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none
-                disabled:bg-transparent">
-              <option value={false}>
-                {#if collectModule === CollectModules.RevertCollectModule}
-                  Everyone can reply and repost
-                {:else}
-                  Everyone can reply, repost, & collect
-                {/if}
-              </option>
-              <option value={true}>
-                {#if collectModule === CollectModules.RevertCollectModule}
-                  Only followers can reply, repost
-                {:else}
-                  Only followers can reply, repost, & collect
-                {/if}
-              </option>
-            </select>
+              <div slot="item" let:item let:index>
+                <ModuleChoiceItem {item} />
+              </div>
+
+              <div slot="selection" let:selection class="flex cursor-pointer">
+                <ModuleSelectionItem {selection} />
+              </div>
+
+            </Select>
 
           </div>
 
           <div class="flex ml-2">
 
-            <div class="mt-2">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 text-orange-700"
-                   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/>
-              </svg>
-            </div>
-
-            <select name="followerOnly" disabled={isSubmittingPost}
+            <Select items={collectItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
                     bind:value={collectModule} on:change={onCollectModuleChange}
-                    class="h-fit hover:bg-gray-50 rounded-xl px-2 text-left text-orange-700 hover:text-orange-900 font-semibold
-                cursor-pointer border-none ring-0 focus:outline-none focus:ring-0 focus:border-none sm:text-sm bg-none
-                disabled:bg-transparent">
-              <option value={CollectModules.FreeCollectModule}>
-                Mint as a free NFT
-              </option>
-              <option value={CollectModules.FeeCollectModule}>
-                Sell as an NFT
-              </option>
-              <option value={CollectModules.RevertCollectModule}>
-                Do not create an NFT
-              </option>
-            </select>
+                    --item-height="auto"  --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
+                    class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
+
+              <div slot="item" let:item let:index>
+                <ModuleChoiceItem {item} />
+              </div>
+
+              <div slot="selection" let:selection class="flex">
+                <ModuleSelectionItem {selection} />
+              </div>
+
+            </Select>
 
           </div>
 
@@ -433,28 +400,15 @@
       </div>
 
       <dialog id="collectFees" class="rounded-xl shadow-2xl">
-        <CollectModuleDialog {followerOnly} on:moduleUpdated={onFeeCollectModuleUpdated}/>
+        <CollectModuleDialog followerOnly={followerOnly.value} on:moduleUpdated={onFeeCollectModuleUpdated}/>
       </dialog>
 
-      <div class="flex border-b border-neutral-300 items-center overflow-x-auto py-1">
+      <div class="flex border-b border-neutral-300 py-5 gap-4">
 
-        <select bind:value={postContentWarning} disabled={isSubmittingPost}
-                class="h-fit bg-white hover:bg-gray-50 rounded-xl shadow-sm pl-3 pr-10 py-3 text-left cursor-pointer
-          border-none focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                name="warning">
-          <option value="">
-            No Content Warning
-          </option>
-          <option value={PublicationContentWarning.Nsfw}>
-            NSFW
-          </option>
-          <option value={PublicationContentWarning.Spoiler}>
-            Spoiler
-          </option>
-          <option value={PublicationContentWarning.Sensitive}>
-            Sensitive
-          </option>
-        </select>
+        <Select items={contentWarningItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={true}
+                bind:value={postContentWarning}
+                --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --font-size="0.875rem"
+                class="w-fit h-fit hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent" />
 
         <PostTags bind:getTags disabled={isSubmittingPost}/>
 

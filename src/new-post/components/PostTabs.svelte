@@ -13,7 +13,7 @@
 <div id="post-tabs" class="flex">
 
   <div class="sm:hidden">
-    <label for="tabs" class="sr-only">Select your country</label>
+    <label for="tabs" class="sr-only">Publication type</label>
     <select id="tabs" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500
          focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
          dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
@@ -50,7 +50,7 @@
           <circle cx="8.5" cy="8.5" r="1.5"/>
           <path d="M20.4 14.5L16 10 4 20"/>
         </svg>
-        Images & Video
+        Media
       </button>
     </li>
     <li class="w-full">

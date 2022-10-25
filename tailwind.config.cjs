@@ -18,6 +18,9 @@ const config = {
           '900': '#331000'
         }
       },
+      dropShadow: {
+        'dark': '0 1px 1px rgba(0, 0, 0, 0.7)'
+      }
     },
   },
 
@@ -27,6 +30,8 @@ const config = {
   ],
 
   darkMode: 'class',
+
+  important: true,
 };
 
 module.exports = config;
