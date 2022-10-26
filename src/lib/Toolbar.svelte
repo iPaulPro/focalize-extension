@@ -2,9 +2,9 @@
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '../assets/focalize-logo-large.svg';
 
-    let isMenuOpen = false;
+    import {profile} from "./state";
 
-    export let profile;
+    let isMenuOpen = false;
 </script>
 
 <nav class="bg-white dark:bg-gray-800  shadow ">
@@ -47,8 +47,8 @@
                         class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
                         id="options-menu">
 
-                  {#if profile}
-                    <img src={profile.picture.original.url} alt="Profile avatar"
+                  {#if $profile}
+                    <img src={$profile.picture.original.url} alt="Profile avatar"
                          class="w-7 h-7 object-cover rounded-full">
                   {:else}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

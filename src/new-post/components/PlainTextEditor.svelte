@@ -1,9 +1,11 @@
 <script lang="ts">
     import Tribute from "tributejs";
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
+    import {sleep} from "../../lib/utils";
+
     import {onMount} from "svelte";
 
-    import {content} from "../state";
+    import {content} from "../../lib/state";
 
     import {PublicationMainFocus} from "../../graph/lens-service";
 
@@ -27,8 +29,6 @@
     const handleInputEvent = (e) => {
         updateInputHeight(e.target);
     }
-
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     onMount(async () => {
         const plainTextTribute = new Tribute({

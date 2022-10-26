@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context'
 import {onError} from '@apollo/client/link/error';
 import fetch from 'cross-fetch';
 import {LENS_API} from "./config";
-import {getOrRefreshAccessToken} from "./lib/lens-auth";
+import {getOrRefreshAccessToken, logOut} from "./lib/lens-auth";
 
 import type {DefaultOptions} from '@apollo/client/core';
 
@@ -35,7 +35,7 @@ const errorLink = onError(({graphQLErrors, networkError, operation, forward}) =>
                     return fromPromise(
                         getOrRefreshAccessToken().catch((error) => {
                             console.error('Error refreshing access token', error)
-                            // TODO Handle token refresh errors e.g clear stored tokens, redirect to login
+                            chrome.runtime.openOptionsPage();
                             return;
                         }))
                         .filter((value) => Boolean(value))

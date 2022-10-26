@@ -5,13 +5,11 @@
     import focalizeLogoName from '../assets/focalize-logo-name.svg';
     import lensLogo from '../assets/lens-logo.svg';
     import welcomeImage from '../assets/welcome.svg';
-
-    export let profile;
 </script>
 
 <div class="flex flex-col w-full h-full">
 
-  <Toolbar {profile} />
+  <Toolbar />
 
   <main class="flex flex-col grow items-center">
 

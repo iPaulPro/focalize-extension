@@ -2,20 +2,63 @@ import createMetaMaskProvider from "metamask-extension-provider";
 import { ethers, utils } from 'ethers';
 import omitDeep from 'omit-deep';
 import type { Web3Provider, ExternalProvider, JsonRpcSigner } from '@ethersproject/providers';
+import {sleep} from "./utils";
 
 const inPageProvider = createMetaMaskProvider();
-export const ethersProvider: Web3Provider = new ethers.providers.Web3Provider(inPageProvider as ExternalProvider);
+export const provider: Web3Provider = new ethers.providers.Web3Provider(inPageProvider as ExternalProvider);
+
+const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
+
+function normalizeChainId(chainId: string | number | bigint) {
+    if (typeof chainId === 'string')
+        return Number.parseInt(
+            chainId,
+            chainId.trim().substring(0, 2) === '0x' ? 16 : 10,
+        )
+    if (typeof chainId === 'bigint') return Number(chainId)
+    return chainId
+}
 
 export const getSigner = (): JsonRpcSigner => {
-    return ethersProvider.getSigner();
+    return provider.getSigner();
 }
 
 export const getAddressFromSigner = (): Promise<string> => {
     return getSigner().getAddress();
 }
 
+export const getChainId = async (): Promise<number> => {
+    return provider.send('eth_chainId', []).then(normalizeChainId);
+}
+
+export const switchChains = async (chainId: number) => {
+    const id: string = utils.hexValue(chainId);
+    try {
+        await provider.send(
+            'wallet_switchEthereumChain',
+            [{chainId: id}]
+        );
+        console.log('switched to chain', chainId);
+    } catch (error) {
+        if (error.code === 4902) {
+            console.log("this network is not in the user's wallet")
+            // TODO prompt to add network - wallet_addEthereumChain
+        }
+
+        throw error;
+    }
+}
+
+export const ensureCorrectChain = async () => {
+    const chainId = await getChainId();
+    if (CHAIN_ID !== chainId) {
+        await switchChains(CHAIN_ID);
+        await sleep(2000);
+    }
+}
+
 export const init = async() => {
-    const accounts = await ethersProvider.send('eth_requestAccounts', []);
+    const accounts = await provider.send('eth_requestAccounts', []);
     return accounts[0];
 }
 
@@ -29,31 +72,27 @@ export const signedTypeData = (domain, types, value): Promise<string> => {
     );
 }
 
-export const splitSignature = (signature) => {
-    return utils.splitSignature(signature)
-}
-
 // Subscribe to account change
-ethersProvider.on("accountsChanged", (accounts: string[]) => {
+provider.on("accountsChanged", (accounts: string[]) => {
     console.log("ethersProvider: accountsChanged", accounts);
 });
 
 // Subscribe to chainId change
-ethersProvider.on("chainChanged", (chainId: number) => {
+provider.on("chainChanged", (chainId: number) => {
     console.log("ethersProvider: chainChanged", chainId);
 });
 
 // Subscribe to provider connection
-ethersProvider.on("connect", (info: { chainId: number }) => {
+provider.on("connect", (info: { chainId: number }) => {
     console.log("ethersProvider: connect", info);
 });
 
 // Subscribe to provider disconnection
-ethersProvider.on("disconnect", (error: { code: number; message: string }) => {
+provider.on("disconnect", (error: { code: number; message: string }) => {
     console.log("ethersProvider: disconnect", error);
 });
 
-ethersProvider.on('error', (error) => {
+provider.on('error', (error) => {
     // Failed to connect to MetaMask, fallback logic.
     console.error(error);
 });

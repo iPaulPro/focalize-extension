@@ -1,14 +1,72 @@
 import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
-import {init} from "./ethers-service";
+import {getSigner, init} from "./ethers-service";
 import {Duration} from "luxon";
 
 import type {Profile} from "../graph/lens-service";
 
+export const authenticate = async (): Promise<Profile> => {
+    const signer = getSigner();
+    const address = await signer.getAddress();
+
+    if (!address) throw 'No address found';
+
+    console.log('authenticate: Authenticating with address', address);
+
+    // Getting the challenge from the server
+    const challenge = await Lens.getChallenge(address);
+    console.log('authenticate: Lens challenge response', challenge);
+
+    // @ts-ignore
+    const challengeError = challenge.error, challengeData = challenge.data;
+    if (challengeError) throw challengeError;
+
+    // Signing the challenge with the wallet
+    let message = challengeData.challenge.text;
+    const signature = await signer.signMessage(message);
+    console.log('authenticate: Signed Lens challenge', signature);
+
+    const auth = await Lens.Authenticate(address, signature);
+    console.log('authenticate: Lens auth response', auth);
+
+    // @ts-ignore
+    const authError = auth.error, authData = auth.data;
+    if (authError) throw authError;
+
+    if (authData) {
+        const accessToken = authData?.authenticate?.accessToken;
+        const refreshToken = authData?.authenticate?.refreshToken;
+        chrome.storage.local.set({accessToken, refreshToken}, function () {
+            console.log('authenticate: Saved tokens to local storage');
+        });
+    }
+
+    const profileRes = await Lens.defaultProfile(address);
+
+    // @ts-ignore
+    const profileError = profileRes.error, profileData = profileRes.data;
+    if (profileError) throw profileError;
+    console.log('authenticate: Default profile', profileData.defaultProfile);
+
+    if (!profileData.defaultProfile) {
+        // TODO Check if any profile, prompt to choose a default profile
+        throw 'No default Lens profile found';
+    }
+
+    return profileData.defaultProfile;
+};
+
+/**
+ * Returns a saved valid access token, or uses a saved valid refresh token to retrieve, save,
+ * and return a new access token.
+ *
+ * @throws If there are no saved tokens
+ * @throws If the saved refresh token is expired and an access token cannot be returned
+ */
 export const getOrRefreshAccessToken = async (): Promise<string> => {
     let accessToken = await getAccessToken();
     if (!accessToken) {
-        return Promise.reject('No saved access token found');
+        return Promise.reject('No saved tokens found');
     }
     console.log('getOrRefreshAccessToken: found saved access token', accessToken);
 
@@ -24,12 +82,16 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     console.log('getOrRefreshAccessToken: Access token is expired.');
 
     const savedRefreshToken = await getRefreshToken();
-    console.log('getOrRefreshAccessToken: saved refresh token', savedRefreshToken)
+    if (!savedRefreshToken) {
+        return Promise.reject('No saved refresh token found');
+    }
+    console.log('getOrRefreshAccessToken: found saved refresh token')
 
     const refreshTokenExpiration = decodeJwt(savedRefreshToken).exp * 1000; // convert to ms
     if (refreshTokenExpiration > now) {
         return refreshAccessToken(savedRefreshToken);
     } else {
+        await logOut();
         return Promise.reject('Refresh token is expired');
     }
 }
@@ -70,9 +132,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
     const error = res.error, data = res.data;
 
     if (error) {
-        // TODO
-        console.error(error);
-        return;
+        throw error;
     }
 
     return new Promise((resolve, reject) => {
@@ -91,6 +151,10 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
             }
         );
     })
+}
+
+export const logOut = async () => {
+    await chrome.storage.local.clear();
 }
 
 /**

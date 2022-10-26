@@ -1,9 +1,11 @@
 <script lang="ts">
+    import toast from 'svelte-french-toast';
+
     import {uploadFileWithProgress} from "../../lib/ipfs-service";
     import LoadingSpinner from './LoadingSpinner.svelte'
     import {MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils.js'
 
-    import {attachment, content, title} from "../state";
+    import {attachment, content, title} from "../../lib/state";
     import type {Web3File} from "web3.storage";
 
     export let disabled: boolean;
@@ -32,8 +34,7 @@
     const onFileSelected = async (e) => {
         let file = e.target.files[0];
         if (!file || file.size > MAX_FILE_SIZE) {
-            // TODO show large file error
-            alert('File too large');
+            toast.error('File too large');
             return;
         }
         console.log('File selected', file);
@@ -42,8 +43,7 @@
             await uploadFile(file);
         } catch (e) {
             console.error(e)
-            // TODO show file upload error
-            alert('Error uploading file');
+            toast.error('Error uploading file');
         }
     };
 
@@ -61,8 +61,7 @@
             uploadFile(file)
                 .catch(e => {
                     console.error(e);
-                    // TODO show file upload error
-                    alert('Error uploading file');
+                    toast.error('Error uploading file');
                 });
         }
     }

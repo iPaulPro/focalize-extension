@@ -1,24 +1,35 @@
 <script lang="ts">
-    import {decodeJwt} from 'jose'
+    import {ensureCorrectChain} from '../lib/ethers-service';
 
-    import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from "../lib/file-utils";
-    import {generateTextPostMetadata, REVERT_COLLECT_MODULE, submitPost} from '../lib/lens-post.js'
-    import {getDefaultProfile, refreshAccessToken} from "../lib/lens-auth";
+    import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
+    import {sleep} from "../lib/utils";
+    import {getDefaultProfile} from '../lib/lens-auth';
+
+    import {
+        generateImagePostMetadata,
+        generateVideoPostMetadata,
+        generateTextPostMetadata,
+        REVERT_COLLECT_MODULE,
+        submitPost
+    } from '../lib/lens-post.js'
+
     import type {
         CollectModule,
         CollectModuleParams,
         Profile,
         PublicationMetadataMediaInput,
         PublicationMetadataV2Input,
-    } from "../graph/lens-service";
-    import {CollectModules, PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
+    } from '../graph/lens-service';
 
-    import {attachment, content, title} from "./state";
+    import {CollectModules, PublicationContentWarning, PublicationMainFocus} from '../graph/lens-service';
+
+    import {attachment, content, profile, title} from '../lib/state';
 
     import Select from 'svelte-select';
-    import ModuleChoiceItem from "./components/ModuleChoiceItem.svelte";
-    import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
+    import toast, { Toaster } from 'svelte-french-toast';
 
+    import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
+    import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
     import MarkdownEditor from './components/MarkdownEditor.svelte';
     import PlainTextEditor from './components/PlainTextEditor.svelte'
     import PostTags from './components/PostTags.svelte';
@@ -26,8 +37,7 @@
     import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte'
     import MediaUploader from './components/MediaUploader.svelte'
 
-    import {onMount} from "svelte";
-    import {generateImagePostMetadata, generateVideoPostMetadata} from "../lib/lens-post";
+    import {onMount} from 'svelte';
 
     const followerOnlyItems = [
         {value: false, label: 'Everyone can engage', summary: 'Anyone can reply, repost, and collect', icon: 'earth'},
@@ -35,13 +45,13 @@
     ];
 
     const collectItems = [
-        {value: CollectModules.FreeCollectModule, label: 'Free to Collect', summary: 'Post can be collected as an NFT for free', icon: 'collect_free'},
+        {value: CollectModules.FreeCollectModule, label: 'Free to collect', summary: 'Post can be collected as an NFT for free', icon: 'collect_free'},
         {value: CollectModules.FeeCollectModule, label: 'Sell NFT', summary: 'Charge for NFT collection', icon: 'collect_paid'},
         {value: CollectModules.RevertCollectModule, label: 'Disable Collection', summary: 'Do not allow the post to be collected as an NFT', icon: 'collect_disabled'},
     ];
 
     const contentWarningItems = [
-        {value: undefined, label: 'No content warning'},
+        {value: '', label: 'No content warning'},
         {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
         {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
         {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
@@ -67,8 +77,6 @@
     let collectModule = collectItems[0];
 
     let feeCollectModule: CollectModule;
-
-    let profile: Profile;
 
     let postId: string;
     let isSubmittingPost = false;
@@ -132,14 +140,14 @@
 
     const onPostTypeChange = (e) => {
         postType = e.detail;
-    }
+    };
 
     const onCollectModuleChange = (e) => {
         if (e.detail.value === CollectModules.FeeCollectModule) {
             const dialog: HTMLDialogElement = document.getElementById('collectFees');
             dialog.showModal();
         }
-    }
+    };
 
     const onFeeCollectModuleUpdated = (e) => {
         feeCollectModule = e.detail;
@@ -148,7 +156,7 @@
         if (dialog) {
             dialog.close();
         }
-    }
+    };
 
     parseSearchParams();
 
@@ -160,7 +168,7 @@
                 return $content + '\n\n' + shareUrl;
         }
         return $content;
-    }
+    };
 
     const buildMetadata = (): PublicationMetadataV2Input => {
         if (postType !== PublicationMainFocus.Image) {
@@ -169,7 +177,7 @@
             // TODO validate
 
             return generateTextPostMetadata(
-                profile.handle,
+                $profile.handle,
                 content,
                 postType,
                 getTags(),
@@ -184,7 +192,7 @@
 
         if ($attachment.type.startsWith('image/')) {
             return generateImagePostMetadata(
-                profile.handle,
+                $profile.handle,
                 mediaMetadata,
                 $title,
                 $content,
@@ -193,7 +201,7 @@
             );
         } else if ($attachment.type.startsWith('video/')) {
             return generateVideoPostMetadata(
-                profile.handle,
+                $profile.handle,
                 mediaMetadata,
                 $title,
                 $content,
@@ -203,10 +211,17 @@
         }
 
         throw 'Unrecognized attachment';
-    }
+    };
 
     const onSubmitClick = async () => {
         isSubmittingPost = true;
+
+        try {
+            await ensureCorrectChain();
+        } catch (e) {
+            console.log(`Error ${e.code}: ${e.message}`);
+            toast.error('Error switching chains');
+        }
 
         let collect: CollectModuleParams;
         switch (collectModule.value) {
@@ -222,29 +237,37 @@
         }
 
         const metadata = buildMetadata();
+        console.log('onSubmitClick: post metadata', metadata)
 
         try {
             const publicationId = await submitPost(
-                profile.id,
+                $profile.id,
                 metadata,
                 followerOnly.value,
                 collect
             );
 
-            postId = `${profile.id}-${publicationId}`;
+            postId = `${$profile.id}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
         } catch (e) {
             // TODO handle post submit error
             console.error(e);
-            alert('Error creating post');
+            toast.error('Error creating post');
         } finally {
             isSubmittingPost = false;
         }
-    }
+    };
 
     onMount(async () => {
-        profile = await getDefaultProfile();
-    })
+        try {
+            if (!$profile) {
+                const defaultProfile = await getDefaultProfile();
+                profile.set(defaultProfile);
+            }
+        } catch (e) {
+            chrome.runtime.openOptionsPage();
+        }
+    });
 
     const onFileDropped = (ev) => {
         const dt = ev.dataTransfer;
@@ -255,8 +278,7 @@
             !SUPPORTED_MIME_TYPES.includes(file.type) ||
             file.size > MAX_FILE_SIZE
         ) {
-            // TODO show incompatible file error
-            alert('File not supported');
+            toast.error('File not supported');
             isFileDragged = false;
             return;
         }
@@ -312,8 +334,8 @@
 
           <div class="flex">
 
-            {#if profile}
-              <img src={profile.picture.original.url} alt="Profile avatar"
+            {#if $profile}
+              <img src={$profile.picture.original.url} alt="Profile avatar"
                    class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
             {/if}
 
@@ -328,8 +350,8 @@
         {:else if postType === PublicationMainFocus.Link}
 
           <div class="flex">
-            {#if profile}
-              <img src={profile.picture.original.url} alt="Profile avatar"
+            {#if $profile}
+              <img src={$profile.picture.original.url} alt="Profile avatar"
                    class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
             {/if}
 
@@ -359,10 +381,11 @@
 
           <div class="flex">
 
-            <Select bind:value={followerOnly} items={followerOnlyItems}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+            <Select bind:value={followerOnly} items={followerOnlyItems} disabled={isSubmittingPost}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} containerStyles="cursor: pointer;"
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
-                    class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
+                    class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
+                    focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem {item} />
@@ -379,9 +402,10 @@
           <div class="flex ml-2">
 
             <Select items={collectItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
-                    bind:value={collectModule} on:change={onCollectModuleChange}
+                    bind:value={collectModule} on:change={onCollectModuleChange} disabled={isSubmittingPost}
                     --item-height="auto"  --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
-                    class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
+                    class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
+                    focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem {item} />
@@ -446,6 +470,4 @@
 
 </main>
 
-<style>
-
-</style>
+<Toaster />
