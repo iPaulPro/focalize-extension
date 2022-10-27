@@ -21,7 +21,7 @@
 
           <div class="lg:col-start-1">
 
-            <InlineSVG src={focalizeLogoName} class="h-16" />
+            <InlineSVG src={focalizeLogoName} alt="Focalize Logo" class="h-16" />
 
             <h4 class="mt-8 text-2xl leading-8 font-extrabold text-gray-900 dark:text-white tracking-tight sm:leading-9">
               The quickest way to post to Lens!
@@ -46,7 +46,7 @@
                     </h5>
                     <p class="mt-2 text-base leading-6 text-gray-500 dark:text-gray-300">
                       Sharing what you're looking at has never been easier. Click on the
-                      <InlineSVG src={focalizeLogo} class="w-6 h-6 inline"/>
+                      <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-6 h-6 inline"/>
                       in the toolbar to share a link to your current tab.
                     </p>
                   </div>
@@ -101,7 +101,7 @@
               </li>
             </ul>
 
-            <a href="/src/new-post/"
+            <a href="/src/new-post/index.html"
                     class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center  bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white transition ease-in duration-200 text-center text-lg font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-lg">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" class="mr-2"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -114,7 +114,7 @@
           </div>
 
           <div class="mt-10 ml-6 relative lg:mt-24 lg:col-start-2">
-            <InlineSVG src={welcomeImage} alt="illustration" class="relative mx-auto w-auto"/>
+            <InlineSVG src={welcomeImage} alt="Illustration of woman juggling clipboards" class="relative mx-auto w-auto"/>
           </div>
 
         </div>
@@ -129,7 +129,7 @@
 
         <div class="flex flex-col gap-4 items-center lg:flex-row px-6 py-6 md:py-12 md:px-12 lg:py-16 lg:px-16">
 
-          <InlineSVG src={lensLogo} class="w-32 h-32" />
+          <InlineSVG src={lensLogo} alt="Lens Logo" class="w-32 h-32" />
 
           <div class="ml-8">
             <h2 class="text-2xl leading-8 font-extrabold tracking-tight text-white sm:text-3xl sm:leading-9">

@@ -14,8 +14,8 @@
     <div class="flex items-center justify-between h-16">
 
       <div class=" flex items-center">
-        <a class="flex-shrink-0" href="/src/options/">
-          <InlineSVG class="h-8 w-8" src={focalizeLogo} alt="Focalize"/>
+        <a class="flex-shrink-0" href="/src/options/index.html">
+          <InlineSVG class="h-8 w-8" src={focalizeLogo} alt="Focalize" />
         </a>
       </div>
 
@@ -23,7 +23,7 @@
 
         <div class="ml-4 flex items-center md:ml-6">
 
-          <a href="/src/new-post/"
+          <a href="/src/new-post/index.html"
              class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
 
             <span class="sr-only">

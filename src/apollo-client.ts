@@ -3,7 +3,7 @@ import { setContext } from '@apollo/client/link/context'
 import {onError} from '@apollo/client/link/error';
 import fetch from 'cross-fetch';
 import {LENS_API} from "./config";
-import {getOrRefreshAccessToken, logOut} from "./lib/lens-auth";
+import {getOrRefreshAccessToken} from "./lib/lens-auth";
 
 import type {DefaultOptions} from '@apollo/client/core';
 

@@ -10,3 +10,9 @@ export const content: Writable<string> = writable();
 export const attachment: any | Web3File = writable();
 
 export const profile: Writable<Profile> = writable();
+
+export const clearPostState = () => {
+    title.set(null);
+    content.set(null);
+    attachment.set(null);
+}

@@ -35,7 +35,7 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
         locale: 'en',
         ...metadata
     }
-
+    console.log('makeMetadataFile: Creating metadata file for', obj);
     const blob = new Blob([JSON.stringify(obj)], {type: 'application/json'})
     return new File([blob], `metadata.json`)
 };
@@ -125,7 +125,7 @@ export const submitPost = async (
 
     const metadataFile: File = makeMetadataFile(metadata);
     const metadataCid = await uploadFile(metadataFile);
-    // TODO check for upload failure
+    console.log('submitPost: Uploaded metadata to IPFS', metadataCid);
 
     const contentURI = `ipfs://${metadataCid}`;
 
@@ -138,13 +138,11 @@ export const submitPost = async (
         referenceModule,
         accessToken
     ) as OperationResult
-    if (postResult.error) {
-        // TODO
-        console.error(postResult.error);
-        return;
-    }
+
+    if (postResult.error) throw postResult.error
 
     const typedData = postResult.data.createPostTypedData.typedData;
+    console.log('submitPost: Created post typed data', typedData);
 
     const lensHub = getLensHub();
     const tx = await lensHub.post({

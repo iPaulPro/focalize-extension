@@ -40,7 +40,7 @@ export const uploadFileWithProgress = async (file: File, cb: (number) => {}): Pr
 
 export const retrieve = async (cid) => {
     const res = await fetch(
-        `https://${cid}.ipfs.w3s.link`,
+        `https://${cid}.ipfs.nftstorage.link`,
         { method: "HEAD" }
     );
     console.log(`Got a response! [${res.status}] ${res.statusText} ${res.headers.get('content-type')}`);

@@ -2,7 +2,6 @@
     import {ensureCorrectChain} from '../lib/ethers-service';
 
     import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
-    import {sleep} from "../lib/utils";
     import {getDefaultProfile} from '../lib/lens-auth';
 
     import {
@@ -23,7 +22,7 @@
 
     import {CollectModules, PublicationContentWarning, PublicationMainFocus} from '../graph/lens-service';
 
-    import {attachment, content, profile, title} from '../lib/state';
+    import {attachment, clearPostState, content, profile, title} from '../lib/state';
 
     import Select from 'svelte-select';
     import toast, { Toaster } from 'svelte-french-toast';
@@ -165,7 +164,7 @@
             case PublicationMainFocus.Article:
                 return getMarkdown();
             case PublicationMainFocus.Link:
-                return $content + '\n\n' + shareUrl;
+                return $content ? `${$content}\n\n${shareUrl}` : shareUrl;
         }
         return $content;
     };
@@ -237,7 +236,6 @@
         }
 
         const metadata = buildMetadata();
-        console.log('onSubmitClick: post metadata', metadata)
 
         try {
             const publicationId = await submitPost(
@@ -249,6 +247,8 @@
 
             postId = `${$profile.id}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
+
+            clearPostState()
         } catch (e) {
             // TODO handle post submit error
             console.error(e);
@@ -265,7 +265,7 @@
                 profile.set(defaultProfile);
             }
         } catch (e) {
-            chrome.runtime.openOptionsPage();
+            window.location = '/src/options/index.html';
         }
     });
 

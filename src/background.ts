@@ -4,7 +4,6 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-
 const parseOGTags = () => {
     return {
         url: document.querySelector("meta[property='og:url']")?.getAttribute("content"),
@@ -16,7 +15,7 @@ const parseOGTags = () => {
 
 const shareUrl = (tags) => {
     console.log('shareUrl called with', tags);
-    const path = chrome.runtime.getURL('src/new-post/');
+    const path = chrome.runtime.getURL('src/new-post/index.html');
     const url = new URL(path);
 
     url.searchParams.append('type', 'link');
@@ -42,18 +41,14 @@ const shareUrl = (tags) => {
     }).catch(console.error);
 }
 
-chrome.runtime.onMessage.addListener(
-    (request, sender, sendResponse) => {
-        console.log(`Got a message from ${sender.id}: ${request.markdown}`);
-        if (sender.id !== chrome.runtime.id || sender.frameId !== 0) {
-            return;
-        }
-
-        if (request.markdown) {
-            sendResponse({success: "ok"});
-        }
-    }
-);
+// chrome.runtime.onMessage.addListener(
+//     async (request, sender, sendResponse) => {
+//         console.log(`Got a message from`, sender);
+//         if (sender.id !== chrome.runtime.id || sender.frameId !== 0) {
+//             return;
+//         }
+//     }
+// );
 
 chrome.action.onClicked.addListener(tab => {
     // No tabs or host permissions needed!
@@ -66,7 +61,7 @@ chrome.action.onClicked.addListener(tab => {
         chrome.tabs.update(
             tab.id,
             {
-                url: chrome.runtime.getURL('src/new-post/')
+                url: chrome.runtime.getURL('src/new-post/index.html')
             }
         ).catch(console.error);
         return;

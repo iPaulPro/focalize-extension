@@ -10,7 +10,7 @@
 
     export let disabled: boolean;
 
-    $: filePath = $attachment?.cid ? `https://${$attachment?.cid}.ipfs.w3s.link/` : null;
+    $: filePath = $attachment?.cid ? `https://${$attachment?.cid}.ipfs.nftstorage.link/` : null;
     $: fileType = $attachment?.type;
 
     let fileInput;
