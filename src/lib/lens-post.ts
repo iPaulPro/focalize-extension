@@ -4,11 +4,21 @@ import {Lens} from "lens-protocol";
 
 import {APP_ID} from "../config";
 
+import type {
+    CollectModule,
+    CollectModuleParams,
+    EnabledModuleCurrenciesQuery,
+    Erc20, LimitedTimedFeeCollectModuleSettings, ModuleFeeAmountParams,
+    PublicationMetadataMediaInput,
+    PublicationMetadataV2Input
+} from "../graph/lens-service";
+
 import {
     AsyncEnabledModuleCurrencies,
     PublicationContentWarning,
     PublicationMainFocus,
 } from "../graph/lens-service";
+
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadFile} from "./ipfs-service";
@@ -16,13 +26,6 @@ import {getLensHub} from "../lens-hub";
 
 import type {OperationResult} from "urql";
 import type {ApolloQueryResult} from "@apollo/client";
-import type {
-    CollectModuleParams,
-    EnabledModuleCurrenciesQuery,
-    Erc20,
-    PublicationMetadataV2Input,
-    PublicationMetadataMediaInput
-} from "../graph/lens-service";
 
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
@@ -168,3 +171,50 @@ export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
     }
     return Promise.resolve(res.data.enabledModuleCurrencies);
 }
+
+export const getCollectModuleParams = (module: CollectModule): CollectModuleParams => {
+    if (module.__typename === "FreeCollectModuleSettings" ||
+        module.__typename === "UnknownCollectModuleSettings" ||
+        module.__typename === "RevertCollectModuleSettings") {
+        throw 'Unsupported module type';
+    }
+
+    const baseModule =  {
+        amount: {
+            currency: module.amount.asset.address,
+            value: module.amount.value
+        },
+        followerOnly: module.followerOnly,
+        recipient: module.recipient,
+        referralFee: 0
+    }
+
+    switch (module.__typename) {
+        case 'LimitedTimedFeeCollectModuleSettings':
+            return {
+                limitedTimedFeeCollectModule: {
+                    ...baseModule,
+                    collectLimit: module.collectLimit.toString()
+                }
+            }
+        case 'LimitedFeeCollectModuleSettings':
+            return {
+                limitedFeeCollectModule: {
+                    ...baseModule,
+                    collectLimit: module.collectLimit.toString()
+                }
+            }
+        case 'TimedFeeCollectModuleSettings':
+            return {
+                timedFeeCollectModule: {
+                    ...baseModule
+                }
+            }
+    }
+
+    return {
+        feeCollectModule: {
+            ...baseModule
+        }
+    }
+};

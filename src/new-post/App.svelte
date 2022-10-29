@@ -6,8 +6,9 @@
 
     import {
         generateImagePostMetadata,
-        generateVideoPostMetadata,
         generateTextPostMetadata,
+        generateVideoPostMetadata,
+        getCollectModuleParams,
         REVERT_COLLECT_MODULE,
         submitPost
     } from '../lib/lens-post.js'
@@ -15,17 +16,15 @@
     import type {
         CollectModule,
         CollectModuleParams,
-        Profile,
         PublicationMetadataMediaInput,
         PublicationMetadataV2Input,
     } from '../graph/lens-service';
-
     import {CollectModules, PublicationContentWarning, PublicationMainFocus} from '../graph/lens-service';
 
     import {attachment, clearPostState, content, profile, title} from '../lib/state';
 
     import Select from 'svelte-select';
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast, {Toaster} from 'svelte-french-toast';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
@@ -73,7 +72,7 @@
 
     let postContentWarning = contentWarningItems[0];
     let followerOnly = followerOnlyItems[0];
-    let collectModule = collectItems[0];
+    let collectItem = collectItems[0];
 
     let feeCollectModule: CollectModule;
 
@@ -141,15 +140,27 @@
         postType = e.detail;
     };
 
+    const showCollectFeesDialog = () => {
+        const dialog: HTMLDialogElement = document.getElementById('collectFees');
+        dialog.showModal();
+        dialog.addEventListener('close', () => {
+            if (!feeCollectModule) {
+                collectItem = collectItems[0];
+            }
+        });
+    };
+
     const onCollectModuleChange = (e) => {
         if (e.detail.value === CollectModules.FeeCollectModule) {
-            const dialog: HTMLDialogElement = document.getElementById('collectFees');
-            dialog.showModal();
+            showCollectFeesDialog();
+        } else {
+            feeCollectModule = null;
         }
     };
 
     const onFeeCollectModuleUpdated = (e) => {
         feeCollectModule = e.detail;
+        console.log('onFeeCollectModuleUpdated', feeCollectModule);
 
         const dialog: HTMLDialogElement = document.getElementById('collectFees');
         if (dialog) {
@@ -223,7 +234,7 @@
         }
 
         let collect: CollectModuleParams;
-        switch (collectModule.value) {
+        switch (collectItem.value) {
             case CollectModules.FreeCollectModule:
                 collect = {freeCollectModule: {followerOnly: followerOnly.value}};
                 break;
@@ -231,7 +242,7 @@
                 collect = REVERT_COLLECT_MODULE;
                 break;
             case CollectModules.FeeCollectModule:
-                collect = feeCollectModule;
+                collect = getCollectModuleParams(feeCollectModule);
                 break;
         }
 
@@ -257,6 +268,39 @@
             isSubmittingPost = false;
         }
     };
+
+    const getCollectFeeString = (module: CollectModule): string => {
+        if (!module) return null;
+
+        let subtext: string, edition: string;
+
+        switch (module.__typename) {
+            case 'FreeCollectModuleSettings':
+            case 'UnknownCollectModuleSettings':
+            case 'RevertCollectModuleSettings':
+                throw 'Unsupported module type';
+
+            case 'LimitedTimedFeeCollectModuleSettings':
+                edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
+                subtext = `${module.collectLimit} ${edition}, 24 hours`;
+                break;
+            case 'LimitedFeeCollectModuleSettings':
+                edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
+                subtext = `${module.collectLimit} ${edition}`;
+                break;
+            case 'TimedFeeCollectModuleSettings':
+                subtext = '24 hours'
+                break;
+        }
+
+        let text = module.amount.value + ' $' + module.amount.asset.symbol;
+        if (subtext) {
+            text += ', ' + subtext;
+        }
+        return text;
+    }
+
+    $: collectFeeString = getCollectFeeString(feeCollectModule);
 
     onMount(async () => {
         try {
@@ -402,17 +446,17 @@
           <div class="flex ml-2">
 
             <Select items={collectItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
-                    bind:value={collectModule} on:change={onCollectModuleChange} disabled={isSubmittingPost}
-                    --item-height="auto"  --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
+                    bind:value={collectItem} on:change={onCollectModuleChange} disabled={isSubmittingPost}
+                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
                     class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
                     focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
-                <ModuleChoiceItem {item} />
+                <ModuleChoiceItem item={collectFeeString && index === 1 ? {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog} : item} />
               </div>
 
-              <div slot="selection" let:selection class="flex">
-                <ModuleSelectionItem {selection} />
+              <div slot="selection" let:selection let:index class="flex">
+                <ModuleSelectionItem selection={collectFeeString && selection.label === collectItems[1].label ? {label: collectFeeString, icon: 'collect_paid'} : selection} />
               </div>
 
             </Select>

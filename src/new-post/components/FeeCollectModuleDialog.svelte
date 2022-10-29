@@ -1,10 +1,19 @@
 <script lang="ts">
-    import { createEventDispatcher } from 'svelte';
+    import {createEventDispatcher} from 'svelte';
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-post.js'
     import {getAddressFromSigner} from "../../lib/ethers-service";
 
-    import type {CollectModule, Erc20} from "../../graph/lens-service";
+    import type {
+        CollectModule,
+        Erc20,
+        FeeCollectModuleSettings,
+        LimitedFeeCollectModuleSettings,
+        LimitedTimedFeeCollectModuleSettings,
+        ModuleFeeAmount,
+        TimedFeeCollectModuleSettings
+    } from "../../graph/lens-service";
+    import {CollectModules} from "../../graph/lens-service";
 
     const dispatch = createEventDispatcher();
 
@@ -17,14 +26,16 @@
     export let followerOnly: boolean;
 
     const onSetClick = async () => {
-        const address = await getAddressFromSigner();
+        const recipient = await getAddressFromSigner();
+
+        const amount: ModuleFeeAmount = {
+            asset: token,
+            value: price
+        }
 
         let baseModule = {
-            amount: {
-                currency: token.address,
-                value: price
-            },
-            recipient: address,
+            amount,
+            recipient,
             referralFee: 0,
             followerOnly
         }
@@ -33,30 +44,30 @@
 
         if (limited && timed) {
             collectModule = {
-                limitedTimedFeeCollectModule: {
-                    ...baseModule,
-                    collectLimit: limit.toString()
-                }
-            };
+                ...baseModule,
+                collectLimit: limit.toString(),
+                type: CollectModules.LimitedTimedFeeCollectModule,
+                __typename: "LimitedTimedFeeCollectModuleSettings"
+            } as LimitedTimedFeeCollectModuleSettings;
         } else if (limited) {
             collectModule = {
-                limitedFeeCollectModule: {
-                    ...baseModule,
-                    collectLimit: limit.toString()
-                }
-            };
+                ...baseModule,
+                collectLimit: limit.toString(),
+                type: CollectModules.LimitedFeeCollectModule,
+                __typename: "LimitedFeeCollectModuleSettings"
+            } as LimitedFeeCollectModuleSettings;
         } else if (timed) {
             collectModule = {
-                timedFeeCollectModule: {
-                    ...baseModule
-                }
-            };
+                ...baseModule,
+                type: CollectModules.TimedFeeCollectModule,
+                __typename: "TimedFeeCollectModuleSettings"
+            } as TimedFeeCollectModuleSettings;
         } else {
             collectModule = {
-                feeCollectModule: {
-                    ...baseModule
-                }
-            };
+                ...baseModule,
+                type: CollectModules.FeeCollectModule,
+                __typename: "FeeCollectModuleSettings"
+            } as FeeCollectModuleSettings;
         }
 
         dispatch('moduleUpdated', collectModule);

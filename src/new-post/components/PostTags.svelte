@@ -39,7 +39,11 @@
         if (e.code === 'Enter') {
             addTag();
         }
-    }
+    };
+
+    const removeTagIfEmpty = (tag) => {
+        if (tag.length === 0) tags = tags.filter(value => value !== tag)
+    };
 </script>
 
 <div class="flex flex-wrap gap-3">
@@ -60,7 +64,8 @@
   {#each tags as tag}
     <span class="tag pl-2 pr-4 py-1 flex items-center text-sm rounded-full text-neutral-700  bg-white shadow-sm">
 
-      <input type="text" size={Math.max(tag?.length + 1 || 0, 5)} bind:value={tag} on:keypress={onKeyPress}
+      <input type="text" size={Math.max(tag?.length + 1 || 0, 5)}
+             bind:value={tag} on:keypress={onKeyPress} on:blur={removeTagIfEmpty}
              class="border-none leading-4 focus:ring-0" maxlength="50">
 
       <button class="bg-transparent hover" on:click={() => removeTag(tag)} disabled={disabled}>
