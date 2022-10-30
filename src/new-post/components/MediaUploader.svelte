@@ -96,6 +96,7 @@
 
       {:else}
 
+        <!-- svelte-ignore a11y-media-has-caption -->
         <video src={filePath} type={fileType}
                on:load={() => loading = false}
                preload="metadata" controls></video>
@@ -109,8 +110,7 @@
           <div class="flex">
             <span class="font-semibold">IPFS CID:</span>
 
-            <a href={filePath} class="hover:text-gray-600 truncate w-48 ml-1" target="_blank"
-               referrerpolicy="no-referrer">
+            <a href={filePath} class="hover:text-gray-600 truncate w-48 ml-1" target="_blank" rel="noreferrer">
               {$attachment?.cid}
             </a>
 
@@ -131,17 +131,25 @@
       {/if}
 
 
-      <div class="w-full grow flex flex-col gap-6 pt-8">
+      <div class="w-full grow flex flex-col gap-2 pt-8">
 
         <input type="text" placeholder="Title (optional)"
                class="w-full rounded-lg border-gray-300 text-lg placeholder-gray-400 focus:outline-none focus:ring-2
                  focus:ring-orange-200 focus:border-transparent"
                bind:value={$title} disabled={disabled}>
 
-        <textarea placeholder="(optional)" rows="5"
-                  class="grow rounded-lg border-gray-300 placeholder-gray-400  focus:outline-none focus:ring-2
+        <div class="text-xs text-gray-400 pl-2">
+          * Title is used on NFT marketplaces but may not be shown on all Lens dapps.
+        </div>
+
+        <textarea placeholder="Description (optional)" rows="5"
+                  class="mt-3 grow rounded-lg border-gray-300 placeholder-gray-400  focus:outline-none focus:ring-2
                     focus:ring-orange-200 focus:border-transparent"
                   bind:value={$content} disabled={disabled}></textarea>
+
+        <div class="text-xs text-gray-400 pl-2">
+          * Title is used on NFT marketplaces but may not be shown on all Lens dapps.
+        </div>
 
       </div>
 

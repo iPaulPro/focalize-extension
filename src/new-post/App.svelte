@@ -357,7 +357,7 @@
 
       <div class="text-2xl mt-4">Post created!</div>
 
-      <a href="https://testnet.lenster.xyz/posts/{postId}" target="_blank"
+      <a href="https://testnet.lenster.xyz/posts/{postId}" target="_blank" rel="noreferrer"
          class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto disabled:bg-neutral-400
           bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white text-center text-lg
           transition ease-in duration-200 font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2">

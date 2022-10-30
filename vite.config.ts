@@ -24,11 +24,8 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            path: "path-browserify",
             process: "process/browser",
-            stream: "stream-browserify",
-            zlib: "browserify-zlib",
-            util: 'util'
+            stream: "stream-browserify"
         }
     },
 })

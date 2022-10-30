@@ -165,7 +165,10 @@
   <footer class="flex justify-center p-4">
     <span class="text-neutral-400">
       Created by
-      <a href="https://lenster.xyz/u/paulburke.lens" target="_blank" class="hover:text-neutral-600 hover:font-semibold">paulburke.eth</a>
+      <a href="https://lenster.xyz/u/paulburke.lens" target="_blank" rel="noreferrer"
+         class="hover:text-neutral-600 hover:font-semibold">
+        paulburke.eth
+      </a>
     </span>
   </footer>
 

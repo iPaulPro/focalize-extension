@@ -89,7 +89,7 @@ export const generateImagePostMetadata = (
         media: [media],
         image,
         imageMimeType,
-        content: title ? `${title}\n\n${content}` : content,
+        content,
         description: content,
         mainContentFocus: PublicationMainFocus.Image,
         tags,

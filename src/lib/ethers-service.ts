@@ -1,11 +1,12 @@
 import createMetaMaskProvider from "metamask-extension-provider";
-import { ethers, utils } from 'ethers';
+import { hexValue } from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
-import type { Web3Provider, ExternalProvider, JsonRpcSigner } from '@ethersproject/providers';
+import { Web3Provider } from '@ethersproject/providers';
+import type { ExternalProvider, JsonRpcSigner } from '@ethersproject/providers';
 import {sleep} from "./utils";
 
 const inPageProvider = createMetaMaskProvider();
-export const provider: Web3Provider = new ethers.providers.Web3Provider(inPageProvider as ExternalProvider);
+export const provider: Web3Provider = new Web3Provider(inPageProvider as ExternalProvider);
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
@@ -32,7 +33,7 @@ export const getChainId = async (): Promise<number> => {
 }
 
 export const switchChains = async (chainId: number) => {
-    const id: string = utils.hexValue(chainId);
+    const id: string = hexValue(chainId);
     try {
         await provider.send(
             'wallet_switchEthereumChain',
