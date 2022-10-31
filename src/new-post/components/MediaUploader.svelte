@@ -127,7 +127,7 @@
               <div class="flex truncate pl-1">
                 <a href={filePath} class="max-w-[10rem] hover:text-gray-600 grow truncate flex" target="_blank" rel="noreferrer">
                   <div class="truncate">{$attachment?.cid}</div>
-                  <InlineSVG src={imageExternal} class="w-3 h-3 flex-shrink-0 inline"/>
+                  <InlineSVG src={imageExternal} class="w-3 h-3 flex-shrink-0 inline mt-[0.1rem]"/>
                 </a>
               </div>
 
@@ -135,7 +135,12 @@
 
             <button class="text-red-700 opacity-60 hover:opacity-100"
                     on:click={onDeleteMedia}>
-              Remove
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line></svg>
             </button>
 
           </div>

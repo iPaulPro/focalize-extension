@@ -3,10 +3,9 @@ import { hexValue } from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
 import { Web3Provider } from '@ethersproject/providers';
 import type { ExternalProvider, JsonRpcSigner } from '@ethersproject/providers';
-import {sleep} from "./utils";
 
 const inPageProvider = createMetaMaskProvider();
-export const provider: Web3Provider = new Web3Provider(inPageProvider as ExternalProvider);
+export const provider: Web3Provider = new Web3Provider(inPageProvider as ExternalProvider, "any");
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
@@ -54,7 +53,6 @@ export const ensureCorrectChain = async () => {
     const chainId = await getChainId();
     if (CHAIN_ID !== chainId) {
         await switchChains(CHAIN_ID);
-        await sleep(2000);
     }
 }
 

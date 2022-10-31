@@ -18,6 +18,7 @@ import type {
 
 import {
     AsyncEnabledModuleCurrencies,
+    CollectModules,
     PublicationContentWarning,
     PublicationMainFocus,
 } from "../graph/lens-service";
@@ -29,6 +30,33 @@ import {getLensHub} from "../lens-hub";
 
 import type {OperationResult} from "urql";
 import type {ApolloQueryResult} from "@apollo/client";
+
+export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive;
+
+export type SelectItem<Type> = {
+    value: Type,
+    label: string,
+    summary?: string,
+    icon?: string
+};
+
+export const FOLLOWER_ONLY_ITEMS: SelectItem<boolean>[] = [
+    {value: false, label: 'Everyone can engage', summary: 'Anyone can reply, repost, and collect', icon: 'earth'},
+    {value: true, label: 'Followers only', summary: 'Only your followers can reply, repost, and collect', icon: 'followers'},
+];
+
+export const COLLECT_ITEMS: SelectItem<CollectModules>[] = [
+    {value: CollectModules.FreeCollectModule, label: 'Free to collect', summary: 'Post can be collected as an NFT for free', icon: 'collect_free'},
+    {value: CollectModules.FeeCollectModule, label: 'Sell NFT', summary: 'Charge for NFT collection', icon: 'collect_paid'},
+    {value: CollectModules.RevertCollectModule, label: 'Disable Collection', summary: 'Do not allow the post to be collected as an NFT', icon: 'collect_disabled'},
+];
+
+export const CONTENT_WARNING_ITEMS: SelectItem<ContentWarning>[] = [
+    {value: '', label: 'No content warning'},
+    {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
+    {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
+    {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
+];
 
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};

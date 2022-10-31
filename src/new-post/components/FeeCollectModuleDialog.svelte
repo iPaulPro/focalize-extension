@@ -99,7 +99,7 @@
                 $
             </span>
       </div>
-      <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00"
+      <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00" min="0.00"
              bind:value={price}
              class="focus:ring-orange-500 border-l border-b border-t border-gray-300 py-2 px-4 focus:border-orange-500
              block w-full pl-7 pr-12 rounded-md text-base" />
@@ -149,7 +149,7 @@
       </span>
     </div>
 
-    <input type="number" id="collectLimitInput" placeholder="No. available" autocomplete="off"
+    <input type="number" id="collectLimitInput" placeholder="No. available" autocomplete="off" min="0"
            bind:value={limit} disabled={!limited}
            class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:border-gray-300 py-2 px-4 bg-white w-40
              text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-500

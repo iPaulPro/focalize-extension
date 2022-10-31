@@ -1,10 +1,10 @@
 <script lang="ts">
-    import Toolbar from '../lib/Toolbar.svelte';
+    import Toolbar from './Toolbar.svelte';
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '/images/focalize.svg';
-    import focalizeLogoName from '../assets/focalize-logo-name.svg';
-    import lensLogo from '../assets/lens-logo.svg';
-    import welcomeImage from '../assets/welcome.svg';
+    import focalizeLogoName from '../../assets/focalize-logo-name.svg';
+    import lensLogo from '../../assets/lens-logo.svg';
+    import welcomeImage from '../../assets/welcome.svg';
 </script>
 
 <div class="flex flex-col w-full h-full">

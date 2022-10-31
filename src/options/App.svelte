@@ -14,7 +14,7 @@
     import InlineSVG from 'svelte-inline-svg';
 
     import {onMount} from "svelte";
-    import Welcome from './Welcome.svelte'
+    import Welcome from './components/Welcome.svelte'
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)

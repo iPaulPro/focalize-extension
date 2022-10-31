@@ -5,15 +5,18 @@
     import {getDefaultProfile} from '../lib/lens-auth';
 
     import {
+        COLLECT_ITEMS,
+        CONTENT_WARNING_ITEMS,
+        FOLLOWER_ONLY_ITEMS,
+        REVERT_COLLECT_MODULE,
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
         getPaidCollectModuleParams,
-        REVERT_COLLECT_MODULE,
-        submitPost
+        submitPost,
     } from '../lib/lens-post.js';
 
-    import type {PaidCollectModule} from '../lib/lens-post';
+    import type {PaidCollectModule, SelectItem} from '../lib/lens-post';
 
     import type {
         CollectModuleParams,
@@ -38,24 +41,6 @@
 
     import {onMount} from 'svelte';
 
-    const followerOnlyItems = [
-        {value: false, label: 'Everyone can engage', summary: 'Anyone can reply, repost, and collect', icon: 'earth'},
-        {value: true, label: 'Followers only', summary: 'Only your followers can reply, repost, and collect', icon: 'followers'},
-    ];
-
-    const collectItems = [
-        {value: CollectModules.FreeCollectModule, label: 'Free to collect', summary: 'Post can be collected as an NFT for free', icon: 'collect_free'},
-        {value: CollectModules.FeeCollectModule, label: 'Sell NFT', summary: 'Charge for NFT collection', icon: 'collect_paid'},
-        {value: CollectModules.RevertCollectModule, label: 'Disable Collection', summary: 'Do not allow the post to be collected as an NFT', icon: 'collect_disabled'},
-    ];
-
-    const contentWarningItems = [
-        {value: '', label: 'No content warning'},
-        {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
-        {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
-        {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
-    ]
-
     /**
      * Bound to the rich text editor
      */
@@ -71,9 +56,9 @@
     let postType: PublicationMainFocus;
     let shareUrl: string;
 
-    let postContentWarning = contentWarningItems[0];
-    let followerOnly = followerOnlyItems[0];
-    let collectItem = collectItems[0];
+    let postContentWarning = CONTENT_WARNING_ITEMS[0];
+    let followerOnly = FOLLOWER_ONLY_ITEMS[0];
+    let collectItem: SelectItem<CollectModules> = COLLECT_ITEMS[0];
 
     let feeCollectModule: PaidCollectModule;
 
@@ -81,9 +66,9 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
 
-    const getCollectModuleParams = (module: CollectModules): CollectModuleParams => {
+    const getCollectModuleParams = (item: SelectItem<CollectModules>): CollectModuleParams => {
         let collect: CollectModuleParams;
-        switch (module) {
+        switch (item.value) {
             case CollectModules.FreeCollectModule:
                 collect = {freeCollectModule: {followerOnly: followerOnly.value}};
                 break;
@@ -94,10 +79,11 @@
                 collect = getPaidCollectModuleParams(feeCollectModule);
                 break;
         }
+        console.log('getCollectModuleParams: returning', collect);
         return collect;
     }
 
-    $: collectModuleParams = getCollectModuleParams(collectItem.value);
+    $: collectModuleParams = getCollectModuleParams(collectItem);
 
     const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
         if (!urlParams.has('type')) {
@@ -164,7 +150,7 @@
         dialog.showModal();
         dialog.addEventListener('close', () => {
             if (!feeCollectModule) {
-                collectItem = collectItems[0];
+                collectItem = COLLECT_ITEMS[0];
             }
         });
     };
@@ -179,6 +165,7 @@
 
     const onFeeCollectModuleUpdated = (e) => {
         feeCollectModule = e.detail;
+        collectItem = COLLECT_ITEMS[1];
         console.log('onFeeCollectModuleUpdated', feeCollectModule);
 
         const dialog: HTMLDialogElement = document.getElementById('collectFees');
@@ -418,7 +405,7 @@
 
           <div class="flex">
 
-            <Select bind:value={followerOnly} items={followerOnlyItems} disabled={isSubmittingPost}
+            <Select bind:value={followerOnly} items={FOLLOWER_ONLY_ITEMS} disabled={isSubmittingPost}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false} containerStyles="cursor: pointer;"
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
                     class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
@@ -438,7 +425,7 @@
 
           <div class="flex ml-2">
 
-            <Select items={collectItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+            <Select items={COLLECT_ITEMS} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
                     bind:value={collectItem} on:change={onCollectModuleChange} disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
                     class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
@@ -449,7 +436,7 @@
               </div>
 
               <div slot="selection" let:selection let:index class="flex">
-                <ModuleSelectionItem selection={collectFeeString && selection.label === collectItems[1].label ? {label: collectFeeString, icon: 'collect_paid'} : selection} />
+                <ModuleSelectionItem selection={collectFeeString && selection.label === COLLECT_ITEMS[1].label ? {label: collectFeeString, icon: 'collect_paid'} : selection} />
               </div>
 
             </Select>
@@ -466,7 +453,7 @@
 
       <div class="flex border-b border-neutral-300 py-5 gap-4">
 
-        <Select items={contentWarningItems} clearable={false} searchable={false} listAutoWidth={false} showChevron={true}
+        <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false} showChevron={true}
                 bind:value={postContentWarning}
                 --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --font-size="0.875rem"
                 class="w-fit h-fit hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none bg-none disabled:bg-transparent" />

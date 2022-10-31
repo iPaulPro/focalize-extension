@@ -1,8 +1,8 @@
 <script lang="ts">
     import InlineSVG from 'svelte-inline-svg';
-    import focalizeLogo from '../assets/focalize-logo-large.svg';
+    import focalizeLogo from '../../assets/focalize-logo-large.svg';
 
-    import {profile} from "./state";
+    import {profile} from "../../lib/state";
 
     let isMenuOpen = false;
 </script>
