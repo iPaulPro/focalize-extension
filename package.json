@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.7.1",
-    "@crxjs/vite-plugin": "^2.0.0-beta.3",
+    "@crxjs/vite-plugin": "^2.0.0-beta.4",
     "@graphql-codegen/cli": "^2.13.8",
     "@graphql-codegen/introspection": "^2.1.1",
     "@graphql-codegen/typescript": "^2.8.0",
