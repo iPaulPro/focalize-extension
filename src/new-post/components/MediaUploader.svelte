@@ -1,14 +1,21 @@
 <script lang="ts">
     import toast from 'svelte-french-toast';
 
-    import {uploadFileWithProgress} from "../../lib/ipfs-service";
-    import LoadingSpinner from './LoadingSpinner.svelte'
-    import {MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils.js'
+    import PlainTextEditor from '../components/PlainTextEditor.svelte';
+    import LoadingSpinner from './LoadingSpinner.svelte';
 
-    import {attachment, content, title} from "../../lib/state";
+    import imageExternal from '../../assets/ic_external.svg';
+
+    import {uploadFileWithProgress} from "../../lib/ipfs-service";
+    import {MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils.js'
+    import {attachment, description, title} from "../../lib/state";
+
     import type {Web3File} from "web3.storage";
+    import InlineSVG from "svelte-inline-svg";
 
     export let disabled: boolean;
+    export let isCollectable: boolean;
+    export let collectPrice: string;
 
     $: filePath = $attachment?.cid ? `https://${$attachment?.cid}.ipfs.nftstorage.link/` : null;
     $: fileType = $attachment?.type;
@@ -16,6 +23,7 @@
     let fileInput;
     let loading = false;
     let uploadedPct = 0;
+    let useContentAsDescription = true;
 
     const uploadFile = async (file: Web3File) => {
         console.log('uploadFile', file);
@@ -67,97 +75,123 @@
     }
 </script>
 
-<div class="min-h-48 w-full flex flex-col justify-center items-center gap-4 py-8 px-4">
+<div class="min-h-48 w-full flex flex-col justify-center items-center gap-4 pb-2">
 
-  {#if filePath && fileType}
+{#if filePath && fileType}
 
-    <div class="flex flex-col w-full items-center">
+    <PlainTextEditor placeholder="Comment (optional)" rows={3} />
 
-      {#if fileType.startsWith('image/')}
+    <div class="flex w-full justify-center bg-gray-100 px-4 pt-6 pb-4 rounded-xl">
 
-        {#if loading}
-          <LoadingSpinner message="Processing..."/>
+      <div class="flex flex-col items-center justify-center {isCollectable ? 'w-5/12' : 'w-full'} ">
+        {#if fileType.startsWith('image/')}
+
+          {#if loading}
+            <LoadingSpinner message="Processing..."/>
+          {/if}
+
+          <div class="relative">
+            <img src={filePath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl"
+                 on:load={() => loading = false}>
+
+            <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
+              <button class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
+                     class="w-8 h-8 text-white drop-shadow-dark">
+                  <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
+                  <path
+                      d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-81-337c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+
+        {:else}
+
+          <!-- svelte-ignore a11y-media-has-caption -->
+          <video src={filePath} type={fileType}
+                 on:load={() => loading = false}
+                 preload="metadata" controls></video>
+
         {/if}
 
-        <div class="relative">
-          <img src={filePath} alt="Uploaded file" class="max-w-full max-h-96"
-               on:load={() => loading = false}>
 
-          <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
-            <button class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" class="w-8 h-8 text-white drop-shadow-dark">
-                <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
-                <path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-81-337c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
-              </svg>
+        {#if $attachment?.cid}
+          <div class="w-full text-xs text-gray-400 pt-4 px-1 flex gap-6 truncate justify-center">
+
+            <div class="flex truncate">
+
+              <span class="font-semibold">IPFS:</span>
+
+              <div class="flex truncate pl-1">
+                <a href={filePath} class="max-w-[10rem] hover:text-gray-600 grow truncate flex" target="_blank" rel="noreferrer">
+                  <div class="truncate">{$attachment?.cid}</div>
+                  <InlineSVG src={imageExternal} class="w-3 h-3 flex-shrink-0 inline"/>
+                </a>
+              </div>
+
+            </div>
+
+            <button class="text-red-700 opacity-60 hover:opacity-100"
+                    on:click={onDeleteMedia}>
+              Remove
             </button>
+
           </div>
-
-        </div>
-
-      {:else}
-
-        <!-- svelte-ignore a11y-media-has-caption -->
-        <video src={filePath} type={fileType}
-               on:load={() => loading = false}
-               preload="metadata" controls></video>
-
-      {/if}
-
-
-      {#if $attachment?.cid}
-        <div class="text-xs text-gray-400 pt-4 flex gap-6">
-
-          <div class="flex">
-            <span class="font-semibold">IPFS CID:</span>
-
-            <a href={filePath} class="hover:text-gray-600 truncate w-48 ml-1" target="_blank" rel="noreferrer">
-              {$attachment?.cid}
-            </a>
-
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="w-3 h-3 inline ml-1 mt-0.5"
-                 fill="currentColor">
-              <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
-              <path
-                  d="M288 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h50.7L169.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L384 141.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H288zM80 64C35.8 64 0 99.8 0 144V400c0 44.2 35.8 80 80 80H336c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32v80c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V144c0-8.8 7.2-16 16-16h80c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"/>
-            </svg>
-          </div>
-
-          <button class="text-red-700 opacity-60 hover:opacity-100"
-                  on:click={onDeleteMedia}>
-            Remove
-          </button>
-
-        </div>
-      {/if}
-
-
-      <div class="w-full grow flex flex-col gap-2 pt-8">
-
-        <input type="text" placeholder="Title (optional)"
-               class="w-full rounded-lg border-gray-300 text-lg placeholder-gray-400 focus:outline-none focus:ring-2
-                 focus:ring-orange-200 focus:border-transparent"
-               bind:value={$title} disabled={disabled}>
-
-        <div class="text-xs text-gray-400 pl-2">
-          * Title is used on NFT marketplaces but may not be shown on all Lens dapps.
-        </div>
-
-        <textarea placeholder="Description (optional)" rows="5"
-                  class="mt-3 grow rounded-lg border-gray-300 placeholder-gray-400  focus:outline-none focus:ring-2
-                    focus:ring-orange-200 focus:border-transparent"
-                  bind:value={$content} disabled={disabled}></textarea>
-
-        <div class="text-xs text-gray-400 pl-2">
-          * Title is used on NFT marketplaces but may not be shown on all Lens dapps.
-        </div>
-
+        {/if}
       </div>
+
+      {#if isCollectable}
+
+        <div class="flex flex-col grow gap-3 pl-6">
+
+          {#if collectPrice}
+
+            <div class="flex flex-col">
+              <div class="text-2xl font-semibold">
+                {collectPrice}
+              </div>
+
+              <div class="text-sm text-gray-400">
+                PRICE
+              </div>
+            </div>
+
+          {/if}
+
+          <input type="text" placeholder="Title (optional)"
+                 class="w-full rounded-lg border-gray-200 text-lg placeholder-gray-400 focus:outline-none focus:ring-2
+                 focus:ring-orange-200 focus:border-transparent mt-2 disabled:opacity-40"
+                 bind:value={$title} disabled={disabled}>
+
+          <textarea placeholder="Description (optional)" rows={useContentAsDescription ? '3' : '5'}
+                    class="mt-1 rounded-lg border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2
+                    focus:ring-orange-200 focus:border-transparent disabled:opacity-40 resize-none"
+                    bind:value={$description} disabled={disabled || useContentAsDescription}></textarea>
+
+          <div class="flex items-center px-3">
+            <input id="desc-toggle" name="desc-toggle" type="checkbox"
+                   class="w-4 h-4 text-orange-600 border-gray-200 rounded focus:ring-orange-500"
+                   bind:checked={useContentAsDescription} disabled={disabled}>
+            <label for="desc-toggle" class="block ml-2 text-sm text-neutral-600"> Use comment as description </label>
+          </div>
+
+          <div class="text-xs text-gray-400 px-3">
+            Title and description are used on NFT marketplaces but may not be shown on all Lens dapps.
+          </div>
+
+        </div>
+
+      {/if}
 
     </div>
 
   {:else if loading && uploadedPct === 0}
 
-    <LoadingSpinner/>
+    <div class="py-4">
+      <LoadingSpinner/>
+    </div>
 
   {:else if uploadedPct > 0 && uploadedPct < 100}
 
@@ -179,9 +213,9 @@
 
   {:else}
 
-    <div class="text-lg h-32 flex justify-center items-center">
+    <div class="text-lg h-40 flex justify-center items-center">
 
-      <div>
+      <div class="pt-6">
         Drag and drop media or
 
         <input type="file" class="hidden"

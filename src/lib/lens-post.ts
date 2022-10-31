@@ -5,12 +5,15 @@ import {Lens} from "lens-protocol";
 import {APP_ID} from "../config";
 
 import type {
-    CollectModule,
     CollectModuleParams,
     EnabledModuleCurrenciesQuery,
-    Erc20, LimitedTimedFeeCollectModuleSettings, ModuleFeeAmountParams,
+    Erc20,
+    FeeCollectModuleSettings,
+    LimitedFeeCollectModuleSettings,
+    LimitedTimedFeeCollectModuleSettings,
     PublicationMetadataMediaInput,
-    PublicationMetadataV2Input
+    PublicationMetadataV2Input,
+    TimedFeeCollectModuleSettings
 } from "../graph/lens-service";
 
 import {
@@ -29,6 +32,8 @@ import type {ApolloQueryResult} from "@apollo/client";
 
 export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
+
+export type PaidCollectModule = FeeCollectModuleSettings | LimitedFeeCollectModuleSettings | LimitedTimedFeeCollectModuleSettings | TimedFeeCollectModuleSettings;
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -81,6 +86,7 @@ export const generateImagePostMetadata = (
     content?: string,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
+    description: string = content,
     image: string = media.item,
     imageMimeType: string = media.type,
 ): PublicationMetadataV2Input => (
@@ -90,7 +96,7 @@ export const generateImagePostMetadata = (
         image,
         imageMimeType,
         content,
-        description: content,
+        description,
         mainContentFocus: PublicationMainFocus.Image,
         tags,
         contentWarning
@@ -104,6 +110,7 @@ export const generateVideoPostMetadata = (
     content?: string,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
+    description: string = content,
     animationUrl: string = media.item,
 ): PublicationMetadataV2Input => (
     {
@@ -111,7 +118,7 @@ export const generateVideoPostMetadata = (
         media: [media],
         animation_url: animationUrl,
         content: title ? `${title}\n\n${content}` : content,
-        description: content,
+        description,
         mainContentFocus: PublicationMainFocus.Video,
         tags,
         contentWarning
@@ -172,11 +179,9 @@ export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
     return Promise.resolve(res.data.enabledModuleCurrencies);
 }
 
-export const getCollectModuleParams = (module: CollectModule): CollectModuleParams => {
-    if (module.__typename === "FreeCollectModuleSettings" ||
-        module.__typename === "UnknownCollectModuleSettings" ||
-        module.__typename === "RevertCollectModuleSettings") {
-        throw 'Unsupported module type';
+export const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModuleParams => {
+    if (!module) {
+        return {};
     }
 
     const baseModule =  {

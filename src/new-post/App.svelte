@@ -8,20 +8,21 @@
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
-        getCollectModuleParams,
+        getPaidCollectModuleParams,
         REVERT_COLLECT_MODULE,
         submitPost
-    } from '../lib/lens-post.js'
+    } from '../lib/lens-post.js';
+
+    import type {PaidCollectModule} from '../lib/lens-post';
 
     import type {
-        CollectModule,
         CollectModuleParams,
         PublicationMetadataMediaInput,
         PublicationMetadataV2Input,
     } from '../graph/lens-service';
     import {CollectModules, PublicationContentWarning, PublicationMainFocus} from '../graph/lens-service';
 
-    import {attachment, clearPostState, content, profile, title} from '../lib/state';
+    import {attachment, clearPostState, content, description, profile, title} from '../lib/state';
 
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
@@ -29,11 +30,11 @@
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
     import MarkdownEditor from './components/MarkdownEditor.svelte';
-    import PlainTextEditor from './components/PlainTextEditor.svelte'
+    import PlainTextEditor from './components/PlainTextEditor.svelte';
     import PostTags from './components/PostTags.svelte';
-    import PostTabs from './components/PostTabs.svelte'
-    import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte'
-    import MediaUploader from './components/MediaUploader.svelte'
+    import PostTabs from './components/PostTabs.svelte';
+    import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
+    import MediaUploader from './components/MediaUploader.svelte';
 
     import {onMount} from 'svelte';
 
@@ -74,11 +75,29 @@
     let followerOnly = followerOnlyItems[0];
     let collectItem = collectItems[0];
 
-    let feeCollectModule: CollectModule;
+    let feeCollectModule: PaidCollectModule;
 
     let postId: string;
     let isSubmittingPost = false;
     let isFileDragged = false;
+
+    const getCollectModuleParams = (module: CollectModules): CollectModuleParams => {
+        let collect: CollectModuleParams;
+        switch (module) {
+            case CollectModules.FreeCollectModule:
+                collect = {freeCollectModule: {followerOnly: followerOnly.value}};
+                break;
+            case CollectModules.RevertCollectModule:
+                collect = REVERT_COLLECT_MODULE;
+                break;
+            case CollectModules.FeeCollectModule:
+                collect = getPaidCollectModuleParams(feeCollectModule);
+                break;
+        }
+        return collect;
+    }
+
+    $: collectModuleParams = getCollectModuleParams(collectItem.value);
 
     const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
         if (!urlParams.has('type')) {
@@ -208,6 +227,7 @@
                 $content,
                 getTags(),
                 postContentWarning.value,
+                $description,
             );
         } else if ($attachment.type.startsWith('video/')) {
             return generateVideoPostMetadata(
@@ -217,6 +237,7 @@
                 $content,
                 getTags(),
                 postContentWarning.value,
+                $description,
             );
         }
 
@@ -233,19 +254,6 @@
             toast.error('Error switching chains');
         }
 
-        let collect: CollectModuleParams;
-        switch (collectItem.value) {
-            case CollectModules.FreeCollectModule:
-                collect = {freeCollectModule: {followerOnly: followerOnly.value}};
-                break;
-            case CollectModules.RevertCollectModule:
-                collect = REVERT_COLLECT_MODULE;
-                break;
-            case CollectModules.FeeCollectModule:
-                collect = getCollectModuleParams(feeCollectModule);
-                break;
-        }
-
         const metadata = buildMetadata();
 
         try {
@@ -253,7 +261,7 @@
                 $profile.id,
                 metadata,
                 followerOnly.value,
-                collect
+                collectModuleParams
             );
 
             postId = `${$profile.id}-${publicationId}`;
@@ -269,17 +277,17 @@
         }
     };
 
-    const getCollectFeeString = (module: CollectModule): string => {
+    const getCollectPrice = (module: PaidCollectModule) => {
+        if (!module) return null;
+        return module.amount.value + ' $' + module.amount.asset.symbol;
+    };
+
+    const getCollectFeeString = (module: PaidCollectModule): string => {
         if (!module) return null;
 
         let subtext: string, edition: string;
 
         switch (module.__typename) {
-            case 'FreeCollectModuleSettings':
-            case 'UnknownCollectModuleSettings':
-            case 'RevertCollectModuleSettings':
-                throw 'Unsupported module type';
-
             case 'LimitedTimedFeeCollectModuleSettings':
                 edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
                 subtext = `${module.collectLimit} ${edition}, 24 hours`;
@@ -293,7 +301,7 @@
                 break;
         }
 
-        let text = module.amount.value + ' $' + module.amount.asset.symbol;
+        let text = getCollectPrice(module);
         if (subtext) {
             text += ', ' + subtext;
         }
@@ -301,6 +309,8 @@
     }
 
     $: collectFeeString = getCollectFeeString(feeCollectModule);
+
+    $: collectPrice = getCollectPrice(feeCollectModule);
 
     onMount(async () => {
         try {
@@ -376,41 +386,24 @@
 
         {#if postType === PublicationMainFocus.TextOnly}
 
-          <div class="flex">
-
-            {#if $profile}
-              <img src={$profile.picture.original.url} alt="Profile avatar"
-                   class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
-            {/if}
-
-            <PlainTextEditor {postType} disabled={isSubmittingPost}/>
-
-          </div>
+          <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="What's happening" rows={5} />
 
         {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video}
 
-          <MediaUploader />
+          <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
 
         {:else if postType === PublicationMainFocus.Link}
 
-          <div class="flex">
-            {#if $profile}
-              <img src={$profile.picture.original.url} alt="Profile avatar"
-                   class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
-            {/if}
+          <div class="flex flex-col grow">
 
-            <div class="flex flex-col grow">
+            <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="Text (optional)" rows={4} />
 
-              <PlainTextEditor {postType} disabled={isSubmittingPost}/>
-
-              <div class="p-2">
-                <input type="url" id="post-url" placeholder="Url" autocomplete="off"
-                       bind:value={shareUrl} disabled={isSubmittingPost}
-                       class="appearance-none border border-gray-300 w-full py-3 px-4 text-gray-800 rounded-lg
+            <div class="pl-24 pr-4 py-2">
+              <input type="url" id="post-url" placeholder="Url" autocomplete="off"
+                     bind:value={shareUrl} disabled={isSubmittingPost}
+                     class="appearance-none border border-gray-300 w-full py-3 px-4 text-gray-800 rounded-lg
                    placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-200
                    focus:border-transparent"/>
-              </div>
-
             </div>
 
           </div>
@@ -421,7 +414,7 @@
 
         {/if}
 
-        <div class="flex pt-2 pb-1 {postType === PublicationMainFocus.Article ? 'ml-4' : 'ml-20'}">
+        <div class="flex pt-2 pb-1 {postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'ml-20' : 'ml-0'}">
 
           <div class="flex">
 

@@ -5,21 +5,14 @@
 
     import {onMount} from "svelte";
 
-    import {content} from "../../lib/state";
+    import {content, profile} from "../../lib/state";
 
     import {PublicationMainFocus} from "../../graph/lens-service";
 
-    let placeholder: string;
-
+    export let placeholder: string;
     export let postType: PublicationMainFocus;
-
     export let disabled: boolean;
-
-    if (postType === PublicationMainFocus.Link) {
-        placeholder = "Text (optional)";
-    } else {
-        placeholder = "What's happening?";
-    }
+    export let rows: number;
 
     function updateInputHeight(view) {
         view.style.height = 'inherit';
@@ -52,6 +45,14 @@
     });
 </script>
 
-<textarea id="plainTextInput" bind:value={$content} placeholder={placeholder} on:input={handleInputEvent}
-          rows={postType === PublicationMainFocus.Link ? 4 : 5} disabled={disabled}
-          class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent"></textarea>
+<div class="flex w-full">
+
+  {#if $profile}
+    <img src={$profile.picture.original.url} alt="Profile avatar"
+         class="w-14 h-14 object-cover rounded-full mx-4 mt-3">
+  {/if}
+
+  <textarea id="plainTextInput" {rows} {disabled} {placeholder}
+            bind:value={$content} on:input={handleInputEvent}
+            class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent"></textarea>
+</div>
