@@ -6,7 +6,7 @@
 
     import imageExternal from '../../assets/ic_external.svg';
 
-    import {uploadFileWithProgress} from "../../lib/ipfs-service";
+    import {uploadFile} from "../../lib/ipfs-service";
     import {MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils.js'
     import {attachment, description, title} from "../../lib/state";
 
@@ -17,7 +17,7 @@
     export let isCollectable: boolean;
     export let collectPrice: string;
 
-    $: filePath = $attachment?.cid ? `https://${$attachment?.cid}.ipfs.nftstorage.link/` : null;
+    $: filePath = $attachment?.cid ? `${import.meta.env.VITE_INFURA_GATEWAY_URL}${$attachment?.cid}` : null;
     $: fileType = $attachment?.type;
 
     let fileInput;
@@ -25,11 +25,11 @@
     let uploadedPct = 0;
     let useContentAsDescription = true;
 
-    const uploadFile = async (file: Web3File) => {
+    const upload = async (file: Web3File) => {
         console.log('uploadFile', file);
         loading = true;
 
-        file.cid = await uploadFileWithProgress(file, pct => {
+        file.cid = await uploadFile(file, pct => {
             console.log('Uploading...', pct.toFixed(2))
             uploadedPct = pct;
         });
@@ -48,7 +48,7 @@
         console.log('File selected', file);
 
         try {
-            await uploadFile(file);
+            await upload(file);
         } catch (e) {
             console.error(e)
             toast.error('Error uploading file');
@@ -66,7 +66,7 @@
         if (file && !file.cid) {
             loading = true;
             onDeleteMedia();
-            uploadFile(file)
+            upload(file)
                 .catch(e => {
                     console.error(e);
                     toast.error('Error uploading file');

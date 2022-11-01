@@ -7,10 +7,7 @@
 
     import {content, profile} from "../../lib/state";
 
-    import {PublicationMainFocus} from "../../graph/lens-service";
-
     export let placeholder: string;
-    export let postType: PublicationMainFocus;
     export let disabled: boolean;
     export let rows: number;
 

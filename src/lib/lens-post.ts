@@ -194,8 +194,8 @@ export const submitPost = async (
     console.log('submitPost: submitted transaction', tx);
 
     const publicationId = await getPublicationId(tx);
+    console.log('submitPost: post has been indexed', publicationId, postResult.data);
 
-    console.log('submitPost: post has been indexed', postResult.data);
     return publicationId;
 };
 
