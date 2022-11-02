@@ -113,6 +113,7 @@ export const submitPost = async (
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = FREE_COLLECT_MODULE
 ): Promise<string> => {
+    console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
     const accessToken = await getOrRefreshAccessToken();
 
     const metadataFile: File = makeMetadataFile(metadata);

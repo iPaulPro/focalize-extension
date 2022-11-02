@@ -13,7 +13,7 @@
     export let item = undefined;
 </script>
 
-<div class="w-max flex items-center py-3 cursor-pointer">
+<div class="flex items-center py-3 cursor-pointer">
 
   <div class="w-5 shrink-0">
     {#if item.icon === 'earth'}
@@ -35,13 +35,13 @@
     {/if}
   </div>
 
-  <div class="flex flex-col pl-4 pr-2">
+  <div class="w-max flex flex-col pl-4 pr-2">
     <div class="font-semibold text-sm">{item.label}</div>
     <div class="pt-1 text-xs whitespace-pre-line">{item.summary}</div>
   </div>
 
   {#if item.btn}
-    <div class="h-full flex items-center">
+    <div class="h-full flex grow items-center justify-end">
       <button type="button" class="hover:bg-orange-700 bg-opacity-50 rounded-full p-2">
         <InlineSVG src={IconSettings} class="w-5 h-5" on:click={item.btn} />
       </button>

@@ -20,10 +20,10 @@
     let price: number;
     let token: Erc20;
     let limited: boolean;
-    let limit: number;
+    let limit: number = 1;
     let timed: boolean;
-
-    // TODO add follower only toggle
+    let hasReferralFee: boolean = false;
+    let referralFee: number = 0;
     let followerOnly: boolean = false;
 
     const onSetClick = async () => {
@@ -37,7 +37,7 @@
         let baseModule = {
             amount,
             recipient,
-            referralFee: 0,
+            referralFee,
             followerOnly
         }
 
@@ -94,13 +94,13 @@
     <label for="price" class="block text-sm font-medium text-gray-700">
       Price
     </label>
-    <div class="mt-1 relative rounded-md shadow-sm">
+    <div class="mt-1 relative rounded-lg">
       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <span class="text-gray-500 sm:text-sm">
                 $
             </span>
       </div>
-      <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00" min="0.00"
+      <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00" min="0"
              bind:value={price}
              class="focus:ring-orange-500 border-l border-b border-t border-gray-300 py-2 px-4 focus:border-orange-500
              block w-full pl-7 pr-12 rounded-md text-base" />
@@ -145,16 +145,16 @@
         <label for="collectLimitToggle"
                class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
       </div>
-      <span class="text-gray-400 text-base">
+      <span class="text-gray-400 text-base pr-12">
         Limited edition
       </span>
     </div>
 
-    <input type="number" id="collectLimitInput" placeholder="No. available" autocomplete="off" min="0"
+    <input type="number" id="collectLimitInput" placeholder="1" autocomplete="off" min="0"
            bind:value={limit} disabled={!limited}
-           class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:border-gray-300 py-2 px-4 bg-white w-40
-             text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-500
-             focus:border-transparent"/>
+           class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:opacity-50 py-2
+                  px-3 bg-white w-24 text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none
+                  focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center"/>
 
   </div><!-- #collectLimit -->
 
@@ -174,7 +174,54 @@
       </span>
     </div>
 
-  </div><!-- #collectLimit -->
+  </div><!-- #timed -->
+
+  <div id="follower-only" class="flex items-center py-2 mt-2 gap-6">
+
+    <div class="grow">
+      <div class="relative inline-block w-10 mr-2 align-middle select-none">
+        <input type="checkbox" name="toggle" id="followerOnlyToggle" bind:checked={followerOnly}
+               class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
+               absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer focus:ring-0
+               checked:focus:bg-orange checked:focus:ring-0"/>
+        <label for="followerOnlyToggle"
+               class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+      </div>
+      <span class="text-gray-400 text-base">
+        Followers only
+      </span>
+    </div>
+
+  </div><!-- #follower-only -->
+
+  <div id="referralFee" class="flex items-center py-2 mt-1 gap-6">
+
+    <div class="grow">
+      <div class="relative inline-block w-10 mr-2 align-middle select-none">
+        <input type="checkbox" name="toggle" id="referralFeeToggle" bind:checked={hasReferralFee}
+               class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
+               absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer focus:ring-0
+               checked:focus:bg-orange checked:focus:ring-0"/>
+        <label for="referralFeeToggle"
+               class="block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+      </div>
+      <span class="text-gray-400 text-base">
+        Referral fee
+      </span>
+    </div>
+
+    <div class="relative rounded-lg">
+      <input type="number" id="referralFeeInput" placeholder="5" autocomplete="off" min="0" max="100"
+             bind:value={referralFee} disabled={!hasReferralFee}
+             class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:opacity-50 pl-2 pr-3
+             px-4 bg-white w-24 text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2
+             focus:ring-orange-500 focus:border-transparent text-center"/>
+      <div class="absolute inset-y-0 right-0 flex items-center mr-8 text-gray-400">
+        %
+      </div>
+    </div>
+
+  </div><!-- #referralFee -->
 
   <div class="flex justify-end">
 

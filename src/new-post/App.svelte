@@ -6,7 +6,7 @@
 
     import {
         COLLECT_ITEMS, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,
-        getCollectModuleParams
+        getCollectModuleParams,
     } from '../lib/lens-modules.js';
 
     import {
@@ -32,7 +32,7 @@
 
     import {onMount} from 'svelte';
 
-    import type {PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
+    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
 
     /**
      * Bound to the rich text editor
@@ -51,7 +51,7 @@
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
     let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
-    let collectItem: SelectItem<CollectModules> = COLLECT_ITEMS[0];
+    let collectItem: SelectItem<CollectModuleItem> = COLLECT_ITEMS[0];
 
     let feeCollectModule: PaidCollectModule;
 
@@ -134,7 +134,7 @@
     };
 
     const onCollectModuleChange = (e) => {
-        if (e.detail.value === CollectModules.FeeCollectModule) {
+        if (e.detail.value.type === CollectModules.FeeCollectModule) {
             showCollectFeesDialog();
         } else {
             feeCollectModule = null;
@@ -143,7 +143,7 @@
 
     const onFeeCollectModuleUpdated = (e) => {
         feeCollectModule = e.detail;
-        collectItem = COLLECT_ITEMS[1];
+        collectItem = COLLECT_ITEMS[2];
         console.log('onFeeCollectModuleUpdated', feeCollectModule);
 
         const dialog: HTMLDialogElement = document.getElementById('collectFees');
@@ -383,8 +383,8 @@
 
           <div class="flex">
 
-            <Select items={REFERENCE_ITEMS} bind:value={referenceItem} listOpen={true}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+            <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-56}
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
                     class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
@@ -405,17 +405,18 @@
           <div class="flex ml-2">
 
             <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} disabled={isSubmittingPost}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+                    disabled={isSubmittingPost} listOffset={-56}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
                     class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
                     focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
-                <ModuleChoiceItem item={collectFeeString && index === 1 ? {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog} : item} />
+                <ModuleChoiceItem item={collectFeeString && index === 2 ? {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog} : item} />
               </div>
 
               <div slot="selection" let:selection let:index class="flex">
-                <ModuleSelectionItem selection={collectFeeString && selection.label === COLLECT_ITEMS[1].label ? {label: collectFeeString, icon: 'collect_paid'} : selection} />
+                <ModuleSelectionItem selection={collectFeeString && selection.label === COLLECT_ITEMS[2].label ? {label: collectFeeString, icon: 'collect_paid'} : selection} />
               </div>
 
             </Select>

@@ -1,12 +1,11 @@
-import {
-    CollectModules, PublicationContentWarning, ReferenceModules,
-    AsyncEnabledModuleCurrencies,
+import type {
+    CollectModuleParams, EnabledModuleCurrenciesQuery, Erc20, FeeCollectModuleSettings, LimitedFeeCollectModuleSettings,
+    LimitedTimedFeeCollectModuleSettings, ReferenceModuleParams, TimedFeeCollectModuleSettings,
 } from "../graph/lens-service";
 
-import type {
-    CollectModuleParams, DegreesOfSeparationReferenceModuleParams, EnabledModuleCurrenciesQuery, Erc20,
-    FeeCollectModuleSettings, LimitedFeeCollectModuleSettings, LimitedTimedFeeCollectModuleSettings,
-    ReferenceModuleParams, TimedFeeCollectModuleSettings,
+import {
+    AsyncEnabledModuleCurrencies,
+    CollectModules, PublicationContentWarning,
 } from "../graph/lens-service";
 
 import type {ApolloQueryResult} from "@apollo/client";
@@ -48,7 +47,7 @@ export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
             }
         },
         label: 'No comments',
-        summary: 'No one can comment, including you. Anyone can repost.',
+        summary: 'No one can comment, including you. Anyone can\nrepost',
         icon: 'lock'
     },
     {
@@ -60,7 +59,7 @@ export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
             }
         },
         label: 'Friends only',
-        summary: 'Only profiles that you follow can reply and repost.',
+        summary: 'Only profiles that you follow can reply and repost',
         icon: 'friends'
     },
     {
@@ -72,26 +71,47 @@ export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
             }
         },
         label: 'Friends of friends',
-        summary: 'Only profiles that you follow, and the profiles they follow,\ncan reply and repost.',
+        summary: 'Only profiles that you follow, and the profiles they\nfollow, can reply and repost',
         icon: 'friends_of_friends'
     },
 ];
 
-export const COLLECT_ITEMS: SelectItem<CollectModules>[] = [
+export type CollectModuleItem = {
+    type: CollectModules,
+    followerOnly?: boolean
+}
+
+export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
     {
-        value: CollectModules.FreeCollectModule,
+        value: {
+            type: CollectModules.FreeCollectModule,
+            followerOnly: false,
+        },
         label: 'Free to collect',
         summary: 'Post can be collected as an NFT for free',
         icon: 'collect_free'
     },
     {
-        value: CollectModules.FeeCollectModule,
+        value: {
+            type: CollectModules.FreeCollectModule,
+            followerOnly: true,
+        },
+        label: 'Free for friends',
+        summary: 'Friends can collect the post as an NFT for free',
+        icon: 'friends'
+    },
+    {
+        value: {
+            type: CollectModules.FeeCollectModule
+        },
         label: 'Sell NFT',
         summary: 'Charge for NFT collection',
         icon: 'collect_paid'
     },
     {
-        value: CollectModules.RevertCollectModule,
+        value: {
+            type: CollectModules.RevertCollectModule
+        },
         label: 'Disable Collection',
         summary: 'Do not allow the post to be collected as an NFT',
         icon: 'collect_disabled'
@@ -131,7 +151,7 @@ const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModulePar
         },
         followerOnly: module.followerOnly,
         recipient: module.recipient,
-        referralFee: 0
+        referralFee: module.referralFee
     }
 
     switch (module.__typename) {
@@ -164,13 +184,12 @@ const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModulePar
     }
 };
 
-
-export const getCollectModuleParams = (item: SelectItem<CollectModules>, feeCollectModule: PaidCollectModule): CollectModuleParams => {
+export const getCollectModuleParams = (item: SelectItem<CollectModuleItem>, feeCollectModule: PaidCollectModule): CollectModuleParams => {
     let collect: CollectModuleParams;
-    switch (item.value) {
+    switch (item.value.type) {
         case CollectModules.FreeCollectModule:
             // TODO set follower only from collect module
-            collect = {freeCollectModule: {followerOnly: false}};
+            collect = {freeCollectModule: {followerOnly: item.value.followerOnly}};
             break;
         case CollectModules.RevertCollectModule:
             collect = REVERT_COLLECT_MODULE;
@@ -182,7 +201,3 @@ export const getCollectModuleParams = (item: SelectItem<CollectModules>, feeColl
     console.log('getCollectModuleParams: returning', collect);
     return collect;
 }
-
-// export const geReferenceModuleParams = (item: SelectItem<ReferenceModules>): ReferenceModuleParams => {
-//     return refere
-// }
