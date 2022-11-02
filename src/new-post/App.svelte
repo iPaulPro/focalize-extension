@@ -5,25 +5,16 @@
     import {getDefaultProfile} from '../lib/lens-auth';
 
     import {
-        COLLECT_ITEMS,
-        CONTENT_WARNING_ITEMS,
-        FOLLOWER_ONLY_ITEMS,
-        REVERT_COLLECT_MODULE,
-        generateImagePostMetadata,
-        generateTextPostMetadata,
-        generateVideoPostMetadata,
-        getPaidCollectModuleParams,
-        submitPost,
+        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,
+        getCollectModuleParams
+    } from '../lib/lens-modules.js';
+
+    import {
+        generateImagePostMetadata, generateTextPostMetadata, generateVideoPostMetadata, submitPost
     } from '../lib/lens-post.js';
 
-    import type {PaidCollectModule, SelectItem} from '../lib/lens-post';
-
-    import type {
-        CollectModuleParams,
-        PublicationMetadataMediaInput,
-        PublicationMetadataV2Input,
-    } from '../graph/lens-service';
-    import {CollectModules, PublicationContentWarning, PublicationMainFocus} from '../graph/lens-service';
+    import type {PublicationMetadataMediaInput, PublicationMetadataV2Input,} from '../graph/lens-service';
+    import {CollectModules, PublicationMainFocus, ReferenceModules} from '../graph/lens-service';
 
     import {attachment, clearPostState, content, description, profile, title} from '../lib/state';
 
@@ -41,6 +32,8 @@
 
     import {onMount} from 'svelte';
 
+    import type {PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
+
     /**
      * Bound to the rich text editor
      */
@@ -57,7 +50,7 @@
     let shareUrl: string;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
-    let followerOnly = FOLLOWER_ONLY_ITEMS[0];
+    let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
     let collectItem: SelectItem<CollectModules> = COLLECT_ITEMS[0];
 
     let feeCollectModule: PaidCollectModule;
@@ -66,24 +59,9 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
 
-    const getCollectModuleParams = (item: SelectItem<CollectModules>): CollectModuleParams => {
-        let collect: CollectModuleParams;
-        switch (item.value) {
-            case CollectModules.FreeCollectModule:
-                collect = {freeCollectModule: {followerOnly: followerOnly.value}};
-                break;
-            case CollectModules.RevertCollectModule:
-                collect = REVERT_COLLECT_MODULE;
-                break;
-            case CollectModules.FeeCollectModule:
-                collect = getPaidCollectModuleParams(feeCollectModule);
-                break;
-        }
-        console.log('getCollectModuleParams: returning', collect);
-        return collect;
-    }
+    $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
 
-    $: collectModuleParams = getCollectModuleParams(collectItem);
+    $: referenceModuleParams = referenceItem.value;
 
     const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
         if (!urlParams.has('type')) {
@@ -247,7 +225,7 @@
             const publicationId = await submitPost(
                 $profile.id,
                 metadata,
-                followerOnly.value,
+                referenceModuleParams,
                 collectModuleParams
             );
 
@@ -405,9 +383,10 @@
 
           <div class="flex">
 
-            <Select bind:value={followerOnly} items={FOLLOWER_ONLY_ITEMS} disabled={isSubmittingPost}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} containerStyles="cursor: pointer;"
-                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
+            <Select items={REFERENCE_ITEMS} bind:value={referenceItem} listOpen={true}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
+                    containerStyles="cursor: pointer;" disabled={isSubmittingPost}
+                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
                     class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
                     focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
 
@@ -425,9 +404,9 @@
 
           <div class="flex ml-2">
 
-            <Select items={COLLECT_ITEMS} clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
-                    bind:value={collectItem} on:change={onCollectModuleChange} disabled={isSubmittingPost}
-                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E"
+            <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} disabled={isSubmittingPost}
+                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
                     class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
                     focus:border-none bg-none disabled:bg-transparent">
 
@@ -448,7 +427,7 @@
       </div>
 
       <dialog id="collectFees" class="rounded-xl shadow-2xl">
-        <CollectModuleDialog followerOnly={followerOnly.value} on:moduleUpdated={onFeeCollectModuleUpdated}/>
+        <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
       </dialog>
 
       <div class="flex border-b border-neutral-300 py-5 gap-4">

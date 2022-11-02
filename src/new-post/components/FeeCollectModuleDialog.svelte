@@ -1,7 +1,7 @@
 <script lang="ts">
     import {createEventDispatcher} from 'svelte';
 
-    import {getEnabledModuleCurrencies} from '../../lib/lens-post.js'
+    import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
     import {getAddressFromSigner} from "../../lib/ethers-service";
 
     import type {
@@ -23,7 +23,8 @@
     let limit: number;
     let timed: boolean;
 
-    export let followerOnly: boolean;
+    // TODO add follower only toggle
+    let followerOnly: boolean = false;
 
     const onSetClick = async () => {
         const recipient = await getAddressFromSigner();

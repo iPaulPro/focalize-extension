@@ -2,6 +2,9 @@
     import InlineSVG from 'svelte-inline-svg'
     import IconEarth from '../../assets/ic_earth.svg'
     import IconFollowers from '../../assets/ic_followers.svg'
+    import IconLock from '../../assets/ic_lock.svg'
+    import IconFriends from '../../assets/ic_friends.svg'
+    import IconFriendsOfFriends from '../../assets/ic_friends_of_friends.svg'
     import IconCollectFree from '../../assets/ic_collect_free.svg'
     import IconCollectPaid from '../../assets/ic_collect_paid.svg'
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
@@ -15,6 +18,12 @@
     <InlineSVG src={IconEarth} class="w-5 h-5" />
   {:else if selection.icon === 'followers'}
     <InlineSVG src={IconFollowers} class="w-5 h-5" />
+  {:else if selection.icon === 'lock'}
+    <InlineSVG src={IconLock} class="w-5 h-5" />
+  {:else if selection.icon === 'friends'}
+    <InlineSVG src={IconFriends} class="w-5 h-5" />
+  {:else if selection.icon === 'friends_of_friends'}
+    <InlineSVG src={IconFriendsOfFriends} class="w-5 h-5" />
   {:else if selection.icon === 'collect_free'}
     <InlineSVG src={IconCollectFree} class="w-5 h-5" />
   {:else if selection.icon === 'collect_paid'}
