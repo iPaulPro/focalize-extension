@@ -96,9 +96,9 @@ export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
             type: CollectModules.FreeCollectModule,
             followerOnly: true,
         },
-        label: 'Free for friends',
-        summary: 'Friends can collect the post as an NFT for free',
-        icon: 'friends'
+        label: 'Free for followers',
+        summary: 'Followers can collect the post as an NFT for free',
+        icon: 'followers'
     },
     {
         value: {
@@ -119,7 +119,7 @@ export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
 ];
 
 export const CONTENT_WARNING_ITEMS: SelectItem<ContentWarning>[] = [
-    {value: '', label: 'No content warning'},
+    {value: null, label: 'No content warning'},
     {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
     {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
     {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},

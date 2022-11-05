@@ -41,7 +41,7 @@ const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_PROJECT_ID}:${import.meta.env.
 //     });
 // };
 
-export const uploadFile = async (file, cb?: (number) => {}): Promise<string> => {
+export const uploadAndPin = async (file: File, cb?: (number) => {}): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)
 
     let formData = new FormData();
@@ -58,12 +58,32 @@ export const uploadFile = async (file, cb?: (number) => {}): Promise<string> => 
             onUploadProgress: (p) => {
                 console.log(p);
                 if (cb) {
-                    const progress = Math.round((p.loaded * 100) / p.total);
+                    const progress = p.progress * 100;
                     cb(progress);
                 }
             }
         }
     );
 
+    console.log('uploadFile: result =', res);
+
     return res.data.Hash;
 }
+
+export const unpin = async (cid: string): Promise<string[]> => {
+    const auth = btoa(`${AUTH_TOKEN}`)
+
+    const res = await axios.post(
+        "https://ipfs.infura.io:5001/api/v0/pin/rm?arg=" + cid,
+        {},
+        {
+            headers: {
+                'Authorization': `Basic ${auth}`
+            }
+        }
+    );
+
+    console.log('unpin: result =', res);
+
+    return res.data.Pins;
+};

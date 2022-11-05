@@ -62,11 +62,11 @@
   {/if}
 
   {#each tags as tag}
-    <span class="tag pl-2 pr-4 py-1 flex items-center text-sm rounded-full text-neutral-700  bg-white shadow-sm">
+    <div class="tag pl-2 pr-4 py-1 flex items-center rounded-full text-neutral-700 bg-white shadow-sm">
 
       <input type="text" size={Math.max(tag?.length + 1 || 0, 5)}
              bind:value={tag} on:keypress={onKeyPress} on:blur={() => removeTagIfEmpty(tag)}
-             class="border-none leading-4 focus:ring-0" maxlength="50">
+             class="border-none leading-4 focus:ring-0 text-sm" maxlength="50">
 
       <button class="bg-transparent hover" on:click={() => removeTag(tag)} disabled={disabled}>
 
@@ -76,7 +76,7 @@
         </svg>
 
       </button>
-    </span>
+    </div>
   {/each}
 
 </div>

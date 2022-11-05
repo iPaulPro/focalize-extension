@@ -1,25 +1,34 @@
 <script lang="ts">
     import {ensureCorrectChain} from '../lib/ethers-service';
-
-    import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
+    import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
     import {getDefaultProfile} from '../lib/lens-auth';
 
     import {
-        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,
         getCollectModuleParams,
+        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,
+    } from '../lib/lens-modules.js';
+
+    import type {
+        CollectModuleItem, PaidCollectModule, SelectItem
     } from '../lib/lens-modules.js';
 
     import {
-        generateImagePostMetadata, generateTextPostMetadata, generateVideoPostMetadata, submitPost
+        generateAudioPostMetadata, generateImagePostMetadata, generateTextPostMetadata, generateVideoPostMetadata,
+        submitPost, createAudioAttributes, createVideoAttributes
     } from '../lib/lens-post.js';
 
-    import type {PublicationMetadataMediaInput, PublicationMetadataV2Input,} from '../graph/lens-service';
-    import {CollectModules, PublicationMainFocus, ReferenceModules} from '../graph/lens-service';
+    import {
+        clearPostState,
+        attachment, author, content, cover, description, profile, title
+    } from '../lib/state';
 
-    import {attachment, clearPostState, content, description, profile, title} from '../lib/state';
+    import {
+        CollectModules, PublicationMainFocus, PublicationMetadataDisplayTypes, ReferenceModules
+    } from '../graph/lens-service';
 
-    import Select from 'svelte-select';
-    import toast, {Toaster} from 'svelte-french-toast';
+    import type {
+        MetadataAttributeInput, PublicationMetadataMediaInput, PublicationMetadataV2Input,
+    } from '../graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
@@ -30,9 +39,9 @@
     import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
 
+    import Select from 'svelte-select';
+    import toast, {Toaster} from 'svelte-french-toast';
     import {onMount} from 'svelte';
-
-    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
 
     /**
      * Bound to the rich text editor
@@ -181,8 +190,12 @@
 
         const mediaMetadata: PublicationMetadataMediaInput = {
             item: `ipfs://${$attachment.cid}`,
-            type: $attachment.type
+            type: $attachment.type,
         };
+
+        if ($cover) {
+            mediaMetadata.cover = `ipfs://${$cover.cid}`
+        }
 
         if ($attachment.type.startsWith('image/')) {
             return generateImagePostMetadata(
@@ -195,11 +208,34 @@
                 $description,
             );
         } else if ($attachment.type.startsWith('video/')) {
+            const attributes = createVideoAttributes();
+
             return generateVideoPostMetadata(
                 $profile.handle,
                 mediaMetadata,
                 $title,
+                `ipfs://${$cover.cid}`,
+                $cover.type,
                 $content,
+                attributes,
+                getTags(),
+                postContentWarning.value,
+                $description,
+            );
+        } else if ($attachment.type.startsWith('audio/')) {
+            let attributes: MetadataAttributeInput[];
+            if ($author) {
+                attributes = createAudioAttributes($author);
+            }
+
+            return generateAudioPostMetadata(
+                $profile.handle,
+                mediaMetadata,
+                $title,
+                `ipfs://${$cover.cid}`,
+                $cover.type,
+                $content,
+                attributes,
                 getTags(),
                 postContentWarning.value,
                 $description,
@@ -304,7 +340,7 @@
 
         attachment.set(file);
         isFileDragged = false;
-        postType = PublicationMainFocus.Image;
+        postType = getMainFocusFromFileType(file.type);
     };
 
     $: shouldDisableSubmitBtn = isSubmittingPost ||
@@ -332,7 +368,7 @@
 
       <div class="text-2xl mt-4">Post created!</div>
 
-      <a href="https://testnet.lenster.xyz/posts/{postId}" target="_blank" rel="noreferrer"
+      <a href={import.meta.env.VITE_LENS_PREVIEW_NODE + 'posts/' + postId} target="_blank" rel="noreferrer"
          class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto disabled:bg-neutral-400
           bg-orange-500 hover:bg-orange-600 focus:ring-orange-400 focus:ring-offset-orange-200 text-white text-center text-lg
           transition ease-in duration-200 font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2">
@@ -353,7 +389,7 @@
 
           <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="What's happening" rows={5} />
 
-        {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video}
+        {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video || postType === PublicationMainFocus.Audio}
 
           <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
 
@@ -379,15 +415,13 @@
 
         {/if}
 
-        <div class="flex pt-2 pb-1 {postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'ml-20' : 'ml-0'}">
+        <div class="flex pt-2 pb-1 {postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'ml-20' : 'ml-0 justify-center'}">
 
-          <div class="flex">
-
-            <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
+          <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-56}
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
-                    class="cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
+                    class="w-fit cursor-pointer hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none
                     focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
@@ -400,15 +434,11 @@
 
             </Select>
 
-          </div>
-
-          <div class="flex ml-2">
-
-            <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
+          <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
                     disabled={isSubmittingPost} listOffset={-56}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="#FFB38E" --list-max-height="auto"
-                    class="hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
+                    class="w-fit hover:bg-gray-50 rounded-xl border-none ring-0 focus:outline-none focus:ring-0
                     focus:border-none bg-none disabled:bg-transparent">
 
               <div slot="item" let:item let:index>
@@ -420,8 +450,6 @@
               </div>
 
             </Select>
-
-          </div>
 
         </div>
 

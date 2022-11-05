@@ -4,16 +4,25 @@ import {Lens} from "lens-protocol";
 
 import {APP_ID} from "../config";
 
-import {PublicationContentWarning, PublicationMainFocus} from "../graph/lens-service";
+import type {
+    CollectModuleParams,
+    MetadataAttributeInput,
+    PublicationMetadataMediaInput,
+    PublicationMetadataV2Input,
+    ReferenceModuleParams,
+    ValidatePublicationMetadataRequest
+} from "../graph/lens-service";
+import {
+    AsyncValidatePublicationMetadata,
+    PublicationContentWarning,
+    PublicationMainFocus,
+    PublicationMetadataDisplayTypes
+} from "../graph/lens-service";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {getOrRefreshAccessToken} from "./lens-auth";
-import {uploadFile} from "./ipfs-service";
+import {uploadAndPin} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 import {DEFAULT_REFERENCE_MODULE, FREE_COLLECT_MODULE} from "./lens-modules";
-
-import type {
-    CollectModuleParams, PublicationMetadataMediaInput, PublicationMetadataV2Input, ReferenceModuleParams
-} from "../graph/lens-service";
 
 import type {OperationResult} from "urql";
 
@@ -25,8 +34,9 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
         locale: 'en',
         ...metadata
     }
-    console.log('makeMetadataFile: Creating metadata file for', obj);
-    const blob = new Blob([JSON.stringify(obj)], {type: 'application/json'})
+    let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+    console.log('makeMetadataFile: Creating metadata file for', o);
+    const blob = new Blob([JSON.stringify(o)], {type: 'application/json'})
     return new File([blob], `metadata.json`)
 };
 
@@ -81,15 +91,29 @@ export const generateImagePostMetadata = (
         description,
         mainContentFocus: PublicationMainFocus.Image,
         tags,
-        contentWarning
+        contentWarning,
+        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/'+ handle,
     } as PublicationMetadataV2Input
 )
+
+export const createVideoAttributes = (): MetadataAttributeInput[] => {
+    return [
+        {
+            displayType: PublicationMetadataDisplayTypes.String,
+            traitType: 'type',
+            value: 'video'
+        }
+    ] as MetadataAttributeInput[];
+}
 
 export const generateVideoPostMetadata = (
     handle: string,
     media: PublicationMetadataMediaInput,
     title?: string,
+    image?: string,
+    imageMimeType?: string,
     content?: string,
+    attributes?: MetadataAttributeInput[],
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string = content,
@@ -98,14 +122,77 @@ export const generateVideoPostMetadata = (
     {
         name: title || `Post by @${handle}`,
         media: [media],
+        image,
+        imageMimeType,
         animation_url: animationUrl,
-        content: title ? `${title}\n\n${content}` : content,
+        content,
         description,
+        attributes,
         mainContentFocus: PublicationMainFocus.Video,
         tags,
-        contentWarning
+        contentWarning,
+        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/'+ handle,
     } as PublicationMetadataV2Input
-)
+);
+
+export const createAudioAttributes = (author: string): MetadataAttributeInput[] => {
+    return [
+        {
+            displayType: PublicationMetadataDisplayTypes.String,
+            traitType: 'author',
+            value: author
+        },
+        {
+            displayType: PublicationMetadataDisplayTypes.String,
+            traitType: 'type',
+            value: 'audio'
+        }
+    ] as MetadataAttributeInput[];
+}
+
+export const generateAudioPostMetadata = (
+    handle: string,
+    media: PublicationMetadataMediaInput,
+    title?: string,
+    image?: string,
+    imageMimeType?: string,
+    content?: string,
+    attributes?: MetadataAttributeInput[],
+    tags?: string[],
+    contentWarning?: PublicationContentWarning,
+    description: string = content,
+    animationUrl: string = media.item,
+): PublicationMetadataV2Input => {
+    const artistAttr = attributes.find(attr => attr.traitType === 'author');
+    return {
+        name: artistAttr ? `${artistAttr.value} - ${title}` : title,
+        media: [media],
+        image,
+        imageMimeType,
+        animation_url: animationUrl,
+        content,
+        description,
+        attributes,
+        mainContentFocus: PublicationMainFocus.Audio,
+        tags,
+        contentWarning,
+        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/' + handle,
+    } as PublicationMetadataV2Input;
+};
+
+const validateMetadata = (metadata: PublicationMetadataV2Input) => {
+    const request: ValidatePublicationMetadataRequest = {
+        metadatav2: {
+            version: '2.0.0',
+            metadata_id: uuid(),
+            appId: APP_ID,
+            locale: 'en',
+            ...metadata
+        }
+    }
+    return AsyncValidatePublicationMetadata({variables: {request}})
+        .then(res => res.data.validatePublicationMetadata)
+}
 
 export const submitPost = async (
     profileId: string,
@@ -116,8 +203,13 @@ export const submitPost = async (
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
     const accessToken = await getOrRefreshAccessToken();
 
+    const validate = await validateMetadata(metadata);
+    if (!validate.valid) {
+        throw validate.reason;
+    }
+
     const metadataFile: File = makeMetadataFile(metadata);
-    const metadataCid = await uploadFile(metadataFile);
+    const metadataCid = await uploadAndPin(metadataFile);
     console.log('submitPost: Uploaded metadata to IPFS', metadataCid);
 
     const contentURI = `ipfs://${metadataCid}`;
