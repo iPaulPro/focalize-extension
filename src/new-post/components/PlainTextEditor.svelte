@@ -51,5 +51,6 @@
 
   <textarea id="plainTextInput" {rows} {disabled} {placeholder}
             bind:value={$content} on:input={handleInputEvent}
-            class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent"></textarea>
+            class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent
+            text-black dark:text-gray-100"></textarea>
 </div>

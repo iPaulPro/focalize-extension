@@ -135,7 +135,7 @@
             <h2 class="text-2xl leading-8 font-extrabold tracking-tight text-white sm:text-3xl sm:leading-9">
               Follow Focalize to unlock media uploads
             </h2>
-            <p class="mt-3 max-w-3xl text-lg leading-6 text-neutral-300">
+            <p class="mt-3 max-w-3xl text-lg leading-6 text-gray-300">
               Attach photos and videos to your posts, up to 1GB per post. Files are pinned on IPFS and backed by Filecoin.
             </p>
           </div>
@@ -148,7 +148,7 @@
               </button>
             </div>
 
-            <p class="mt-3 text-sm leading-5 text-neutral-300 text-center">
+            <p class="mt-3 text-sm leading-5 text-gray-300 text-center">
               The first 500 Follow NFTs are free!
             </p>
 
@@ -163,10 +163,10 @@
   </main>
 
   <footer class="flex justify-center p-4">
-    <span class="text-neutral-400">
+    <span class="text-gray-400">
       Created by
       <a href="https://lenster.xyz/u/paulburke.lens" target="_blank" rel="noreferrer"
-         class="hover:text-neutral-600 hover:font-semibold">
+         class="hover:text-gray-600 hover:font-semibold">
         paulburke.eth
       </a>
     </span>

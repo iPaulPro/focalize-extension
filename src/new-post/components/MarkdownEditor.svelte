@@ -5,53 +5,52 @@
     import {menu} from '@milkdown/plugin-menu';
     import {tooltip} from '@milkdown/plugin-tooltip';
     import {commonmark} from "@milkdown/preset-commonmark";
-    import {nord} from "@milkdown/theme-nord";
-    import { insert, getMarkdown } from '@milkdown/utils';
+    import {nordDark, nordLight} from "@milkdown/theme-nord";
+    import { insert, getMarkdown, switchTheme } from '@milkdown/utils';
 
     export let defaultValue;
 
     export let isRichText = true;
 
-    let editor;
+    export let darkMode;
+
+    let editor: Editor;
 
     export const getText = (): string => editor.action(getMarkdown());
 
     export const insertText = (text: string) => editor.action(insert(text));
 
-    const makeEditor = async dom => {
-        nord.override((emotion, manager) => {
-            manager.set(ThemeColor, ([key, opacity]) => {
-                switch (key) {
-                    // The primary color. Used in large color blocks.
-                    case 'primary':
-                        return `rgba(255, 96, 20, ${opacity})`;
-                    // The secondary color. Used in tips area.
-                    case 'secondary':
-                        return `rgba(107, 35, 0, ${opacity})`;
-                    // The color of text.
-                    case 'neutral':
-                        return `rgba(17, 17, 17, ${opacity})`;
-                    // The color of widgets, such as buttons.
-                    case 'solid':
-                        return `rgba(17, 17, 17, ${opacity})`;
-                    // The color of box shadow.
-                    case 'shadow':
-                        return `rgba(17, 17, 17, ${opacity})`;
-                    // The color of line, such as border.
-                    case 'line':
-                        return `rgba(204, 204, 204, ${opacity})`;
-                    // The foreground color.
-                    case 'surface':
-                        return `rgba(255, 255, 255, ${opacity})`;
-                    // The background color.
-                    case 'background':
-                        return `rgba(238, 238, 238, ${opacity})`;
-                    default:
-                        return `rgba(0, 0, 0, ${opacity})`;
-                }
+    $: {
+        if (editor) {
+            const theme = darkMode ? nordDark : nordLight;
+            theme.override((emotion, manager) => {
+                manager.set(ThemeColor, ([key, opacity]) => {
+                    switch (key) {
+                        // The primary color. Used in large color blocks.
+                        case 'primary':
+                            return `rgba(255, 96, 20, ${opacity})`;
+                        // The secondary color. Used in tips area.
+                        case 'secondary':
+                            return `rgba(107, 35, 0, ${opacity})`;
+                        // The color of text.
+                        case 'neutral':
+                            return darkMode ? `rgba(238, 238, 238, ${opacity})` : `rgba(17, 17, 17, ${opacity})`;
+                        // The color of widgets, such as buttons.
+                        case 'solid':
+                            return darkMode ? `rgba(238, 238, 238, ${opacity})` : `rgba(17, 17, 17, ${opacity})`;
+                        // // The foreground color.
+                        case 'surface':
+                            return `transparent`;
+                        default:
+                            return darkMode ? `rgba(0, 0, 0, ${opacity})` : `rgba(255, 255, 255, ${opacity})`;
+                    }
+                });
             });
-        });
+            editor.action(switchTheme(theme));
+        }
+    }
 
+    const makeEditor = async dom => {
         const builder = Editor.make()
             .config(ctx => {
                 ctx.set(rootCtx, dom);
@@ -59,7 +58,7 @@
                     ctx.set(defaultValueCtx, defaultValue);
                 }
             })
-            .use(nord);
+            .use(darkMode ? nordDark : nordLight);
 
         if (isRichText) {
             builder.use(menu)

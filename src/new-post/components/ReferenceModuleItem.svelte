@@ -25,6 +25,6 @@
 <div class="flex p-4 {itemClasses}">
   <div class="flex flex-col">
     <div class="text-base font-medium">{item.label}</div>
-    <div class="text-sm font-normal text-neutral-700">{item.summary}</div>
+    <div class="text-sm font-normal text-gray-700">{item.summary}</div>
   </div>
 </div>

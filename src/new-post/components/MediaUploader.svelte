@@ -29,9 +29,9 @@
     $: coverPath = $cover?.cid ? `${import.meta.env.VITE_INFURA_GATEWAY_URL}${$cover?.cid}` : null;
     $: coverType = $cover?.type;
 
-    $: isAttachmentImage = fileType.startsWith('image/');
-    $: isAttachmentAudio = fileType.startsWith('audio/');
-    $: isAttachmentVideo = fileType.startsWith('video/');
+    $: isAttachmentImage = fileType?.startsWith('image/');
+    $: isAttachmentAudio = fileType?.startsWith('audio/');
+    $: isAttachmentVideo = fileType?.startsWith('video/');
 
     let fileInput;
     let coverInput;
@@ -196,7 +196,7 @@
 
     <PlainTextEditor placeholder="Comment (optional)" rows={3}/>
 
-    <div class="flex w-full justify-center bg-gray-100 px-4 pt-6 pb-4 rounded-xl">
+    <div class="flex w-full justify-center bg-gray-100 dark:bg-gray-700 px-4 pt-6 pb-4 rounded-xl">
 
       <div class="flex flex-col items-center justify-center {isCollectable ? 'w-5/12' : 'w-full'} ">
         {#if isAttachmentImage}
@@ -226,7 +226,8 @@
 
           <div class="flex flex-col items-center">
 
-            <div class="w-full mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'} {isFileDragged ? 'bg-orange-50' : 'bg-none'}"
+            <div class="w-full mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'}
+                 {isFileDragged ? 'bg-orange-50 dark:bg-gray-800' : 'bg-none'}"
                  on:drop|preventDefault|stopPropagation={onCoverFileDropped}
                  on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
                  on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -236,7 +237,7 @@
 
                 <div class="w-full relative bg-gray-200 rounded-xl {isAttachmentVideo ? 'aspect-video' : ''}">
                   <img src={coverPath} alt="Cover"
-                       class="max-w-full max-h-full w-auto h-auto mx-auto
+                       class="max-w-full max-h-full w-auto h-auto mx-auto rounded-xl
                              {isFileDragged ? 'border border-orange-500' : 'border-none'}"
                        on:load={() => coverLoading = false}>
 
@@ -267,7 +268,8 @@
                        bind:this={coverInput}/>
 
                 <div class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} flex flex-col items-center
-                            justify-center border border-gray-300 text-gray-500 rounded-xl cursor-pointer hover:bg-orange-50"
+                            justify-center border border-gray-300 dark:border-gray-500 text-gray-300 dark:text-gray-300
+                            rounded-xl cursor-pointer hover:bg-orange-50"
                      on:click={()=>{coverInput.click();}} disabled={coverLoading}>
 
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-10 text-gray-400"
@@ -317,7 +319,7 @@
 
             </div>
 
-            <button class="text-red-700 opacity-60 hover:opacity-100"
+            <button class="text-red-700 dark:text-white opacity-60 hover:opacity-100"
                     on:click={onDeleteMedia}>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -352,26 +354,29 @@
 
           <input type="text" placeholder="Title"
                  class="w-full rounded-lg border-gray-200 text-lg placeholder-gray-400 focus:outline-none focus:ring-2
-                 focus:ring-orange-200 focus:border-transparent mt-2 disabled:opacity-40"
+                 focus:ring-orange-200 focus:border-transparent mt-2 disabled:opacity-40
+                 dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100"
                  bind:value={$title} disabled={disabled}>
 
           {#if isAttachmentAudio}
             <input type="text" placeholder="Author"
                    class="w-full rounded-lg border-gray-200 text-lg placeholder-gray-400 focus:outline-none focus:ring-2
-                 focus:ring-orange-200 focus:border-transparent mt-2 disabled:opacity-40"
+                   focus:ring-orange-200 focus:border-transparent mt-2 disabled:opacity-40
+                   dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100"
                    bind:value={$author} disabled={disabled}>
           {/if}
 
           <textarea placeholder="Description (optional)" rows={useContentAsDescription ? '3' : '5'}
                     class="mt-1 rounded-lg border-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2
-                    focus:ring-orange-200 focus:border-transparent disabled:opacity-40 resize-none"
+                    focus:ring-orange-200 focus:border-transparent disabled:opacity-40 resize-none
+                    dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100"
                     bind:value={$description} disabled={disabled || useContentAsDescription}></textarea>
 
           <div class="flex items-center px-3">
             <input id="desc-toggle" name="desc-toggle" type="checkbox"
-                   class="w-4 h-4 text-orange-600 border-gray-200 rounded focus:ring-orange-500"
+                   class="w-4 h-4 text-orange-600 dark:text-orange-500 border-gray-200 rounded focus:ring-orange-500"
                    bind:checked={useContentAsDescription} disabled={disabled}>
-            <label for="desc-toggle" class="block ml-2 text-sm text-neutral-600"> Use comment as description </label>
+            <label for="desc-toggle" class="block ml-2 text-sm text-gray-600 dark:text-gray-300"> Use comment as description </label>
           </div>
 
           <div class="text-xs text-gray-400 px-3">
@@ -411,9 +416,9 @@
 
   {:else}
 
-    <div class="text-lg h-40 flex justify-center items-center">
+    <div class="h-40 flex justify-center items-center">
 
-      <div class="pt-6">
+      <div class="text-lg pt-6 dark:text-gray-100">
         Drag and drop media or
 
         <input type="file" class="hidden"
@@ -421,8 +426,8 @@
                on:change={(e)=>onFileSelected(e)}
                bind:this={fileInput}/>
 
-        <button class="font-semibold text-orange-700 border border-gray-300 rounded-full px-4 py-2 ml-2
-                       hover:bg-orange-600 hover:text-white hover:border-transparent"
+        <button class="text-base font-semibold text-orange-700 border border-gray-300 rounded-full px-4 py-2 ml-2
+                       hover:bg-orange-600 hover:text-white hover:border-transparent dark:text-orange-100 dark:border-gray-600"
                 on:click={()=>{fileInput.click();}}>
           Choose a file
         </button>

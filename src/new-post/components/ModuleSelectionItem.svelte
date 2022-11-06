@@ -12,7 +12,7 @@
     export let selection = undefined;
 </script>
 
-<div class="flex items-center py-2 text-orange-700 hover:text-orange-900">
+<div class="flex items-center py-2 text-orange-700 hover:text-orange-900 dark:text-orange-200">
 
   {#if selection.icon === 'earth'}
     <InlineSVG src={IconEarth} class="w-5 h-5" />

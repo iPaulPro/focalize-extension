@@ -14,9 +14,9 @@
 
   <div class="sm:hidden">
     <label for="tabs" class="sr-only">Publication type</label>
-    <select id="tabs" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500
-         focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
-         dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+    <select id="tabs" class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-orange-500
+         focus:border-orange-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+         dark:text-gray-100 dark:focus:ring-orange-500 dark:focus:border-orange-500">
       <option>Post</option>
       <option>Images & Video</option>
       <option>Link</option>
@@ -25,7 +25,7 @@
   </div>
 
   <ul class="hidden w-full text-sm font-medium text-center text-gray-500 rounded-lg divide-x divide-gray-200 shadow
-      sm:flex dark:divide-gray-700 dark:text-gray-400">
+      sm:flex dark:divide-gray-700 dark:text-gray-400 dark:divide-gray-700">
     <li class="w-full">
       <button on:click={() => dispatch('typeChange', PublicationMainFocus.TextOnly)} disabled={disabled}
               class="{postType === PublicationMainFocus.TextOnly ? 'active' : ''}

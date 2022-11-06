@@ -13,9 +13,9 @@
     export let item = undefined;
 </script>
 
-<div class="flex items-center py-3 cursor-pointer">
+<div class="flex items-center px-5 py-3 cursor-pointer dark:text-gray-100 hover:bg-orange-300 dark:hover:bg-gray-800 active:bg-orange">
 
-  <div class="w-5 shrink-0">
+  <div class="w-5 shrink-0 transition-none">
     {#if item.icon === 'earth'}
       <InlineSVG src={IconEarth} class="w-5 h-5" />
     {:else if item.icon === 'followers'}
@@ -36,8 +36,8 @@
   </div>
 
   <div class="w-max flex flex-col pl-4 pr-2">
-    <div class="font-semibold text-sm">{item.label}</div>
-    <div class="pt-1 text-xs whitespace-pre-line">{item.summary}</div>
+    <div class="font-semibold text-sm transition-none">{item.label}</div>
+    <div class="pt-1 text-xs whitespace-pre-line transition-none">{item.summary}</div>
   </div>
 
   {#if item.btn}

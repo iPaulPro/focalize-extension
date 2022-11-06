@@ -38,6 +38,12 @@ export const author: any | Writable<string> = writable();
  */
 export const profile: Writable<Profile> = writable();
 
+const storedDarkMode = localStorage.darkMode;
+
+export const darkMode: Writable<boolean> = writable(storedDarkMode === 'true');
+
+darkMode.subscribe((value) => localStorage.darkMode = String(value));
+
 /**
  * Clear all post-related stores
  */
