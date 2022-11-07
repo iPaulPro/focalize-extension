@@ -546,7 +546,7 @@
           </label>
 
           <button on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
-                  class="mt-4 w-fit py-2.5 px-12 flex justify-center items-center rounded-lg w-auto
+                  class="mt-4 w-fit py-2 px-12 flex justify-center items-center rounded-xl w-auto
                   bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                   disabled:bg-neutral-400 dark:disabled:bg-gray-600
                   focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2

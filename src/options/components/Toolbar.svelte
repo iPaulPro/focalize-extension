@@ -24,7 +24,8 @@
         <div class="ml-4 flex items-center md:ml-6">
 
           <a href="/src/new-post/index.html"
-             class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+             class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500
+             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
 
             <span class="sr-only">
                 New post
@@ -43,9 +44,10 @@
             <div class="relative inline-block text-left">
 
               <div>
-                <button type="button" on:click={() => isMenuOpen = !isMenuOpen}
-                        class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
-                        id="options-menu">
+                <button id="options-menu" type="button" on:click={() => isMenuOpen = !isMenuOpen}
+                        class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium
+                        text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none
+                        focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500">
 
                   {#if $profile}
                     <img src={$profile.picture.original.url} alt="Profile avatar"
@@ -65,13 +67,14 @@
               {#if isMenuOpen}
 
                 <div id="menu"
-                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
+                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800
+                     ring-1 ring-black ring-opacity-5">
 
                   <div class="py-1 " role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
 
-                    <button
-                       class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600"
-                       role="menuitem">
+                    <button role="menuitem"
+                       class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900
+                       dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600">
                           <span class="flex flex-col">
                               <span>
                                   Logout
