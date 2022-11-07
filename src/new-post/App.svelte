@@ -43,6 +43,8 @@
     import toast, {Toaster} from 'svelte-french-toast';
     import {onMount} from 'svelte';
 
+    import tags from "language-tags";
+
     /**
      * Bound to the rich text editor
      */
@@ -349,6 +351,18 @@
         // (postType === PublicationMainFocus.Article && (!getMarkdown() || getMarkdown().length === 0)) ||
         (postType === PublicationMainFocus.Image && !$attachment));
 
+    const getLanguages = (): string[] => {
+        console.log('getLanguages: from navigator =', navigator.languages);
+        const languages = [];
+        navigator.languages.forEach(tag => {
+            languages.push({
+                value: tag,
+                label: tags(tag).language().descriptions().join(', ')
+            })
+        })
+        return languages;
+    }
+
 </script>
 
 <main class="w-full h-full {$darkMode ? 'dark' : ''}"
@@ -468,16 +482,44 @@
           <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
         </dialog>
 
-        <div class="flex border-b border-neutral-300 dark:border-gray-800 py-5 gap-4">
+        <div class="flex flex-wrap border-b border-neutral-300 dark:border-gray-800 py-5 gap-4">
+
+          {#if getLanguages().length > 0}
+            <Select items={getLanguages()} value={navigator.languages[0]}
+                    clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
+                    --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
+                    --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
+                    class="w-fit h-fit max-w-xs
+                  bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-transparent shadow
+                  text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                  rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+              <div slot="prepend" class="pr-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+                  <line x1="4" y1="22" x2="4" y2="15"/>
+                </svg>
+              </div>
+            </Select>
+          {/if}
 
           <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false} showChevron={true}
                   bind:value={postContentWarning}
-                  --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
-                  --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
+                  --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
+                  --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
                   class="w-fit h-fit
-                bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-transparent shadow
-                text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none" />
+                  bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-transparent shadow
+                  text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                  rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+            <div slot="prepend" class="pr-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
+                   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
+          </Select>
 
           <PostTags bind:getTags disabled={isSubmittingPost}/>
 

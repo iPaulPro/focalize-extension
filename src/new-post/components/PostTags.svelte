@@ -9,6 +9,8 @@
     export let disabled: boolean;
 
     const addTag = () => {
+        if (tags.length >= 5) return;
+
         const emptyTags = tags.filter(tag => tag.length === 0);
         if (emptyTags.length > 0) {
             focusEmptyTagInput();
@@ -52,7 +54,7 @@
     <button on:click={addTag} disabled={disabled}
         class="px-4 py-2  text-sm rounded-full bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-600
         shadow flex justify-center items-center gap-2">
-      Add tag
+      <span class="px-1">Add tag</span>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-gray-600 dark:text-gray-200"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
