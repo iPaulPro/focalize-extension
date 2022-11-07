@@ -52,8 +52,8 @@
 
   {#if tags.length < 5}
     <button on:click={addTag} disabled={disabled}
-        class="px-4 py-2  text-sm rounded-full bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-600
-        shadow flex justify-center items-center gap-2">
+        class="px-4 py-2  text-sm rounded-full bg-white enabled:hover:bg-gray-50 dark:bg-gray-800
+        enabled:dark:hover:bg-gray-600 shadow flex justify-center items-center gap-2">
       <span class="px-1">Add tag</span>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-gray-600 dark:text-gray-200"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -71,7 +71,8 @@
              bind:value={tag} on:keypress={onKeyPress} on:blur={() => removeTagIfEmpty(tag)}
              class="border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100" maxlength="50">
 
-      <button class="bg-transparent hover:bg-gray-200 dark:hover:bg-gray-600 p-2 rounded-full dark:text-gray-200"
+      <button class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full
+              dark:text-gray-200"
               on:click={() => removeTag(tag)} disabled={disabled}>
 
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"

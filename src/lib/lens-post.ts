@@ -5,15 +5,17 @@ import {Lens} from "lens-protocol";
 import {APP_ID} from "../config";
 
 import type {
+    BroadcastRequest,
     CollectModuleParams,
     MetadataAttributeInput,
     PublicationMetadataMediaInput,
     PublicationMetadataV2Input,
     ReferenceModuleParams,
+    RelayerResult,
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
 import {
-    AsyncValidatePublicationMetadata,
+    AsyncValidatePublicationMetadata, Broadcast,
     PublicationContentWarning,
     PublicationMainFocus,
     PublicationMetadataDisplayTypes
@@ -25,6 +27,8 @@ import {getLensHub} from "../lens-hub";
 import {DEFAULT_REFERENCE_MODULE, FREE_COLLECT_MODULE} from "./lens-modules";
 
 import type {OperationResult} from "urql";
+import {signedTypeData} from "./ethers-service";
+import {splitSignature} from "ethers/lib/utils";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -40,8 +44,8 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     return new File([blob], `metadata.json`)
 };
 
-const getPublicationId = async (tx) => {
-    const indexedResult = await pollUntilIndexed(tx.hash);
+const getPublicationId = async (txHash) => {
+    const indexedResult = await pollUntilIndexed(txHash);
 
     const logs = indexedResult.txReceipt.logs;
     const topicId = utils.id(
@@ -61,13 +65,15 @@ export const generateTextPostMetadata = (
     mainContentFocus: PublicationMainFocus,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
+    attributes: MetadataAttributeInput[] = [],
 ): PublicationMetadataV2Input => (
     {
         name: `Post by @${handle}`,
         content,
         mainContentFocus,
         tags,
-        contentWarning
+        contentWarning,
+        attributes
     } as PublicationMetadataV2Input
 )
 
@@ -81,6 +87,7 @@ export const generateImagePostMetadata = (
     description: string = content,
     image: string = media.item,
     imageMimeType: string = media.type,
+    attributes: MetadataAttributeInput[] = [],
 ): PublicationMetadataV2Input => (
     {
         name: title || `Post by @${handle}`,
@@ -92,6 +99,7 @@ export const generateImagePostMetadata = (
         mainContentFocus: PublicationMainFocus.Image,
         tags,
         contentWarning,
+        attributes,
         external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/'+ handle,
     } as PublicationMetadataV2Input
 )
@@ -186,7 +194,6 @@ const validateMetadata = (metadata: PublicationMetadataV2Input) => {
             version: '2.0.0',
             metadata_id: uuid(),
             appId: APP_ID,
-            locale: 'en',
             ...metadata
         }
     }
@@ -227,18 +234,45 @@ export const submitPost = async (
     const typedData = postResult.data.createPostTypedData.typedData;
     console.log('submitPost: Created post typed data', typedData);
 
-    const lensHub = getLensHub();
-    const tx = await lensHub.post({
-        profileId: typedData.value.profileId,
-        contentURI: typedData.value.contentURI,
-        collectModule: typedData.value.collectModule,
-        collectModuleInitData: typedData.value.collectModuleInitData,
-        referenceModule: typedData.value.referenceModule,
-        referenceModuleInitData: typedData.value.referenceModuleInitData
-    });
-    console.log('submitPost: submitted transaction', tx);
+    const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
 
-    const publicationId = await getPublicationId(tx);
+    const request: BroadcastRequest = {
+        id: postResult.data.createPostTypedData.id,
+        signature
+    }
+
+    let txHash: string;
+
+    const res = await Broadcast({variables: {request}});
+    console.log('submitPost: broadcastResult', res);
+
+    if (res.data.broadcast.__typename !== 'RelayerResult') {
+        console.error('submitPost: post with broadcast failed');
+
+        const { v, r, s } = splitSignature(signature);
+        const lensHub = getLensHub();
+        const tx = await lensHub.postWithSig({
+            profileId: typedData.value.profileId,
+            contentURI: typedData.value.contentURI,
+            collectModule: typedData.value.collectModule,
+            collectModuleInitData: typedData.value.collectModuleInitData,
+            referenceModule: typedData.value.referenceModule,
+            referenceModuleInitData: typedData.value.referenceModuleInitData,
+            sig: {
+                v,
+                r,
+                s,
+                deadline: typedData.value.deadline,
+            },
+        });
+        console.log('submitPost: submitted transaction', tx);
+        txHash = tx.hash;
+    } else {
+        const broadcast: RelayerResult = res.data.broadcast as RelayerResult;
+        txHash = broadcast.txHash;
+    }
+
+    const publicationId = await getPublicationId(txHash);
     console.log('submitPost: post has been indexed', publicationId, postResult.data);
 
     return publicationId;

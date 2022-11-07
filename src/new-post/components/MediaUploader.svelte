@@ -341,7 +341,7 @@
           {#if collectPrice}
 
             <div class="flex flex-col">
-              <div class="text-2xl font-semibold">
+              <div class="text-2xl font-semibold dark:text-gray-100">
                 {collectPrice}
               </div>
 

@@ -199,13 +199,15 @@
             mediaMetadata.cover = `ipfs://${$cover.cid}`
         }
 
+        const tags = getTags().length === 0 ? null : getTags();
+
         if ($attachment.type.startsWith('image/')) {
             return generateImagePostMetadata(
                 $profile.handle,
                 mediaMetadata,
                 $title,
                 $content,
-                getTags(),
+                tags,
                 postContentWarning.value,
                 $description,
             );
@@ -220,12 +222,12 @@
                 $cover.type,
                 $content,
                 attributes,
-                getTags(),
+                tags,
                 postContentWarning.value,
                 $description,
             );
         } else if ($attachment.type.startsWith('audio/')) {
-            let attributes: MetadataAttributeInput[];
+            let attributes: MetadataAttributeInput[] = [];
             if ($author) {
                 attributes = createAudioAttributes($author);
             }
@@ -238,7 +240,7 @@
                 $cover.type,
                 $content,
                 attributes,
-                getTags(),
+                tags,
                 postContentWarning.value,
                 $description,
             );
@@ -258,6 +260,7 @@
         }
 
         const metadata = buildMetadata();
+        metadata.locale = locale.value;
 
         try {
             const publicationId = await submitPost(
@@ -351,18 +354,12 @@
         // (postType === PublicationMainFocus.Article && (!getMarkdown() || getMarkdown().length === 0)) ||
         (postType === PublicationMainFocus.Image && !$attachment));
 
-    const getLanguages = (): string[] => {
-        console.log('getLanguages: from navigator =', navigator.languages);
-        const languages = [];
-        navigator.languages.forEach(tag => {
-            languages.push({
-                value: tag,
-                label: tags(tag).language().descriptions().join(', ')
-            })
-        })
-        return languages;
-    }
+    const locales = navigator.languages.map(tag => ({
+        value: tag,
+        label: tags(tag).language().descriptions().join(', ')
+    }))
 
+    $: locale = navigator.languages[0];
 </script>
 
 <main class="w-full h-full {$darkMode ? 'dark' : ''}"
@@ -403,7 +400,7 @@
 
         <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost}/>
 
-        <div class="mt-6 shadow-lg rounded-xl p-4 {isSubmittingPost ? 'bg-neutral-300' : 'bg-white dark:bg-gray-800'}">
+        <div class="mt-6 shadow-lg rounded-xl p-4 bg-white dark:bg-gray-800 {isSubmittingPost ? 'opacity-60' : ''}">
 
           {#if postType === PublicationMainFocus.TextOnly}
 
@@ -443,8 +440,9 @@
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
-                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 rounded-xl border-none ring-0 focus:outline-none
-                    focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
+                    --disabled-background="transparent"
+                    class="w-fit enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 rounded-xl border-none ring-0
+                    focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem {item} />
@@ -461,8 +459,9 @@
                     disabled={isSubmittingPost} listOffset={-56}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
-                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 rounded-xl border-none ring-0 focus:outline-none
-                    focus:ring-0 focus:border-none bg-none disabled:bg-transparent">
+                    --disabled-background="transparent"
+                    class="w-fit enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 rounded-xl border-none ring-0
+                    focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem item={collectFeeString && index === 2 ? {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog} : item} />
@@ -482,16 +481,17 @@
           <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
         </dialog>
 
-        <div class="flex flex-wrap border-b border-neutral-300 dark:border-gray-800 py-5 gap-4">
+        <div class="flex flex-wrap border-b border-neutral-300 dark:border-gray-800 py-5 gap-4
+             {isSubmittingPost ? 'opacity-60' : ''}">
 
-          {#if getLanguages().length > 0}
-            <Select items={getLanguages()} value={navigator.languages[0]}
+          {#if locales.length > 0}
+            <Select items={locales} bind:value={locale} disabled={isSubmittingPost}
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
                     class="w-fit h-fit max-w-xs
-                  bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-transparent shadow
-                  text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                  bg-white dark:bg-gray-800 enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 shadow
+                  text-sm text-gray-800 dark:text-gray-300 enabled:dark:hover:text-gray-100
                   rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
               <div slot="prepend" class="pr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
@@ -504,12 +504,12 @@
           {/if}
 
           <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false} showChevron={true}
-                  bind:value={postContentWarning}
+                  bind:value={postContentWarning} disabled={isSubmittingPost}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                   --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
                   class="w-fit h-fit
-                  bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:bg-transparent shadow
-                  text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                  bg-white dark:bg-gray-800 enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 shadow
+                  text-gray-800 dark:text-gray-300 enabled:dark:hover:text-gray-100
                   rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
             <div slot="prepend" class="pr-1">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
