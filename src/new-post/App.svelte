@@ -23,7 +23,7 @@
     } from '../lib/state';
 
     import {
-        CollectModules, PublicationMainFocus, PublicationMetadataDisplayTypes, ReferenceModules
+        CollectModules, PublicationMainFocus, ReferenceModules
     } from '../graph/lens-service';
 
     import type {
@@ -441,7 +441,8 @@
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent"
-                    class="w-fit enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 rounded-xl border-none ring-0
+                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-transparent
+                    rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
@@ -460,7 +461,7 @@
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent"
-                    class="w-fit enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 rounded-xl border-none ring-0
+                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
@@ -489,10 +490,9 @@
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
-                    class="w-fit h-fit max-w-xs
-                  bg-white dark:bg-gray-800 enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 shadow
-                  text-sm text-gray-800 dark:text-gray-300 enabled:dark:hover:text-gray-100
-                  rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 shadow
+                    text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                    rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
               <div slot="prepend" class="pr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -507,9 +507,8 @@
                   bind:value={postContentWarning} disabled={isSubmittingPost}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                   --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
-                  class="w-fit h-fit
-                  bg-white dark:bg-gray-800 enabled:hover:bg-gray-50 enabled:dark:hover:bg-gray-600 shadow
-                  text-gray-800 dark:text-gray-300 enabled:dark:hover:text-gray-100
+                  class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 shadow
+                  text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                   rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
             <div slot="prepend" class="pr-1">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
