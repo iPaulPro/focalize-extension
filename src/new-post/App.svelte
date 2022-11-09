@@ -3,32 +3,43 @@
     import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
     import {getDefaultProfile} from '../lib/lens-auth';
 
+    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
     import {
+        COLLECT_ITEMS,
+        CONTENT_WARNING_ITEMS,
         getCollectModuleParams,
-        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,
-    } from '../lib/lens-modules.js';
-
-    import type {
-        CollectModuleItem, PaidCollectModule, SelectItem
+        REFERENCE_ITEMS,
     } from '../lib/lens-modules.js';
 
     import {
-        generateAudioPostMetadata, generateImagePostMetadata, generateTextPostMetadata, generateVideoPostMetadata,
-        submitPost, createAudioAttributes, createVideoAttributes
+        createAudioAttributes,
+        createVideoAttributes,
+        generateAudioPostMetadata,
+        generateImagePostMetadata,
+        generateTextPostMetadata,
+        generateVideoPostMetadata,
+        submitPost
     } from '../lib/lens-post.js';
 
     import {
+        attachment,
+        author,
         clearPostState,
-        attachment, author, content, cover, darkMode, description, profile, title
+        content,
+        cover,
+        darkMode,
+        description,
+        gifAttachment,
+        profile,
+        title
     } from '../lib/state';
 
-    import {
-        CollectModules, PublicationMainFocus, ReferenceModules
-    } from '../graph/lens-service';
-
     import type {
-        MetadataAttributeInput, PublicationMetadataMediaInput, PublicationMetadataV2Input,
+        MetadataAttributeInput,
+        PublicationMetadataMediaInput,
+        PublicationMetadataV2Input,
     } from '../graph/lens-service';
+    import {CollectModules, PublicationMainFocus, ReferenceModules} from '../graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
@@ -44,6 +55,7 @@
     import {onMount} from 'svelte';
 
     import tags from "language-tags";
+    import GifSelectionDialog from './components/GifSelectionDialog.svelte'
 
     /**
      * Bound to the rich text editor
@@ -69,6 +81,7 @@
     let postId: string;
     let isSubmittingPost = false;
     let isFileDragged = false;
+    let gifSelectionDialog: HTMLDialogElement;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
 
@@ -163,6 +176,11 @@
         }
     };
 
+    const showGifSelectionDialog = () => {
+        gifSelectionDialog = document.getElementById('selectGif');
+        gifSelectionDialog.showModal();
+    }
+
     parseSearchParams();
 
     const getContent = (): string => {
@@ -190,10 +208,16 @@
             );
         }
 
-        const mediaMetadata: PublicationMetadataMediaInput = {
-            item: `ipfs://${$attachment.cid}`,
-            type: $attachment.type,
-        };
+        let mediaMetadata: PublicationMetadataMediaInput;
+
+        if ($attachment) {
+            mediaMetadata = {
+                item: `ipfs://${$attachment.cid}`,
+                type: $attachment.type,
+            };
+        } else if ($gifAttachment) {
+            mediaMetadata = $gifAttachment;
+        }
 
         if ($cover) {
             mediaMetadata.cover = `ipfs://${$cover.cid}`
@@ -201,7 +225,7 @@
 
         const tags = getTags().length === 0 ? null : getTags();
 
-        if ($attachment.type.startsWith('image/')) {
+        if ($attachment?.type.startsWith('image/') || $gifAttachment) {
             return generateImagePostMetadata(
                 $profile.handle,
                 mediaMetadata,
@@ -211,7 +235,7 @@
                 postContentWarning.value,
                 $description,
             );
-        } else if ($attachment.type.startsWith('video/')) {
+        } else if ($attachment?.type.startsWith('video/')) {
             const attributes = createVideoAttributes();
 
             return generateVideoPostMetadata(
@@ -226,7 +250,7 @@
                 postContentWarning.value,
                 $description,
             );
-        } else if ($attachment.type.startsWith('audio/')) {
+        } else if ($attachment?.type.startsWith('audio/')) {
             let attributes: MetadataAttributeInput[] = [];
             if ($author) {
                 attributes = createAudioAttributes($author);
@@ -259,10 +283,10 @@
             toast.error('Error switching chains');
         }
 
-        const metadata = buildMetadata();
-        metadata.locale = locale.value;
-
         try {
+            const metadata = buildMetadata();
+            metadata.locale = locale.value;
+
             const publicationId = await submitPost(
                 $profile.id,
                 metadata,
@@ -329,11 +353,7 @@
         }
     });
 
-    const onFileDropped = (ev) => {
-        const dt = ev.dataTransfer;
-        const file: File = dt.files[0];
-        console.log('File dropped', file);
-
+    const setAttachment = (file: File) => {
         if (!file.type ||
             !SUPPORTED_MIME_TYPES.includes(file.type) ||
             file.size > MAX_FILE_SIZE
@@ -346,13 +366,20 @@
         attachment.set(file);
         isFileDragged = false;
         postType = getMainFocusFromFileType(file.type);
+    }
+
+    const onFileDropped = (ev) => {
+        const dt = ev.dataTransfer;
+        const file: File = dt.files[0];
+        console.log('File dropped', file);
+        setAttachment(file);
     };
 
     $: shouldDisableSubmitBtn = isSubmittingPost ||
         (postType === PublicationMainFocus.Link && !shareUrl) ||
         (postType === PublicationMainFocus.TextOnly && (!$content || $content.length === 0) ||
         // (postType === PublicationMainFocus.Article && (!getMarkdown() || getMarkdown().length === 0)) ||
-        (postType === PublicationMainFocus.Image && !$attachment));
+        (postType === PublicationMainFocus.Image && (!$attachment && !$gifAttachment)));
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
@@ -360,6 +387,12 @@
     }))
 
     $: locale = navigator.languages[0];
+
+    const onGifSelected = () => {
+        postType = PublicationMainFocus.Image;
+        collectItem = COLLECT_ITEMS[COLLECT_ITEMS.length - 1];
+        gifSelectionDialog?.close();
+    }
 </script>
 
 <main class="w-full h-full {$darkMode ? 'dark' : ''}"
@@ -404,7 +437,9 @@
 
           {#if postType === PublicationMainFocus.TextOnly}
 
-            <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="What's happening" rows={5} />
+            <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="What's happening" rows={4}
+                             on:fileSelected={(e) => setAttachment(e.detail)}
+                             on:selectGif={(e) => showGifSelectionDialog()} />
 
           {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video || postType === PublicationMainFocus.Audio}
 
@@ -414,9 +449,10 @@
 
             <div class="flex flex-col grow">
 
-              <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="Text (optional)" rows={4} />
+              <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="Text (optional)" rows={3}
+                               on:fileSelected={(e) => setAttachment(e.detail)} />
 
-              <div class="pl-24 pr-4 py-2">
+              <div class="pl-24 pr-4 py-2 mt-4">
                 <input type="url" id="post-url" placeholder="Url" autocomplete="off"
                        bind:value={shareUrl} disabled={isSubmittingPost}
                        class="appearance-none border border-gray-300 w-full py-3 px-4 text-gray-800 rounded-lg
@@ -432,7 +468,7 @@
 
           {/if}
 
-          <div class="flex pt-2 pb-1 gap-4
+          <div class="flex pt-3 gap-4 mt-4 border-t border-t-gray-300 dark:border-t-gray-700
                    {postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'ml-20' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
@@ -441,7 +477,7 @@
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent"
-                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 disabled:hover:bg-transparent
+                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 disabled:hover:bg-transparent
                     rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
@@ -461,7 +497,7 @@
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent" --list-max-height="auto"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent"
-                    class="w-fit hover:bg-gray-50 dark:hover:bg-gray-600 rounded-xl border-none ring-0
+                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
@@ -478,10 +514,6 @@
 
         </div>
 
-        <dialog id="collectFees" class="rounded-2xl shadow-2xl dark:bg-gray-700">
-          <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
-        </dialog>
-
         <div class="flex flex-wrap border-b border-neutral-300 dark:border-gray-800 py-5 gap-4
              {isSubmittingPost ? 'opacity-60' : ''}">
 
@@ -490,7 +522,7 @@
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
-                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 shadow
+                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                     text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                     rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
               <div slot="prepend" class="pr-1">
@@ -507,7 +539,7 @@
                   bind:value={postContentWarning} disabled={isSubmittingPost}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
                   --background="transparent" --list-background={$darkMode ? '#374354' : 'white'} --selected-item-padding="0.5rem"
-                  class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 shadow
+                  class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                   text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                   rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
             <div slot="prepend" class="pr-1">
@@ -577,6 +609,15 @@
 
   {/if}
 
+  <dialog id="collectFees" class="rounded-2xl shadow-2xl dark:bg-gray-700">
+    <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+  </dialog>
+
+  <dialog id="selectGif" on:close={() => gifSelectionDialog = null}
+          on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}
+          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700">
+    <GifSelectionDialog visible={gifSelectionDialog != null} on:gifSelected={onGifSelected} />
+  </dialog>
 </main>
 
 <Toaster />

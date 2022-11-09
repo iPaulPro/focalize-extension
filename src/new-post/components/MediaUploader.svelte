@@ -13,7 +13,7 @@
         MAX_FILE_SIZE,
         supportedMimeTypesJoined
     } from '../../lib/file-utils.js'
-    import {attachment, author, cover, description, title} from "../../lib/state";
+    import {attachment, author, cover, description, gifAttachment, title} from "../../lib/state";
 
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";
@@ -23,10 +23,12 @@
     export let isCollectable: boolean;
     export let collectPrice: string;
 
-    $: filePath = $attachment?.cid ? `${import.meta.env.VITE_INFURA_GATEWAY_URL}${$attachment?.cid}` : null;
-    $: fileType = $attachment?.type;
+    const IPFS_GATEWAY = import.meta.env.VITE_INFURA_GATEWAY_URL;
 
-    $: coverPath = $cover?.cid ? `${import.meta.env.VITE_INFURA_GATEWAY_URL}${$cover?.cid}` : null;
+    $: filePath = $attachment?.cid ? `${IPFS_GATEWAY}${$attachment?.cid}` : $gifAttachment ? $gifAttachment.item : null;
+    $: fileType = $attachment?.type || $gifAttachment?.type;
+
+    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $gifAttachment ? $gifAttachment.item : null;
     $: coverType = $cover?.type;
 
     $: isAttachmentImage = fileType?.startsWith('image/');
@@ -140,6 +142,11 @@
     };
 
     const onDeleteAttachment = async () => {
+        if ($gifAttachment) {
+            gifAttachment.set(null);
+            return;
+        }
+
         if (!$attachment) return;
 
         if ($attachment.cid) {
@@ -416,9 +423,9 @@
 
   {:else}
 
-    <div class="h-40 flex justify-center items-center">
+    <div class="h-48 flex justify-center items-center">
 
-      <div class="text-lg pt-6 dark:text-gray-100">
+      <div class="text-lg pt-4 dark:text-gray-100">
         Drag and drop media or
 
         <input type="file" class="hidden"

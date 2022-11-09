@@ -1,7 +1,7 @@
 import {writable} from 'svelte/store';
 import type {Writable} from 'svelte/store';
 import type {Web3File} from "web3.storage/src/lib/interface";
-import type {Profile} from "../graph/lens-service";
+import type {Profile, PublicationMetadataMediaInput} from "../graph/lens-service";
 
 /**
  * The post title, used as the NFT name
@@ -22,6 +22,11 @@ export const description: Writable<string> = writable();
  * The main post attachment. Can be an image, audio, or video file.
  */
 export const attachment: any | Writable<Web3File> = writable();
+
+/**
+ * The main post gif attachment.
+ */
+export const gifAttachment: any | Writable<PublicationMetadataMediaInput> = writable();
 
 /**
  * The cover image for audio and video attachments
