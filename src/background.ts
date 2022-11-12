@@ -51,9 +51,6 @@ const shareUrl = (tags) => {
 // );
 
 chrome.action.onClicked.addListener(tab => {
-    // No tabs or host permissions needed!
-    console.log(tab)
-
     const url = tab.url
     const title = tab.title
 
@@ -76,7 +73,7 @@ chrome.action.onClicked.addListener(tab => {
         const tags = results[0]?.result
         if (tags) {
             console.log('found open graph tags', tags);
-            if (!tags.url) tags.url = url
+            tags.url = url // og:url is often misused
             if (!tags.title) tags.title = title
             shareUrl(tags)
         } else {

@@ -18,7 +18,8 @@
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
-        submitPost
+        getUrlsFromText,
+        submitPost,
     } from '../lib/lens-post.js';
 
     import {
@@ -70,7 +71,6 @@
     let initialMarkdownText: string;
 
     let postType: PublicationMainFocus;
-    let shareUrl: string;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
     let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
@@ -111,23 +111,23 @@
 
         postType = getMainFocusFromUrlParams(urlParams);
 
-        let markdown = '', linkText = '';
+        let markdown = '', text = '';
 
         if (urlParams.has('title')) {
             const title = urlParams.get('title');
-            linkText += `${title}`;
+            text += `${title}`;
             markdown += `**${title}**`;
         }
 
         if (urlParams.has('desc')) {
             const desc = urlParams.get('desc').replaceAll('\n', '\n> ');
-            linkText += `\n\n${desc}`;
+            text += `\n\n${desc}`;
             markdown += `\n\n> ${desc}`;
         }
 
         if (urlParams.has('url')) {
             const url = urlParams.get('url');
-            shareUrl = url;
+            text += `\n\n${url}`;
             markdown += `\n\n<${url}>`;
         }
 
@@ -138,8 +138,8 @@
         if (urlParams.has('text')) {
             const plainText = urlParams.get('text');
             content.set(plainText);
-        } else if (linkText.length > 0) {
-            content.set(linkText)
+        } else if (text.length > 0) {
+            content.set(text)
         }
     };
 
@@ -184,20 +184,22 @@
     parseSearchParams();
 
     const getContent = (): string => {
-        switch (postType) {
-            case PublicationMainFocus.Article:
-                return getMarkdown();
-            case PublicationMainFocus.Link:
-                return $content ? `${$content}\n\n${shareUrl}` : shareUrl;
+        if (postType === PublicationMainFocus.Article) {
+            return getMarkdown();
         }
         return $content;
     };
 
     const buildMetadata = (): PublicationMetadataV2Input => {
-        if (postType !== PublicationMainFocus.Image) {
-            // Maybe an Article, Link, or plain text post
-            const content = getContent();
+        const content = getContent();
+
+        if (postType !== PublicationMainFocus.Image && postType !== PublicationMainFocus.Video) {
             // TODO validate
+
+            const urls = getUrlsFromText(content);
+            if (urls.length > 0) {
+                postType = PublicationMainFocus.Link;
+            }
 
             return generateTextPostMetadata(
                 $profile.handle,
@@ -230,7 +232,7 @@
                 $profile.handle,
                 mediaMetadata,
                 $title,
-                $content,
+                content,
                 tags,
                 postContentWarning.value,
                 $description,
@@ -244,7 +246,7 @@
                 $title,
                 `ipfs://${$cover.cid}`,
                 $cover.type,
-                $content,
+                content,
                 attributes,
                 tags,
                 postContentWarning.value,
@@ -262,7 +264,7 @@
                 $title,
                 `ipfs://${$cover.cid}`,
                 $cover.type,
-                $content,
+                content,
                 attributes,
                 tags,
                 postContentWarning.value,
@@ -366,7 +368,7 @@
         attachment.set(file);
         isFileDragged = false;
         postType = getMainFocusFromFileType(file.type);
-    }
+    };
 
     const onFileDropped = (ev) => {
         const dt = ev.dataTransfer;
@@ -376,15 +378,14 @@
     };
 
     $: shouldDisableSubmitBtn = isSubmittingPost ||
-        (postType === PublicationMainFocus.Link && !shareUrl) ||
-        (postType === PublicationMainFocus.TextOnly && (!$content || $content.length === 0) ||
+        ((postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link) && (!$content || $content.length === 0) ||
         // (postType === PublicationMainFocus.Article && (!getMarkdown() || getMarkdown().length === 0)) ||
         (postType === PublicationMainFocus.Image && (!$attachment && !$gifAttachment)));
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
         label: tags(tag).language().descriptions().join(', ')
-    }))
+    }));
 
     $: locale = navigator.languages[0];
 
@@ -392,6 +393,12 @@
         postType = PublicationMainFocus.Image;
         collectItem = COLLECT_ITEMS[COLLECT_ITEMS.length - 1];
         gifSelectionDialog?.close();
+    };
+
+    const viewPostClick = () => {
+        const url = import.meta.env.VITE_LENS_PREVIEW_NODE + 'posts/' + postId;
+        window.open(url, '_blank');
+        window.close();
     }
 </script>
 
@@ -413,15 +420,16 @@
 
       <div class="text-2xl mt-4 dark:text-gray-100">Post created!</div>
 
-      <a href={import.meta.env.VITE_LENS_PREVIEW_NODE + 'posts/' + postId} target="_blank" rel="noreferrer"
-         class="mt-4 w-auto py-2.5 px-12 flex justify-center items-center
-          bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 disabled:bg-neutral-400
-          rounded-lg shadow-md
-          text-white text-center text-lg font-semibold
-          focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-          transition ease-in duration-200 ">
+      <button type="button" on:click={viewPostClick}
+              class="mt-4 w-auto py-2.5 px-12 flex justify-center items-center
+              bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 disabled:bg-neutral-400
+              rounded-lg shadow-md
+              text-white text-center text-lg font-semibold
+              focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+              transition ease-in duration-200"
+      >
         View Post
-      </a>
+      </button>
 
     </div>
 
@@ -435,32 +443,15 @@
 
         <div class="mt-6 shadow-lg rounded-xl p-4 bg-white dark:bg-gray-800 {isSubmittingPost ? 'opacity-60' : ''}">
 
-          {#if postType === PublicationMainFocus.TextOnly}
+          {#if postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link}
 
-            <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="What's happening" rows={4}
+            <PlainTextEditor disabled={isSubmittingPost} placeholder="What's happening" rows={4}
                              on:fileSelected={(e) => setAttachment(e.detail)}
                              on:selectGif={(e) => showGifSelectionDialog()} />
 
           {:else if postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video || postType === PublicationMainFocus.Audio}
 
             <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
-
-          {:else if postType === PublicationMainFocus.Link}
-
-            <div class="flex flex-col grow">
-
-              <PlainTextEditor {postType} disabled={isSubmittingPost} placeholder="Text (optional)" rows={3}
-                               on:fileSelected={(e) => setAttachment(e.detail)} />
-
-              <div class="pl-24 pr-4 py-2 mt-4">
-                <input type="url" id="post-url" placeholder="Url" autocomplete="off"
-                       bind:value={shareUrl} disabled={isSubmittingPost}
-                       class="appearance-none border border-gray-300 w-full py-3 px-4 text-gray-800 rounded-lg
-                   placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-orange-200
-                   focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-transparent"/>
-              </div>
-
-            </div>
 
           {:else if postType === PublicationMainFocus.Article}
 

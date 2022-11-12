@@ -29,6 +29,7 @@ import {DEFAULT_REFERENCE_MODULE, FREE_COLLECT_MODULE} from "./lens-modules";
 import type {OperationResult} from "urql";
 import {signedTypeData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
+import Autolinker, {UrlMatch} from "autolinker";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -277,3 +278,27 @@ export const submitPost = async (
 
     return publicationId;
 };
+
+export const getUrlsFromText = (content: string): string[] => {
+    const matches = Autolinker.parse(content, {
+        phone: false,
+        email: false,
+        stripPrefix: false,
+        urls: {
+            tldMatches: true
+        }
+    });
+    console.log('autolink: matches =', matches);
+
+    if (matches.length === 0) {
+        return [];
+    }
+
+    const urlMatches = matches.filter((match): match is UrlMatch => match instanceof UrlMatch);
+    return urlMatches.map(match => {
+        if (match.getUrlMatchType() === "tld") {
+            return 'https://' + match.getUrl();
+        }
+        return match.getUrl();
+    });
+}

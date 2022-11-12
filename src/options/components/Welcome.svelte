@@ -8,7 +8,7 @@
     import {darkMode} from '../../lib/state';
 </script>
 
-<div class="flex flex-col w-full h-full {darkMode ? 'dark bg-gray-900' : ''}">
+<div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-900' : ''}">
 
   <Toolbar />
 

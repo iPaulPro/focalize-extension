@@ -42,6 +42,7 @@
     "@types/emoji-mart": "^3.0.9",
     "@types/language-tags": "^1.0.1",
     "@types/throttle-debounce": "^5.0.0",
+    "autolinker": "^4.0.0",
     "autoprefixer": "^10.4.13",
     "axios": "^1.1.3",
     "browserify-zlib": "^0.2.0",

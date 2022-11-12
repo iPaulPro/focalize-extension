@@ -2,6 +2,7 @@
     import Tribute from "tributejs";
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {sleep} from "../../lib/utils";
+    import {throttle} from "throttle-debounce";
 
     //@ts-ignore
     import tippy from "sveltejs-tippy";
@@ -28,19 +29,19 @@
         emojiPicker.setTheme($darkMode ? 'dark' : 'light');
     }
 
-    emojiPicker.on('emoji', selection => {
+    emojiPicker.on('emoji', (selection) => {
         const [start, end] = [textInput.selectionStart, textInput.selectionEnd];
         textInput.setRangeText(selection.emoji, start, end, 'select');
     });
 
-    function updateInputHeight(view) {
+    const updateInputHeight = (view: HTMLInputElement) => {
         view.style.height = 'inherit';
         view.style.height = `${view.scrollHeight}px`;
-    }
+    };
 
-    const handleInputEvent = (e) => {
+    const handleInputEvent = (e: Event) => {
         updateInputHeight(e.target);
-    }
+    };
 
     onMount(async () => {
         const plainTextTribute = new Tribute({
@@ -73,7 +74,7 @@
 
   <div class="flex flex-col w-full mr-2">
     <textarea id="plainTextInput" {rows} {disabled} {placeholder}
-              bind:value={$content} on:input={handleInputEvent} bind:this={textInput}
+              bind:value={$content} on:input={throttle(500, handleInputEvent)} bind:this={textInput}
               class="w-full text-xl my-3 mr-3 border-none focus:ring-0 resize-none overflow-hidden bg-transparent
             text-black dark:text-gray-100"></textarea>
 

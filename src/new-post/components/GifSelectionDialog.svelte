@@ -4,6 +4,7 @@
 
     export let visible: boolean;
 
+    let input: HTMLInputElement;
     let searchQuery: string;
 
     const dispatch = createEventDispatcher();
@@ -16,6 +17,7 @@
         // Clear the query when the dialog is opened
         if (visible) {
             searchQuery = '';
+            input.focus();
         }
     }
 </script>
@@ -44,7 +46,7 @@
            dark:bg-gray-600 dark:text-gray-200 dark:border-transparent
            focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-transparent
            appearance-none border border-gray-300"
-           bind:value={searchQuery}>
+           bind:value={searchQuery} bind:this={input}>
 
     {#if searchQuery?.length > 0}
       <div class="absolute right-0 top-0">
