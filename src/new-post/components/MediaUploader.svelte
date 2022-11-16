@@ -201,7 +201,7 @@
 
   {#if filePath && fileType}
 
-    <PlainTextEditor placeholder="Comment (optional)" rows={3}/>
+    <PlainTextEditor placeholder="Comment (optional)" />
 
     <div class="flex w-full justify-center bg-gray-100 dark:bg-gray-700 px-4 pt-6 pb-4 rounded-xl">
 

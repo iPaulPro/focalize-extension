@@ -28,7 +28,7 @@
       sm:flex dark:divide-gray-700 dark:text-gray-400 dark:divide-gray-700 {disabled ? 'opacity-60' : ''}">
     <li class="w-full">
       <button on:click={() => dispatch('typeChange', PublicationMainFocus.TextOnly)} {disabled}
-              class="{postType === PublicationMainFocus.TextOnly ? 'active' : ''}
+              class="{postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'active' : ''}
               tab rounded-l-xl inline-block pt-3 pb-2 w-full cursor-pointer" aria-current="page">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto pb-2">

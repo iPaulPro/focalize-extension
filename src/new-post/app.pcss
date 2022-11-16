@@ -6,6 +6,7 @@
   .tab {
     @apply bg-white enabled:hover:text-gray-700 enabled:hover:bg-gray-50 focus:ring-0 focus:outline-none enabled:dark:hover:text-white dark:bg-gray-800 enabled:dark:hover:bg-gray-700;
   }
+
   .tab.active {
     @apply text-gray-900 bg-gray-100 dark:bg-gray-700 dark:text-white;
   }
@@ -18,8 +19,8 @@
 }
 
 html, body, #app {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 img, img:active, img:focus {
@@ -32,19 +33,33 @@ img, img:active, img:focus {
 }
 
 .milkdown .editor {
-    padding: 20px !important;
+  padding: 1.25rem !important;
+  min-height: 12rem;
 }
 
-.milkdown .editor>* {
-    margin: 10px 0 !important;
+.milkdown .editor > * {
+  margin: 0.625rem 0 !important;
 }
 
 .milkdown-menu .divider {
-  margin: 12px 5px;
+  margin: 0.75rem 0.25rem;
 }
 
 .milkdown-menu .button {
-  margin: 5px;
+  margin: 0.25rem;
+}
+
+.milkdown-menu::-webkit-scrollbar-thumb {
+  background-color: #91A3B8 !important;
+}
+
+.milkdown-menu::-webkit-scrollbar-track {
+  background-color: #4B596A !important;
+}
+
+.menu-selector {
+  width: auto !important;
+  min-width: 8rem;
 }
 
 .tribute-container {
@@ -55,14 +70,14 @@ img, img:active, img:focus {
 .tribute-container ul {
   padding: 0 !important;
   background: white !important;
-  border-radius: 12px !important;
-  min-width: 220px !important;
-  max-width: 320px !important;
+  border-radius: 0.75rem !important;
+  min-width: 14rem !important;
+  max-width: 20rem !important;
   overflow: hidden;
 }
 
 .tribute-container li {
-  padding: 12px;
+  padding: 0.75rem;
   font-size: 1.2em;
 }
 
@@ -75,13 +90,13 @@ img, img:active, img:focus {
 }
 
 .tribute-container li:first-child.highlight {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
 }
 
 .tribute-container li:last-child.highlight {
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 0.75rem;
+  border-bottom-right-radius: 0.75rem;
 }
 
 .value-container input {

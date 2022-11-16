@@ -1,12 +1,12 @@
 <script lang="ts">
-    import {createEventDispatcher} from 'svelte';
+    import {createEventDispatcher, onMount} from 'svelte';
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
     import {getAddressFromSigner} from "../../lib/ethers-service";
+    import {collectFee} from '../../lib/state'
 
     import type {
         CollectModule,
-        Erc20,
         FeeCollectModuleSettings,
         LimitedFeeCollectModuleSettings,
         LimitedTimedFeeCollectModuleSettings,
@@ -17,47 +17,42 @@
 
     const dispatch = createEventDispatcher();
 
-    let price: number;
-    let token: Erc20;
     let limited: boolean;
-    let limit: number = 1;
-    let timed: boolean;
     let hasReferralFee: boolean = false;
-    let referralFee: number = 0;
-    let followerOnly: boolean = false;
 
     const onSetClick = async () => {
+        console.log('onSetClick', $collectFee);
         const recipient = await getAddressFromSigner();
 
         const amount: ModuleFeeAmount = {
-            asset: token,
-            value: price
+            asset: $collectFee.token,
+            value: $collectFee.price
         }
 
         let baseModule = {
             amount,
             recipient,
-            referralFee,
-            followerOnly
+            referralFee: $collectFee.referralFee,
+            followerOnly: $collectFee.followerOnly
         }
 
         let collectModule: CollectModule;
 
-        if (limited && timed) {
+        if (limited && $collectFee.limit && $collectFee.timed) {
             collectModule = {
                 ...baseModule,
-                collectLimit: limit.toString(),
+                collectLimit: $collectFee.limit.toString(),
                 type: CollectModules.LimitedTimedFeeCollectModule,
                 __typename: "LimitedTimedFeeCollectModuleSettings"
             } as LimitedTimedFeeCollectModuleSettings;
-        } else if (limited) {
+        } else if (limited && $collectFee.limit) {
             collectModule = {
                 ...baseModule,
-                collectLimit: limit.toString(),
+                collectLimit: $collectFee.limit.toString(),
                 type: CollectModules.LimitedFeeCollectModule,
                 __typename: "LimitedFeeCollectModuleSettings"
             } as LimitedFeeCollectModuleSettings;
-        } else if (timed) {
+        } else if ($collectFee.timed) {
             collectModule = {
                 ...baseModule,
                 type: CollectModules.TimedFeeCollectModule,
@@ -73,6 +68,16 @@
 
         dispatch('moduleUpdated', collectModule);
     }
+
+    onMount(() => {
+        if ($collectFee.limit) {
+            limited = true;
+        }
+
+        if ($collectFee.referralFee) {
+            hasReferralFee = true;
+        }
+    });
 </script>
 
 <div class="flex flex-col p-4">
@@ -102,7 +107,7 @@
             </span>
       </div>
       <input type="text" name="price" id="price" autocomplete="off" placeholder="0.00" min="0"
-             bind:value={price}
+             bind:value={$collectFee.price}
              class="focus:ring-orange-500 border-l border-b border-t border-gray-300 py-2 px-4 focus:border-orange-500
              block w-full pl-7 pr-12 rounded-md text-base dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100" />
       <div class="absolute inset-y-0 right-0 flex items-center">
@@ -120,7 +125,7 @@
                 fill="currentColor"/>
           </svg>
         {:then tokens}
-          <select id="Currency" name="currency" bind:value={token}
+          <select id="Currency" name="currency" bind:value={$collectFee.token}
                   class="focus:ring-indigo-500 py-2 px-4 border-t border-r border-gray-300 border-b bo focus:border-indigo-500
                   h-full pl-2 pr-7 border-transparent bg-transparent text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-md">
 
@@ -152,11 +157,11 @@
     </div>
 
     <input type="number" id="collectLimitInput" placeholder="1" autocomplete="off" min="0"
-           bind:value={limit} disabled={!limited}
+           bind:value={$collectFee.limit} disabled={!limited}
            class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:opacity-50 py-2
            px-3 bg-white w-24 text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none
            focus:ring-2 focus:ring-orange-500 focus:border-transparent text-center
-           dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-300"/>
+           dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100"/>
 
   </div><!-- #collectLimit -->
 
@@ -164,7 +169,7 @@
 
     <div class="grow">
       <div class="relative inline-block w-10 mr-2 align-middle select-none">
-        <input type="checkbox" name="toggle" id="collectTimedToggle" bind:checked={timed}
+        <input type="checkbox" name="toggle" id="collectTimedToggle" bind:checked={$collectFee.timed}
                class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
                absolute block w-6 h-6 rounded-full bg-white border-4 dark:border-none appearance-none cursor-pointer focus:ring-0
                checked:focus:bg-orange checked:focus:ring-0"/>
@@ -182,7 +187,7 @@
 
     <div class="grow">
       <div class="relative inline-block w-10 mr-2 align-middle select-none">
-        <input type="checkbox" name="toggle" id="followerOnlyToggle" bind:checked={followerOnly}
+        <input type="checkbox" name="toggle" id="followerOnlyToggle" bind:checked={$collectFee.followerOnly}
                class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
                absolute block w-6 h-6 rounded-full bg-white border-4 dark:border-none appearance-none cursor-pointer focus:ring-0
                checked:focus:bg-orange checked:focus:ring-0"/>
@@ -214,7 +219,7 @@
 
     <div class="relative rounded-lg">
       <input type="number" id="referralFeeInput" placeholder="5" autocomplete="off" min="0" max="100"
-             bind:value={referralFee} disabled={!hasReferralFee}
+             bind:value={$collectFee.referralFee} disabled={!hasReferralFee}
              class="rounded-lg border-transparent appearance-none border border-gray-400 disabled:opacity-50 pl-2 pr-3
              px-4 bg-white w-24 text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2
              focus:ring-orange-500 focus:border-transparent text-center
@@ -228,13 +233,14 @@
 
   <div class="flex justify-end">
 
-    <button on:click={onSetClick}
+    <button on:click={onSetClick} disabled={!$collectFee.price || $collectFee.price == 0}
         class="w-auto mt-4 py-1.5 px-8 flex justify-center items-center
-          bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800 disabled:bg-neutral-400
-          rounded-lg shadow-md
-          focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-          text-white text-center text-lg font-semibold
-          transition ease-in duration-200 ">
+        bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
+        dark:bg-orange-700 dark:hover:bg-orange-800 dark:disabled:bg-gray-600
+        rounded-lg shadow-md
+        focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+        text-white text-center text-lg font-semibold dark:disabled:text-gray-400
+        transition ease-in duration-200 ">
       Set
     </button>
 

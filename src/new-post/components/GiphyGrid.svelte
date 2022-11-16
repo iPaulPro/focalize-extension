@@ -13,7 +13,6 @@
     const dispatch = createEventDispatcher();
 
     const giphy = (node: HTMLElement, params: any) => {
-        console.log('created action');
         const gf = new GiphyFetch(import.meta.env.VITE_GIPHY_KEY);
 
         const onClick = (gif: IGif) => {
@@ -62,14 +61,6 @@
             }
         }
     };
-
-    onMount(() => {
-        console.log('onMount');
-    })
-
-    afterUpdate(() => {
-        console.log('afterUpdate')
-    })
 </script>
 
 <div>

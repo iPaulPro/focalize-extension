@@ -1,7 +1,16 @@
 import {writable} from 'svelte/store';
 import type {Writable} from 'svelte/store';
 import type {Web3File} from "web3.storage/src/lib/interface";
-import type {Profile, PublicationMetadataMediaInput} from "../graph/lens-service";
+import type {Erc20, Profile, PublicationMetadataMediaInput} from "../graph/lens-service";
+
+export interface CollectFee {
+    price?: number;
+    token?: Erc20;
+    limit?: number;
+    referralFee?: number;
+    followerOnly?: boolean;
+    timed?: boolean;
+}
 
 /**
  * The post title, used as the NFT name
@@ -12,6 +21,11 @@ export const title: Writable<string> = writable();
  * The post content
  */
 export const content: Writable<string> = writable();
+
+/**
+ * The article content
+ */
+export const article: Writable<string> = writable();
 
 /**
  * The NFT description
@@ -37,6 +51,11 @@ export const cover: any | Writable<Web3File> = writable();
  * The author attribute in audio NFT metadata
  */
 export const author: any | Writable<string> = writable();
+
+/**
+ * The collect module settings when set to one of the fee types
+ */
+export const collectFee: any | Writable<CollectFee> = writable({});
 
 /**
  * The authenticated Lens Profile
