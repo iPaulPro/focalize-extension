@@ -1,8 +1,6 @@
 import {AsyncHasTransactionBeenIndexed, PublicationMetadataStatusType} from "../graph/lens-service";
-
+import {sleep} from "./utils";
 import type {HasTxHashBeenIndexedRequest} from "../graph/lens-service";
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const pollUntilIndexed = async (txHash: string) => {
     while (true) {

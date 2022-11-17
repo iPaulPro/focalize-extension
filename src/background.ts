@@ -37,7 +37,7 @@ const shareUrl = (tags) => {
         focused: true,
         type: 'popup',
         width: 800,
-        height: 700
+        height: 600
     }).catch(console.error);
 }
 

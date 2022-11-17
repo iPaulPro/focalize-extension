@@ -12,6 +12,7 @@
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {content, darkMode, profile} from "../../lib/state";
     import {supportedMimeTypesJoined} from '../../lib/file-utils.js'
+    import {sleep} from "../../lib/utils";
 
     import MediumEditor from 'medium-editor';
     import TurndownService from "turndown";
@@ -73,9 +74,9 @@
         // textInput.focus();
     });
 
-    const updateWindowHeight = () => {
-        const padding = window.outerHeight - document.body.offsetHeight;
-        window.resizeTo(window.outerWidth, document.body.scrollHeight + padding * 2)
+    const updateWindowHeight = async () => {
+        if  (document.body.clientHeight >= document.body.scrollHeight) return;
+        window.resizeBy(0, document.body.scrollHeight - document.body.clientHeight);
     };
 
     const makeEditor = (element) => {
@@ -107,7 +108,7 @@
         const html = converter.makeHtml($content);
         editor.setContent(html);
 
-        updateWindowHeight();
+        await updateWindowHeight();
     };
 
     onMount(async () => {
@@ -125,8 +126,6 @@
         }
 
         await setDefaultValue();
-
-        console.log('image', ImageAvatar);
     });
 
     onDestroy(() => {
@@ -137,17 +136,15 @@
 
 <div class="flex w-full pb-4">
 
-  {#if $profile}
     <div class="w-14 h-14 mx-3 pt-3">
-      {#if avatarError}
+      {#if avatarError || !$profile}
         <InlineSVG src={ImageAvatar}
-                   class="w-full object-cover rounded-full bg-gray-200 dark:bg-gray-500 text-gray-500 dark:text-gray-300" />
-      {:else}
+                   class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
+      {:else if $profile}
         <img src={$profile.picture.original.url} alt="Profile avatar" class="w-full object-cover rounded-full"
              on:error={() => {avatarError = true}}>
       {/if}
     </div>
-  {/if}
 
   <div class="flex flex-col w-full pr-2 pl-1.5">
 

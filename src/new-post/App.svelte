@@ -438,8 +438,7 @@
               rounded-lg shadow-md
               text-white text-center text-lg font-semibold
               focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-              transition ease-in duration-200"
-      >
+              transition ease-in duration-200">
         View Post
       </button>
 
@@ -449,7 +448,7 @@
 
     <div class="w-full min-h-full {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
 
-      <div class="min-h-full container max-w-screen-md mx-auto py-8">
+      <div class="min-h-full container max-w-screen-md mx-auto py-6">
 
         <div class="pb-6">
           <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost}/>
