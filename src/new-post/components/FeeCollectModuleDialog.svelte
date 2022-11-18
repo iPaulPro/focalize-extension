@@ -3,7 +3,7 @@
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
     import {getAddressFromSigner} from "../../lib/ethers-service";
-    import {collectFee} from '../../lib/state'
+    import {collectFee} from '../../lib/store/state'
 
     import type {
         CollectModule,

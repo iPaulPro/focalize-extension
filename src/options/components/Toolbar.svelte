@@ -2,7 +2,7 @@
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
 
-    import {profile} from "../../lib/state";
+    import {profile} from "../../lib/store/user";
 
     let isMenuOpen = false;
 </script>
@@ -50,7 +50,7 @@
                         focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500">
 
                   {#if $profile}
-                    <img src={$profile.picture.original.url} alt="Profile avatar"
+                    <img src={$profile.picture?.original?.url} alt="Profile avatar"
                          class="w-7 h-7 object-cover rounded-full">
                   {:else}
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

@@ -12,7 +12,9 @@
     import {placeholder as placeholderPlugin} from 'milkdown-plugin-placeholder';
     import { trailing } from '@milkdown/plugin-trailing';
 
-    import {darkMode, article} from "../../lib/state";
+    import {article} from "../../lib/store/state";
+    import {darkMode} from "../../lib/store/preferences";
+
     import {onDestroy} from "svelte";
 
     export let defaultValue: string;
@@ -61,14 +63,14 @@
                     ctx.set(defaultValueCtx, defaultValue);
                 }
 
-                // ctx.set(placeholderCtx, placeholder);
+                ctx.set(placeholderCtx, placeholder);
 
                 ctx.get(listenerCtx).markdownUpdated((ctx, md) => {
                     $article = md;
                 });
             })
             .use(listener)
-            // .use(placeholderPlugin)
+            .use(placeholderPlugin)
             .use(trailing)
             .use(gfm)
             .use(tooltip)

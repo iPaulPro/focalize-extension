@@ -1,7 +1,7 @@
 import {writable} from 'svelte/store';
 import type {Writable} from 'svelte/store';
 import type {Web3File} from "web3.storage/src/lib/interface";
-import type {Erc20, Profile, PublicationMetadataMediaInput} from "../graph/lens-service";
+import type {Erc20, PublicationMetadataMediaInput} from "../../graph/lens-service";
 
 export interface CollectFee {
     price?: number;
@@ -58,23 +58,16 @@ export const author: any | Writable<string> = writable();
 export const collectFee: any | Writable<CollectFee> = writable({});
 
 /**
- * The authenticated Lens Profile
- */
-export const profile: Writable<Profile> = writable();
-
-const storedDarkMode = localStorage.darkMode;
-
-export const darkMode: Writable<boolean> = writable(storedDarkMode === 'true');
-
-darkMode.subscribe((value) => localStorage.darkMode = String(value));
-
-/**
- * Clear all post-related stores
+ * Clears all post-related stores
  */
 export const clearPostState = () => {
     title.set(null);
     content.set(null);
+    article.set(null);
     description.set(null);
     attachment.set(null);
+    gifAttachment.set(null);
     cover.set(null);
+    author.set(null);
+    collectFee.set(null)
 }

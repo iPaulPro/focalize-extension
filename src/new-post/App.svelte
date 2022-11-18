@@ -29,12 +29,12 @@
         clearPostState,
         content,
         cover,
-        darkMode,
         description,
         gifAttachment,
-        profile,
         title
-    } from '../lib/state';
+    } from '../lib/store/state';
+    import {profile} from "../lib/store/user";
+    import {darkMode} from "../lib/store/preferences";
 
     import type {
         MetadataAttributeInput,
@@ -422,7 +422,7 @@
 
   {#if postId}
 
-    <div class="w-full h-full flex flex-col justify-center items-center dark:bg-gray-900">
+    <div class="w-full h-screen flex flex-col justify-center items-center dark:bg-gray-900">
 
       <svg xmlns="http://www.w3.org/2000/svg" class="text-green-600" width="72" height="72" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -446,7 +446,7 @@
 
   {:else}
 
-    <div class="w-full min-h-full {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
+    <div class="w-full min-h-screen {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
 
       <div class="min-h-full container max-w-screen-md mx-auto py-6">
 
@@ -473,7 +473,7 @@
 
           {/if}
 
-          <div class="flex pt-3 gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-300 dark:border-t-gray-700'}
+          <div class="flex pt-3 gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
                    {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
@@ -483,8 +483,7 @@
                     --list-max-height="auto" --background="transparent"
                     --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent" --list-border-radius="0.75rem"
-                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 disabled:hover:bg-transparent
-                    rounded-xl border-none ring-0
+                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
@@ -520,7 +519,7 @@
 
         </div>
 
-        <div class="flex flex-wrap border-b border-neutral-300 dark:border-gray-800 py-5 gap-4
+        <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 py-5 px-2 gap-4
              {isSubmittingPost ? 'opacity-60' : ''}">
 
           {#if locales.length > 0}
@@ -529,8 +528,8 @@
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
                     --font-size="0.875rem" --selected-item-padding="0.5rem" --list-border-radius="0.75rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
-                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
-                    text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
+                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
+                    shadow text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                     rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
               <div slot="prepend" class="pr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
@@ -545,8 +544,8 @@
           <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false}
                   showChevron={true} disabled={isSubmittingPost}
                   bind:value={postContentWarning}
-                  --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --font-size="0.875rem"
-                  --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
+                  --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
+                  --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                   --selected-item-padding="0.5rem" --list-border-radius="0.75rem"
                   class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                   text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
@@ -565,11 +564,12 @@
 
         </div>
 
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center px-2">
 
           <label class="switch">
             <input type="checkbox" bind:checked={$darkMode}>
-            <span class="slider bg-gray-200 dark:bg-gray-600 round flex justify-between items-center px-2">
+            <span class="slider bg-gray-200 dark:bg-gray-700 round flex justify-between items-center px-2
+                  shadow-none">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                    class="w-4 h-4 text-orange-300"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -620,13 +620,14 @@
 
   {/if}
 
-  <dialog id="collectFees" class="rounded-2xl shadow-2xl dark:bg-gray-700">
+  <dialog id="collectFees" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
     <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
   </dialog>
 
   <dialog id="selectGif" on:close={() => gifSelectionDialog = null}
           on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}
-          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700">
+          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
+          border border-gray-200 dark:border-gray-600">
     <GifSelectionDialog visible={gifSelectionDialog != null} on:gifSelected={onGifSelected} />
   </dialog>
 </main>

@@ -8,7 +8,7 @@
     import toast, { Toaster } from 'svelte-french-toast';
 
     import {authenticate, getDefaultProfile} from "../lib/lens-auth";
-    import {profile} from "../lib/state";
+    import {profile} from "../lib/store/user";
     import {ensureCorrectChain} from "../lib/ethers-service";
 
     import InlineSVG from 'svelte-inline-svg';

@@ -84,6 +84,7 @@
     "svelte-check": "^2.9.2",
     "svelte-french-toast": "^1.0.3",
     "svelte-inline-svg": "^1.2.0",
+    "svelte-ktippy": "^1.2.1",
     "svelte-preprocess": "^4.10.7",
     "svelte-select": "^5.0.0-beta.40",
     "sveltejs-tippy": "^3.0.0",

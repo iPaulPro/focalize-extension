@@ -10,7 +10,7 @@
     export let disabled: boolean;
 </script>
 
-<div class="flex">
+<div class="flex px-2">
 
   <div class="sm:hidden">
     <label for="tabs" class="sr-only">Publication type</label>

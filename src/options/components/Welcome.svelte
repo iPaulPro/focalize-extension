@@ -5,7 +5,7 @@
     import focalizeLogoName from '../../assets/focalize-logo-name.svg';
     import welcomeImage from '../../assets/welcome.svg';
 
-    import {darkMode} from '../../lib/state';
+    import {darkMode} from '../../lib/store/preferences';
 </script>
 
 <div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-900' : ''}">

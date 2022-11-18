@@ -1,18 +1,20 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from "sveltejs-tippy";
+    import tooltip from "svelte-ktippy"
     import Tribute from "tributejs";
     import {EmojiButton} from "@joeattardi/emoji-button";
-
+    import AccountChooser from "../../components/AccountChooser.svelte";
     import InlineSVG from "svelte-inline-svg";
     import ImageAvatar from '../../assets/ic_avatar.svg';
 
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
 
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
-    import {content, darkMode, profile} from "../../lib/state";
+    import {content} from "../../lib/store/state";
+    import {profile} from "../../lib/store/user";
+    import {darkMode} from "../../lib/store/preferences";
     import {supportedMimeTypesJoined} from '../../lib/file-utils.js'
-    import {sleep} from "../../lib/utils";
 
     import MediumEditor from 'medium-editor';
     import TurndownService from "turndown";
@@ -35,11 +37,11 @@
 
     const emojiPicker = new EmojiButton();
 
-    const turndownService = new TurndownService({
+    const fromHtml = new TurndownService({
         preformattedCode: true
     });
 
-    const converter = new showdown.Converter({
+    const fromMarkdown = new showdown.Converter({
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
     });
@@ -74,7 +76,7 @@
         // textInput.focus();
     });
 
-    const updateWindowHeight = async () => {
+    const updateWindowHeight = () => {
         if  (document.body.clientHeight >= document.body.scrollHeight) return;
         window.resizeBy(0, document.body.scrollHeight - document.body.clientHeight);
     };
@@ -88,30 +90,27 @@
                 text: 'What\'s happening?',
                 hideOnClick: false
             },
-            autoLink: true,
             extensions: {
                 'imageDragging': {}
             },
             buttonLabels: 'fontawesome',
-            targetBlank: true
+            delay: 500,
         });
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
-            // convert from html to markdown
-            $content = turndownService.turndown(editable);
+            $content = fromHtml.turndown(editable);
         });
     };
 
     const setDefaultValue = async () => {
         if (!$content) return;
 
-        // convert from markdown to html
-        const html = converter.makeHtml($content);
+        const html = fromMarkdown.makeHtml($content);
         editor.setContent(html);
 
-        await updateWindowHeight();
+        updateWindowHeight();
     };
 
-    onMount(async () => {
+    const tribute = async (node) => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, cb),
             menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
@@ -120,11 +119,16 @@
             lookup: 'handle',
         })
 
-        const plainTextInput = document.getElementById('plainTextInput');
-        if (plainTextInput) {
-            plainTextTribute.attach(plainTextInput);
-        }
+        plainTextTribute.attach(node);
 
+        return {
+            destroy() {
+                plainTextTribute.detach(node);
+            }
+        }
+    };
+
+    onMount(async () => {
         await setDefaultValue();
     });
 
@@ -136,21 +140,23 @@
 
 <div class="flex w-full pb-4">
 
-    <div class="w-14 h-14 mx-3 pt-3">
-      {#if avatarError || !$profile}
+    <div id="post-avatar" class="w-16 h-16 mx-3 pt-3 cursor-pointer"
+         use:tooltip={{component: AccountChooser, trigger: 'click', interactive: true, placement: 'bottom-start'}}>
+      {#if avatarError || !$profile?.picture?.original}
         <InlineSVG src={ImageAvatar}
                    class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
       {:else if $profile}
-        <img src={$profile.picture.original.url} alt="Profile avatar" class="w-full object-cover rounded-full"
+        <img src={$profile.picture?.original?.url} alt="Profile avatar"
+             class="w-full object-cover rounded-full border-2 border-transparent hover:border-orange"
              on:error={() => {avatarError = true}}>
       {/if}
     </div>
 
   <div class="flex flex-col w-full pr-2 pl-1.5">
 
-    <div id="editor" contenteditable="true" tabindex="1" data-disable-editing={disabled}
-         use:makeEditor bind:this={textInput} on:blur={() => saveSelection()}
-         class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-all">
+    <div id="editor" contenteditable="plaintext-only" tabindex="1" data-disable-editing={disabled}
+         use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
+         class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
     </div>
 
     <div class="flex gap-3 pt-1">
@@ -201,7 +207,7 @@
 
 <style global>
   .emoji-picker {
-    border: none;
+    border: 1px solid rgb(229 231 235);
     border-radius: 1rem;
     box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
     --category-button-active-color: #FF6014;
@@ -246,6 +252,7 @@
 
   .emoji-picker.dark {
     background-color: #374151 !important;
+    border: 1px solid rgb(75 85 99) !important;
   }
 
   .emoji-picker__search-container {

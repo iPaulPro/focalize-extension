@@ -3,6 +3,10 @@ import {decodeJwt} from "jose";
 import {getSigner, init} from "./ethers-service";
 import {Duration} from "luxon";
 
+import {address} from './store/user';
+import {AsyncProfiles} from "../graph/lens-service";
+import type {Profile, ProfileQueryRequest} from "../graph/lens-service";
+
 export const authenticate = async () => {
     const signer = getSigner();
     const address = await signer.getAddress();
@@ -92,7 +96,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
         await logOut();
         return Promise.reject('Refresh token is expired');
     }
-}
+};
 
 export const getAccessToken = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -103,7 +107,7 @@ export const getAccessToken = async (): Promise<string> => {
             resolve(result.accessToken);
         });
     });
-}
+};
 
 export const getRefreshToken = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -114,7 +118,7 @@ export const getRefreshToken = async (): Promise<string> => {
             resolve(result.refreshToken);
         });
     });
-}
+};
 
 export const refreshAccessToken = async (refreshToken?: string): Promise<string> => {
     if (!refreshToken) {
@@ -149,11 +153,11 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
             }
         );
     })
-}
+};
 
 export const logOut = async () => {
     await chrome.storage.local.clear();
-}
+};
 
 /**
  * Gets the default profile of the address supplied by the Provider.
@@ -164,6 +168,8 @@ export const getDefaultProfile = async () => {
     const account = await init();
     console.log('getDefaultProfile: Got account from provider', account);
 
+    address.set(account);
+
     const accessToken = await getAccessToken();
     if (!accessToken) {
         throw 'Account is not authenticated';
@@ -173,4 +179,11 @@ export const getDefaultProfile = async () => {
 
     // @ts-ignore
     return Promise.resolve(profile.data.defaultProfile);
-}
+};
+
+export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
+    const request: ProfileQueryRequest = {ownedBy: [ownedBy]};
+    const res = await AsyncProfiles({variables: {request}});
+    if (res.error) return Promise.reject(res.error);
+    return res.data.profiles.items as Profile[];
+};
