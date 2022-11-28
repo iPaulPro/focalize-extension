@@ -31,6 +31,23 @@ export const getChainId = async (): Promise<number> => {
     return provider.send('eth_chainId', []).then(normalizeChainId);
 }
 
+const networkMap = {
+    POLYGON_MAINNET: {
+        chainId: hexValue(137), // '0x89'
+        chainName: "Polygon Mainnet",
+        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+        rpcUrls: ["https://polygon-rpc.com"],
+        blockExplorerUrls: ["https://www.polygonscan.com/"],
+    },
+    MUMBAI_TESTNET: {
+        chainId: hexValue(80001), // '0x13881'
+        chainName: "Polygon Mumbai Testnet",
+        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
+        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
+        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+    },
+};
+
 export const switchChains = async (chainId: number) => {
     const id: string = hexValue(chainId);
     try {
@@ -42,7 +59,10 @@ export const switchChains = async (chainId: number) => {
     } catch (error) {
         if (error.code === 4902) {
             console.log("this network is not in the user's wallet")
-            // TODO prompt to add network - wallet_addEthereumChain
+            await provider.send(
+                "wallet_addEthereumChain",
+                [CHAIN_ID === 80001 ? networkMap.MUMBAI_TESTNET : networkMap.POLYGON_MAINNET],
+            );
         }
 
         throw error;

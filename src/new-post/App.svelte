@@ -300,9 +300,8 @@
 
             clearPostState()
         } catch (e) {
-            // TODO handle post submit error
             console.error(e);
-            toast.error('Error creating post');
+            toast.error('Error creating post', {duration: 5000});
         } finally {
             isSubmittingPost = false;
         }

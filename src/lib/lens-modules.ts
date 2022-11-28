@@ -188,7 +188,6 @@ export const getCollectModuleParams = (item: SelectItem<CollectModuleItem>, feeC
     let collect: CollectModuleParams;
     switch (item.value.type) {
         case CollectModules.FreeCollectModule:
-            // TODO set follower only from collect module
             collect = {freeCollectModule: {followerOnly: item.value.followerOnly}};
             break;
         case CollectModules.RevertCollectModule:
