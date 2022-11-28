@@ -1,10 +1,23 @@
 <script lang="ts">
+    import tooltip from "svelte-ktippy"
     import InlineSVG from 'svelte-inline-svg';
+
+    import AccountChooser from "../../components/AccountChooser.svelte";
+    import ConfirmLogoutDialog from '../../components/ConfirmLogoutDialog.svelte'
+
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
+    import ImageAvatar from '../../assets/ic_avatar.svg';
 
     import {profile} from "../../lib/store/user";
 
-    let isMenuOpen = false;
+    let avatarError;
+    let logoutDialog: HTMLDialogElement;
+
+    const showLogoutDialog = () => {
+        logoutDialog = document.getElementById('logoutDialog');
+        logoutDialog.showModal();
+    };
+
 </script>
 
 <nav class="bg-white dark:bg-gray-800  shadow ">
@@ -44,16 +57,27 @@
             <div class="relative inline-block text-left">
 
               <div>
-                <button id="options-menu" type="button" on:click={() => isMenuOpen = !isMenuOpen}
-                        class="flex items-center justify-center w-full rounded-full p-3 text-sm font-medium
+                <div class="flex items-center justify-center w-full rounded-full p-2 text-sm font-medium cursor-pointer
                         text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500 focus:outline-none
-                        focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500">
+                        focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-gray-500"
+                     use:tooltip={{
+                      component: AccountChooser,
+                      props: {showSettings: false},
+                      trigger: 'click',
+                      interactive: true,
+                      placement: 'bottom-end'
+                     }}
+                     on:logout={showLogoutDialog}>
 
-                  {#if $profile}
+                  {#if avatarError || !$profile?.picture?.original}
+                    <InlineSVG src={ImageAvatar}
+                               class="w-8 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
+                  {:else if $profile}
                     <img src={$profile.picture?.original?.url} alt="Profile avatar"
-                         class="w-7 h-7 object-cover rounded-full">
+                         class="w-8 object-cover rounded-full"
+                         on:error={() => {avatarError = true}}>
                   {:else}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8"
                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"/>
                       <circle cx="12" cy="10" r="3"/>
@@ -61,31 +85,8 @@
                     </svg>
                   {/if}
 
-                </button>
-              </div>
-
-              {#if isMenuOpen}
-
-                <div id="menu"
-                     class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800
-                     ring-1 ring-black ring-opacity-5">
-
-                  <div class="py-1 " role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-
-                    <button role="menuitem"
-                       class="block block px-4 py-2 text-md text-gray-700 hover:bg-gray-100 hover:text-gray-900
-                       dark:text-gray-100 dark:hover:text-white dark:hover:bg-gray-600">
-                          <span class="flex flex-col">
-                              <span>
-                                  Logout
-                              </span>
-                          </span>
-                    </button>
-
-                  </div>
-
                 </div>
-              {/if}
+              </div>
 
             </div>
           </div>
@@ -94,3 +95,7 @@
     </div>
   </div>
 </nav>
+
+<dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <ConfirmLogoutDialog />
+</dialog>

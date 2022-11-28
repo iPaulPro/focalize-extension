@@ -11,3 +11,7 @@ export const address: Writable<string> = writable();
  * The authenticated Lens Profile
  */
 export const profile: Writable<Profile> = writable();
+
+export const clearUser = () => {
+    profile.set(null);
+}

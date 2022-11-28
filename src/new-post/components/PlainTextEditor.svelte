@@ -4,9 +4,11 @@
     import tooltip from "svelte-ktippy"
     import Tribute from "tributejs";
     import {EmojiButton} from "@joeattardi/emoji-button";
-    import AccountChooser from "../../components/AccountChooser.svelte";
     import InlineSVG from "svelte-inline-svg";
     import ImageAvatar from '../../assets/ic_avatar.svg';
+
+    import AccountChooser from "../../components/AccountChooser.svelte";
+    import ConfirmLogoutDialog from '../../components/ConfirmLogoutDialog.svelte'
 
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
 
@@ -32,6 +34,7 @@
     let emojiPickerTrigger;
     let inputSelection: Selection, selectionRange: Range;
     let avatarError;
+    let logoutDialog: HTMLDialogElement;
 
     const dispatch = createEventDispatcher();
 
@@ -128,6 +131,11 @@
         }
     };
 
+    const showLogoutDialog = () => {
+        logoutDialog = document.getElementById('logoutDialog');
+        logoutDialog.showModal();
+    };
+
     onMount(async () => {
         await setDefaultValue();
     });
@@ -141,7 +149,15 @@
 <div class="flex w-full pb-4">
 
     <div id="post-avatar" class="w-16 h-16 mx-3 pt-3 cursor-pointer"
-         use:tooltip={{component: AccountChooser, trigger: 'click', interactive: true, placement: 'bottom-start'}}>
+         use:tooltip={{
+           component: AccountChooser,
+           props: {},
+           trigger: 'click',
+           interactive: true,
+           placement: 'bottom-start'
+         }}
+         on:logout={showLogoutDialog}>
+
       {#if avatarError || !$profile?.picture?.original}
         <InlineSVG src={ImageAvatar}
                    class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
@@ -150,6 +166,7 @@
              class="w-full object-cover rounded-full border-2 border-transparent hover:border-orange"
              on:error={() => {avatarError = true}}>
       {/if}
+
     </div>
 
   <div class="flex flex-col w-full pr-2 pl-1.5">
@@ -204,6 +221,10 @@
   </div>
 
 </div>
+
+<dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <ConfirmLogoutDialog />
+</dialog>
 
 <style global>
   .emoji-picker {

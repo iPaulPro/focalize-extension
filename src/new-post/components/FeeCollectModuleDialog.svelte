@@ -80,11 +80,11 @@
     });
 </script>
 
-<div class="flex flex-col p-4">
+<div class="flex flex-col p-3">
 
-  <div class="flex justify-between items-start">
+  <div class="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-600">
 
-    <h1 class="pb-4 text-xl font-medium dark:text-gray-100">Sell as an NFT</h1>
+    <h1 class="text-xl font-medium dark:text-gray-100">Sell as an NFT</h1>
 
     <form method="dialog">
       <button>
@@ -96,7 +96,7 @@
     </form>
   </div>
 
-  <div id="amount">
+  <div id="amount" class="pt-5">
     <label for="price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
       Price
     </label>

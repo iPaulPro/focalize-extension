@@ -131,7 +131,7 @@
       Created by
       <a href="https://lenster.xyz/u/paulburke.lens" target="_blank" rel="noreferrer"
          class="hover:text-gray-600 hover:font-semibold">
-        paulburke.eth
+        @paulburke
       </a>
     </span>
   </footer>

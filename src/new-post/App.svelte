@@ -411,6 +411,13 @@
         window.open(url, '_blank');
         window.close();
     }
+
+    $: {
+        // TODO uncomment when options and new post are a SPA
+        // if ($profile === null) {
+        //     window.location = '/src/options/index.html';
+        // }
+    }
 </script>
 
 <main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'}"

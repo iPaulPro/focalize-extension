@@ -5,7 +5,19 @@
     import InlineSVG from "svelte-inline-svg";
     import ImageAvatar from '../assets/ic_avatar.svg';
 
+    export let anchorNode;
+    export let showSettings = true;
+
     let avatarError: Number[] = [];
+
+    const launchOptions = () => {
+        chrome.runtime.openOptionsPage();
+    };
+
+    const showLogoutDialog = () => {
+        const event = new CustomEvent('logout');
+        anchorNode.dispatchEvent(event);
+    };
 </script>
 
 <div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
@@ -20,8 +32,7 @@
 
     {:then profiles}
 
-      <div class="px-4 py-2 flex justify-center items-center gap-2 text-gray-500 dark:text-gray-400
-           border-b border-gray-200 dark:border-gray-600 cursor-default">
+      <div class="px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M17 2.1l4 4-4 4"/>
@@ -34,45 +45,64 @@
         </div>
       </div>
 
-      {#each profiles as p, index}
+      <div class="py-1">
 
-        <div class="group min-w-[16rem] flex items-center py-3 pl-4 gap-4 cursor-pointer
-             hover:bg-orange-300 dark:hover:bg-gray-800 last:rounded-b-xl"
-             on:click={() => $profile = p}>
+        {#each profiles as p, index}
 
-          {#if !p.picture?.original || avatarError[index]}
-            <InlineSVG src={ImageAvatar}
-                       class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300" />
-          {:else}
-            <img src={p.picture?.original?.url} alt="Profile avatar" class="w-10 h-10 rounded-full object-cover"
-                 on:error={() => {avatarError.push(index)}}>
-          {/if}
+          <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
+             hover:bg-orange-300 dark:hover:bg-gray-800"
+               on:click={() => $profile = p}>
 
-          <div class="flex flex-col gap-0.5 grow">
-            <div class="font-semibold text-base text-black dark:text-white">{p.name || p.handle}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-300">@{p.handle}</div>
-          </div>
+            {#if !p.picture?.original || avatarError[index]}
+              <InlineSVG src={ImageAvatar}
+                         class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
+            {:else}
+              <img src={p.picture?.original?.url} alt="Profile avatar" class="w-8 rounded-full object-cover"
+                   on:error={() => {avatarError.push(index)}}>
+            {/if}
 
-          {#if $profile.handle === p.handle}
-
-            <div class="px-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                   stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
-                   class="w-5 h-5 text-orange group-hover:text-white transition-none">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
+            <div class="flex flex-col gap-0.5 grow">
+              <div class="font-semibold text-sm text-black dark:text-white">{p.name || p.handle}</div>
+              <div class="text-xs text-gray-600 dark:text-gray-300">@{p.handle}</div>
             </div>
 
-          {/if}
+            {#if $profile.handle === p.handle}
+              <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
+            {/if}
 
+          </div>
+
+        {/each}
+
+      </div>
+
+      <div class="py-1 border-t border-gray-200 dark:border-gray-600">
+        {#if showSettings}
+          <div class="px-2 py-2.5 m-1 rounded-xl flex items-center gap-3 cursor-pointer
+               hover:bg-orange-300 dark:hover:bg-gray-800"
+               on:click={launchOptions}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <div class="text-sm text-black dark:text-white">Settings</div>
+          </div>
+        {/if}
+
+        <div class="px-2 py-2.5 m-1 rounded-xl flex items-center gap-3 cursor-pointer
+             hover:bg-orange-300 dark:hover:bg-gray-800"
+             on:click={showLogoutDialog}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
+          </svg>
+          <div class="text-sm text-black dark:text-white">Log out</div>
         </div>
-
-      {/each}
+      </div>
 
     {/await}
-
-  {:else}
 
   {/if}
 </div>
