@@ -30,7 +30,7 @@
     </div>
 
     <form method="dialog">
-      <button class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+      <button type="button" class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="w-6 h-6 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-none">

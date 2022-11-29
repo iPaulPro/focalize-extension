@@ -27,7 +27,7 @@
   <ul class="hidden w-full text-sm font-medium text-center text-gray-500 rounded-lg divide-x divide-gray-200 shadow
       sm:flex dark:divide-gray-700 dark:text-gray-400 dark:divide-gray-700 {disabled ? 'opacity-60' : ''}">
     <li class="w-full">
-      <button on:click={() => dispatch('typeChange', PublicationMainFocus.TextOnly)} {disabled}
+      <button type="button" on:click={() => dispatch('typeChange', PublicationMainFocus.TextOnly)} {disabled}
               class="{postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link ? 'active' : ''}
               tab rounded-l-xl inline-block pt-3 pb-2 w-full cursor-pointer" aria-current="page">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -39,7 +39,7 @@
       </button>
     </li>
     <li class="w-full">
-      <button on:click={() => dispatch('typeChange', PublicationMainFocus.Image)} {disabled}
+      <button type="button" on:click={() => dispatch('typeChange', PublicationMainFocus.Image)} {disabled}
               class="{postType === PublicationMainFocus.Image || postType === PublicationMainFocus.Video || postType === PublicationMainFocus.Audio ? 'active' : ''}
               tab inline-block pt-3 pb-2 w-full cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -52,7 +52,7 @@
       </button>
     </li>
     <li class="w-full">
-      <button on:click={() => dispatch('typeChange', PublicationMainFocus.Article)} {disabled}
+      <button type="button" on:click={() => dispatch('typeChange', PublicationMainFocus.Article)} {disabled}
               class="{postType === PublicationMainFocus.Article ? 'active' : ''}
               tab rounded-r-xl inline-block pt-3 pb-2 w-full cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"

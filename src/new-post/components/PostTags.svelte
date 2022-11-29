@@ -51,7 +51,7 @@
 <div class="flex flex-wrap gap-3 dark:text-gray-200">
 
   {#if tags.length < 5}
-    <button on:click={addTag} disabled={disabled}
+    <button type="button" on:click={addTag} disabled={disabled}
         class="px-4 py-2  text-sm rounded-full bg-white enabled:hover:bg-gray-100 dark:bg-gray-800
         enabled:dark:hover:bg-gray-600 shadow flex justify-center items-center gap-2">
       <span class="px-1">Add tag</span>
@@ -71,7 +71,7 @@
              bind:value={tag} on:keypress={onKeyPress} on:blur={() => removeTagIfEmpty(tag)}
              class="border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100" maxlength="50">
 
-      <button class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full
+      <button type="button" class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full
               dark:text-gray-200"
               on:click={() => removeTag(tag)} disabled={disabled}>
 

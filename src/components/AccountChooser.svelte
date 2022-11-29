@@ -4,6 +4,7 @@
     import LoadingSpinner from '../new-post/components/LoadingSpinner.svelte'
     import InlineSVG from "svelte-inline-svg";
     import ImageAvatar from '../assets/ic_avatar.svg';
+    import {push} from 'svelte-spa-router';
 
     export let anchorNode;
     export let showSettings = true;
@@ -11,7 +12,13 @@
     let avatarError: Number[] = [];
 
     const launchOptions = () => {
-        chrome.runtime.openOptionsPage();
+        chrome.windows.getCurrent((window: Window) => {
+            if (window['type'] === 'popup') {
+                chrome.runtime.openOptionsPage();
+            } else {
+                push('/src/')
+            }
+        });
     };
 
     const showLogoutDialog = () => {
@@ -50,8 +57,8 @@
         {#each profiles as p, index}
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
-             hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={() => $profile = p}>
+               hover:bg-orange-300 dark:hover:bg-gray-800"
+               on:click={() => $profile = p} on:keydown={() => this.click()}>
 
             {#if !p.picture?.original || avatarError[index]}
               <InlineSVG src={ImageAvatar}
@@ -66,7 +73,7 @@
               <div class="text-xs text-gray-600 dark:text-gray-300">@{p.handle}</div>
             </div>
 
-            {#if $profile.handle === p.handle}
+            {#if $profile?.handle === p.handle}
               <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
             {/if}
 
@@ -76,9 +83,9 @@
 
       </div>
 
-      <div class="py-1 border-t border-gray-200 dark:border-gray-600">
+      <div class="p-1 border-t border-gray-200 dark:border-gray-600">
         {#if showSettings}
-          <div class="px-2 py-2.5 m-1 rounded-xl flex items-center gap-3 cursor-pointer
+          <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
                on:click={launchOptions}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
@@ -88,10 +95,10 @@
                   d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
             <div class="text-sm text-black dark:text-white">Settings</div>
-          </div>
+          </button>
         {/if}
 
-        <div class="px-2 py-2.5 m-1 rounded-xl flex items-center gap-3 cursor-pointer
+        <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
              hover:bg-orange-300 dark:hover:bg-gray-800"
              on:click={showLogoutDialog}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
@@ -99,22 +106,10 @@
             <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
           </svg>
           <div class="text-sm text-black dark:text-white">Log out</div>
-        </div>
+        </button>
       </div>
 
     {/await}
 
   {/if}
 </div>
-
-<style global>
-  #post-avatar .tippy-box {
-    background-color: transparent !important;
-    padding: 0;
-    margin: 0;
-  }
-
-  #post-avatar .tippy-content {
-    padding: 0 !important;
-  }
-</style>

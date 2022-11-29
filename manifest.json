@@ -7,7 +7,7 @@
   "permissions": [
     "activeTab", "scripting", "storage"
   ],
-  "options_page": "src/options/index.html",
+  "options_page": "src/index.html",
   "action": {
     "default_title": "Share on Lens",
     "default_icon": {

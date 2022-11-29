@@ -15,7 +15,7 @@ const parseOGTags = () => {
 
 const shareUrl = (tags) => {
     console.log('shareUrl called with', tags);
-    const path = chrome.runtime.getURL('src/new-post/index.html');
+    const path = chrome.runtime.getURL('src/#/post');
     const url = new URL(path);
 
     url.searchParams.append('type', 'link');
@@ -58,7 +58,7 @@ chrome.action.onClicked.addListener(tab => {
         chrome.tabs.update(
             tab.id,
             {
-                url: chrome.runtime.getURL('src/new-post/index.html')
+                url: chrome.runtime.getURL('src/#/post')
             }
         ).catch(console.error);
         return;

@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+	.tab {
+		@apply bg-white enabled:hover:text-gray-700 enabled:hover:bg-gray-50 focus:ring-0 focus:outline-none enabled:dark:hover:text-white dark:bg-gray-800 enabled:dark:hover:bg-gray-700;
+	}
+
+	.tab.active {
+		@apply text-gray-900 bg-gray-100 dark:bg-gray-700 dark:text-white;
+	}
+}
+
+* {
+	transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+	transition-timing-function: ease-in;
+	transition-duration: 150ms;
+}
+
 html, body, #app {
 	width: 100%;
 	height: 100%;
@@ -53,4 +69,22 @@ img, img:active, img:focus {
 		transform: scale(1);
 		opacity: 0;
 	}
+}
+
+.tippy-box {
+	background-color: #333 !important;
+}
+
+.tippy-content {
+	padding: 0.25rem 0.5rem !important;
+}
+
+.tooltip .tippy-box {
+	background-color: transparent !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.tooltip .tippy-content {
+	padding: 0 !important;
 }

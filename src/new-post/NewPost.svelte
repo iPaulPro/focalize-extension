@@ -55,6 +55,7 @@
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
     import {onMount} from 'svelte';
+    import {replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
@@ -362,7 +363,7 @@
                 profile.set(defaultProfile);
             }
         } catch (e) {
-            window.location = '/src/options/index.html';
+            await replace('/src/');
         }
     });
 
@@ -413,10 +414,9 @@
     }
 
     $: {
-        // TODO uncomment when options and new post are a SPA
-        // if ($profile === null) {
-        //     window.location = '/src/options/index.html';
-        // }
+        if ($profile === null) {
+            replace('/').catch(console.error);
+        }
     }
 </script>
 
@@ -479,7 +479,7 @@
 
           {/if}
 
-          <div class="flex pt-3 gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
+          <div class="flex flex-wrap pt-3 gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
                    {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
@@ -592,7 +592,7 @@
           </label>
 
           <div class="pt-4">
-            <button on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
+            <button type="button" on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
                     class="w-fit py-2 px-12 flex justify-center items-center rounded-xl w-auto
                   bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                   disabled:bg-neutral-400 dark:disabled:bg-gray-600
@@ -640,7 +640,83 @@
 
 <Toaster />
 
-<style>
+<style global>
+  .milkdown {
+    box-shadow: none !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif !important;
+  }
+
+  .milkdown .editor {
+    padding: 1.25rem !important;
+    min-height: 12rem;
+  }
+
+  .milkdown .editor > * {
+    margin: 0.625rem 0 !important;
+  }
+
+  .milkdown-menu .divider {
+    margin: 0.75rem 0.25rem;
+  }
+
+  .milkdown-menu .button {
+    margin: 0.25rem;
+  }
+
+  .milkdown-menu::-webkit-scrollbar-thumb {
+    background-color: #91A3B8 !important;
+  }
+
+  .milkdown-menu::-webkit-scrollbar-track {
+    background-color: #4B596A !important;
+  }
+
+  .menu-selector {
+    width: auto !important;
+    min-width: 8rem;
+  }
+
+  .tribute-container {
+    filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.25));
+    margin-top: 0.75rem;
+  }
+
+  .tribute-container ul {
+    padding: 0 !important;
+    background: white !important;
+    border-radius: 0.75rem !important;
+    min-width: 14rem !important;
+    max-width: 20rem !important;
+    overflow: hidden;
+  }
+
+  .tribute-container li {
+    padding: 0.75rem;
+    font-size: 1.2em;
+  }
+
+  .tribute-container li:not(:last-child) {
+    border-bottom: 1px solid #CCC !important;
+  }
+
+  .tribute-container li.highlight {
+    background: #CCC !important;
+  }
+
+  .tribute-container li:first-child.highlight {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+  }
+
+  .tribute-container li:last-child.highlight {
+    border-bottom-left-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+
+  .value-container input {
+    cursor: pointer !Important;
+  }
+
   /* The switch - the box around the slider */
   .switch {
     position: relative;

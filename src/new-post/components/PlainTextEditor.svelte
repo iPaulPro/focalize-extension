@@ -148,7 +148,7 @@
 
 <div class="flex w-full pb-4">
 
-    <div id="post-avatar" class="w-16 h-16 mx-3 pt-3 cursor-pointer"
+    <div class="w-16 h-16 mx-3 pt-3 cursor-pointer tooltip"
          use:tooltip={{
            component: AccountChooser,
            props: {},
@@ -163,7 +163,7 @@
                    class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
       {:else if $profile}
         <img src={$profile.picture?.original?.url} alt="Profile avatar"
-             class="w-full object-cover rounded-full border-2 border-transparent hover:border-orange"
+             class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"
              on:error={() => {avatarError = true}}>
       {/if}
 
@@ -171,7 +171,7 @@
 
   <div class="flex flex-col w-full pr-2 pl-1.5">
 
-    <div id="editor" contenteditable="plaintext-only" tabindex="1" data-disable-editing={disabled}
+    <div id="editor" contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
          use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
          class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
     </div>

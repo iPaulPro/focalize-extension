@@ -217,7 +217,7 @@
                  on:load={() => loading = false}>
 
             <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
-              <button class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
+              <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
                      class="w-8 h-8 text-white drop-shadow-dark">
                   <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
@@ -249,7 +249,7 @@
                        on:load={() => coverLoading = false}>
 
                   <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
-                    <button class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteCover}>
+                    <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteCover}>
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
                            class="w-8 h-8 text-white drop-shadow-dark">
                         <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
@@ -274,10 +274,10 @@
                        on:change={e => onFileSelected(e, true)}
                        bind:this={coverInput}/>
 
-                <div class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} flex flex-col items-center
-                            justify-center border border-gray-300 dark:border-gray-500 text-gray-300 dark:text-gray-300
-                            rounded-xl cursor-pointer hover:bg-orange-50"
-                     on:click={()=>{coverInput.click();}} disabled={coverLoading}>
+                <button type="button" class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} flex flex-col
+                        items-center justify-center border border-gray-300 dark:border-gray-500 text-gray-300
+                        dark:text-gray-300 rounded-xl cursor-pointer hover:bg-orange-50"
+                        on:click={()=>{coverInput.click();}} disabled={coverLoading}>
 
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-10 text-gray-400"
                        stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
@@ -288,7 +288,7 @@
 
                   <span class="pt-3 text-base">Add a cover image</span>
 
-                </div>
+                </button>
 
               {/if}
 
@@ -326,7 +326,7 @@
 
             </div>
 
-            <button class="text-red-700 dark:text-white opacity-60 hover:opacity-100"
+            <button type="button" class="text-red-700 dark:text-white opacity-60 hover:opacity-100"
                     on:click={onDeleteMedia}>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -433,7 +433,7 @@
                on:change={(e)=>onFileSelected(e)}
                bind:this={fileInput}/>
 
-        <button class="text-base font-semibold text-orange-700 border border-gray-300 rounded-full px-4 py-2 ml-2
+        <button type="button" class="text-base font-semibold text-orange-700 border border-gray-300 rounded-full px-4 py-2 ml-2
                        hover:bg-orange-600 hover:text-white hover:border-transparent dark:text-orange-100 dark:border-gray-600"
                 on:click={()=>{fileInput.click();}}>
           Choose a file

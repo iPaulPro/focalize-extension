@@ -4,6 +4,7 @@
     import focalizeLogo from '/images/focalize.svg';
     import focalizeLogoName from '../../assets/focalize-logo-name.svg';
     import welcomeImage from '../../assets/welcome.svg';
+    import {link} from 'svelte-spa-router'
 
     import {darkMode} from '../../lib/store/preferences';
 </script>
@@ -97,7 +98,7 @@
               </li>
             </ul>
 
-            <a href="/src/new-post/index.html"
+            <a href="/post" use:link
                     class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center rounded-full
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2

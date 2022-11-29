@@ -87,7 +87,7 @@
     <h1 class="text-xl font-medium dark:text-gray-100">Sell as an NFT</h1>
 
     <form method="dialog">
-      <button>
+      <button type="button">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -233,7 +233,7 @@
 
   <div class="flex justify-end">
 
-    <button on:click={onSetClick} disabled={!$collectFee.price || $collectFee.price == 0}
+    <button type="button" on:click={onSetClick} disabled={!$collectFee.price || $collectFee.price == 0}
         class="w-auto mt-4 py-1.5 px-8 flex justify-center items-center
         bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
         dark:bg-orange-700 dark:hover:bg-orange-800 dark:disabled:bg-gray-600

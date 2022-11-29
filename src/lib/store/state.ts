@@ -69,5 +69,5 @@ export const clearPostState = () => {
     gifAttachment.set(null);
     cover.set(null);
     author.set(null);
-    collectFee.set(null)
+    collectFee.set({})
 }

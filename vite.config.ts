@@ -10,8 +10,7 @@ export default defineConfig({
     build: {
         rollupOptions: {
             input: {
-                options: 'src/options/index.html',
-                newpost: 'src/new-post/index.html'
+                main: 'src/index.html'
             },
             plugins: [
                 nodePolyfills()
