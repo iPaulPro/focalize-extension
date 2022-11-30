@@ -149,7 +149,7 @@ const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModulePar
             currency: module.amount.asset.address,
             value: module.amount.value
         },
-        followerOnly: module.followerOnly,
+        followerOnly: module.followerOnly ?? false,
         recipient: module.recipient,
         referralFee: module.referralFee
     }
