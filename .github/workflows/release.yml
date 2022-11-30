@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags:  
+      - 'v*'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Create Zip
+        run: zip -r focalize-${{  github.ref_name }}.zip dist
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "focalize-${{  github.ref_name }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
