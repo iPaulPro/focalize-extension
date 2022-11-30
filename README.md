@@ -1,6 +1,6 @@
 # Focalize
 
-Focalize is a powerful browser extension for creating and tracking publications on Lens Protocol. 
+Focalize is a powerful browser extension for creating publications on Lens Protocol. 
 
 Originally created for ETHOnline 2022:
 
@@ -14,15 +14,24 @@ https://ethglobal.com/showcase/focalize-9vo88
 
 ## Installation
 
-Beta release coming soon.
+#### Step 1
 
----
+Download the latest [release](https://github.com/FocalizeApp/focalize-extension/releases/latest) and unzip.
+
+#### Step 2
+
+Enable [developer mode](https://developer.chrome.com/docs/extensions/mv2/faq/#faq-dev-01) in Chrome or Brave.
+
+#### Step 3
+ 
+Drag and drop the unzipped folder onto the Extensions page (chrome://extensions), or click "Load unpacked" and select the unzipped project folder.
+
+## Build
 
 Run `npm codegen` then `npm build` 
 
 The `/dist` folder is the unpacked extension.
 
----
 
 ## Credits
 
