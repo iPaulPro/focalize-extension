@@ -30,7 +30,6 @@ jobs:
       - name: Install and Build
         run: |
           npm ci
-          npm run codegen
           npm run build
 
       - name: Create Zip
