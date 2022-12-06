@@ -1,16 +1,17 @@
 import {AsyncSearchProfiles, SearchRequestTypes} from "../graph/lens-service";
 import type {Profile, SearchQueryRequest} from "../graph/lens-service";
+import type {TributeItem} from "tributejs";
 
 export const searchProfiles = (query: string) => {
     const request: SearchQueryRequest = {query, type: SearchRequestTypes.Profile, limit: 5}
     return AsyncSearchProfiles({variables: {request}})
 }
 
-export const searchHandles = (query, cb) => {
+export const searchHandles = (query: string, cb: (profiles: Profile[] | undefined) => void) => {
     searchProfiles(query)
         .then(res => {
             if (res.data.search.__typename === "ProfileSearchResult") {
-                return res.data.search.items;
+                return res.data.search.items as Profile[];
             }
             return undefined;
         })
@@ -18,7 +19,7 @@ export const searchHandles = (query, cb) => {
         .catch(console.error)
 }
 
-export const buildTributeUsernameMenuTemplate = item => {
+export const buildTributeUsernameMenuTemplate = (item: TributeItem<Profile>) => {
     const profile: Profile = item.original;
 
     const handleView = document.createElement('div');
@@ -27,7 +28,7 @@ export const buildTributeUsernameMenuTemplate = item => {
 
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';
-    subtextView.innerText = profile.name || profile.onChainIdentity.ens.name || profile.ownedBy;
+    subtextView.innerText = profile.name || profile.onChainIdentity?.ens?.name || profile.ownedBy;
 
     const textContainer = document.createElement('div');
     textContainer.className = 'flex-1 pl-1 mr-8 overflow-hidden';

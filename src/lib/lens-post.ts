@@ -33,11 +33,11 @@ import Autolinker, {UrlMatch} from "autolinker";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
+        ...metadata,
         version: '2.0.0',
         metadata_id: uuid(),
         appId: APP_ID,
         locale: 'en',
-        ...metadata
     }
     let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
     console.log('makeMetadataFile: Creating metadata file for', o);
@@ -45,16 +45,20 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     return new File([blob], `metadata.json`)
 };
 
-const getPublicationId = async (txHash) => {
+const getPublicationId = async (txHash: string) => {
     const indexedResult = await pollUntilIndexed(txHash);
 
-    const logs = indexedResult.txReceipt.logs;
+    const logs = indexedResult?.txReceipt?.logs;
     const topicId = utils.id(
         'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
     );
 
-    const profileCreatedLog = logs.find((l: any) => l.topics[0] === topicId);
-    let profileCreatedEventLog = profileCreatedLog.topics;
+    const log = logs?.find((l: any) => l.topics[0] === topicId);
+    if (!log) {
+        throw 'getPublicationId: Error while finding log';
+    }
+
+    let profileCreatedEventLog = log.topics;
 
     const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
     return BigNumber.from(publicationId).toHexString();
@@ -85,7 +89,7 @@ export const generateImagePostMetadata = (
     content?: string,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
-    description: string = content,
+    description: string | undefined = content,
     image: string = media.item,
     imageMimeType: string = media.type,
     attributes: MetadataAttributeInput[] = [],
@@ -125,7 +129,7 @@ export const generateVideoPostMetadata = (
     attributes?: MetadataAttributeInput[],
     tags?: string[],
     contentWarning?: PublicationContentWarning,
-    description: string = content,
+    description: string | undefined = content,
     animationUrl: string = media.item,
 ): PublicationMetadataV2Input => (
     {
@@ -169,10 +173,10 @@ export const generateAudioPostMetadata = (
     attributes?: MetadataAttributeInput[],
     tags?: string[],
     contentWarning?: PublicationContentWarning,
-    description: string = content,
+    description: string | undefined = content,
     animationUrl: string = media.item,
 ): PublicationMetadataV2Input => {
-    const artistAttr = attributes.find(attr => attr.traitType === 'author');
+    const artistAttr = attributes?.find(attr => attr.traitType === 'author');
     return {
         name: artistAttr ? `${artistAttr.value} - ${title}` : title,
         media: [media],
@@ -192,10 +196,10 @@ export const generateAudioPostMetadata = (
 const validateMetadata = (metadata: PublicationMetadataV2Input) => {
     const request: ValidatePublicationMetadataRequest = {
         metadatav2: {
+            ...metadata,
             version: '2.0.0',
             metadata_id: uuid(),
             appId: APP_ID,
-            ...metadata
         }
     }
     return AsyncValidatePublicationMetadata({variables: {request}})
@@ -247,7 +251,7 @@ export const submitPost = async (
     const res = await Broadcast({variables: {request}});
     console.log('submitPost: broadcastResult', res);
 
-    if (res.data.broadcast.__typename !== 'RelayerResult') {
+    if (res?.data?.broadcast.__typename !== 'RelayerResult') {
         console.error('submitPost: post with broadcast failed');
 
         const { v, r, s } = splitSignature(signature);

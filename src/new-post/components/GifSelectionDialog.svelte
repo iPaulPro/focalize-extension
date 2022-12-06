@@ -7,19 +7,16 @@
     let input: HTMLInputElement;
     let searchQuery: string;
 
+    export let onGifDialogShown = () => {
+        searchQuery = '';
+        input?.focus();
+    };
+
     const dispatch = createEventDispatcher();
 
     const onGifSelected = () => {
         dispatch('gifSelected');
-    }
-
-    $: {
-        // Clear the query when the dialog is opened
-        if (visible) {
-            searchQuery = '';
-            input.focus();
-        }
-    }
+    };
 </script>
 
 <div class="flex flex-col">

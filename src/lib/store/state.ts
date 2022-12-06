@@ -15,22 +15,22 @@ export interface CollectFee {
 /**
  * The post title, used as the NFT name
  */
-export const title: Writable<string> = writable();
+export const title: any | Writable<string> = writable();
 
 /**
  * The post content
  */
-export const content: Writable<string> = writable();
+export const content: any | Writable<string> = writable();
 
 /**
  * The article content
  */
-export const article: Writable<string> = writable();
+export const article: any | Writable<string> = writable();
 
 /**
  * The NFT description
  */
-export const description: Writable<string> = writable();
+export const description: any | Writable<string> = writable();
 
 /**
  * The main post attachment. Can be an image, audio, or video file.

@@ -5,12 +5,12 @@ import type {Profile} from "../../graph/lens-service";
 /**
  * The connected public address
  */
-export const address: Writable<string> = writable();
+export const address: any | Writable<string> = writable();
 
 /**
  * The authenticated Lens Profile
  */
-export const profile: Writable<Profile> = writable();
+export const profile: any | Writable<Profile> = writable();
 
 export const clearUser = () => {
     profile.set(null);

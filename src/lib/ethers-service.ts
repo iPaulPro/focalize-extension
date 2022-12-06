@@ -2,10 +2,12 @@ import createMetaMaskProvider from "metamask-extension-provider";
 import { hexValue } from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
 import { Web3Provider } from '@ethersproject/providers';
-import type { ExternalProvider, JsonRpcSigner } from '@ethersproject/providers';
+import type { JsonRpcSigner } from '@ethersproject/providers';
+import type {TypedDataDomain, TypedDataField} from "ethers";
+import type BaseProvider from "@metamask/inpage-provider/dist/BaseProvider";
 
 const inPageProvider = createMetaMaskProvider();
-export const provider: Web3Provider = new Web3Provider(inPageProvider as ExternalProvider, "any");
+export const provider: Web3Provider = new Web3Provider(inPageProvider as BaseProvider, "any");
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
@@ -57,6 +59,7 @@ export const switchChains = async (chainId: number) => {
         );
         console.log('switched to chain', chainId);
     } catch (error) {
+        // @ts-ignore
         if (error.code === 4902) {
             console.log("this network is not in the user's wallet")
             await provider.send(
@@ -81,13 +84,18 @@ export const init = async() => {
     return accounts[0];
 }
 
-export const signedTypeData = (domain, types, value): Promise<string> => {
+export const signedTypeData = (
+    domain: TypedDataDomain,
+    types: Record<string, Array<TypedDataField>>,
+    value:  Record<string, any>
+): Promise<string> => {
     const signer = getSigner();
     // remove the __typedname from the signature!
     return signer._signTypedData(
-        omitDeep(domain, '__typename'),
-        omitDeep(types, '__typename'),
-        omitDeep(value, '__typename')
+        omitDeep(domain, ['__typename']),
+        // @ts-ignore
+        omitDeep(types, ['__typename']),
+        omitDeep(value, ['__typename'])
     );
 }
 

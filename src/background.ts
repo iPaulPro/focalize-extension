@@ -4,18 +4,21 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-const parseOGTags = () => {
-    return {
-        url: document.querySelector("meta[property='og:url']")?.getAttribute("content"),
-        title: document.querySelector("meta[property='og:title']")?.getAttribute("content"),
-        description: document.querySelector("meta[property='og:description']")?.getAttribute("content") ||
-            document.querySelector("meta[name='twitter:description']")?.getAttribute("content")
-    }
-}
+const parseOGTags = (): {
+    url?: string;
+    title?: string | null,
+    description?: string | null
+} => ({
+    title: document.head.querySelector("meta[property='og:title']")?.getAttribute("content") ||
+        document.head.querySelector("meta[name='twitter:title']")?.getAttribute("content"),
+    description: document.head.querySelector("meta[property='og:description']")?.getAttribute("content") ||
+        document.head.querySelector("meta[name='description']")?.getAttribute("content") ||
+        document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
+});
 
-const shareUrl = (tags) => {
+const shareUrl = (tags: any) => {
     console.log('shareUrl called with', tags);
-    const path = chrome.runtime.getURL('src/#/post');
+    const path = chrome.runtime.getURL('src/index.html#/post');
     const url = new URL(path);
 
     url.searchParams.append('type', 'link');
@@ -51,14 +54,15 @@ const shareUrl = (tags) => {
 // );
 
 chrome.action.onClicked.addListener(tab => {
-    const url = tab.url
-    const title = tab.title
+    const url = tab.url!!;
+    const title = tab.title;
 
     if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
         chrome.tabs.update(
+            // @ts-ignore
             tab.id,
             {
-                url: chrome.runtime.getURL('src/#/post')
+                url: chrome.runtime.getURL('src/index.html#/post')
             }
         ).catch(console.error);
         return;
@@ -66,11 +70,12 @@ chrome.action.onClicked.addListener(tab => {
 
     chrome.scripting.executeScript(
         {
+            // @ts-ignore
             target: {tabId: tab.id},
             func: parseOGTags
         }
     ).then(results => {
-        const tags = results[0]?.result
+        const tags = results[0]?.result;
         if (tags) {
             console.log('found open graph tags', tags);
             tags.url = url // og:url is often misused

@@ -98,6 +98,7 @@
             },
             buttonLabels: 'fontawesome',
             delay: 500,
+            autoLink: true,
         });
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
             $content = fromHtml.turndown(editable);

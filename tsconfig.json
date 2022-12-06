@@ -15,7 +15,8 @@
     "allowJs": true,
     "checkJs": true,
     "isolatedModules": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "strict": true
   },
   "include": [
     "src/**/*.d.ts",

@@ -65,6 +65,8 @@
      */
     let getTags: () => string[];
 
+    let onGifDialogShown: () => {};
+
     let initialMarkdownText: string;
 
     let postType: PublicationMainFocus;
@@ -177,8 +179,8 @@
     };
 
     const showGifSelectionDialog = () => {
-        gifSelectionDialog = document.getElementById('selectGif');
-        gifSelectionDialog.showModal();
+        gifSelectionDialog?.showModal();
+        onGifDialogShown();
     }
 
     parseSearchParams();
@@ -379,7 +381,12 @@
 
         attachment.set(file);
         isFileDragged = false;
-        postType = getMainFocusFromFileType(file.type);
+
+        try {
+            postType = getMainFocusFromFileType(file.type);
+        } catch (e) {
+            toast.error('File not supported');
+        }
     };
 
     const onFileDropped = (ev) => {
@@ -396,7 +403,7 @@
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
-        label: tags(tag).language().descriptions().join(', ')
+        label: tags(tag).language()?.descriptions().join(', ')
     }));
 
     $: locale = navigator.languages[0];
@@ -630,11 +637,11 @@
     <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
   </dialog>
 
-  <dialog id="selectGif" on:close={() => gifSelectionDialog = null}
+  <dialog id="selectGif" bind:this={gifSelectionDialog} on:focus={() => {console.log('focus');}}
           on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}
           class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
           border border-gray-200 dark:border-gray-600">
-    <GifSelectionDialog visible={gifSelectionDialog != null} on:gifSelected={onGifSelected} />
+    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
   </dialog>
 </main>
 

@@ -19,7 +19,7 @@ export const pollUntilIndexed = async (txHash: string) => {
                 }
 
                 if (response.metadataStatus.status === PublicationMetadataStatusType.MetadataValidationFailed) {
-                    throw new Error(response.metadataStatus.reason);
+                    throw new Error(response.metadataStatus.reason!!);
                 }
             } else {
                 if (response.indexed) {

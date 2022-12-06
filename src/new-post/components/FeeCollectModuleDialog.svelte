@@ -101,7 +101,7 @@
 
         const amount: ModuleFeeAmount = {
             asset: $collectFee.token,
-            value: $collectFee.price
+            value: $collectFee.price?.toString()
         }
 
         let baseModule = {

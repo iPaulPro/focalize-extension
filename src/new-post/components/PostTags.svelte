@@ -8,6 +8,15 @@
 
     export let disabled: boolean;
 
+    const focusEmptyTagInput = () => {
+        const tags = document.querySelectorAll('.tag');
+        tags.forEach(tag => {
+            if (tag.firstChild?.value === '') {
+                tag.firstChild.focus();
+            }
+        })
+    };
+
     const addTag = () => {
         if (tags.length >= 5) return;
 
@@ -22,15 +31,6 @@
 
     const removeTag = (tag: string) => {
         tags = tags.filter(t => t != tag);
-    }
-
-    function focusEmptyTagInput() {
-        const tags = document.querySelectorAll('.tag')
-        tags.forEach(tag => {
-            if (tag.firstChild.value === '') {
-                tag.firstChild.focus();
-            }
-        })
     }
 
     afterUpdate(() => {

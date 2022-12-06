@@ -41,7 +41,7 @@ const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_PROJECT_ID}:${import.meta.env.
 //     });
 // };
 
-export const uploadAndPin = async (file: File, cb?: (number) => {}): Promise<string> => {
+export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)
 
     let formData = new FormData();
@@ -58,7 +58,7 @@ export const uploadAndPin = async (file: File, cb?: (number) => {}): Promise<str
             onUploadProgress: (p) => {
                 console.log(p);
                 if (cb) {
-                    const progress = p.progress * 100;
+                    const progress = (p.progress ?? 0) * 100;
                     cb(progress);
                 }
             }

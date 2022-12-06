@@ -10,7 +10,7 @@ import {
 
 import type {ApolloQueryResult} from "@apollo/client";
 
-export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive;
+export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 
 export type PaidCollectModule = FeeCollectModuleSettings | LimitedFeeCollectModuleSettings | LimitedTimedFeeCollectModuleSettings | TimedFeeCollectModuleSettings;
 
@@ -184,19 +184,17 @@ const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModulePar
     }
 };
 
-export const getCollectModuleParams = (item: SelectItem<CollectModuleItem>, feeCollectModule: PaidCollectModule): CollectModuleParams => {
-    let collect: CollectModuleParams;
+export const getCollectModuleParams = (
+    item: SelectItem<CollectModuleItem>,
+    feeCollectModule: PaidCollectModule
+): CollectModuleParams | undefined => {
     switch (item.value.type) {
         case CollectModules.FreeCollectModule:
-            collect = {freeCollectModule: {followerOnly: item.value.followerOnly}};
-            break;
+            return {freeCollectModule: {followerOnly: item.value.followerOnly ?? false}};
         case CollectModules.RevertCollectModule:
-            collect = REVERT_COLLECT_MODULE;
-            break;
+            return REVERT_COLLECT_MODULE;
         case CollectModules.FeeCollectModule:
-            collect = getPaidCollectModuleParams(feeCollectModule);
-            break;
+            return getPaidCollectModuleParams(feeCollectModule);
     }
-    console.log('getCollectModuleParams: returning', collect);
-    return collect;
+    return undefined;
 }

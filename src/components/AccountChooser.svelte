@@ -88,7 +88,8 @@
           <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
                on:click={launchOptions}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                 class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
               <path
@@ -101,7 +102,8 @@
         <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
              hover:bg-orange-300 dark:hover:bg-gray-800"
              on:click={showLogoutDialog}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 mx-1.5"
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+               class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
           </svg>
