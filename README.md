@@ -28,7 +28,7 @@ Drag and drop the unzipped folder onto the Extensions page (chrome://extensions)
 
 ## Build
 
-Run `npm codegen` then `npm build` 
+Run `npm build` 
 
 The `/dist` folder is the unpacked extension.
 
