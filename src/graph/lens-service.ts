@@ -240,19 +240,19 @@ export type ClaimableHandles = {
 
 /** Condition that signifies if address or profile has collected a publication */
 export type CollectConditionInput = {
-  /** The collected publication id */
-  publicationId: Scalars['PublicationId'];
-  /** The collected publication id */
-  publisherId: Scalars['ProfileId'];
+  /** The publication id that has to be collected to unlock content */
+  publicationId?: InputMaybe<Scalars['ProfileId']>;
+  /** True if the content will be unlocked for this specific publication */
+  thisPublication?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** Condition that signifies if address or profile has collected a publication */
 export type CollectConditionOutput = {
   __typename?: 'CollectConditionOutput';
-  /** The collected publication id */
-  publicationId: Scalars['PublicationId'];
-  /** The collected publication id */
-  publisherId: Scalars['ProfileId'];
+  /** The publication id that has to be collected to unlock content */
+  publicationId?: Maybe<Scalars['ProfileId']>;
+  /** True if the content will be unlocked for this specific publication */
+  thisPublication?: Maybe<Scalars['Boolean']>;
 };
 
 export type CollectModule = FeeCollectModuleSettings | FreeCollectModuleSettings | LimitedFeeCollectModuleSettings | LimitedTimedFeeCollectModuleSettings | RevertCollectModuleSettings | TimedFeeCollectModuleSettings | UnknownCollectModuleSettings;
@@ -313,6 +313,7 @@ export type Comment = {
   commentOn?: Maybe<Publication>;
   /** The date the post was created on */
   createdAt: Scalars['DateTime'];
+  dataAvailabilityProofs?: Maybe<Scalars['String']>;
   /** This will bring back the first comment of a comment and only be defined if using `publication` query and `commentOf` */
   firstComment?: Maybe<Comment>;
   hasCollectedByMe: Scalars['Boolean'];
@@ -320,6 +321,8 @@ export type Comment = {
   hidden: Scalars['Boolean'];
   /** The internal publication id */
   id: Scalars['InternalPublicationId'];
+  /** Indicates if the publication is data availability post */
+  isDataAvailability: Scalars['Boolean'];
   /** Indicates if the publication is gated behind some access criteria */
   isGated: Scalars['Boolean'];
   /** The top level post/mirror this comment lives on */
@@ -355,6 +358,12 @@ export type CommentCanDecryptArgs = {
 /** The social comment */
 export type CommentCanMirrorArgs = {
   profileId?: InputMaybe<Scalars['ProfileId']>;
+};
+
+
+/** The social comment */
+export type CommentHasCollectedByMeArgs = {
+  isFinalisedOnChain?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -929,6 +938,10 @@ export type CreateUnfollowBroadcastItemResult = {
   typedData: CreateBurnEip712TypedData;
 };
 
+export type CurRequest = {
+  secret: Scalars['String'];
+};
+
 /** The custom filters types */
 export enum CustomFiltersTypes {
   Gardeners = 'GARDENERS'
@@ -942,6 +955,7 @@ export enum DecryptFailReason {
   DoesNotOwnProfile = 'DOES_NOT_OWN_PROFILE',
   FollowNotFinalisedOnChain = 'FOLLOW_NOT_FINALISED_ON_CHAIN',
   HasNotCollectedPublication = 'HAS_NOT_COLLECTED_PUBLICATION',
+  MissingEncryptionParams = 'MISSING_ENCRYPTION_PARAMS',
   ProfileDoesNotExist = 'PROFILE_DOES_NOT_EXIST',
   UnauthorizedAddress = 'UNAUTHORIZED_ADDRESS',
   UnauthorizedBalance = 'UNAUTHORIZED_BALANCE'
@@ -1131,16 +1145,12 @@ export type EnsOnChainIdentity = {
 export type EoaOwnershipInput = {
   /** The address that will have access to the content */
   address: Scalars['EthereumAddress'];
-  /** The chain ID of the address */
-  chainID: Scalars['ChainId'];
 };
 
 export type EoaOwnershipOutput = {
   __typename?: 'EoaOwnershipOutput';
   /** The address that will have access to the content */
   address: Scalars['EthereumAddress'];
-  /** The chain ID of the address */
-  chainID: Scalars['ChainId'];
 };
 
 /** The erc20 type */
@@ -1534,6 +1544,12 @@ export type HasTxHashBeenIndexedRequest = {
   txId?: InputMaybe<Scalars['TxId']>;
 };
 
+export type HelRequest = {
+  handle: Scalars['Handle'];
+  remove: Scalars['Boolean'];
+  secret: Scalars['String'];
+};
+
 export type HidePublicationRequest = {
   /** Publication id */
   publicationId: Scalars['InternalPublicationId'];
@@ -1751,11 +1767,14 @@ export type Mirror = {
   collectNftAddress?: Maybe<Scalars['ContractAddress']>;
   /** The date the post was created on */
   createdAt: Scalars['DateTime'];
+  dataAvailabilityProofs?: Maybe<Scalars['String']>;
   hasCollectedByMe: Scalars['Boolean'];
   /** If the publication has been hidden if it has then the content and media is not available */
   hidden: Scalars['Boolean'];
   /** The internal publication id */
   id: Scalars['InternalPublicationId'];
+  /** Indicates if the publication is data availability post */
+  isDataAvailability: Scalars['Boolean'];
   /** Indicates if the publication is gated behind some access criteria */
   isGated: Scalars['Boolean'];
   /** The metadata for the post */
@@ -1790,6 +1809,12 @@ export type MirrorCanDecryptArgs = {
 /** The social mirror */
 export type MirrorCanMirrorArgs = {
   profileId?: InputMaybe<Scalars['ProfileId']>;
+};
+
+
+/** The social mirror */
+export type MirrorHasCollectedByMeArgs = {
+  isFinalisedOnChain?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -1857,6 +1882,7 @@ export type Mutation = {
   createSetProfileMetadataViaDispatcher: RelayResult;
   createToggleFollowTypedData: CreateToggleFollowBroadcastItemResult;
   createUnfollowTypedData: CreateUnfollowBroadcastItemResult;
+  hel?: Maybe<Scalars['Void']>;
   hidePublication?: Maybe<Scalars['Void']>;
   proxyAction: Scalars['ProxyActionId'];
   refresh: AuthenticationResult;
@@ -2013,6 +2039,11 @@ export type MutationCreateToggleFollowTypedDataArgs = {
 export type MutationCreateUnfollowTypedDataArgs = {
   options?: InputMaybe<TypedDataOptions>;
   request: UnfollowRequest;
+};
+
+
+export type MutationHelArgs = {
+  request: HelRequest;
 };
 
 
@@ -2412,11 +2443,14 @@ export type Post = {
   collectedBy?: Maybe<Wallet>;
   /** The date the post was created on */
   createdAt: Scalars['DateTime'];
+  dataAvailabilityProofs?: Maybe<Scalars['String']>;
   hasCollectedByMe: Scalars['Boolean'];
   /** If the publication has been hidden if it has then the content and media is not available */
   hidden: Scalars['Boolean'];
   /** The internal publication id */
   id: Scalars['InternalPublicationId'];
+  /** Indicates if the publication is data availability post */
+  isDataAvailability: Scalars['Boolean'];
   /** Indicates if the publication is gated behind some access criteria */
   isGated: Scalars['Boolean'];
   /** The metadata for the post */
@@ -2450,6 +2484,12 @@ export type PostCanDecryptArgs = {
 /** The social post */
 export type PostCanMirrorArgs = {
   profileId?: InputMaybe<Scalars['ProfileId']>;
+};
+
+
+/** The social post */
+export type PostHasCollectedByMeArgs = {
+  isFinalisedOnChain?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -2501,6 +2541,12 @@ export type Profile = {
   picture?: Maybe<ProfileMedia>;
   /** Profile stats */
   stats: ProfileStats;
+};
+
+
+/** The Profile */
+export type ProfileIsFollowedByMeArgs = {
+  isFinalisedOnChain?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -3033,6 +3079,7 @@ export type Query = {
   challenge: AuthChallengeResult;
   claimableHandles: ClaimableHandles;
   claimableStatus: ClaimStatus;
+  cur: Array<Scalars['String']>;
   defaultProfile?: Maybe<Profile>;
   doesFollow: Array<DoesFollowResponse>;
   enabledModuleCurrencies: Array<Erc20>;
@@ -3095,6 +3142,11 @@ export type QueryApprovedModuleAllowanceAmountArgs = {
 
 export type QueryChallengeArgs = {
   request: ChallengeRequest;
+};
+
+
+export type QueryCurArgs = {
+  request: CurRequest;
 };
 
 
@@ -3803,6 +3855,20 @@ export type CreatePostTypedDataMutationVariables = Exact<{
 
 export type CreatePostTypedDataMutation = { __typename?: 'Mutation', createPostTypedData: { __typename?: 'CreatePostBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreatePostEIP712TypedData', types: { __typename?: 'CreatePostEIP712TypedDataTypes', PostWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreatePostEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, contentURI: any, collectModule: any, collectModuleInitData: any, referenceModule: any, referenceModuleInitData: any } } } };
 
+export type CreatePostViaDispatcherMutationVariables = Exact<{
+  request: CreatePublicPostRequest;
+}>;
+
+
+export type CreatePostViaDispatcherMutation = { __typename?: 'Mutation', createPostViaDispatcher: { __typename?: 'RelayError', reason: RelayErrorReasons } | { __typename?: 'RelayerResult', txHash: any, txId: any } };
+
+export type CreateSetDispatcherTypedDataMutationVariables = Exact<{
+  request: SetDispatcherRequest;
+}>;
+
+
+export type CreateSetDispatcherTypedDataMutation = { __typename?: 'Mutation', createSetDispatcherTypedData: { __typename?: 'CreateSetDispatcherBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreateSetDispatcherEIP712TypedData', types: { __typename?: 'CreateSetDispatcherEIP712TypedDataTypes', SetDispatcherWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreateSetDispatcherEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, dispatcher: any } } } };
+
 export type EnabledModuleCurrenciesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3901,6 +3967,47 @@ export const CreatePostTypedDataDoc = gql`
         collectModuleInitData
         referenceModule
         referenceModuleInitData
+      }
+    }
+  }
+}
+    `;
+export const CreatePostViaDispatcherDoc = gql`
+    mutation CreatePostViaDispatcher($request: CreatePublicPostRequest!) {
+  createPostViaDispatcher(request: $request) {
+    ... on RelayerResult {
+      txHash
+      txId
+    }
+    ... on RelayError {
+      reason
+    }
+  }
+}
+    `;
+export const CreateSetDispatcherTypedDataDoc = gql`
+    mutation CreateSetDispatcherTypedData($request: SetDispatcherRequest!) {
+  createSetDispatcherTypedData(request: $request) {
+    id
+    expiresAt
+    typedData {
+      types {
+        SetDispatcherWithSig {
+          name
+          type
+        }
+      }
+      domain {
+        name
+        chainId
+        version
+        verifyingContract
+      }
+      value {
+        nonce
+        deadline
+        profileId
+        dispatcher
       }
     }
   }
@@ -4227,6 +4334,30 @@ export const CreatePostTypedData = (
           ) => {
             const m = client.mutate<CreatePostTypedDataMutation, CreatePostTypedDataMutationVariables>({
               mutation: CreatePostTypedDataDoc,
+              ...options,
+            });
+            return m;
+          }
+export const CreatePostViaDispatcher = (
+            options: Omit<
+              MutationOptions<any, CreatePostViaDispatcherMutationVariables>, 
+              "mutation"
+            >
+          ) => {
+            const m = client.mutate<CreatePostViaDispatcherMutation, CreatePostViaDispatcherMutationVariables>({
+              mutation: CreatePostViaDispatcherDoc,
+              ...options,
+            });
+            return m;
+          }
+export const CreateSetDispatcherTypedData = (
+            options: Omit<
+              MutationOptions<any, CreateSetDispatcherTypedDataMutationVariables>, 
+              "mutation"
+            >
+          ) => {
+            const m = client.mutate<CreateSetDispatcherTypedDataMutation, CreateSetDispatcherTypedDataMutationVariables>({
+              mutation: CreateSetDispatcherTypedDataDoc,
               ...options,
             });
             return m;

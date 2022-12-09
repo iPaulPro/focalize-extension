@@ -34,7 +34,7 @@
         title
     } from '../lib/store/state';
     import {profile} from "../lib/store/user";
-    import {darkMode} from "../lib/store/preferences";
+    import {darkMode, dispatcherDialogShown} from "../lib/store/preferences";
 
     import type {
         MetadataAttributeInput,
@@ -59,6 +59,8 @@
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
+    import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
+    import {canUseRelay} from "../lib/lens-profile";
 
     /**
      * Bound to the tag component
@@ -81,6 +83,7 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
     let gifSelectionDialog: HTMLDialogElement;
+    let enableDispatcherDialog: HTMLDialogElement;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
@@ -367,6 +370,11 @@
         } catch (e) {
             await replace('/src/');
         }
+
+        const useRelay = await canUseRelay($profile.id);
+        if (!useRelay && !$dispatcherDialogShown) {
+            enableDispatcherDialog.showModal();
+        }
     });
 
     const setAttachment = (file: File) => {
@@ -637,11 +645,16 @@
     <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
   </dialog>
 
-  <dialog id="selectGif" bind:this={gifSelectionDialog} on:focus={() => {console.log('focus');}}
+  <dialog id="selectGif" bind:this={gifSelectionDialog}
           on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}
           class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
           border border-gray-200 dark:border-gray-600">
     <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
+  </dialog>
+
+  <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
+          class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
   </dialog>
 </main>
 

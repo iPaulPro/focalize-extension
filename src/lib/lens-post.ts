@@ -7,6 +7,7 @@ import {APP_ID} from "../config";
 import type {
     BroadcastRequest,
     CollectModuleParams,
+    CreatePublicPostRequest,
     MetadataAttributeInput,
     PublicationMetadataMediaInput,
     PublicationMetadataV2Input,
@@ -15,7 +16,7 @@ import type {
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
 import {
-    AsyncValidatePublicationMetadata, Broadcast,
+    AsyncValidatePublicationMetadata, Broadcast, CreatePostViaDispatcher,
     PublicationContentWarning,
     PublicationMainFocus,
     PublicationMetadataDisplayTypes
@@ -30,6 +31,7 @@ import type {OperationResult} from "urql";
 import {signedTypeData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import Autolinker, {UrlMatch} from "autolinker";
+import {canUseRelay} from "./lens-profile";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -206,26 +208,24 @@ const validateMetadata = (metadata: PublicationMetadataV2Input) => {
         .then(res => res.data.validatePublicationMetadata)
 }
 
-export const submitPost = async (
+const createPostViaDispatcher = (request: CreatePublicPostRequest): Promise<RelayerResult> => {
+    return CreatePostViaDispatcher({variables: {request}})
+        .then(res => res.data!!)
+        .then(data => {
+            if (data.createPostViaDispatcher.__typename === 'RelayError') {
+                throw data.createPostViaDispatcher.reason;
+            }
+            return data.createPostViaDispatcher as RelayerResult;
+        })
+}
+
+const createPostTransaction = async (
     profileId: string,
-    metadata: PublicationMetadataV2Input,
+    contentURI: string,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
-    collectModule: CollectModuleParams = FREE_COLLECT_MODULE
+    collectModule: CollectModuleParams = FREE_COLLECT_MODULE,
+    accessToken: string
 ): Promise<string> => {
-    console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
-    const accessToken = await getOrRefreshAccessToken();
-
-    const validate = await validateMetadata(metadata);
-    if (!validate.valid) {
-        throw validate.reason;
-    }
-
-    const metadataFile: File = makeMetadataFile(metadata);
-    const metadataCid = await uploadAndPin(metadataFile);
-    console.log('submitPost: Uploaded metadata to IPFS', metadataCid);
-
-    const contentURI = `ipfs://${metadataCid}`;
-
     const postResult = await Lens.CreatePostTypedData(
         profileId,
         contentURI,
@@ -237,7 +237,7 @@ export const submitPost = async (
     if (postResult.error) throw postResult.error
 
     const typedData = postResult.data.createPostTypedData.typedData;
-    console.log('submitPost: Created post typed data', typedData);
+    console.log('createPostTransaction: Created post typed data', typedData);
 
     const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
 
@@ -245,14 +245,14 @@ export const submitPost = async (
         id: postResult.data.createPostTypedData.id,
         signature
     }
-
-    let txHash: string;
-
     const res = await Broadcast({variables: {request}});
-    console.log('submitPost: broadcastResult', res);
 
-    if (res?.data?.broadcast.__typename !== 'RelayerResult') {
-        console.error('submitPost: post with broadcast failed');
+    if (!res?.data?.broadcast || res.data.broadcast.__typename === 'RelayError') {
+        console.error('createPostTransaction: post with broadcast failed');
+
+        if (res?.data?.broadcast?.__typename === 'RelayError' && res.data.broadcast.reason) {
+            console.error(res.data.broadcast.reason);
+        }
 
         const { v, r, s } = splitSignature(signature);
         const lensHub = getLensHub();
@@ -270,15 +270,55 @@ export const submitPost = async (
                 deadline: typedData.value.deadline,
             },
         });
-        console.log('submitPost: submitted transaction', tx);
-        txHash = tx.hash;
-    } else {
-        const broadcast: RelayerResult = res.data.broadcast as RelayerResult;
-        txHash = broadcast.txHash;
+        console.log('createPostTransaction: submitted transaction', tx);
+        return tx.hash;
+    }
+
+    const broadcast: RelayerResult = res.data.broadcast as RelayerResult;
+    console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)
+    return broadcast.txHash;
+};
+
+export const submitPost = async (
+    profileId: string,
+    metadata: PublicationMetadataV2Input,
+    referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
+    collectModule: CollectModuleParams = FREE_COLLECT_MODULE
+): Promise<string> => {
+    console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
+    const accessToken = await getOrRefreshAccessToken();
+
+    const validate = await validateMetadata(metadata);
+    if (!validate.valid) {
+        throw validate.reason;
+    }
+
+    const metadataFile: File = makeMetadataFile(metadata);
+    const metadataCid = await uploadAndPin(metadataFile);
+    const contentURI = `ipfs://${metadataCid}`;
+    console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
+
+    let txHash: string | undefined;
+
+    const useRelay = await canUseRelay(profileId);
+    if (useRelay) {
+        try {
+            const relayerResult = await createPostViaDispatcher(
+                {profileId, contentURI, collectModule, referenceModule}
+            );
+            txHash = relayerResult.txHash;
+            console.log('submitPost: created post with dispatcher', txHash);
+        } catch (e) {
+            console.error('Error creating post with dispatcher', e);
+        }
+    }
+
+    if (!txHash) {
+        txHash = await createPostTransaction(profileId, contentURI, referenceModule, collectModule, accessToken);
     }
 
     const publicationId = await getPublicationId(txHash);
-    console.log('submitPost: post has been indexed', publicationId, postResult.data);
+    console.log('submitPost: post has been indexed', publicationId);
 
     return publicationId;
 };

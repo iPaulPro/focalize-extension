@@ -28,9 +28,11 @@ Drag and drop the unzipped folder onto the Extensions page (chrome://extensions)
 
 ## Build
 
-Run `npm build` 
+1. Copy `.env.template` to create `.env` and supply missing variables.
 
-The `/dist` folder is the unpacked extension.
+2. Run `npm build` 
+
+The `/dist` folder is the unpacked extension running on Polygon Mumbai testnet.
 
 
 ## Credits
