@@ -8,7 +8,7 @@ import type {
     BroadcastRequest,
     CollectModuleParams,
     CreatePublicPostRequest,
-    MetadataAttributeInput,
+    MetadataAttributeInput, Profile,
     PublicationMetadataMediaInput,
     PublicationMetadataV2Input,
     ReferenceModuleParams,
@@ -31,7 +31,6 @@ import type {OperationResult} from "urql";
 import {signedTypeData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import Autolinker, {UrlMatch} from "autolinker";
-import {canUseRelay} from "./lens-profile";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -222,9 +221,10 @@ const createPostViaDispatcher = (request: CreatePublicPostRequest): Promise<Rela
 const createPostTransaction = async (
     profileId: string,
     contentURI: string,
+    accessToken: string,
+    useDispatcher: boolean,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = FREE_COLLECT_MODULE,
-    accessToken: string
 ): Promise<string> => {
     const postResult = await Lens.CreatePostTypedData(
         profileId,
@@ -238,6 +238,21 @@ const createPostTransaction = async (
 
     const typedData = postResult.data.createPostTypedData.typedData;
     console.log('createPostTransaction: Created post typed data', typedData);
+
+    const lensHub = getLensHub();
+
+    if (!useDispatcher) {
+        const tx = await lensHub.post({
+            profileId: typedData.value.profileId,
+            contentURI: typedData.value.contentURI,
+            collectModule: typedData.value.collectModule,
+            collectModuleInitData: typedData.value.collectModuleInitData,
+            referenceModule: typedData.value.referenceModule,
+            referenceModuleInitData: typedData.value.referenceModuleInitData
+        });
+        console.log('createPostTransaction: submitted transaction as self', tx);
+        return tx.hash;
+    }
 
     const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
 
@@ -255,7 +270,6 @@ const createPostTransaction = async (
         }
 
         const { v, r, s } = splitSignature(signature);
-        const lensHub = getLensHub();
         const tx = await lensHub.postWithSig({
             profileId: typedData.value.profileId,
             contentURI: typedData.value.contentURI,
@@ -280,11 +294,13 @@ const createPostTransaction = async (
 };
 
 export const submitPost = async (
-    profileId: string,
+    profile: Profile,
     metadata: PublicationMetadataV2Input,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
-    collectModule: CollectModuleParams = FREE_COLLECT_MODULE
+    collectModule: CollectModuleParams = FREE_COLLECT_MODULE,
+    useDispatcher: boolean = true
 ): Promise<string> => {
+    const profileId = profile.id;
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
     const accessToken = await getOrRefreshAccessToken();
 
@@ -300,8 +316,7 @@ export const submitPost = async (
 
     let txHash: string | undefined;
 
-    const useRelay = await canUseRelay(profileId);
-    if (useRelay) {
+    if (useDispatcher && profile.dispatcher?.canUseRelay) {
         try {
             const relayerResult = await createPostViaDispatcher(
                 {profileId, contentURI, collectModule, referenceModule}
@@ -314,7 +329,7 @@ export const submitPost = async (
     }
 
     if (!txHash) {
-        txHash = await createPostTransaction(profileId, contentURI, referenceModule, collectModule, accessToken);
+        txHash = await createPostTransaction(profileId, contentURI, accessToken, useDispatcher, referenceModule, collectModule);
     }
 
     const publicationId = await getPublicationId(txHash);

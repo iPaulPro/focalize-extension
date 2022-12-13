@@ -3,13 +3,20 @@ import type {Writable} from "svelte/store";
 
 const storedDarkMode = localStorage.darkMode;
 
-export const darkMode: any | Writable<boolean> = writable(storedDarkMode === 'true');
+export const darkMode: Writable<boolean> = writable(storedDarkMode === 'true');
 
-darkMode.subscribe((value: any) => localStorage.darkMode = String(value));
+darkMode.subscribe((value: boolean) => localStorage.darkMode = String(value));
 
 
 const storedDispatcherDialogShown = localStorage.dispatcherDialogShown;
 
-export const dispatcherDialogShown: any | Writable<boolean> = writable(storedDispatcherDialogShown === 'true');
+export const dispatcherDialogShown: Writable<boolean> = writable(storedDispatcherDialogShown === 'true');
 
-dispatcherDialogShown.subscribe((value: any) => localStorage.dispatcherDialogShown = String(value));
+dispatcherDialogShown.subscribe((value: boolean) => localStorage.dispatcherDialogShown = String(value));
+
+
+const storedSignAsSelf = localStorage.signAsSelf;
+
+export const signAsSelf: Writable<boolean> = writable(storedSignAsSelf === 'true');
+
+signAsSelf.subscribe((value: boolean) => localStorage.signAsSelf = String(value));

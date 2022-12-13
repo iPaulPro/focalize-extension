@@ -34,7 +34,7 @@
         title
     } from '../lib/store/state';
     import {profile} from "../lib/store/user";
-    import {darkMode, dispatcherDialogShown} from "../lib/store/preferences";
+    import {darkMode, dispatcherDialogShown, signAsSelf} from "../lib/store/preferences";
 
     import type {
         MetadataAttributeInput,
@@ -51,9 +51,13 @@
     import PostTabs from './components/PostTabs.svelte';
     import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
+    import PostMethodChooser from "./components/PostMethodChooser.svelte";
 
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
+    import tooltip from "svelte-ktippy"
+    //@ts-ignore
+    import tippy from "sveltejs-tippy";
     import {onMount} from 'svelte';
     import {replace} from 'svelte-spa-router'
 
@@ -295,10 +299,11 @@
             metadata.locale = locale.value;
 
             const publicationId = await submitPost(
-                $profile.id,
+                $profile,
                 metadata,
                 referenceModuleParams,
-                collectModuleParams
+                collectModuleParams,
+                !$signAsSelf
             );
 
             postId = `${$profile.id}-${publicationId}`;
@@ -371,8 +376,7 @@
             await replace('/src/');
         }
 
-        const useRelay = await canUseRelay($profile.id);
-        if (!useRelay && !$dispatcherDialogShown) {
+        if (!$profile.dispatcher?.canUseRelay && !$dispatcherDialogShown) {
             enableDispatcherDialog.showModal();
         }
     });
@@ -426,6 +430,12 @@
         const url = import.meta.env.VITE_LENS_PREVIEW_NODE + 'posts/' + postId;
         window.open(url, '_blank');
         window.close();
+    };
+
+    const onUseDispatcherSelected = () => {
+        if (!$profile.dispatcher?.canUseRelay) {
+            enableDispatcherDialog.showModal();
+        }
     }
 
     $: {
@@ -606,19 +616,20 @@
             </span>
           </label>
 
-          <div class="pt-4">
+          <div class="flex items-stretch pt-4">
+
             <button type="button" on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
-                    class="w-fit py-2 px-12 flex justify-center items-center rounded-xl w-auto
-                  bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
-                  disabled:bg-neutral-400 dark:disabled:bg-gray-600
-                  focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                  text-white text-center text-lg dark:disabled:text-gray-400
-                  transition ease-in duration-200 font-semibold shadow-md">
+                    class="group w-fit py-2 {$signAsSelf ? 'px-8' : 'px-10'} flex justify-center items-center rounded-l-xl w-auto
+                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
+                    disabled:bg-neutral-400 dark:disabled:bg-gray-600
+                    focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+                    text-white text-center text-lg
+                    transition ease-in duration-200 font-semibold shadow-md">
 
               {#if isSubmittingPost}
                 <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
-                     fill="none"
-                     xmlns="http://www.w3.org/2000/svg">
+                     fill="none" xmlns="http://www.w3.org/2000/svg"
+                     >
                   <path
                       d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
                       fill="#E5E7EB"/>
@@ -628,9 +639,44 @@
                 </svg>
                 Creating post...
               {:else}
-                Post
+                <span>Post</span>
+                {#if $signAsSelf}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="currentColor"
+                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2 "
+                       use:tippy={({content: 'Pay for your own gas', delay: 200})}>
+                    <path
+                        d="M32.6 27.2q1.25 0 2.225-.975.975-.975.975-2.275 0-1.25-.975-2.2-.975-.95-2.225-.95t-2.225.95q-.975.95-.975 2.2 0 1.3.975 2.275.975.975 2.225.975ZM9 36.35V39 9 36.35ZM9 42q-1.15 0-2.075-.9Q6 40.2 6 39V9q0-1.15.925-2.075Q7.85 6 9 6h30q1.2 0 2.1.925Q42 7.85 42 9v6.7h-3V9H9v30h30v-6.65h3V39q0 1.2-.9 2.1-.9.9-2.1.9Zm17.9-8.65q-1.7 0-2.7-1-1-1-1-2.65V18.35q0-1.7 1-2.675 1-.975 2.7-.975h13.5q1.7 0 2.7.975 1 .975 1 2.675V29.7q0 1.65-1 2.65t-2.7 1Zm14.2-3V17.7H26.2v12.65Z"/>
+                  </svg>
+                {/if}
               {/if}
             </button>
+
+            <button type="button" disabled={shouldDisableSubmitBtn}
+                    class="px-4 flex justify-center items-center rounded-r-xl tooltip
+                    border-l border-orange-300 dark:border-orange-800 disabled:border-neutral-300 dark:disabled:border-gray-700
+                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
+                    disabled:bg-neutral-400 dark:disabled:bg-gray-600
+                    focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+                    text-white text-center text-lg dark:disabled:text-gray-400
+                    transition ease-in duration-200"
+                    use:tooltip={{
+                      component: PostMethodChooser,
+                      props: {},
+                      trigger: 'click',
+                      interactive: true,
+                      placement: 'bottom-end',
+                      offset: [0, 5]
+                    }}
+                    on:useDispatcher={onUseDispatcherSelected}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-4 h-4" fill="currentColor">
+                <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com
+                License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                <path
+                    d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/>
+              </svg>
+            </button>
+
           </div>
 
         </div>

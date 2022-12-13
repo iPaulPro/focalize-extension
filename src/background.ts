@@ -16,6 +16,8 @@ const parseOGTags = (): {
         document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
 });
 
+const truncate = (str: string, n: number) => (str.length > n) ? str.slice(0, n - 1) + '&hellip;' : str;
+
 const shareUrl = (tags: any) => {
     console.log('shareUrl called with', tags);
     const path = chrome.runtime.getURL('src/index.html#/post');
@@ -28,11 +30,11 @@ const shareUrl = (tags: any) => {
     }
 
     if (tags.title) {
-        url.searchParams.append('title', tags.title);
+        url.searchParams.append('title', truncate(tags.title, 160));
     }
 
     if (tags.description) {
-        url.searchParams.append('desc', tags.description);
+        url.searchParams.append('desc', truncate(tags.description, 160));
     }
 
     chrome.windows.create({
