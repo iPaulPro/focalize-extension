@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Focalize",
-  "version": "0.3.3",
-  "version_name": "0.3.3",
+  "version": "0.4.0",
+  "version_name": "0.4.0",
   "description": "Extension for Lens Protocol",
   "permissions": [
     "activeTab", "scripting", "storage"
