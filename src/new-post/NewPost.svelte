@@ -64,7 +64,6 @@
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import {canUseRelay} from "../lib/lens-profile";
 
     /**
      * Bound to the tag component

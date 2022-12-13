@@ -20,6 +20,11 @@
             });
 
             if (txHash) {
+                $profile.dispatcher = {
+                    address: import.meta.env.VITE_LENS_DISPATCHER_ADDRESS,
+                    canUseRelay: true
+                };
+
                 success = true;
                 toast.success('Dispatcher set!');
                 dispatch('success');
