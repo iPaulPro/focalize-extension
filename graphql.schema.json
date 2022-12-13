@@ -1009,9 +1009,17 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "ENUM",
-              "name": "DecryptFailReason",
-              "ofType": null
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "ENUM",
+                  "name": "DecryptFailReason",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1240,7 +1248,7 @@
             "description": "The publication id that has to be collected to unlock content",
             "type": {
               "kind": "SCALAR",
-              "name": "ProfileId",
+              "name": "InternalPublicationId",
               "ofType": null
             },
             "defaultValue": null,
@@ -1275,7 +1283,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "ProfileId",
+              "name": "InternalPublicationId",
               "ofType": null
             },
             "isDeprecated": false,
@@ -14535,11 +14543,19 @@
             "name": "tokenIds",
             "description": "The optional token ID(s) to check for ownership",
             "type": {
-              "kind": "SCALAR",
-              "name": "TokenId",
-              "ofType": null
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "TokenId",
+                  "ofType": null
+                }
+              }
             },
-            "defaultValue": null,
+            "defaultValue": "[]",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -14606,9 +14622,17 @@
             "description": "The optional token ID(s) to check for ownership",
             "args": [],
             "type": {
-              "kind": "SCALAR",
-              "name": "TokenId",
-              "ofType": null
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "TokenId",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null

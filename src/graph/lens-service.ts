@@ -203,7 +203,7 @@ export type CanCommentResponse = {
 
 export type CanDecryptResponse = {
   __typename?: 'CanDecryptResponse';
-  reasons?: Maybe<DecryptFailReason>;
+  reasons?: Maybe<Array<DecryptFailReason>>;
   result: Scalars['Boolean'];
 };
 
@@ -241,7 +241,7 @@ export type ClaimableHandles = {
 /** Condition that signifies if address or profile has collected a publication */
 export type CollectConditionInput = {
   /** The publication id that has to be collected to unlock content */
-  publicationId?: InputMaybe<Scalars['ProfileId']>;
+  publicationId?: InputMaybe<Scalars['InternalPublicationId']>;
   /** True if the content will be unlocked for this specific publication */
   thisPublication?: InputMaybe<Scalars['Boolean']>;
 };
@@ -250,7 +250,7 @@ export type CollectConditionInput = {
 export type CollectConditionOutput = {
   __typename?: 'CollectConditionOutput';
   /** The publication id that has to be collected to unlock content */
-  publicationId?: Maybe<Scalars['ProfileId']>;
+  publicationId?: Maybe<Scalars['InternalPublicationId']>;
   /** True if the content will be unlocked for this specific publication */
   thisPublication?: Maybe<Scalars['Boolean']>;
 };
@@ -2249,7 +2249,7 @@ export type NftOwnershipInput = {
   /** The unlocker contract type */
   contractType: ContractType;
   /** The optional token ID(s) to check for ownership */
-  tokenIds?: InputMaybe<Scalars['TokenId']>;
+  tokenIds?: InputMaybe<Array<Scalars['TokenId']>>;
 };
 
 export type NftOwnershipOutput = {
@@ -2261,7 +2261,7 @@ export type NftOwnershipOutput = {
   /** The unlocker contract type */
   contractType: ContractType;
   /** The optional token ID(s) to check for ownership */
-  tokenIds?: Maybe<Scalars['TokenId']>;
+  tokenIds?: Maybe<Array<Scalars['TokenId']>>;
 };
 
 export type Notification = NewCollectNotification | NewCommentNotification | NewFollowerNotification | NewMentionNotification | NewMirrorNotification | NewReactionNotification;
