@@ -25,7 +25,7 @@ import {pollUntilIndexed} from "./has-transaction-been-indexed";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadAndPin} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
-import {DEFAULT_REFERENCE_MODULE, FREE_COLLECT_MODULE} from "./lens-modules";
+import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import type {OperationResult} from "urql";
 import {signedTypeData} from "./ethers-service";
@@ -224,7 +224,7 @@ const createPostTransaction = async (
     accessToken: string,
     useDispatcher: boolean,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
-    collectModule: CollectModuleParams = FREE_COLLECT_MODULE,
+    collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
 ): Promise<string> => {
     const postResult = await Lens.CreatePostTypedData(
         profileId,
@@ -297,7 +297,7 @@ export const submitPost = async (
     profile: Profile,
     metadata: PublicationMetadataV2Input,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
-    collectModule: CollectModuleParams = FREE_COLLECT_MODULE,
+    collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
     useDispatcher: boolean = true
 ): Promise<string> => {
     const profileId = profile.id;

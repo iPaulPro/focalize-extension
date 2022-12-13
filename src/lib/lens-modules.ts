@@ -81,7 +81,24 @@ export type CollectModuleItem = {
     followerOnly?: boolean
 }
 
+export const FEE_COLLECT_ITEM: SelectItem<CollectModuleItem> = {
+    value: {
+        type: CollectModules.FeeCollectModule
+    },
+    label: 'Sell NFT',
+    summary: 'Charge for NFT collection',
+    icon: 'collect_paid'
+}
+
 export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
+    {
+        value: {
+            type: CollectModules.RevertCollectModule
+        },
+        label: 'Disable NFT Collection',
+        summary: 'Do not allow the post to be collected as an NFT',
+        icon: 'collect_disabled'
+    },
     {
         value: {
             type: CollectModules.FreeCollectModule,
@@ -100,22 +117,7 @@ export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
         summary: 'Followers can collect the post as an NFT for free',
         icon: 'followers'
     },
-    {
-        value: {
-            type: CollectModules.FeeCollectModule
-        },
-        label: 'Sell NFT',
-        summary: 'Charge for NFT collection',
-        icon: 'collect_paid'
-    },
-    {
-        value: {
-            type: CollectModules.RevertCollectModule
-        },
-        label: 'Disable Collection',
-        summary: 'Do not allow the post to be collected as an NFT',
-        icon: 'collect_disabled'
-    },
+    FEE_COLLECT_ITEM,
 ];
 
 export const CONTENT_WARNING_ITEMS: SelectItem<ContentWarning>[] = [
@@ -124,8 +126,6 @@ export const CONTENT_WARNING_ITEMS: SelectItem<ContentWarning>[] = [
     {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
     {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
 ];
-
-export const FREE_COLLECT_MODULE = {freeCollectModule: {followerOnly: false}};
 
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
 

@@ -5,10 +5,8 @@
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
     import {
-        COLLECT_ITEMS,
-        CONTENT_WARNING_ITEMS,
+        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
         getCollectModuleParams,
-        REFERENCE_ITEMS,
     } from '../lib/lens-modules.js';
 
     import {
@@ -85,6 +83,7 @@
     let postId: string;
     let isSubmittingPost = false;
     let isFileDragged = false;
+    let feeCollectDialog: HTMLDialogElement;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
 
@@ -156,13 +155,13 @@
     };
 
     const showCollectFeesDialog = () => {
-        const dialog: HTMLDialogElement = document.getElementById('collectFees');
-        dialog.showModal();
-        dialog.addEventListener('close', () => {
-            if (!feeCollectModule) {
-                collectItem = COLLECT_ITEMS[0];
-            }
-        });
+        feeCollectDialog?.showModal();
+    };
+
+    const onCollectFeeDialogClose = () => {
+        if (!feeCollectModule) {
+            collectItem = COLLECT_ITEMS[0];
+        }
     };
 
     const onCollectModuleChange = (e) => {
@@ -175,21 +174,15 @@
 
     const onFeeCollectModuleUpdated = (e) => {
         feeCollectModule = e.detail;
-        collectItem = COLLECT_ITEMS[2];
         console.log('onFeeCollectModuleUpdated', feeCollectModule);
-
-        const dialog: HTMLDialogElement = document.getElementById('collectFees');
-        if (dialog) {
-            dialog.close();
-        }
+        collectItem = FEE_COLLECT_ITEM;
+        feeCollectDialog?.close();
     };
 
     const showGifSelectionDialog = () => {
         gifSelectionDialog?.showModal();
         onGifDialogShown();
     }
-
-    parseSearchParams();
 
     const getContent = (): string => {
         if (isArticlePostType) {
@@ -323,7 +316,6 @@
     };
 
     const getCollectFeeString = (module: PaidCollectModule): string => {
-        console.log('getCollectFeeString: getCollectFeeString =', module);
         if (!module) return null;
 
         let subtext: string, edition: string;
@@ -359,26 +351,11 @@
         {label: collectFeeString, icon: 'collect_paid'}
     );
 
-    const isFeeCollectItem = (selection): boolean => collectFeeString && selection.label === COLLECT_ITEMS[2].label;
+    const isFeeCollectItem = (selection): boolean => collectFeeString && selection.value.type === CollectModules.FeeCollectModule;
 
     const feeSelectChoiceItem = (item) => (
         {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog}
     );
-
-    onMount(async () => {
-        try {
-            if (!$profile) {
-                const defaultProfile = await getDefaultProfile();
-                profile.set(defaultProfile);
-            }
-        } catch (e) {
-            await replace('/src/');
-        }
-
-        if (!$profile.dispatcher?.canUseRelay && !$dispatcherDialogShown) {
-            enableDispatcherDialog.showModal();
-        }
-    });
 
     const setAttachment = (file: File) => {
         if (!file || !file.type ||
@@ -421,7 +398,6 @@
 
     const onGifSelected = () => {
         postType = PublicationMainFocus.Image;
-        collectItem = COLLECT_ITEMS[COLLECT_ITEMS.length - 1];
         gifSelectionDialog?.close();
     };
 
@@ -439,9 +415,27 @@
 
     $: {
         if ($profile === null) {
-            replace('/').catch(console.error);
+            replace('/src/').catch(console.error);
         }
     }
+
+    onMount(async () => {
+        try {
+            if (!$profile) {
+                const defaultProfile = await getDefaultProfile();
+                profile.set(defaultProfile);
+            }
+        } catch (e) {
+            await replace('/src/');
+            return;
+        }
+
+        if (!$profile.dispatcher?.canUseRelay && !$dispatcherDialogShown) {
+            enableDispatcherDialog.showModal();
+        }
+
+        parseSearchParams();
+    });
 </script>
 
 <main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'}"
@@ -686,7 +680,8 @@
 
   {/if}
 
-  <dialog id="collectFees" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
+          class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
     <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
   </dialog>
 
