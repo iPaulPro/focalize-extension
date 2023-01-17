@@ -71,6 +71,8 @@ export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): P
 }
 
 export const unpin = async (cid: string): Promise<string[]> => {
+    if (!cid) throw 'CID cannot be null';
+
     const auth = btoa(`${AUTH_TOKEN}`)
 
     const res = await axios.post(

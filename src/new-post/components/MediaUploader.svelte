@@ -149,12 +149,10 @@
 
         if (!$attachment) return;
 
-        if ($attachment.cid) {
-            try {
-                await unpin($attachment.cid);
-            } catch (e) {
-                console.warn('Unable to unpin cid', $attachment.cid)
-            }
+        try {
+            await unpin($attachment.cid);
+        } catch (e) {
+            console.warn('Unable to unpin cid', $attachment.cid)
         }
 
         attachment.set(null);
@@ -213,7 +211,7 @@
           {/if}
 
           <div class="relative">
-            <img src={filePath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl"
+            <img src={filePath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin
                  on:load={() => loading = false}>
 
             <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
@@ -231,9 +229,9 @@
 
         {:else}
 
-          <div class="flex flex-col items-center">
+          <div class="w-full flex {isCollectable ? 'flex-col' : 'flex-row'} items-center">
 
-            <div class="w-full mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'}
+            <div class="{isCollectable ? 'w-full' : 'w-1/2'} mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'}
                  {isFileDragged ? 'bg-orange-50 dark:bg-gray-800' : 'bg-none'}"
                  on:drop|preventDefault|stopPropagation={onCoverFileDropped}
                  on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -243,7 +241,7 @@
               {#if coverPath}
 
                 <div class="w-full relative bg-gray-200 rounded-xl {isAttachmentVideo ? 'aspect-video' : ''}">
-                  <img src={coverPath} alt="Cover"
+                  <img src={coverPath} alt="Cover" crossorigin
                        class="max-w-full max-h-full w-auto h-auto mx-auto rounded-xl
                              {isFileDragged ? 'border border-orange-500' : 'border-none'}"
                        on:load={() => coverLoading = false}>
@@ -274,7 +272,7 @@
                        on:change={e => onFileSelected(e, true)}
                        bind:this={coverInput}/>
 
-                <button type="button" class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} flex flex-col
+                <button type="button" class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} w-full flex flex-col
                         items-center justify-center border border-gray-300 dark:border-gray-500 text-gray-300
                         dark:text-gray-300 rounded-xl cursor-pointer hover:bg-orange-50"
                         on:click={()=>{coverInput.click();}} disabled={coverLoading}>
@@ -295,12 +293,13 @@
             </div>
 
             {#if isAttachmentAudio}
-              <audio src={filePath} type={fileType} class="border border-gray-300 rounded-full"
+              <audio src={filePath} type={fileType} crossorigin
+                     class="border border-gray-300 rounded-full {!isCollectable ? 'w-full ml-4' : ''}"
                      on:load={() => loading = false}
                      preload="metadata" controls controlslist="nodownload"></audio>
             {:else if isAttachmentVideo}
               <!-- svelte-ignore a11y-media-has-caption -->
-              <video src={filePath} type={fileType} class="rounded-xl"
+              <video src={filePath} type={fileType} class="rounded-xl" crossorigin
                      on:load={() => loading = false}
                      preload="metadata" controls controlslist="nodownload"></video>
             {/if}
