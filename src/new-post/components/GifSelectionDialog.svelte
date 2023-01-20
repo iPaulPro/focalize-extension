@@ -2,12 +2,10 @@
     import GiphyGrid from './GiphyGrid.svelte'
     import {createEventDispatcher} from "svelte";
 
-    export let visible: boolean;
-
     let input: HTMLInputElement;
     let searchQuery: string;
 
-    export let onGifDialogShown = () => {
+    export const onGifDialogShown = () => {
         searchQuery = '';
         input?.focus();
     };

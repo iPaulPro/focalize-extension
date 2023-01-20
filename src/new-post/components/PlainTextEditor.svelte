@@ -26,7 +26,7 @@
     import 'medium-editor/dist/css/medium-editor.css';
     import 'medium-editor/dist/css/themes/tim.css';
 
-    export let disabled: boolean;
+    export let disabled: boolean = false;
 
     let editor: MediumEditor;
     let fileInput;

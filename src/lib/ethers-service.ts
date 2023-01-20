@@ -7,7 +7,7 @@ import type {TypedDataDomain, TypedDataField} from "ethers";
 import type BaseProvider from "@metamask/inpage-provider/dist/BaseProvider";
 
 const inPageProvider = createMetaMaskProvider();
-export const provider: Web3Provider = new Web3Provider(inPageProvider as BaseProvider, "any");
+const provider: Web3Provider = new Web3Provider(inPageProvider as BaseProvider, "any");
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
@@ -99,27 +99,7 @@ export const signedTypeData = (
     );
 }
 
-// Subscribe to account change
-provider.on("accountsChanged", (accounts: string[]) => {
-    console.log("ethersProvider: accountsChanged", accounts);
-});
-
-// Subscribe to chainId change
-provider.on("chainChanged", (chainId: number) => {
-    console.log("ethersProvider: chainChanged", chainId);
-});
-
-// Subscribe to provider connection
-provider.on("connect", (info: { chainId: number }) => {
-    console.log("ethersProvider: connect", info);
-});
-
-// Subscribe to provider disconnection
-provider.on("disconnect", (error: { code: number; message: string }) => {
-    console.log("ethersProvider: disconnect", error);
-});
-
 provider.on('error', (error) => {
-    // Failed to connect to MetaMask, fallback logic.
+    // TODO Failed to connect to MetaMask, fallback logic
     console.error(error);
 });

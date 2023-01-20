@@ -19,7 +19,7 @@
     import type {Web3File} from "web3.storage";
     import InlineSVG from "svelte-inline-svg";
 
-    export let disabled: boolean;
+    export let disabled: boolean = false;
     export let isCollectable: boolean;
     export let collectPrice: string;
 

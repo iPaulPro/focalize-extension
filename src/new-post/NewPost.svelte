@@ -686,7 +686,6 @@
   </dialog>
 
   <dialog id="selectGif" bind:this={gifSelectionDialog}
-          on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}
           class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
           border border-gray-200 dark:border-gray-600">
     <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />

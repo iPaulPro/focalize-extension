@@ -24,7 +24,8 @@ export default defineConfig({
     resolve: {
         alias: {
             process: "process/browser",
-            stream: "stream-browserify"
+            stream: "stream-browserify",
+            util: "util/",
         }
     },
 })

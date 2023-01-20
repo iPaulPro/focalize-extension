@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let message: string;
+  export let message: string = "";
 </script>
 
 <div class="flex flex-col gap-2 justify-center items-center">
