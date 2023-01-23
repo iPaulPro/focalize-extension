@@ -1,6 +1,6 @@
 import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
-import {getSigner, init} from "./ethers-service";
+import {getAccounts, getSigner} from "./ethers-service";
 import {Duration} from "luxon";
 
 import {address} from './store/user';
@@ -165,7 +165,8 @@ export const logOut = async () => {
  * This first triggers a request to get accounts if access is not already granted.
  */
 export const getDefaultProfile = async () => {
-    const account = await init();
+    const accounts = await getAccounts();
+    const account = accounts[0];
     console.log('getDefaultProfile: Got account from provider', account);
 
     address.set(account);

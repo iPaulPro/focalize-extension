@@ -9,7 +9,7 @@
 
     import {authenticate, getDefaultProfile} from "../lib/lens-auth";
     import {profile} from "../lib/store/user";
-    import {ensureCorrectChain} from "../lib/ethers-service";
+    import {ensureCorrectChain, initEthers} from "../lib/ethers-service";
 
     import InlineSVG from 'svelte-inline-svg';
 
@@ -43,15 +43,21 @@
             }
             console.log('Got profile', $profile);
         } catch (e) {
-            console.log('Login required');
             // Expected if the user has not authenticated
+            console.log('Login required');
         } finally {
             loading = false;
         }
     }
 
     onMount(async () => {
-        await checkForProfile();
+        const accounts = await initEthers();
+        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
+        if (accounts.length > 0) {
+            await checkForProfile();
+        } else {
+            toast.error('Cannot find wallet to connect to');
+        }
     });
 </script>
 

@@ -1,13 +1,29 @@
 import createMetaMaskProvider from "metamask-extension-provider";
-import { hexValue } from 'ethers/lib/utils';
+import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
-import { Web3Provider } from '@ethersproject/providers';
-import type { JsonRpcSigner } from '@ethersproject/providers';
+import type {JsonRpcSigner} from '@ethersproject/providers';
+import {Web3Provider} from '@ethersproject/providers';
 import type {TypedDataDomain, TypedDataField} from "ethers";
 import type BaseProvider from "@metamask/inpage-provider/dist/BaseProvider";
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 
-const inPageProvider = createMetaMaskProvider();
-const provider: Web3Provider = new Web3Provider(inPageProvider as BaseProvider, "any");
+let provider: Web3Provider;
+
+const web3ModalProviderOptions = {
+    walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID
+        }
+    }
+};
+
+const web3Modal = new Web3Modal({
+    cacheProvider: false,
+    providerOptions: web3ModalProviderOptions,
+    disableInjectedProvider: false,
+});
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
@@ -79,9 +95,47 @@ export const ensureCorrectChain = async () => {
     }
 }
 
-export const init = async() => {
-    const accounts = await provider.send('eth_requestAccounts', []);
-    return accounts[0];
+const getProviderFromWeb3Modal = async (): Promise<Web3Provider> => {
+    const instance = await web3Modal.connect();
+    return new Web3Provider(instance, "any");
+};
+
+export const getAccounts = async (): Promise<string[]> => {
+    if (!provider) throw ('Provider is null. You must call init() first');
+    return await provider.listAccounts();
+}
+
+export const initEthers = async(): Promise<any[]> => {
+    console.log('initEthers');
+    let accounts;
+
+    // First attempt to connect to the extension provider, if it's not available we then try web3modal
+    try {
+        const inPageProvider = createMetaMaskProvider();
+        provider = new Web3Provider(inPageProvider as BaseProvider, "any");
+        console.log('Created metamask in-page provider');
+        // provider.on('debug',  (error) => {
+        //     // TODO Failed to connect to MetaMask, fallback logic
+        //     console.error('Web3Provider debug`', error);
+        // });
+        // provider.on('error',  (error) => {
+        //     // TODO Failed to connect to MetaMask, fallback logic
+        //     console.error('Web3Provider error', error);
+        // });
+
+        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
+
+        accounts = await provider.send('eth_requestAccounts', [])
+        console.log('Got accounts from metamask', accounts);
+        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
+    } catch (e) {
+        console.log('Unable to create metamask provider, attempting web3modal...');
+        provider = await getProviderFromWeb3Modal();
+        accounts = await provider.send('eth_requestAccounts', [])
+    }
+
+    console.log('returning accounts', accounts);
+    return accounts;
 }
 
 export const signedTypeData = (
@@ -98,8 +152,3 @@ export const signedTypeData = (
         omitDeep(value, ['__typename'])
     );
 }
-
-provider.on('error', (error) => {
-    // TODO Failed to connect to MetaMask, fallback logic
-    console.error(error);
-});
