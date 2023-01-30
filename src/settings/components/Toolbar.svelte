@@ -14,24 +14,38 @@
     let avatarError;
     let logoutDialog: HTMLDialogElement;
 
+    export let showIcon = true;
+
     const showLogoutDialog = () => {
         logoutDialog = document.getElementById('logoutDialog');
         logoutDialog.showModal();
     };
-
 </script>
 
-<nav class="bg-white dark:bg-gray-800  shadow ">
+<nav class="w-full bg-white dark:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700">
 
-  <div class="px-8">
+  <div class="px-4 md:px-8">
 
     <div class="flex items-center justify-between h-16">
 
-      <div class=" flex items-center">
-        <a href="/src/" class="flex-shrink-0" use:link>
-          <InlineSVG class="h-8 w-8" src={focalizeLogo} alt="Focalize"/>
-        </a>
-      </div>
+      {#if showIcon}
+        <div class="flex items-center">
+          <a href="/src/" class="flex-shrink-0" use:link>
+            <InlineSVG class="h-8 w-8" src={focalizeLogo} alt="Focalize"/>
+          </a>
+        </div>
+      {:else}
+        <div class="block">
+          <button class="lg:hidden flex items-center p-2 text-gray-500 rounded-full text-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      {/if}
 
       <div class="block">
 

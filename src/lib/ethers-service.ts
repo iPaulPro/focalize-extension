@@ -84,7 +84,7 @@ export const init = async() => {
     return accounts[0];
 }
 
-export const signedTypeData = (
+export const signTypedData = (
     domain: TypedDataDomain,
     types: Record<string, Array<TypedDataField>>,
     value:  Record<string, any>

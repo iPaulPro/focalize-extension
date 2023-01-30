@@ -32,7 +32,14 @@
         title
     } from '../lib/store/state';
     import {profile} from "../lib/store/user";
-    import {darkMode, dispatcherDialogShown, signAsSelf} from "../lib/store/preferences";
+    import {
+        compactMode,
+        darkMode,
+        dispatcherDialogShown,
+        showLocales,
+        useDispatcher,
+        welcomeShown
+    } from "../lib/store/preferences";
 
     import type {
         MetadataAttributeInput,
@@ -56,12 +63,13 @@
     import tooltip from "svelte-ktippy"
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import {onMount} from 'svelte';
-    import {replace} from 'svelte-spa-router'
+    import {afterUpdate, onMount, tick} from 'svelte';
+    import {push, replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
+    import {useRelay} from "../lib/store/preferences.js";
 
     /**
      * Bound to the tag component
@@ -86,6 +94,8 @@
     let feeCollectDialog: HTMLDialogElement;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
+    let isPopupWindow = false;
+    let contentDiv: HTMLElement;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
@@ -295,7 +305,8 @@
                 metadata,
                 referenceModuleParams,
                 collectModuleParams,
-                !$signAsSelf
+                $useDispatcher,
+                $useRelay
             );
 
             postId = `${$profile.id}-${publicationId}`;
@@ -419,6 +430,27 @@
         }
     }
 
+    const updateWindowHeight = async () => {
+        await tick();
+        if (!contentDiv) return;
+        const x = ($compactMode ? 672 : 768) - document.body.clientWidth;
+        const y = contentDiv.scrollHeight - document.body.clientHeight;
+        window.resizeBy(x, y);
+    };
+
+    const adjustBasedOnWindowType = () => {
+        chrome.windows.getCurrent(async (window: Window) => {
+            console.log('adjustDisplay');
+            if (window['type'] === 'popup') {
+                isPopupWindow = true;
+                await updateWindowHeight();
+            }
+        });
+    }
+
+    $: isCompact = isPopupWindow && $compactMode;
+    $: $compactMode, updateWindowHeight().catch();
+
     onMount(async () => {
         try {
             if (!$profile) {
@@ -435,10 +467,14 @@
         }
 
         parseSearchParams();
+
+        $welcomeShown = true;
+
+        adjustBasedOnWindowType();
     });
 </script>
 
-<main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'}"
+<main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'} {isCompact ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
       on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -472,18 +508,20 @@
 
     <div class="w-full min-h-screen {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
 
-      <div class="min-h-full container max-w-screen-md mx-auto py-6">
+      <div id="content" class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-4'}" bind:this={contentDiv}>
 
-        <div class="pb-6">
-          <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost}/>
-        </div>
+        {#if !isCompact}
+          <div class="pb-4">
+            <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost}/>
+          </div>
+        {/if}
 
-        <div class="min-h-[12rem] shadow-lg rounded-xl p-4 bg-white dark:bg-gray-800
+        <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
 
           {#if isTextPostType}
 
-            <PlainTextEditor disabled={isSubmittingPost}
+            <PlainTextEditor disabled={isSubmittingPost} {isCompact}
                              on:fileSelected={(e) => setAttachment(e.detail)}
                              on:selectGif={(e) => showGifSelectionDialog()} />
 
@@ -497,7 +535,7 @@
 
           {/if}
 
-          <div class="flex flex-wrap pt-3 gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
+          <div class="flex flex-wrap {isCompact ? 'pt-2' : 'pt-3'} gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
                    {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
@@ -543,14 +581,14 @@
 
         </div>
 
-        <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 py-5 px-2 gap-4
+        <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isCompact ? 'py-2' : 'py-4'} px-2 gap-4
              {isSubmittingPost ? 'opacity-60' : ''}">
 
-          {#if locales.length > 0}
+          {#if $showLocales && locales.length > 0}
             <Select items={locales} bind:value={locale} disabled={isSubmittingPost}
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
-                    --font-size="0.875rem" --selected-item-padding="0.5rem" --list-border-radius="0.75rem"
+                    --font-size="0.875rem" --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                     class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
                     shadow text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
@@ -570,7 +608,7 @@
                   bind:value={postContentWarning}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
-                  --selected-item-padding="0.5rem" --list-border-radius="0.75rem"
+                  --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                   class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                   text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                   rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
@@ -609,14 +647,14 @@
             </span>
           </label>
 
-          <div class="flex items-stretch pt-4">
+          <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
 
             <button type="button" on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
-                    class="group w-fit py-2 {$signAsSelf ? 'px-8' : 'px-10'} flex justify-center items-center rounded-l-xl w-auto
+                    class="group w-fit py-2 {$useDispatcher ? 'px-10' : 'px-8'} flex justify-center items-center rounded-l-xl w-auto
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                    text-white text-center text-lg
+                    text-white text-center {isCompact ? 'text-base' : 'text-lg'}
                     transition ease-in duration-200 font-semibold shadow-md">
 
               {#if isSubmittingPost}
@@ -633,9 +671,16 @@
                 Creating post...
               {:else}
                 <span>Post</span>
-                {#if $signAsSelf}
+                {#if $useRelay && !$useDispatcher}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2">
+                    <polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon>
+                    <line x1="3" y1="22" x2="21" y2="22"></line>
+                  </svg>
+                  {:else if !$useDispatcher}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="currentColor"
-                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2 "
+                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2"
                        use:tippy={({content: 'Pay for your own gas', delay: 200})}>
                     <path
                         d="M32.6 27.2q1.25 0 2.225-.975.975-.975.975-2.275 0-1.25-.975-2.2-.975-.95-2.225-.95t-2.225.95q-.975.95-.975 2.2 0 1.3.975 2.275.975.975 2.225.975ZM9 36.35V39 9 36.35ZM9 42q-1.15 0-2.075-.9Q6 40.2 6 39V9q0-1.15.925-2.075Q7.85 6 9 6h30q1.2 0 2.1.925Q42 7.85 42 9v6.7h-3V9H9v30h30v-6.65h3V39q0 1.2-.9 2.1-.9.9-2.1.9Zm17.9-8.65q-1.7 0-2.7-1-1-1-1-2.65V18.35q0-1.7 1-2.675 1-.975 2.7-.975h13.5q1.7 0 2.7.975 1 .975 1 2.675V29.7q0 1.65-1 2.65t-2.7 1Zm14.2-3V17.7H26.2v12.65Z"/>
@@ -680,164 +725,28 @@
 
   {/if}
 
-  <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
-          class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-    <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
-  </dialog>
-
-  <dialog id="selectGif" bind:this={gifSelectionDialog}
-          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
-          border border-gray-200 dark:border-gray-600">
-    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
-  </dialog>
-
-  <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
-          class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
-  </dialog>
 </main>
+
+<dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+</dialog>
+
+<dialog id="selectGif" bind:this={gifSelectionDialog}
+        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
+          border border-gray-200 dark:border-gray-600">
+  <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
+</dialog>
+
+<dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+</dialog>
 
 <Toaster />
 
-<style global>
-  .milkdown {
-    box-shadow: none !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif !important;
-  }
-
-  .milkdown .editor {
-    padding: 1.25rem !important;
-    min-height: 12rem;
-  }
-
-  .milkdown .editor > * {
-    margin: 0.625rem 0 !important;
-  }
-
-  .milkdown-menu .divider {
-    margin: 0.75rem 0.25rem;
-  }
-
-  .milkdown-menu .button {
-    margin: 0.25rem;
-  }
-
-  .milkdown-menu::-webkit-scrollbar-thumb {
-    background-color: #91A3B8 !important;
-  }
-
-  .milkdown-menu::-webkit-scrollbar-track {
-    background-color: #4B596A !important;
-  }
-
-  .menu-selector {
-    width: auto !important;
-    min-width: 8rem;
-  }
-
-  .tribute-container {
-    filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.25));
-    margin-top: 0.75rem;
-  }
-
-  .tribute-container ul {
-    padding: 0 !important;
-    background: white !important;
-    border-radius: 0.75rem !important;
-    min-width: 14rem !important;
-    max-width: 20rem !important;
-    overflow: hidden;
-  }
-
-  .tribute-container li {
-    padding: 0.75rem;
-    font-size: 1.2em;
-  }
-
-  .tribute-container li:not(:last-child) {
-    border-bottom: 1px solid #CCC !important;
-  }
-
-  .tribute-container li.highlight {
-    background: #CCC !important;
-  }
-
-  .tribute-container li:first-child.highlight {
-    border-top-left-radius: 0.75rem;
-    border-top-right-radius: 0.75rem;
-  }
-
-  .tribute-container li:last-child.highlight {
-    border-bottom-left-radius: 0.75rem;
-    border-bottom-right-radius: 0.75rem;
-  }
-
-  .value-container input {
-    cursor: pointer !Important;
-  }
-
-  /* The switch - the box around the slider */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 3.5rem;
-    height: 1.75rem;
-  }
-
-  /* Hide default HTML checkbox */
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  /* The slider */
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 1.25rem;
-    width: 1.25rem;
-    left: 0.25rem;
-    bottom: 0.25rem;
-    background-color: white;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
+<style>
   .dark .slider:before {
-    background-color: #91A3B8;
-  }
-
-  input:checked + .slider {
-    background-color: #202B39;
-  }
-
-  input:focus + .slider {
-    box-shadow: 0 0 1px #202B39;
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(1.75rem);
-  }
-
-  /* Rounded sliders */
-  .slider.round {
-    border-radius: 1.75rem;
-  }
-
-  .slider.round:before {
-    border-radius: 50%;
+    background-color: #91A3B8 !important;
   }
 </style>

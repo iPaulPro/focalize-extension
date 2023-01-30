@@ -1,7 +1,7 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
     import InlineSVG from 'svelte-inline-svg';
-    import focalizeLogo from '/images/focalize.svg';
+    import focalizeLogo from '../../../public/images/focalize.svg';
     import focalizeLogoName from '../../assets/focalize-logo-name.svg';
     import welcomeImage from '../../assets/welcome.svg';
     import {link} from 'svelte-spa-router'

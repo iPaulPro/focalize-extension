@@ -18,7 +18,7 @@ const parseOGTags = (): {
 
 const truncate = (str: string, n: number) => (str.length > n) ? str.slice(0, n - 1) + '&hellip;' : str;
 
-const shareUrl = (tags: any) => {
+const shareUrl = async (tags: any) => {
     console.log('shareUrl called with', tags);
     const path = chrome.runtime.getURL('src/index.html#/post');
     const url = new URL(path);
@@ -37,12 +37,16 @@ const shareUrl = (tags: any) => {
         url.searchParams.append('desc', truncate(tags.description, 160));
     }
 
+    const storage = await chrome.storage.sync.get('compactMode');
+    const compactMode = storage.compactMode;
+    console.log('shareUrl', compactMode);
+
     chrome.windows.create({
         url: url.toString(),
         focused: true,
         type: 'popup',
-        width: 800,
-        height: 600
+        width: compactMode ? 672 : 768,
+        height: compactMode ? 396 : 600
     }).catch(console.error);
 }
 
@@ -80,16 +84,16 @@ chrome.action.onClicked.addListener(tab => {
         const tags = results[0]?.result;
         if (tags) {
             console.log('found open graph tags', tags);
-            tags.url = url // og:url is often misused
-            if (!tags.title) tags.title = title
-            shareUrl(tags)
+            tags.url = url; // og:url is often misused
+            if (!tags.title) tags.title = title;
+            return shareUrl(tags);
         } else {
             console.log('no tags found')
-            shareUrl({title, url})
+            return shareUrl({title, url});
         }
     }).catch(e => {
         console.error(e)
-        shareUrl({title, url})
+        shareUrl({title, url}).catch(console.error);
     })
 })
 

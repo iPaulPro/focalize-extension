@@ -141,7 +141,7 @@
         coverLoading = false;
     };
 
-    const onDeleteAttachment = async () => {
+    const deleteAttachment = async () => {
         if ($gifAttachment) {
             gifAttachment.set(null);
             return;
@@ -160,7 +160,7 @@
     }
 
     const onDeleteMedia = async () => {
-        await onDeleteAttachment();
+        await deleteAttachment();
         await onDeleteCover();
         uploadedPct = 0;
     };

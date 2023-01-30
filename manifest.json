@@ -5,7 +5,11 @@
   "version_name": "0.4.1",
   "description": "Extension for Publishing on Lens Protocol",
   "permissions": [
-    "activeTab", "scripting", "storage"
+    "activeTab",
+    "scripting",
+    "storage",
+    "notifications",
+    "alarms"
   ],
   "options_page": "src/index.html",
   "action": {

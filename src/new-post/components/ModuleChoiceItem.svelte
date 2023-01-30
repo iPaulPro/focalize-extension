@@ -9,11 +9,12 @@
     import IconCollectPaid from '../../assets/ic_collect_paid.svg'
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
     import IconSettings from '../../assets/ic_settings.svg'
+    import {compactMode} from "../../lib/store/preferences.js";
 
     export let item = undefined;
 </script>
 
-<div class="flex items-center px-5 py-3 cursor-pointer dark:text-gray-100 hover:bg-orange-300 dark:hover:bg-gray-800 active:bg-orange">
+<div class="flex items-center px-5 {$compactMode ? 'py-2' : 'py-3'} cursor-pointer dark:text-gray-100 hover:bg-orange-300 dark:hover:bg-gray-800 active:bg-orange">
 
   <div class="w-5 shrink-0 transition-none">
     {#if item.icon === 'earth'}

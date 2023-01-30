@@ -27,6 +27,7 @@
     import 'medium-editor/dist/css/themes/tim.css';
 
     export let disabled: boolean = false;
+    export let isCompact: boolean;
 
     let editor: MediumEditor;
     let fileInput;
@@ -79,12 +80,14 @@
         // textInput.focus();
     });
 
-    const updateWindowHeight = () => {
-        if  (document.body.clientHeight >= document.body.scrollHeight) return;
-        window.resizeBy(0, document.body.scrollHeight - document.body.clientHeight);
+    const setDefaultValue = async () => {
+        if (!$content) return;
+
+        const html = fromMarkdown.makeHtml($content);
+        editor.setContent(html);
     };
 
-    const makeEditor = (element) => {
+    const makeEditor = async (element) => {
         editor = new MediumEditor(element, {
             toolbar: {
                 buttons: ['bold', 'italic', 'anchor', 'quote', 'pre']
@@ -103,20 +106,13 @@
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
             $content = fromHtml.turndown(editable);
         });
-    };
 
-    const setDefaultValue = async () => {
-        if (!$content) return;
-
-        const html = fromMarkdown.makeHtml($content);
-        editor.setContent(html);
-
-        updateWindowHeight();
+        await setDefaultValue();
     };
 
     const tribute = async (node) => {
         const plainTextTribute = new Tribute({
-            values: (text, cb) => searchHandles(text, cb),
+            values: (text, cb) => searchHandles(text, isCompact ? 4 : 5, cb),
             menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
             loadingItemTemplate: buildLoadingItemTemplate(),
             fillAttr: 'handle',
@@ -137,47 +133,51 @@
         logoutDialog.showModal();
     };
 
-    onMount(async () => {
-        await setDefaultValue();
-    });
-
     onDestroy(() => {
         editor?.destroy();
         emojiPicker?.destroyPicker();
     })
 </script>
 
-<div class="flex w-full pb-4">
+<div class="flex w-full {isCompact ? 'pb-2' : 'pb-4'}">
 
-    <div class="w-16 h-16 mx-3 pt-3 cursor-pointer tooltip"
-         use:tooltip={{
+  <div class="w-16 h-16 mx-3 pt-3 cursor-pointer tooltip"
+       use:tooltip={{
            component: AccountChooser,
            props: {},
            trigger: 'click',
            interactive: true,
            placement: 'bottom-start'
          }}
-         on:logout={showLogoutDialog}>
+       on:logout={showLogoutDialog}>
 
-      {#if avatarError || !$profile?.picture?.original}
-        <InlineSVG src={ImageAvatar}
-                   class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
-      {:else if $profile}
-        <img src={$profile.picture?.original?.url} alt="Profile avatar"
-             class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"
-             on:error={() => {avatarError = true}}>
-      {/if}
+    {#if avatarError || !$profile?.picture?.original}
+      <InlineSVG src={ImageAvatar}
+                 class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
+    {:else if $profile}
+      <img src={$profile.picture?.original?.url} alt="Profile avatar"
+           class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"
+           on:error={() => {avatarError = true}}>
+    {/if}
 
-    </div>
+  </div>
 
   <div class="flex flex-col w-full pr-2 pl-1.5">
 
-    <div id="editor" contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
-         use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
-         class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
-    </div>
+    <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
+    {#if isCompact}
+      <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
+           use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
+           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
+      </div>
+    {:else}
+      <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
+           use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
+           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
+      </div>
+    {/if}
 
-    <div class="flex gap-3 pt-1">
+    <div class="flex gap-3 {isCompact ? '' : 'pt-1'}">
 
       <input type="file" class="hidden"
              accept={supportedMimeTypesJoined()}
@@ -308,6 +308,11 @@
     color: rgb(107 114 128);
   }
 
+  .compact .medium-editor-placeholder:after {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+
   .dark .medium-editor-placeholder:after {
     color: rgb(156 163 175);
   }
@@ -320,6 +325,10 @@
 
   .medium-editor-element>* {
     margin-bottom: 1.75rem;
+  }
+
+  .compact .medium-editor-element>* {
+    margin-bottom: 1.25rem;
   }
 
   .medium-editor-element a {

@@ -5,16 +5,18 @@
     import createMetaMaskProvider from "metamask-extension-provider";
     import {ethers} from "ethers";
 
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast, {Toaster} from 'svelte-french-toast';
 
     import {authenticate, getDefaultProfile} from "../lib/lens-auth";
     import {profile} from "../lib/store/user";
     import {ensureCorrectChain} from "../lib/ethers-service";
+    import {welcomeShown} from "../lib/store/preferences";
 
     import InlineSVG from 'svelte-inline-svg';
 
     import {onMount} from "svelte";
     import Welcome from './components/Welcome.svelte'
+    import Preferences from "./components/Preferences.svelte";
 
     const inPageProvider = createMetaMaskProvider();
     const provider = new ethers.providers.Web3Provider(inPageProvider)
@@ -69,7 +71,11 @@
 
   {#if $profile}
 
-    <Welcome />
+    {#if $welcomeShown}
+      <Preferences />
+    {:else}
+      <Welcome/>
+    {/if}
 
   {:else}
 

@@ -28,7 +28,7 @@ import {getLensHub} from "../lens-hub";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import type {OperationResult} from "urql";
-import {signedTypeData} from "./ethers-service";
+import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import Autolinker, {UrlMatch} from "autolinker";
 
@@ -222,7 +222,7 @@ const createPostTransaction = async (
     profileId: string,
     contentURI: string,
     accessToken: string,
-    useDispatcher: boolean,
+    useRelay: boolean,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
 ): Promise<string> => {
@@ -239,58 +239,37 @@ const createPostTransaction = async (
     const typedData = postResult.data.createPostTypedData.typedData;
     console.log('createPostTransaction: Created post typed data', typedData);
 
-    const lensHub = getLensHub();
-
-    if (!useDispatcher) {
-        const tx = await lensHub.post({
-            profileId: typedData.value.profileId,
-            contentURI: typedData.value.contentURI,
-            collectModule: typedData.value.collectModule,
-            collectModuleInitData: typedData.value.collectModuleInitData,
-            referenceModule: typedData.value.referenceModule,
-            referenceModuleInitData: typedData.value.referenceModuleInitData
-        });
-        console.log('createPostTransaction: submitted transaction as self', tx);
-        return tx.hash;
-    }
-
-    const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
-
-    const request: BroadcastRequest = {
-        id: postResult.data.createPostTypedData.id,
-        signature
-    }
-    const res = await Broadcast({variables: {request}});
-
-    if (!res?.data?.broadcast || res.data.broadcast.__typename === 'RelayError') {
-        console.error('createPostTransaction: post with broadcast failed');
-
-        if (res?.data?.broadcast?.__typename === 'RelayError' && res.data.broadcast.reason) {
-            console.error(res.data.broadcast.reason);
+    if (useRelay) {
+        const signature = await signTypedData(typedData.domain, typedData.types, typedData.value);
+        const request: BroadcastRequest = {
+            id: postResult.data.createPostTypedData.id,
+            signature
         }
+        const res = await Broadcast({variables: {request}});
 
-        const { v, r, s } = splitSignature(signature);
-        const tx = await lensHub.postWithSig({
-            profileId: typedData.value.profileId,
-            contentURI: typedData.value.contentURI,
-            collectModule: typedData.value.collectModule,
-            collectModuleInitData: typedData.value.collectModuleInitData,
-            referenceModule: typedData.value.referenceModule,
-            referenceModuleInitData: typedData.value.referenceModuleInitData,
-            sig: {
-                v,
-                r,
-                s,
-                deadline: typedData.value.deadline,
-            },
-        });
-        console.log('createPostTransaction: submitted transaction', tx);
-        return tx.hash;
+        if (res?.data?.broadcast.__typename === 'RelayerResult') {
+            const broadcast: RelayerResult = res.data.broadcast;
+            console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)
+            return broadcast.txHash;
+        } else if (res?.data?.broadcast.__typename === 'RelayError') {
+            console.error('createPostTransaction: post with broadcast failed');
+            if (res.data.broadcast.reason) {
+                console.error(res.data.broadcast.reason);
+            }
+        }
     }
 
-    const broadcast: RelayerResult = res.data.broadcast as RelayerResult;
-    console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)
-    return broadcast.txHash;
+    const lensHub = getLensHub();
+    const tx = await lensHub.post({
+        profileId: typedData.value.profileId,
+        contentURI: typedData.value.contentURI,
+        collectModule: typedData.value.collectModule,
+        collectModuleInitData: typedData.value.collectModuleInitData,
+        referenceModule: typedData.value.referenceModule,
+        referenceModuleInitData: typedData.value.referenceModuleInitData
+    });
+    console.log('createPostTransaction: submitted transaction', tx);
+    return tx.hash;
 };
 
 export const submitPost = async (
@@ -298,7 +277,8 @@ export const submitPost = async (
     metadata: PublicationMetadataV2Input,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
-    useDispatcher: boolean = true
+    useDispatcher: boolean = true,
+    useRelay: boolean = false
 ): Promise<string> => {
     const profileId = profile.id;
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
@@ -329,7 +309,14 @@ export const submitPost = async (
     }
 
     if (!txHash) {
-        txHash = await createPostTransaction(profileId, contentURI, accessToken, useDispatcher, referenceModule, collectModule);
+        txHash = await createPostTransaction(
+            profileId,
+            contentURI,
+            accessToken,
+            useRelay,
+            referenceModule,
+            collectModule
+        );
     }
 
     const publicationId = await getPublicationId(txHash);

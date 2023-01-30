@@ -1,7 +1,7 @@
 import {Lens} from "lens-protocol";
 import {getLensHub} from "../lens-hub";
 import {Broadcast, CreateSetDispatcherTypedData} from "../graph/lens-service";
-import {signedTypeData} from "./ethers-service";
+import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 
@@ -33,7 +33,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     const typedData = res.data.createSetDispatcherTypedData.typedData;
 
     // @ts-ignore
-    const signature = await signedTypeData(typedData.domain, typedData.types, typedData.value);
+    const signature = await signTypedData(typedData.domain, typedData.types, typedData.value);
 
     let txHash;
 
