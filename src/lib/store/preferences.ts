@@ -1,6 +1,11 @@
 // @ts-ignore
 import {chromeStorageSync} from "../chrome-storage-store";
 import type {Writable} from "svelte/store";
+import type {LensNode} from "../lens-nodes";
+
+import nodes from '../../lib/store/nodes.json';
+
+const defaultNode = nodes[0];
 
 export const compactMode: Writable<boolean> = chromeStorageSync('compactMode', false);
 
@@ -15,3 +20,15 @@ export const useDispatcher: Writable<boolean> = chromeStorageSync('useDispatcher
 export const useRelay: Writable<boolean> = chromeStorageSync('useRelay', true);
 
 export const welcomeShown: Writable<boolean> = chromeStorageSync('welcomeShown', false);
+
+export const releaseDismissed: Writable<number> = chromeStorageSync('releaseDismissed');
+
+export const nodePost: Writable<LensNode> = chromeStorageSync('nodePost', defaultNode);
+
+export const nodeImage: Writable<LensNode> = chromeStorageSync('nodeImage', defaultNode);
+
+export const nodeVideo: Writable<LensNode> = chromeStorageSync('nodeVideo', defaultNode);
+
+export const nodeAudio: Writable<LensNode> = chromeStorageSync('nodeAudio', defaultNode);
+
+export const nodeArticle: Writable<LensNode> = chromeStorageSync('nodeArticle', defaultNode);

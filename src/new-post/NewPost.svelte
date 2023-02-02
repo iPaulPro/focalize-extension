@@ -16,6 +16,7 @@
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
+        getNodeUrlForPublication,
         getUrlsFromText,
         submitPost,
     } from '../lib/lens-post.js';
@@ -69,7 +70,7 @@
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import {useRelay} from "../lib/store/preferences.js";
+    import {useRelay} from "../lib/store/preferences";
 
     /**
      * Bound to the tag component
@@ -298,7 +299,7 @@
 
         try {
             const metadata = buildMetadata();
-            metadata.locale = locale.value;
+            metadata.locale = locale.value ?? navigator.languages[0];
 
             const publicationId = await submitPost(
                 $profile,
@@ -412,8 +413,8 @@
         gifSelectionDialog?.close();
     };
 
-    const viewPostClick = () => {
-        const url = import.meta.env.VITE_LENS_PREVIEW_NODE + 'posts/' + postId;
+    const onViewPostClick = () => {
+        const url = getNodeUrlForPublication(postType, postId)
         window.open(url, '_blank');
         window.close();
     };
@@ -422,7 +423,7 @@
         if (!$profile.dispatcher?.canUseRelay) {
             enableDispatcherDialog.showModal();
         }
-    }
+    };
 
     $: {
         if ($profile === null) {
@@ -446,7 +447,7 @@
                 await updateWindowHeight();
             }
         });
-    }
+    };
 
     $: isCompact = isPopupWindow && $compactMode;
     $: $compactMode, updateWindowHeight().catch();
@@ -492,7 +493,7 @@
 
       <div class="text-2xl mt-4 dark:text-gray-100">Post created!</div>
 
-      <button type="button" on:click={viewPostClick}
+      <button type="button" on:click={onViewPostClick}
               class="mt-4 w-auto py-2.5 px-12 flex justify-center items-center
               bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 disabled:bg-neutral-400
               rounded-lg shadow-md
@@ -535,8 +536,10 @@
 
           {/if}
 
-          <div class="flex flex-wrap {isCompact ? 'pt-2' : 'pt-3'} gap-4 {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
-                   {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
+          <div class="flex flex-wrap gap-4
+               {isCompact ? 'pt-2' : 'pt-3'}
+               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
+               {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-56}
@@ -650,7 +653,7 @@
           <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
 
             <button type="button" on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
-                    class="group w-fit py-2 {$useDispatcher ? 'px-10' : 'px-8'} flex justify-center items-center rounded-l-xl w-auto
+                    class="group w-fit py-2 {$useDispatcher ? 'px-10' : 'px-6'} flex justify-center items-center rounded-l-xl w-auto
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2

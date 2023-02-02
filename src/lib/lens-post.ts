@@ -29,8 +29,10 @@ import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import type {OperationResult} from "urql";
 import {signTypedData} from "./ethers-service";
-import {splitSignature} from "ethers/lib/utils";
 import Autolinker, {UrlMatch} from "autolinker";
+import type {LensNode} from "./lens-nodes";
+import {nodeArticle, nodeAudio, nodeImage, nodePost, nodeVideo} from "./store/preferences";
+import {get} from "svelte/store";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -347,4 +349,35 @@ export const getUrlsFromText = (content: string): string[] => {
         }
         return match.getUrl();
     });
+}
+
+export const getNodeUrlForPublication = (postType: PublicationMainFocus, postId: string) => {
+    let node: LensNode;
+
+    switch (postType) {
+        case PublicationMainFocus.Image:
+            node = get(nodeImage);
+            break;
+        case PublicationMainFocus.Video:
+            node = get(nodeVideo);
+            break;
+        case PublicationMainFocus.Audio:
+            node = get(nodeAudio);
+            break;
+        case PublicationMainFocus.Article:
+            node = get(nodeArticle);
+            break;
+        default:
+            node = get(nodePost);
+    }
+
+    let id = postId;
+    if (!node.hexIdentifier) {
+        const parts = postId.split('-');
+        const profileId = parseInt(parts[0], 16);
+        const publicationId = parseInt(parts[1], 16);
+        id = profileId + '-' + publicationId;
+    }
+
+    return node.baseUrl + node.path.replace('{$1}', id);
 }

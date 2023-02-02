@@ -8,7 +8,7 @@
     import IconCollectFree from '../../assets/ic_collect_free.svg'
     import IconCollectPaid from '../../assets/ic_collect_paid.svg'
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
-    import {compactMode} from "../../lib/store/preferences.js";
+    import {compactMode} from "../../lib/store/preferences";
 
     export let selection = undefined;
 </script>

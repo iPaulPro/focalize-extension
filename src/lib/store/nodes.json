@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Lenster",
+    "baseUrl": "https://lenster.xyz",
+    "path": "/posts/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ]
+  },
+  {
+    "name": "Amnisiac",
+    "baseUrl": "https://amnisiac.xyz",
+    "path": "/posts/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "AUDIO"
+    ]
+  },
+  {
+    "name": "Beats",
+    "baseUrl": "https://beatsapp.xyz",
+    "path": "/post/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "AUDIO"
+    ]
+  },
+  {
+    "name": "LensPort",
+    "baseUrl": "https://lensport.io",
+    "path": "/p/{$id}",
+    "hexIdentifier": false,
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ]
+  },
+  {
+    "name": "Lensta",
+    "baseUrl": "https://app.lensta.xyz",
+    "path": "/post/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "IMAGE"
+    ]
+  },
+  {
+    "name": "Lenstube",
+    "baseUrl": "https://lenstube.xyz",
+    "path": "/watch/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "VIDEO"
+    ]
+  },
+  {
+    "name": "Pinsta",
+    "baseUrl": "https://pinsta.xyz",
+    "path": "/pin/{$id}",
+    "hexIdentifier": true,
+    "focus": [
+      "IMAGE"
+    ]
+  },
+  {
+    "name": "Share",
+    "baseUrl": "https://theshr.xyz",
+    "path": "/{$id}/detail_article",
+    "hexIdentifier": true,
+    "focus": [
+      "ARTICLE"
+    ]
+  }
+]
