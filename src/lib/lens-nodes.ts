@@ -4,7 +4,9 @@ export type LensNode = {
     name: string,
     baseUrl: string,
     path: string,
-    hexIdentifier: boolean
+    hexIdentifier: boolean,
+    notifications?: string,
+    focus: string[],
 };
 
 export const LENS_NODES: LensNode[] = [

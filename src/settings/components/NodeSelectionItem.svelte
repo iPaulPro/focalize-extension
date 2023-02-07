@@ -1,14 +1,14 @@
 <script lang="ts">
     import type {LensNode} from "../../lib/lens-nodes";
 
-    import IconLenster from '../../../public/images/ic-lenster.webp';
-    import IconLenstube from '../../../public/images/ic-lenstube.webp';
-    import IconLensPort from '../../../public/images/ic-lensport.webp';
-    import IconLensta from '../../../public/images/ic-lensta.webp';
-    import IconPinsta from '../../../public/images/ic-pinsta.webp';
-    import IconAmnisiac from '../../../public/images/ic-amnisiac.webp';
-    import IconShare from '../../../public/images/ic-shr.webp';
-    import IconBeats from '../../../public/images/ic-beats.webp';
+    import IconLenster from '../../assets/ic_lenster.webp';
+    import IconLenstube from '../../assets/ic_lenstube.webp';
+    import IconLensPort from '../../assets/ic_lensport.webp';
+    import IconLensta from '../../assets/ic_lensta.webp';
+    import IconPinsta from '../../assets/ic_pinsta.webp';
+    import IconAmnisiac from '../../assets/ic_amnisiac.webp';
+    import IconShare from '../../assets/ic_shr.webp';
+    import IconBeats from '../../assets/ic_beats.webp';
 
     export let selection: LensNode = undefined;
 </script>

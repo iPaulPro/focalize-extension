@@ -7,6 +7,11 @@ import nodes from '../../lib/store/nodes.json';
 
 const defaultNode = nodes[0];
 
+export type RefreshInterval = {
+    value: number,
+    label: string
+}
+
 export const compactMode: Writable<boolean> = chromeStorageSync('compactMode', false);
 
 export const darkMode: Writable<boolean> = chromeStorageSync('darkMode', false);
@@ -32,3 +37,11 @@ export const nodeVideo: Writable<LensNode> = chromeStorageSync('nodeVideo', defa
 export const nodeAudio: Writable<LensNode> = chromeStorageSync('nodeAudio', defaultNode);
 
 export const nodeArticle: Writable<LensNode> = chromeStorageSync('nodeArticle', defaultNode);
+
+export const nodeNotifications: Writable<LensNode> = chromeStorageSync('nodeNotifications', defaultNode);
+
+export const notificationsEnabled: Writable<boolean> = chromeStorageSync('notificationsEnabled', true);
+
+export const notificationsRefreshInterval: Writable<RefreshInterval> = chromeStorageSync('notificationsRefreshInterval', {value: 15, label: '15 min'});
+
+export const notificationsTimestamp: Writable<string> = chromeStorageSync('notificationsTimestamp');

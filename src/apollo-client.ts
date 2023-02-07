@@ -1,5 +1,5 @@
 import {ApolloClient, from, fromPromise, HttpLink, InMemoryCache,} from '@apollo/client/core';
-import { setContext } from '@apollo/client/link/context'
+import {setContext} from '@apollo/client/link/context'
 import {onError} from '@apollo/client/link/error';
 import fetch from 'cross-fetch';
 import {LENS_API} from "./config";

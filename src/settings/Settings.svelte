@@ -31,6 +31,7 @@
             profile.set(authenticatedProfile);
 
             console.log('Authenticated profile', $profile.id);
+            await chrome.runtime.sendMessage({setAlarm: true});
         } catch (e) {
             console.error(e);
             toast.error('Error logging in');

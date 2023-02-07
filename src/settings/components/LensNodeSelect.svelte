@@ -8,7 +8,10 @@
     import type {Writable} from "svelte/store";
 
     export let preference: Writable<LensNode>;
+    export let disabled = false;
+    export let notifications = false;
 
+    let nodes = notifications ? LENS_NODES.filter(node => node.notifications != null) : LENS_NODES;
     let selectedNode;
 
     $: {
@@ -22,8 +25,8 @@
     }
 </script>
 
-<Select items={LENS_NODES} itemId={'name'} label={'name'} clearable={false} searchable={false} listAutoWidth={false}
-        showChevron={true} bind:value={selectedNode} on:change={onNodeChange}
+<Select items={nodes} itemId={'name'} label={'name'} clearable={false} searchable={false} listAutoWidth={false}
+        showChevron={true} bind:value={selectedNode} on:change={onNodeChange} {disabled}
         --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
         --font-size="0.875rem" --list-background={$darkMode ? '#374354' : 'white'}
         --selected-item-padding="0rem" --list-border-radius="0.75rem" --list-max-height="fit-content"

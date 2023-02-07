@@ -4,6 +4,7 @@
     "baseUrl": "https://lenster.xyz",
     "path": "/posts/{$id}",
     "hexIdentifier": true,
+    "notifications": "/notifications",
     "focus": [
       "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
     ]
@@ -13,6 +14,7 @@
     "baseUrl": "https://amnisiac.xyz",
     "path": "/posts/{$id}",
     "hexIdentifier": true,
+    "notifications": null,
     "focus": [
       "AUDIO"
     ]
@@ -22,6 +24,7 @@
     "baseUrl": "https://beatsapp.xyz",
     "path": "/post/{$id}",
     "hexIdentifier": true,
+    "notifications": null,
     "focus": [
       "AUDIO"
     ]
@@ -31,6 +34,7 @@
     "baseUrl": "https://lensport.io",
     "path": "/p/{$id}",
     "hexIdentifier": false,
+    "notifications": "/notifications",
     "focus": [
       "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
     ]
@@ -40,6 +44,7 @@
     "baseUrl": "https://app.lensta.xyz",
     "path": "/post/{$id}",
     "hexIdentifier": true,
+    "notifications": null,
     "focus": [
       "IMAGE"
     ]
@@ -49,6 +54,7 @@
     "baseUrl": "https://lenstube.xyz",
     "path": "/watch/{$id}",
     "hexIdentifier": true,
+    "notifications": "/notifications",
     "focus": [
       "VIDEO"
     ]
@@ -58,6 +64,7 @@
     "baseUrl": "https://pinsta.xyz",
     "path": "/pin/{$id}",
     "hexIdentifier": true,
+    "notifications": "/notifications",
     "focus": [
       "IMAGE"
     ]
@@ -67,6 +74,7 @@
     "baseUrl": "https://theshr.xyz",
     "path": "/{$id}/detail_article",
     "hexIdentifier": true,
+    "notifications": null,
     "focus": [
       "ARTICLE"
     ]
