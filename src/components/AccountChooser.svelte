@@ -30,7 +30,7 @@
 
 <div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
 
-  {#if $currentUser.address}
+  {#if $currentUser?.address}
 
     {#await getProfiles($currentUser.address)}
 

@@ -9,6 +9,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import MetaMaskLogo from '../assets/metamask.svg';
 import MetaMaskInPageProvider from "../providers/connectors";
+import ethProvider from "eth-provider";
 
 let provider: Web3Provider;
 
@@ -60,6 +61,9 @@ const web3ModalProviderOptions = {
             infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
             chainId: import.meta.env.VITE_CHAIN_ID
         }
+    },
+    frame: {
+        package: ethProvider // required
     }
 };
 
@@ -137,28 +141,15 @@ const getAccountsFromMetaMask = (): Promise<string[]> => new Promise(async (reso
     });
 
     provider = new Web3Provider(inPageProvider, "any");
-    const accounts = await provider.send('eth_requestAccounts', [])
+    const accounts = await provider.send('eth_requestAccounts', []);
     resolve(accounts);
 });
 
 export const initEthers = async(): Promise<any[]> => {
-    console.log('initEthers');
-    let accounts = [];
-
-    // First attempt to connect to the extension provider, if it's not available we then try web3modal
-    // try {
-    //     accounts = await getAccountsFromMetaMask()
-    //     console.log('Got accounts from metamask', accounts);
-    // } catch (e) {
-    //     console.log('Unable to create metamask provider, attempting web3modal...', e);
+    if (!provider) {
         provider = await getProviderFromWeb3Modal();
-        accounts = await provider.listAccounts();
-    // }
-
-    if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
-
-    console.log('returning accounts', accounts);
-    return accounts;
+    }
+    return await provider.listAccounts();
 }
 
 export const signedTypeData = (

@@ -7,7 +7,7 @@
     import {authenticate} from "../lib/lens-auth";
     import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
     import {currentUser} from "../lib/store/user-store";
-    import {ensureCorrectChain, initEthers} from "../lib/ethers-service";
+    import {ensureCorrectChain} from "../lib/ethers-service";
 
     import InlineSVG from 'svelte-inline-svg';
 
@@ -15,9 +15,41 @@
     import Welcome from './components/Welcome.svelte'
 
     let loading = true;
-    let userError: UserError;
+    let noProfileDialog: HTMLDialogElement;
+
+    const onUserError = (userError: UserError) => {
+        switch (userError) {
+            case UserError.WALLET_NOT_CONNECTED:
+                // TODO show connect wallet button
+                toast.error('Unable to connect to wallet');
+                break;
+            case UserError.NO_PROFILE:
+                noProfileDialog?.showModal();
+                break;
+            case UserError.UNKNOWN:
+                // TODO show unrecoverable error
+                break;
+        }
+    };
+
+    const ensureUser = async () => {
+        if ($currentUser) return;
+
+        const {user, error} = await getCurrentUser()
+
+        if (error !== undefined) {
+            onUserError(error);
+            return;
+        }
+
+        $currentUser = user;
+    };
 
     const onSignInClick = async () => {
+        if (!$currentUser) {
+            await ensureUser();
+        }
+
         try {
             await ensureCorrectChain();
 
@@ -31,39 +63,12 @@
         }
     };
 
-    $: {
-        if (userError) {
-            switch (userError) {
-                case UserError.WALLET_NOT_CONNECTED:
-                    // TODO show wallet connect button
-                    toast.error('Unable to connect to wallet');
-                    break;
-                case UserError.NOT_AUTHENTICATED:
-                    // Show login
-                    break;
-                case UserError.NO_PROFILE:
-                    // TODO Show message that a Lens profile is required for usage
-                    break;
-                case UserError.UNKNOWN:
-                    // TODO show unrecoverable error
-                    break;
-            }
-        }
-    }
-
     onMount(async () => {
-        if ($currentUser) return;
-
-        const {user, error} = await getCurrentUser()
-
-        if (error) {
-            userError = error;
+        try {
+            await ensureUser();
+        } finally {
             loading = false;
-            return;
         }
-
-        $currentUser = user;
-        loading = false;
     });
 </script>
 
@@ -114,6 +119,13 @@
 {/if}
 
 <Toaster />
+
+<dialog bind:this={noProfileDialog}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <div>
+    A Lens profile is required for using Focalize.
+  </div>
+</dialog>
 
 <style global>
   /* :not(:required) hides this rule from IE9 and below */

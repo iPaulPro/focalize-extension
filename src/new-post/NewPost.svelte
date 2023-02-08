@@ -420,25 +420,22 @@
         }
     }
 
-    beforeUpdate(async () => {
-        if ($currentUser) return;
-
-
-    });
-
     onMount(async () => {
         if (!$currentUser) {
-            const {user, error} = await getCurrentUser();
+            try {
+                const {user, error} = await getCurrentUser();
+                if (error !== undefined) {
+                    await replace('/src/');
+                    return;
+                }
 
-            if (error) {
+                $currentUser = user;
+
+                if (!user?.canUseRelay && !$dispatcherDialogShown) {
+                    enableDispatcherDialog.showModal();
+                }
+            } catch (e) {
                 await replace('/src/');
-                return;
-            }
-
-            $currentUser = user;
-
-            if (!user?.canUseRelay && !$dispatcherDialogShown) {
-                enableDispatcherDialog.showModal();
             }
         }
 
