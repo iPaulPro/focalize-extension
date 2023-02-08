@@ -13,7 +13,7 @@
         MAX_FILE_SIZE,
         supportedMimeTypesJoined
     } from '../../lib/file-utils.js'
-    import {attachment, author, cover, description, gifAttachment, title} from "../../lib/store/state";
+    import {attachment, author, cover, description, gifAttachment, title} from "../../lib/store/state-store";
 
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";

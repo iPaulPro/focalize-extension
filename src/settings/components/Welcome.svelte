@@ -6,7 +6,7 @@
     import welcomeImage from '../../assets/welcome.svg';
     import {link} from 'svelte-spa-router'
 
-    import {darkMode} from '../../lib/store/preferences';
+    import {darkMode} from '../../lib/store/preferences-store';
 </script>
 
 <div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-900' : ''}">

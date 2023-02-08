@@ -1,7 +1,7 @@
 <script lang="ts">
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
-    import {getDefaultProfile} from '../lib/lens-auth';
+    import {getDefaultProfile} from '../lib/lens-profile';
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
     import {
@@ -30,9 +30,9 @@
         description,
         gifAttachment,
         title
-    } from '../lib/store/state';
-    import {profile} from "../lib/store/user";
-    import {darkMode, dispatcherDialogShown, signAsSelf} from "../lib/store/preferences";
+    } from '../lib/store/state-store';
+    import {currentUser} from "../lib/store/user-store";
+    import {darkMode, dispatcherDialogShown, signAsSelf} from "../lib/store/preferences-store";
 
     import type {
         MetadataAttributeInput,
@@ -56,12 +56,13 @@
     import tooltip from "svelte-ktippy"
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import {onMount} from 'svelte';
+    import {beforeUpdate, onMount} from 'svelte';
     import {replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
+    import {getCurrentUser} from "../lib/user";
 
     /**
      * Bound to the tag component
@@ -203,7 +204,7 @@
             }
 
             return generateTextPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 content,
                 postType,
                 getTags(),
@@ -230,7 +231,7 @@
 
         if ($attachment?.type.startsWith('image/') || $gifAttachment) {
             return generateImagePostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 content,
@@ -242,7 +243,7 @@
             const attributes = createVideoAttributes();
 
             return generateVideoPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 `ipfs://${$cover.cid}`,
@@ -260,7 +261,7 @@
             }
 
             return generateAudioPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 `ipfs://${$cover.cid}`,
@@ -291,14 +292,14 @@
             metadata.locale = locale.value;
 
             const publicationId = await submitPost(
-                $profile,
+                $currentUser,
                 metadata,
                 referenceModuleParams,
                 collectModuleParams,
                 !$signAsSelf
             );
 
-            postId = `${$profile.id}-${publicationId}`;
+            postId = `${$currentUser.profileId}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
 
             clearPostState()
@@ -408,30 +409,37 @@
     };
 
     const onUseDispatcherSelected = () => {
-        if (!$profile.dispatcher?.canUseRelay) {
+        if (!$currentUser.canUseRelay) {
             enableDispatcherDialog.showModal();
         }
     }
 
     $: {
-        if ($profile === null) {
+        if ($currentUser === null) {
             replace('/src/').catch(console.error);
         }
     }
 
-    onMount(async () => {
-        try {
-            if (!$profile) {
-                const defaultProfile = await getDefaultProfile();
-                profile.set(defaultProfile);
-            }
-        } catch (e) {
-            await replace('/src/');
-            return;
-        }
+    beforeUpdate(async () => {
+        if ($currentUser) return;
 
-        if (!$profile.dispatcher?.canUseRelay && !$dispatcherDialogShown) {
-            enableDispatcherDialog.showModal();
+
+    });
+
+    onMount(async () => {
+        if (!$currentUser) {
+            const {user, error} = await getCurrentUser();
+
+            if (error) {
+                await replace('/src/');
+                return;
+            }
+
+            $currentUser = user;
+
+            if (!user?.canUseRelay && !$dispatcherDialogShown) {
+                enableDispatcherDialog.showModal();
+            }
         }
 
         parseSearchParams();

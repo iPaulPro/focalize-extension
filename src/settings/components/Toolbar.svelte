@@ -9,7 +9,7 @@
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import ImageAvatar from '../../assets/ic_avatar.svg';
 
-    import {profile} from "../../lib/store/user";
+    import {currentUser} from "../../lib/store/user-store";
 
     let avatarError;
     let logoutDialog: HTMLDialogElement;
@@ -69,11 +69,11 @@
                      }}
                    on:logout={showLogoutDialog}>
 
-                {#if avatarError || !$profile?.picture?.original}
+                {#if avatarError || !$currentUser?.avatarUrl}
                   <InlineSVG src={ImageAvatar}
                              class="w-8 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300"/>
-                {:else if $profile}
-                  <img src={$profile.picture?.original?.url} alt="Profile avatar"
+                {:else if $currentUser}
+                  <img src={$currentUser.avatarUrl} alt="Profile avatar"
                        class="w-8 aspect-square object-contain rounded-full"
                        on:error={() => {avatarError = true}}>
                 {:else}

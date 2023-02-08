@@ -13,9 +13,9 @@
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
 
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
-    import {content} from "../../lib/store/state";
-    import {profile} from "../../lib/store/user";
-    import {darkMode} from "../../lib/store/preferences";
+    import {content} from "../../lib/store/state-store";
+    import {currentUser} from "../../lib/store/user-store";
+    import {darkMode} from "../../lib/store/preferences-store";
     import {supportedMimeTypesJoined} from '../../lib/file-utils.js'
 
     import MediumEditor from 'medium-editor';
@@ -159,11 +159,11 @@
          }}
          on:logout={showLogoutDialog}>
 
-      {#if avatarError || !$profile?.picture?.original}
+      {#if avatarError || !$currentUser?.avatarUrl}
         <InlineSVG src={ImageAvatar}
                    class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
-      {:else if $profile}
-        <img src={$profile.picture?.original?.url} alt="Profile avatar"
+      {:else if $currentUser}
+        <img src={$currentUser.avatarUrl} alt="Profile avatar"
              class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"
              on:error={() => {avatarError = true}}>
       {/if}

@@ -1,5 +1,5 @@
 overwrite: true
-schema: "https://api-mumbai.lens.dev"
+schema: "https://api.lens.dev"
 documents: "src/**/*.gql"
 generates:
   ./src/graph/lens-service.ts:

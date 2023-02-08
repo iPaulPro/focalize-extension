@@ -4,8 +4,27 @@ import {Broadcast, CreateSetDispatcherTypedData} from "../graph/lens-service";
 import {signedTypeData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
+import {AsyncProfiles} from "../graph/lens-service";
 
 import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
+import type {Profile, ProfileQueryRequest} from "../graph/lens-service";
+import type {OperationResult} from "urql";
+
+/**
+ * Gets the default profile of the address supplied.
+ */
+export const getDefaultProfile = async (account: string): Promise<Profile> => {
+    const res = await Lens.defaultProfile(account) as OperationResult;
+    if (res.error) return Promise.reject(res.error);
+    return Promise.resolve(res.data.defaultProfile);
+};
+
+export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
+    const request: ProfileQueryRequest = {ownedBy: [ownedBy]};
+    const res = await AsyncProfiles({variables: {request}});
+    if (res.error) return Promise.reject(res.error);
+    return res.data.profiles.items as Profile[];
+};
 
 export const canUseRelay = async (profileId: string): Promise<boolean> => {
     let profileRes;

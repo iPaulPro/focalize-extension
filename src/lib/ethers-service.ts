@@ -1,31 +1,73 @@
-import createMetaMaskProvider from "metamask-extension-provider";
+import {createExternalExtensionProvider} from '@metamask/providers';
 import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
 import type {JsonRpcSigner} from '@ethersproject/providers';
 import {Web3Provider} from '@ethersproject/providers';
 import type {TypedDataDomain, TypedDataField} from "ethers";
-import type BaseProvider from "@metamask/inpage-provider/dist/BaseProvider";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
+import MetaMaskLogo from '../assets/metamask.svg';
+import MetaMaskInPageProvider from "../providers/connectors";
 
 let provider: Web3Provider;
 
+const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
+
+const networkMap = {
+    POLYGON_MAINNET: {
+        chainId: hexValue(137), // '0x89'
+        chainName: "Polygon Mainnet",
+        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+        rpcUrls: ["https://polygon-rpc.com"],
+        blockExplorerUrls: ["https://www.polygonscan.com/"],
+    },
+    MUMBAI_TESTNET: {
+        chainId: hexValue(80001), // '0x13881'
+        chainName: "Polygon Mumbai Testnet",
+        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
+        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
+        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+    },
+};
+
 const web3ModalProviderOptions = {
+    // MetaMask provider is not injected into Extension pages, so add the in-page provider as a custom web3modal provider
+    "custom-metamask": {
+        display: {
+            logo: MetaMaskLogo,
+            name: "MetaMask",
+            description: "Connect to your MetaMask account"
+        },
+        package: MetaMaskInPageProvider,
+        connector: async () => createExternalExtensionProvider()
+    },
     walletconnect: {
         package: WalletConnectProvider,
         options: {
-            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID
+            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
+            rpc: {
+                137: "https://polygon-mainnet.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
+                80001: "https://polygon-mumbai.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
+            },
+            network: CHAIN_ID === 80001 ? 'mumbai' : 'matic'
+        }
+    },
+    coinbasewallet: {
+        package: CoinbaseWalletSDK,
+        options: {
+            appName: "Focalize",
+            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
+            chainId: import.meta.env.VITE_CHAIN_ID
         }
     }
 };
 
 const web3Modal = new Web3Modal({
-    cacheProvider: false,
+    cacheProvider: true,
     providerOptions: web3ModalProviderOptions,
     disableInjectedProvider: false,
 });
-
-const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
 
 function normalizeChainId(chainId: string | number | bigint) {
     if (typeof chainId === 'string')
@@ -48,23 +90,6 @@ export const getAddressFromSigner = (): Promise<string> => {
 export const getChainId = async (): Promise<number> => {
     return provider.send('eth_chainId', []).then(normalizeChainId);
 }
-
-const networkMap = {
-    POLYGON_MAINNET: {
-        chainId: hexValue(137), // '0x89'
-        chainName: "Polygon Mainnet",
-        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-        rpcUrls: ["https://polygon-rpc.com"],
-        blockExplorerUrls: ["https://www.polygonscan.com/"],
-    },
-    MUMBAI_TESTNET: {
-        chainId: hexValue(80001), // '0x13881'
-        chainName: "Polygon Mumbai Testnet",
-        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
-        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
-        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
-    },
-};
 
 export const switchChains = async (chainId: number) => {
     const id: string = hexValue(chainId);
@@ -105,34 +130,32 @@ export const getAccounts = async (): Promise<string[]> => {
     return await provider.listAccounts();
 }
 
+const getAccountsFromMetaMask = (): Promise<string[]> => new Promise(async (resolve, reject) => {
+    const inPageProvider = createExternalExtensionProvider();
+    inPageProvider.on('error', (error) => {
+        reject(error);
+    });
+
+    provider = new Web3Provider(inPageProvider, "any");
+    const accounts = await provider.send('eth_requestAccounts', [])
+    resolve(accounts);
+});
+
 export const initEthers = async(): Promise<any[]> => {
     console.log('initEthers');
-    let accounts;
+    let accounts = [];
 
     // First attempt to connect to the extension provider, if it's not available we then try web3modal
-    try {
-        const inPageProvider = createMetaMaskProvider();
-        provider = new Web3Provider(inPageProvider as BaseProvider, "any");
-        console.log('Created metamask in-page provider');
-        // provider.on('debug',  (error) => {
-        //     // TODO Failed to connect to MetaMask, fallback logic
-        //     console.error('Web3Provider debug`', error);
-        // });
-        // provider.on('error',  (error) => {
-        //     // TODO Failed to connect to MetaMask, fallback logic
-        //     console.error('Web3Provider error', error);
-        // });
-
-        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
-
-        accounts = await provider.send('eth_requestAccounts', [])
-        console.log('Got accounts from metamask', accounts);
-        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
-    } catch (e) {
-        console.log('Unable to create metamask provider, attempting web3modal...');
+    // try {
+    //     accounts = await getAccountsFromMetaMask()
+    //     console.log('Got accounts from metamask', accounts);
+    // } catch (e) {
+    //     console.log('Unable to create metamask provider, attempting web3modal...', e);
         provider = await getProviderFromWeb3Modal();
-        accounts = await provider.send('eth_requestAccounts', [])
-    }
+        accounts = await provider.listAccounts();
+    // }
+
+    if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
 
     console.log('returning accounts', accounts);
     return accounts;

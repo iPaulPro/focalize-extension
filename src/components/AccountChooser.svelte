@@ -1,10 +1,11 @@
 <script lang="ts">
-    import {address, profile} from '../lib/store/user.js'
-    import {getProfiles} from '../lib/lens-auth.js'
+    import {currentUser} from '../lib/store/user-store'
+    import {getProfiles} from '../lib/lens-profile'
     import LoadingSpinner from '../new-post/components/LoadingSpinner.svelte'
     import InlineSVG from "svelte-inline-svg";
     import ImageAvatar from '../assets/ic_avatar.svg';
     import {push} from 'svelte-spa-router';
+    import {userFromProfile} from "../lib/user.js";
 
     export let anchorNode;
     export let showSettings = true;
@@ -29,9 +30,9 @@
 
 <div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
 
-  {#if $address}
+  {#if $currentUser.address}
 
-    {#await getProfiles($address)}
+    {#await getProfiles($currentUser.address)}
 
       <div class="w-32 h-16 flex justify-center items-center">
         <LoadingSpinner/>
@@ -58,7 +59,7 @@
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={() => $profile = p} on:keydown={() => this.click()}>
+               on:click={() => $currentUser = userFromProfile(p)} on:keydown={() => this.click()}>
 
             {#if !p.picture?.original || avatarError[index]}
               <InlineSVG src={ImageAvatar}
@@ -73,7 +74,7 @@
               <div class="text-xs text-gray-600 dark:text-gray-300">@{p.handle}</div>
             </div>
 
-            {#if $profile?.handle === p.handle}
+            {#if $currentUser?.handle === p.handle}
               <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
             {/if}
 

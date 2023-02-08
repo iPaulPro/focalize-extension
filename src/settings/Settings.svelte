@@ -2,13 +2,11 @@
     import focalizeLogo from '../assets/focalize-logo-large.svg';
     import lensLogo from '../assets/lens-logo-small.svg';
 
-    import createMetaMaskProvider from "metamask-extension-provider";
-    import {ethers} from "ethers";
-
     import toast, { Toaster } from 'svelte-french-toast';
 
-    import {authenticate, getDefaultProfile} from "../lib/lens-auth";
-    import {profile} from "../lib/store/user";
+    import {authenticate} from "../lib/lens-auth";
+    import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
+    import {currentUser} from "../lib/store/user-store";
     import {ensureCorrectChain, initEthers} from "../lib/ethers-service";
 
     import InlineSVG from 'svelte-inline-svg';
@@ -16,48 +14,56 @@
     import {onMount} from "svelte";
     import Welcome from './components/Welcome.svelte'
 
-    const inPageProvider = createMetaMaskProvider();
-    const provider = new ethers.providers.Web3Provider(inPageProvider)
-
     let loading = true;
+    let userError: UserError;
 
     const onSignInClick = async () => {
         try {
             await ensureCorrectChain();
 
             const authenticatedProfile = await authenticate();
-            profile.set(authenticatedProfile);
+            $currentUser = userFromProfile(authenticatedProfile);
 
-            console.log('Authenticated profile', $profile.id);
+            console.log('Authenticated user', $currentUser);
         } catch (e) {
             console.error(e);
             toast.error('Error logging in');
         }
     };
 
-    const checkForProfile = async () => {
-        try {
-            if (!$profile) {
-                const defaultProfile = await getDefaultProfile();
-                profile.set(defaultProfile);
+    $: {
+        if (userError) {
+            switch (userError) {
+                case UserError.WALLET_NOT_CONNECTED:
+                    // TODO show wallet connect button
+                    toast.error('Unable to connect to wallet');
+                    break;
+                case UserError.NOT_AUTHENTICATED:
+                    // Show login
+                    break;
+                case UserError.NO_PROFILE:
+                    // TODO Show message that a Lens profile is required for usage
+                    break;
+                case UserError.UNKNOWN:
+                    // TODO show unrecoverable error
+                    break;
             }
-            console.log('Got profile', $profile);
-        } catch (e) {
-            // Expected if the user has not authenticated
-            console.log('Login required');
-        } finally {
-            loading = false;
         }
     }
 
     onMount(async () => {
-        const accounts = await initEthers();
-        if(chrome.runtime.lastError) console.error('runtime error', chrome.runtime.lastError)
-        if (accounts.length > 0) {
-            await checkForProfile();
-        } else {
-            toast.error('Cannot find wallet to connect to');
+        if ($currentUser) return;
+
+        const {user, error} = await getCurrentUser()
+
+        if (error) {
+            userError = error;
+            loading = false;
+            return;
         }
+
+        $currentUser = user;
+        loading = false;
     });
 </script>
 
@@ -73,7 +79,7 @@
 
 {:else}
 
-  {#if $profile}
+  {#if $currentUser}
 
     <Welcome />
 

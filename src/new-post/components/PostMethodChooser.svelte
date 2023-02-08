@@ -1,6 +1,6 @@
 <script lang="ts">
     import {createEventDispatcher} from "svelte";
-    import {signAsSelf} from '../../lib/store/preferences';
+    import {signAsSelf} from '../../lib/store/preferences-store';
 
     export let anchorNode;
 

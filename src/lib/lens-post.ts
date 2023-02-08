@@ -31,6 +31,7 @@ import type {OperationResult} from "urql";
 import {signedTypeData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import Autolinker, {UrlMatch} from "autolinker";
+import type {User} from "./user";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -294,13 +295,13 @@ const createPostTransaction = async (
 };
 
 export const submitPost = async (
-    profile: Profile,
+    user: User,
     metadata: PublicationMetadataV2Input,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
     useDispatcher: boolean = true
 ): Promise<string> => {
-    const profileId = profile.id;
+    const profileId = user.profileId;
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
     const accessToken = await getOrRefreshAccessToken();
 
@@ -316,7 +317,7 @@ export const submitPost = async (
 
     let txHash: string | undefined;
 
-    if (useDispatcher && profile.dispatcher?.canUseRelay) {
+    if (useDispatcher && user.canUseRelay) {
         try {
             const relayerResult = await createPostViaDispatcher(
                 {profileId, contentURI, collectModule, referenceModule}

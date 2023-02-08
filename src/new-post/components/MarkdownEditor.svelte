@@ -12,8 +12,8 @@
     import {placeholder as placeholderPlugin} from 'milkdown-plugin-placeholder';
     import { trailing } from '@milkdown/plugin-trailing';
 
-    import {article} from "../../lib/store/state";
-    import {darkMode} from "../../lib/store/preferences";
+    import {article} from "../../lib/store/state-store";
+    import {darkMode} from "../../lib/store/preferences-store";
 
     import {onDestroy} from "svelte";
 
