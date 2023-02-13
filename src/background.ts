@@ -7,12 +7,13 @@ import {NotificationsDoc} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lib/lens-auth";
 
 import type {Notification} from "./graph/lens-service";
+import type {User} from "./lib/user";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
 const NOTIFICATIONS_QUERY_LIMIT = 50;
 
-const client = new GraphQLClient(LENS_API, {fetch});
+const client = new GraphQLClient(LENS_API, {fetch, cache: "no-cache"});
 
 const clearAlarm = () => chrome.alarms.clear(ALARM_ID);
 
@@ -36,12 +37,13 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     }
     if (!accessToken) return undefined;
 
-    const storage = await chrome.storage.local.get('profileId');
-    if (!storage.profileId) return undefined;
+    const storage = await chrome.storage.local.get('currentUser');
+    if (!storage.currentUser) return undefined;
+    const user: User = storage.currentUser;
 
     const data  = await client.request(
         NotificationsDoc,
-        {request: {profileId: storage.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}},
+        {request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}},
         {'x-access-token': `Bearer ${accessToken}`}
     );
 
@@ -55,9 +57,8 @@ const onAlarmTriggered = async () => {
     if (!notifications) return;
     console.log('onAlarmTriggered: notifications', notifications);
 
-    const address = await chrome.storage.local.get('address');
-    const storage = await chrome.storage.sync.get('notificationsTimestamp');
-    const lastUpdateDate = storage.notificationsTimestamp ? DateTime.fromISO(storage.notificationsTimestamp) : null;
+    const syncStorage = await chrome.storage.sync.get('notificationsTimestamp');
+    const lastUpdateDate = syncStorage.notificationsTimestamp ? DateTime.fromISO(syncStorage.notificationsTimestamp) : null;
 
     let newNotifications;
     if (lastUpdateDate) {
@@ -73,6 +74,8 @@ const onAlarmTriggered = async () => {
     }
 
     const lengthStr = newNotifications.length === NOTIFICATIONS_QUERY_LIMIT ? '49+' : `${newNotifications.length}`;
+    const localStorage = await chrome.storage.local.get('currentUser');
+    const currentUser: User = localStorage.currentUser;
 
     chrome.notifications.create(
         NOTIFICATION_ID,
@@ -80,9 +83,9 @@ const onAlarmTriggered = async () => {
             type: 'basic',
             requireInteraction: true,
             title: `${lengthStr} new notifications`,
-            message: 'Click to see your Lens notifications',
+            message: `@${currentUser.handle}`,
             contextMessage: 'Focalize',
-            iconUrl: 'https://cdn.stamp.fyi/avatar/' + address
+            iconUrl: currentUser.avatarUrl
         }
     );
 };

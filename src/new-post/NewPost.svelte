@@ -204,6 +204,8 @@
     };
 
     const buildMetadata = (): PublicationMetadataV2Input => {
+        if (!$currentUser) throw "No user found";
+
         const content = getContent();
 
         if (!isMediaPostType) {
@@ -289,6 +291,8 @@
     };
 
     const onSubmitClick = async () => {
+        if (!$currentUser) throw "No user found";
+
         isSubmittingPost = true;
 
         try {
@@ -421,6 +425,8 @@
     };
 
     const onUseDispatcherSelected = () => {
+        if (!$currentUser) throw "No user found";
+
         if (!$currentUser.canUseRelay) {
             enableDispatcherDialog.showModal();
         }
