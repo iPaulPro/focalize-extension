@@ -1,7 +1,7 @@
 <script lang="ts">
 
-    import {clearUser} from "../lib/store/user";
-    import {clearPostState} from "../lib/store/state";
+    import {clearUser} from "../lib/store/user-store";
+    import {clearPostState} from "../lib/store/state-store";
     import {logOut} from "../lib/lens-auth";
 
     const onConfirm = async () => {

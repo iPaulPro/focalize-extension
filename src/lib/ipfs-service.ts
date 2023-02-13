@@ -4,7 +4,7 @@ import axios from "axios";
 
 // const web3Storage = new Web3Storage({token: import.meta.env.VITE_WEB3_STORAGE_TOKEN});
 
-const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_PROJECT_ID}:${import.meta.env.VITE_INFURA_PROJECT_SECRET}`
+const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_IPFS_PROJECT_ID}:${import.meta.env.VITE_INFURA_PROJECT_SECRET}`
 
 // export const uploadFile = async (file): Promise<CIDString> =>
 //     await web3Storage.put(

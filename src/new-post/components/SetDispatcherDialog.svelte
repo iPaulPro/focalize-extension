@@ -2,7 +2,7 @@
     import {createEventDispatcher} from "svelte";
     import toast from 'svelte-french-toast';
 
-    import {profile} from "../../lib/store/user";
+    import {currentUser} from "../../lib/store/user-store";
     import {setDispatcher} from "../../lib/lens-profile";
 
     const dispatch = createEventDispatcher();
@@ -15,16 +15,12 @@
 
         try {
             const txHash = await setDispatcher({
-                profileId: $profile.id,
+                profileId: $currentUser.profileId,
                 dispatcher: import.meta.env.VITE_LENS_DISPATCHER_ADDRESS,
             });
 
             if (txHash) {
-                $profile.dispatcher = {
-                    address: import.meta.env.VITE_LENS_DISPATCHER_ADDRESS,
-                    canUseRelay: true
-                };
-
+                $currentUser.canUseRelay = true;
                 success = true;
                 toast.success('Dispatcher set!');
                 dispatch('success');

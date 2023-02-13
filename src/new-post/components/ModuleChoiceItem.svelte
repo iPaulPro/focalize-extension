@@ -9,7 +9,7 @@
     import IconCollectPaid from '../../assets/ic_collect_paid.svg'
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
     import IconSettings from '../../assets/ic_settings.svg'
-    import {compactMode} from "../../lib/store/preferences";
+    import {compactMode} from "../../lib/store/preferences-store";
 
     export let item = undefined;
 </script>

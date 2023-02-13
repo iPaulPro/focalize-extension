@@ -2,17 +2,12 @@ import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import {address} from './store/user';
-import {AsyncProfiles} from "../graph/lens-service";
-import type {Profile, ProfileQueryRequest} from "../graph/lens-service";
-
 export const authenticate = async () => {
     const {getSigner} = await import('./ethers-service');
     const signer = getSigner();
     const address = await signer.getAddress();
 
     if (!address) throw 'No address found';
-
     console.log('authenticate: Authenticating with address', address);
 
     // Getting the challenge from the server
@@ -157,34 +152,4 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
 
 export const logOut = async () => {
     await chrome.storage.local.clear();
-};
-
-/**
- * Gets the default profile of the address supplied by the Provider.
- *
- * This first triggers a request to get accounts if access is not already granted.
- */
-export const getDefaultProfile = async () => {
-    const {init} = await import('./ethers-service');
-    const account = await init();
-    console.log('getDefaultProfile: Got account from provider', account);
-
-    address.set(account);
-
-    const accessToken = await getAccessToken();
-    if (!accessToken) {
-        throw 'Account is not authenticated';
-    }
-
-    const profile = await Lens.defaultProfile(account);
-
-    // @ts-ignore
-    return Promise.resolve(profile.data.defaultProfile);
-};
-
-export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
-    const request: ProfileQueryRequest = {ownedBy: [ownedBy]};
-    const res = await AsyncProfiles({variables: {request}});
-    if (res.error) return Promise.reject(res.error);
-    return res.data.profiles.items as Profile[];
 };

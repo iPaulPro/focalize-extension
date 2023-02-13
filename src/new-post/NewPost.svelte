@@ -1,13 +1,13 @@
 <script lang="ts">
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
-    import {getDefaultProfile} from '../lib/lens-auth';
+    import {getDefaultProfile} from '../lib/lens-profile';
 
-    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules.js';
+    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
         COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
         getCollectModuleParams,
-    } from '../lib/lens-modules.js';
+    } from '../lib/lens-modules';
 
     import {
         createAudioAttributes,
@@ -19,7 +19,7 @@
         getNodeUrlForPublication,
         getUrlsFromText,
         submitPost,
-    } from '../lib/lens-post.js';
+    } from '../lib/lens-post';
 
     import {
         article,
@@ -31,8 +31,8 @@
         description,
         gifAttachment,
         title
-    } from '../lib/store/state';
-    import {profile} from "../lib/store/user";
+    } from '../lib/store/state-store';
+    import {currentUser} from "../lib/store/user-store";
     import {
         compactMode,
         darkMode,
@@ -40,7 +40,7 @@
         showLocales,
         useDispatcher,
         welcomeShown
-    } from "../lib/store/preferences";
+    } from "../lib/store/preferences-store";
 
     import type {
         MetadataAttributeInput,
@@ -64,13 +64,14 @@
     import tooltip from "svelte-ktippy"
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import {afterUpdate, onMount, tick} from 'svelte';
+    import {afterUpdate, beforeUpdate, onMount, tick} from 'svelte';
     import {push, replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import {useRelay} from "../lib/store/preferences";
+    import {useRelay} from "../lib/store/preferences-store";
+    import {getCurrentUser} from "../lib/user";
 
     /**
      * Bound to the tag component
@@ -214,7 +215,7 @@
             }
 
             return generateTextPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 content,
                 postType,
                 getTags(),
@@ -241,7 +242,7 @@
 
         if ($attachment?.type.startsWith('image/') || $gifAttachment) {
             return generateImagePostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 content,
@@ -253,7 +254,7 @@
             const attributes = createVideoAttributes();
 
             return generateVideoPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 `ipfs://${$cover.cid}`,
@@ -271,7 +272,7 @@
             }
 
             return generateAudioPostMetadata(
-                $profile.handle,
+                $currentUser.handle,
                 mediaMetadata,
                 $title,
                 `ipfs://${$cover.cid}`,
@@ -302,7 +303,7 @@
             metadata.locale = locale.value ?? navigator.languages[0];
 
             const publicationId = await submitPost(
-                $profile,
+                $currentUser,
                 metadata,
                 referenceModuleParams,
                 collectModuleParams,
@@ -310,7 +311,7 @@
                 $useRelay
             );
 
-            postId = `${$profile.id}-${publicationId}`;
+            postId = `${$currentUser.profileId}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
 
             clearPostState()
@@ -420,13 +421,13 @@
     };
 
     const onUseDispatcherSelected = () => {
-        if (!$profile.dispatcher?.canUseRelay) {
+        if (!$currentUser.canUseRelay) {
             enableDispatcherDialog.showModal();
         }
     };
 
     $: {
-        if ($profile === null) {
+        if ($currentUser === null) {
             replace('/src/').catch(console.error);
         }
     }
@@ -453,18 +454,22 @@
     $: $compactMode, updateWindowHeight().catch();
 
     onMount(async () => {
-        try {
-            if (!$profile) {
-                const defaultProfile = await getDefaultProfile();
-                profile.set(defaultProfile);
-            }
-        } catch (e) {
-            await replace('/src/');
-            return;
-        }
+        if (!$currentUser) {
+            try {
+                const {user, error} = await getCurrentUser();
+                if (error !== undefined) {
+                    await replace('/src/');
+                    return;
+                }
 
-        if (!$profile.dispatcher?.canUseRelay && !$dispatcherDialogShown) {
-            enableDispatcherDialog.showModal();
+                $currentUser = user;
+
+                if (!user?.canUseRelay && !$dispatcherDialogShown) {
+                    enableDispatcherDialog.showModal();
+                }
+            } catch (e) {
+                await replace('/src/');
+            }
         }
 
         parseSearchParams();

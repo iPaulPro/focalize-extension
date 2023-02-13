@@ -4,7 +4,6 @@ import {DateTime} from 'luxon';
 import {LENS_API} from "./config";
 
 import {NotificationsDoc} from "./graph/lens-service";
-import {notificationsTimestamp} from "./lib/store/preferences";
 import {getOrRefreshAccessToken} from "./lib/lens-auth";
 
 import type {Notification} from "./graph/lens-service";

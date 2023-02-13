@@ -1,6 +1,6 @@
 import {writable} from "svelte/store";
 import type {Writable} from 'svelte/store';
-import type {Profile} from "../../graph/lens-service";
+import type {User} from "../user";
 
 /**
  * The connected public address
@@ -12,14 +12,15 @@ address.subscribe((address: string) => {
 });
 
 /**
- * The authenticated Lens Profile
+ * The authenticated Lens user
  */
-export const profile: any | Writable<Profile | undefined> = writable();
+export const currentUser: any | Writable<User> = writable();
 
-profile.subscribe((p: Profile) => {
-    chrome.storage.local.set({profileId: p?.id}).catch(console.error);
+currentUser.subscribe((user: User) => {
+    if (!user) return;
+    chrome.storage.local.set({profileId: user.profileId}).catch(console.error);
 });
 
 export const clearUser = () => {
-    profile.set(undefined);
-};
+    currentUser.set(null);
+}

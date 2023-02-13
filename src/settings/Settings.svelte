@@ -2,15 +2,13 @@
     import focalizeLogo from '../assets/focalize-logo-large.svg';
     import lensLogo from '../assets/lens-logo-small.svg';
 
-    import createMetaMaskProvider from "metamask-extension-provider";
-    import {ethers} from "ethers";
-
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {authenticate, getDefaultProfile} from "../lib/lens-auth";
-    import {profile} from "../lib/store/user";
+    import {authenticate} from "../lib/lens-auth";
+    import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
+    import {currentUser} from "../lib/store/user-store";
     import {ensureCorrectChain} from "../lib/ethers-service";
-    import {welcomeShown} from "../lib/store/preferences";
+    import {welcomeShown} from "../lib/store/preferences-store";
 
     import InlineSVG from 'svelte-inline-svg';
 
@@ -18,19 +16,49 @@
     import Welcome from './components/Welcome.svelte'
     import Preferences from "./components/Preferences.svelte";
 
-    const inPageProvider = createMetaMaskProvider();
-    const provider = new ethers.providers.Web3Provider(inPageProvider)
-
     let loading = true;
+    let noProfileDialog: HTMLDialogElement;
+
+    const onUserError = (userError: UserError) => {
+        switch (userError) {
+            case UserError.WALLET_NOT_CONNECTED:
+                // TODO show connect wallet button
+                toast.error('Unable to connect to wallet');
+                break;
+            case UserError.NO_PROFILE:
+                noProfileDialog?.showModal();
+                break;
+            case UserError.UNKNOWN:
+                // TODO show unrecoverable error
+                break;
+        }
+    };
+
+    const ensureUser = async () => {
+        if ($currentUser) return;
+
+        const {user, error} = await getCurrentUser()
+
+        if (error !== undefined) {
+            onUserError(error);
+            return;
+        }
+
+        $currentUser = user;
+    };
 
     const onSignInClick = async () => {
+        if (!$currentUser) {
+            await ensureUser();
+        }
+
         try {
             await ensureCorrectChain();
 
             const authenticatedProfile = await authenticate();
-            profile.set(authenticatedProfile);
+            $currentUser = userFromProfile(authenticatedProfile);
 
-            console.log('Authenticated profile', $profile.id);
+            console.log('Authenticated user', $currentUser);
             await chrome.runtime.sendMessage({setAlarm: true});
         } catch (e) {
             console.error(e);
@@ -38,23 +66,12 @@
         }
     };
 
-    const checkForProfile = async () => {
+    onMount(async () => {
         try {
-            if (!$profile) {
-                const defaultProfile = await getDefaultProfile();
-                profile.set(defaultProfile);
-            }
-            console.log('Got profile', $profile);
-        } catch (e) {
-            console.log('Login required');
-            // Expected if the user has not authenticated
+            await ensureUser();
         } finally {
             loading = false;
         }
-    }
-
-    onMount(async () => {
-        await checkForProfile();
     });
 </script>
 
@@ -70,7 +87,7 @@
 
 {:else}
 
-  {#if $profile}
+  {#if $currentUser}
 
     {#if $welcomeShown}
       <Preferences />
@@ -109,6 +126,13 @@
 {/if}
 
 <Toaster />
+
+<dialog bind:this={noProfileDialog}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <div>
+    A Lens profile is required for using Focalize.
+  </div>
+</dialog>
 
 <style global>
   /* :not(:required) hides this rule from IE9 and below */

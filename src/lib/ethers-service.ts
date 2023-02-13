@@ -1,15 +1,77 @@
-import createMetaMaskProvider from "metamask-extension-provider";
-import { hexValue } from 'ethers/lib/utils';
+import {createExternalExtensionProvider} from '@metamask/providers';
+import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
-import { Web3Provider } from '@ethersproject/providers';
-import type { JsonRpcSigner } from '@ethersproject/providers';
+import type {JsonRpcSigner} from '@ethersproject/providers';
+import {Web3Provider} from '@ethersproject/providers';
 import type {TypedDataDomain, TypedDataField} from "ethers";
-import type BaseProvider from "@metamask/inpage-provider/dist/BaseProvider";
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
+import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
+import MetaMaskLogo from '../assets/metamask.svg';
+import MetaMaskInPageProvider from "../providers/connectors";
+import ethProvider from "eth-provider";
 
-const inPageProvider = createMetaMaskProvider();
-const provider: Web3Provider = new Web3Provider(inPageProvider as BaseProvider, "any");
+let provider: Web3Provider;
 
 const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
+
+const networkMap = {
+    POLYGON_MAINNET: {
+        chainId: hexValue(137), // '0x89'
+        chainName: "Polygon Mainnet",
+        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+        rpcUrls: ["https://polygon-rpc.com"],
+        blockExplorerUrls: ["https://www.polygonscan.com/"],
+    },
+    MUMBAI_TESTNET: {
+        chainId: hexValue(80001), // '0x13881'
+        chainName: "Polygon Mumbai Testnet",
+        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
+        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
+        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+    },
+};
+
+const web3ModalProviderOptions = {
+    // MetaMask provider is not injected into Extension pages, so add the in-page provider as a custom web3modal provider
+    "custom-metamask": {
+        display: {
+            logo: MetaMaskLogo,
+            name: "MetaMask",
+            description: "Connect to your MetaMask account"
+        },
+        package: MetaMaskInPageProvider,
+        connector: async () => createExternalExtensionProvider()
+    },
+    walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
+            rpc: {
+                137: "https://polygon-mainnet.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
+                80001: "https://polygon-mumbai.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
+            },
+            network: CHAIN_ID === 80001 ? 'mumbai' : 'matic'
+        }
+    },
+    coinbasewallet: {
+        package: CoinbaseWalletSDK,
+        options: {
+            appName: "Focalize",
+            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
+            chainId: import.meta.env.VITE_CHAIN_ID
+        }
+    },
+    frame: {
+        package: ethProvider // required
+    }
+};
+
+const web3Modal = new Web3Modal({
+    cacheProvider: true,
+    providerOptions: web3ModalProviderOptions,
+    disableInjectedProvider: false,
+});
 
 function normalizeChainId(chainId: string | number | bigint) {
     if (typeof chainId === 'string')
@@ -32,23 +94,6 @@ export const getAddressFromSigner = (): Promise<string> => {
 export const getChainId = async (): Promise<number> => {
     return provider.send('eth_chainId', []).then(normalizeChainId);
 }
-
-const networkMap = {
-    POLYGON_MAINNET: {
-        chainId: hexValue(137), // '0x89'
-        chainName: "Polygon Mainnet",
-        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-        rpcUrls: ["https://polygon-rpc.com"],
-        blockExplorerUrls: ["https://www.polygonscan.com/"],
-    },
-    MUMBAI_TESTNET: {
-        chainId: hexValue(80001), // '0x13881'
-        chainName: "Polygon Mumbai Testnet",
-        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
-        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
-        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
-    },
-};
 
 export const switchChains = async (chainId: number) => {
     const id: string = hexValue(chainId);
@@ -79,9 +124,32 @@ export const ensureCorrectChain = async () => {
     }
 }
 
-export const init = async() => {
+const getProviderFromWeb3Modal = async (): Promise<Web3Provider> => {
+    const instance = await web3Modal.connect();
+    return new Web3Provider(instance, "any");
+};
+
+export const getAccounts = async (): Promise<string[]> => {
+    if (!provider) throw ('Provider is null. You must call init() first');
+    return await provider.listAccounts();
+}
+
+const getAccountsFromMetaMask = (): Promise<string[]> => new Promise(async (resolve, reject) => {
+    const inPageProvider = createExternalExtensionProvider();
+    inPageProvider.on('error', (error) => {
+        reject(error);
+    });
+
+    provider = new Web3Provider(inPageProvider, "any");
     const accounts = await provider.send('eth_requestAccounts', []);
-    return accounts[0];
+    resolve(accounts);
+});
+
+export const initEthers = async(): Promise<any[]> => {
+    if (!provider) {
+        provider = await getProviderFromWeb3Modal();
+    }
+    return await provider.listAccounts();
 }
 
 export const signTypedData = (
@@ -98,8 +166,3 @@ export const signTypedData = (
         omitDeep(value, ['__typename'])
     );
 }
-
-provider.on('error', (error) => {
-    // TODO Failed to connect to MetaMask, fallback logic
-    console.error(error);
-});

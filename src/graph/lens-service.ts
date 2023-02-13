@@ -642,16 +642,6 @@ export type CreatePostEip712TypedDataValue = {
   referenceModuleInitData: Scalars['ReferenceModuleData'];
 };
 
-export type CreateProfileRequest = {
-  /** The follow module */
-  followModule?: InputMaybe<FollowModuleParams>;
-  /** The follow NFT URI is the NFT metadata your followers will mint when they follow you. This can be updated at all times. If you do not pass in anything it will create a super cool changing NFT which will show the last publication of your profile as the NFT which looks awesome! This means people do not have to worry about writing this logic but still have the ability to customise it for their followers */
-  followNFTURI?: InputMaybe<Scalars['Url']>;
-  handle: Scalars['CreateHandle'];
-  /** The profile picture uri */
-  profilePictureUri?: InputMaybe<Scalars['Url']>;
-};
-
 export type CreatePublicCommentRequest = {
   /** The collect module */
   collectModule: CollectModuleParams;
@@ -1889,7 +1879,6 @@ export type Mutation = {
   createMirrorViaDispatcher: RelayResult;
   createPostTypedData: CreatePostBroadcastItemResult;
   createPostViaDispatcher: RelayResult;
-  createProfile: RelayResult;
   createSetDefaultProfileTypedData: SetDefaultProfileBroadcastItemResult;
   createSetDispatcherTypedData: CreateSetDispatcherBroadcastItemResult;
   createSetFollowModuleTypedData: CreateSetFollowModuleBroadcastItemResult;
@@ -1995,11 +1984,6 @@ export type MutationCreatePostTypedDataArgs = {
 
 export type MutationCreatePostViaDispatcherArgs = {
   request: CreatePublicPostRequest;
-};
-
-
-export type MutationCreateProfileArgs = {
-  request: CreateProfileRequest;
 };
 
 
@@ -2294,7 +2278,6 @@ export type NotificationRequest = {
   cursor?: InputMaybe<Scalars['Cursor']>;
   customFilters?: InputMaybe<Array<CustomFiltersTypes>>;
   limit?: InputMaybe<Scalars['LimitScalar']>;
-  metadata?: InputMaybe<PublicationMetadataFilters>;
   /** The profile id */
   notificationTypes?: InputMaybe<Array<NotificationTypes>>;
   /** The profile id */
@@ -2412,7 +2395,10 @@ export type PaginatedResultInfo = {
   next?: Maybe<Scalars['Cursor']>;
   /** Cursor to query the actual results */
   prev?: Maybe<Scalars['Cursor']>;
-  /** The total number of entities the pagination iterates over. If its null then its not been worked out due to it being an expensive query and not really needed for the client. All main counters are in counter tables to allow them to be faster fetching. */
+  /**
+   * The total number of entities the pagination iterates over. If its null then its not been worked out due to it being an expensive query and not really needed for the client. All main counters are in counter tables to allow them to be faster fetching.
+   * @deprecated Total counts is expensive and in dynamic nature of queries it slows stuff down. Most the time you do not need this you can just use the `next` property to see if there is more data. This will be removed soon. The only use case anyone is using this right now is on notification query, this should be changed to query the notifications and cache the last notification id. You can then keep checking if the id changes you know more notifications.
+   */
   totalCount?: Maybe<Scalars['Int']>;
 };
 

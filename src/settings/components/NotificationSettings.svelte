@@ -1,9 +1,9 @@
 <script lang="ts">
     import Select from 'svelte-select';
 
-    import {darkMode, notificationsEnabled, notificationsRefreshInterval,} from "../../lib/store/preferences";
-    import type {RefreshInterval} from '../../lib/store/preferences'
-    import {nodeNotifications} from "../../lib/store/preferences";
+    import {darkMode, notificationsEnabled, notificationsRefreshInterval,} from "../../lib/store/preferences-store";
+    import type {RefreshInterval} from '../../lib/store/preferences-store'
+    import {nodeNotifications} from "../../lib/store/preferences-store";
 
     import LensNodeSelect from "./LensNodeSelect.svelte";
 

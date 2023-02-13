@@ -1,9 +1,9 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
     import { setContext } from 'svelte';
-    import {darkMode, useDispatcher, dispatcherDialogShown} from '../../lib/store/preferences';
+    import {darkMode, useDispatcher, dispatcherDialogShown} from '../../lib/store/preferences-store';
     import SetDispatcherDialog from "../../new-post/components/SetDispatcherDialog.svelte";
-    import {profile} from "../../lib/store/user";
+    import {currentUser} from "../../lib/store/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";
     import Sidebar from "./Sidebar.svelte";
     import NotificationSettings from "./NotificationSettings.svelte";
@@ -16,7 +16,7 @@
 
     $: {
         if ($useDispatcher) {
-            if (!$profile.dispatcher?.canUseRelay) {
+            if (!$currentUser?.canUseRelay) {
                 enableDispatcherDialog?.showModal();
             }
         }

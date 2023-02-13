@@ -3847,69 +3847,6 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "CreateProfileRequest",
-        "description": null,
-        "fields": null,
-        "inputFields": [
-          {
-            "name": "followModule",
-            "description": "The follow module",
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "FollowModuleParams",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "followNFTURI",
-            "description": "The follow NFT URI is the NFT metadata your followers will mint when they follow you. This can be updated at all times. If you do not pass in anything it will create a super cool changing NFT which will show the last publication of your profile as the NFT which looks awesome! This means people do not have to worry about writing this logic but still have the ability to customise it for their followers",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Url",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "handle",
-            "description": null,
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "CreateHandle",
-                "ofType": null
-              }
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "profilePictureUri",
-            "description": "The profile picture uri",
-            "type": {
-              "kind": "SCALAR",
-              "name": "Url",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "interfaces": null,
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
-        "kind": "INPUT_OBJECT",
         "name": "CreatePublicCommentRequest",
         "description": null,
         "fields": null,
@@ -12674,39 +12611,6 @@
             "deprecationReason": null
           },
           {
-            "name": "createProfile",
-            "description": null,
-            "args": [
-              {
-                "name": "request",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "CreateProfileRequest",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "UNION",
-                "name": "RelayResult",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "createSetDefaultProfileTypedData",
             "description": null,
             "args": [
@@ -14886,18 +14790,6 @@
             "deprecationReason": null
           },
           {
-            "name": "metadata",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "PublicationMetadataFilters",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "notificationTypes",
             "description": "The profile id",
             "type": {
@@ -15665,8 +15557,8 @@
               "name": "Int",
               "ofType": null
             },
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "Total counts is expensive and in dynamic nature of queries it slows stuff down. Most the time you do not need this you can just use the `next` property to see if there is more data. This will be removed soon. The only use case anyone is using this right now is on notification query, this should be changed to query the notifications and cache the last notification id. You can then keep checking if the id changes you know more notifications."
           }
         ],
         "inputFields": null,

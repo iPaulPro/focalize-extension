@@ -1,14 +1,8 @@
 <script lang="ts">
     import {
-        compactMode,
-        darkMode,
-        showLocales,
-        useDispatcher,
-        useRelay,
-        nodePost,
-    } from '../../lib/store/preferences';
+        compactMode, darkMode, showLocales, useDispatcher, useRelay, nodePost, nodeArticle, nodeAudio, nodeImage, nodeVideo
+    } from '../../lib/store/preferences-store';
     import LensNodeSelect from "./LensNodeSelect.svelte";
-    import {nodeArticle, nodeAudio, nodeImage, nodeVideo} from "../../lib/store/preferences.js";
 </script>
 
 <div class="h-screen px-4 pb-24 pt-6 overflow-auto md:px-8">
@@ -188,7 +182,7 @@
                 Short-form posts and links
               </div>
             </div>
-            <LensNodeSelect preference={nodePost} />
+            <LensNodeSelect preference={nodePost}/>
           </div>
 
           <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
@@ -200,7 +194,7 @@
                 Posts containing image attachments
               </div>
             </div>
-            <LensNodeSelect preference={nodeImage} />
+            <LensNodeSelect preference={nodeImage}/>
           </div>
 
           <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
@@ -212,7 +206,7 @@
                 Posts containing video attachments
               </div>
             </div>
-            <LensNodeSelect preference={nodeVideo} />
+            <LensNodeSelect preference={nodeVideo}/>
           </div>
 
           <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
@@ -224,7 +218,7 @@
                 Posts containing audio attachments
               </div>
             </div>
-            <LensNodeSelect preference={nodeAudio} />
+            <LensNodeSelect preference={nodeAudio}/>
           </div>
 
           <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
@@ -236,7 +230,7 @@
                 Long-form posts
               </div>
             </div>
-            <LensNodeSelect preference={nodeArticle} />
+            <LensNodeSelect preference={nodeArticle}/>
           </div>
         </div>
 

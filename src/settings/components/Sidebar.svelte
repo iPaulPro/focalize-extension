@@ -3,7 +3,7 @@
     import tippy from "sveltejs-tippy";
     import InlineSVG from "svelte-inline-svg";
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
-    import {releaseDismissed} from '../../lib/store/preferences';
+    import {releaseDismissed} from '../../lib/store/preferences-store';
     import {getLatestRelease} from "../../lib/github-api";
     import {createEventDispatcher, getContext} from "svelte";
 

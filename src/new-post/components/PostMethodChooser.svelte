@@ -1,6 +1,6 @@
 <script lang="ts">
     import {createEventDispatcher} from "svelte";
-    import {useDispatcher, useRelay} from '../../lib/store/preferences';
+    import {useDispatcher, useRelay} from '../../lib/store/preferences-store';
 
     export let anchorNode;
 

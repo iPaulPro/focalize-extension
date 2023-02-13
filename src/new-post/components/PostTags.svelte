@@ -1,7 +1,7 @@
 <script lang="ts">
 
     import {afterUpdate} from "svelte";
-    import {compactMode} from "../../lib/store/preferences";
+    import {compactMode} from "../../lib/store/preferences-store";
 
     let tags: string[] = [];
 

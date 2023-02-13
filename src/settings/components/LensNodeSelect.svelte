@@ -1,7 +1,7 @@
 <script lang="ts">
     import Select from "svelte-select";
     import {LENS_NODES} from "../../lib/lens-nodes";
-    import {darkMode} from "../../lib/store/preferences";
+    import {darkMode} from "../../lib/store/preferences-store";
     import NodeSelectionItem from "./NodeSelectionItem.svelte";
     import NodeChoiceItem from "./NodeChoiceItem.svelte";
     import type {LensNode} from "../../lib/lens-nodes";
