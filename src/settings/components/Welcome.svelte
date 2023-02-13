@@ -3,7 +3,7 @@
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '../../assets/focalize.svg';
     import focalizeLogoName from '../../assets/focalize-logo-name.svg';
-    import welcomeImage from '../../assets/welcome.svg';
+    import welcomeImage from '../../assets/welcome.webp';
     import {link} from 'svelte-spa-router'
 
     import {darkMode} from '../../lib/store/preferences-store';
@@ -46,7 +46,7 @@
                       Quick share
                     </h5>
                     <p class="mt-2 text-base leading-6 text-gray-500 dark:text-gray-300">
-                      Sharing what you're looking at has never been easier. Click on the
+                      Click on
                       <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-6 h-6 inline"/>
                       in the toolbar to share a link to your current tab.
                     </p>
@@ -70,7 +70,7 @@
                       Media and NFTs
                     </h5>
                     <p class="mt-2 text-base leading-6 text-gray-500 dark:text-gray-300">
-                      Easily upload photos and videos to IPFS and Filecoin to share on Lens. Turn posts into a Polygon NFT in a few clicks.
+                      Easily upload photos and videos to IPFS to share on Lens. Turn posts into Polygon NFTs in a few clicks.
                     </p>
                   </div>
                 </div>
@@ -114,8 +114,8 @@
 
           </div>
 
-          <div class="mt-10 ml-6 relative lg:mt-24 lg:col-start-2">
-            <InlineSVG src={welcomeImage} alt="Illustration of woman juggling clipboards"
+          <div class="mt-10 ml-2 relative lg:mt-24 lg:col-start-2">
+            <img src={welcomeImage} alt="Illustration of woman juggling clipboards"
                        class="relative mx-auto w-auto focus:outline-0"/>
           </div>
 
