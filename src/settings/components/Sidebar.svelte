@@ -36,7 +36,9 @@
             event: 'shareFeedbackClick',
             icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>'
         },
-    ]
+    ];
+
+    const getVersionName = () => chrome.runtime.getManifest().version_name;
 
     const onShareFeedbackClick = () => {
         window.open('https://github.com/FocalizeApp/focalize-extension/issues', '_blank');
@@ -146,9 +148,9 @@
       <div
           class="flex items-center justify-between px-4 py-2 border-t border-t-gray-200 dark:border-t-gray-700 text-gray-500 dark:text-neutral-300">
         <a class="text-sm"
-           href="https://github.com/FocalizeApp/focalize-extension/releases/tag/{'v' + chrome.runtime.getManifest().version_name}"
+           href="https://github.com/FocalizeApp/focalize-extension/releases/tag/{'v' + getVersionName()}"
            target="_blank" rel="noreferrer">
-          v{chrome.runtime.getManifest().version_name}
+          v{getVersionName()}
         </a>
 
         <div class="flex gap-2 items-center">

@@ -4,7 +4,7 @@ import {crx} from '@crxjs/vite-plugin'
 // @ts-ignore WebStorm reads tsconfig.node.json and incorrectly marks this as an error
 import manifest from './manifest.json'
 
-import nodePolyfills from 'rollup-plugin-polyfill-node';
+import nodePolyfills from "rollup-plugin-node-polyfills";
 
 export default defineConfig({
     build: {
@@ -16,9 +16,9 @@ export default defineConfig({
                 nodePolyfills()
             ]
         },
-        build: {
-            target: 'esnext'
-        }
+        commonjsOptions: {
+            transformMixedEsModules: true
+        },
     },
     plugins: [
         svelte(),

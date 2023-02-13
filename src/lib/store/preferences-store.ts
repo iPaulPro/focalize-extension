@@ -1,5 +1,5 @@
 // @ts-ignore
-import {chromeStorageSync} from "../chrome-storage-store";
+import {chromeStorageSync} from "./chrome-storage-store";
 import type {Writable} from "svelte/store";
 import type {LensNode} from "../lens-nodes";
 

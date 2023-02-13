@@ -5,7 +5,7 @@ export type LensNode = {
     baseUrl: string,
     path: string,
     hexIdentifier: boolean,
-    notifications?: string,
+    notifications: string | null,
     focus: string[],
 };
 
