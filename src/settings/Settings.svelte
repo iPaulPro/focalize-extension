@@ -105,13 +105,11 @@
 
           <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="w-24 h-24" />
 
-          <h1 class="mt-24">Welcome to Focalize!</h1>
-
           <button type="button" on:click={onSignInClick}
-                  class="py-0 pr-6 pl-3 flex justify-center items-center bg-orange-500 hover:bg-orange-600
+                  class="mt-24 py-0 pr-6 pl-3 flex justify-center items-center bg-orange-500 hover:bg-orange-600
                   focus:ring-orange-400 focus:ring-offset-orange-200 text-white transition ease-in duration-200
-                  text-center text-base font-medium shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2
-                  rounded-lg">
+                  text-center text-base font-medium shadow-md hover:shadow-lg focus:outline-none focus:ring-2
+                  focus:ring-offset-2 rounded-full hover:-translate-y-0.5">
             <InlineSVG src={lensLogo} alt="Lens Logo" class="w-12 h-12" />
             Sign in with Lens
           </button>

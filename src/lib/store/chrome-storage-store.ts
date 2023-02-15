@@ -90,6 +90,10 @@ export function chromeStorageManaged<T>(key: string, defaultValue?: T): ChromeSt
     return new ChromeStorageStore('managed', key)
 }
 
+export function get<T>(writable: Writable<T>): Promise<T> {
+    return (writable as ChromeStorageStore<T>).get();
+}
+
 /**
  * {@link Writable} implementation that delegates to a chrome storage area.
  * */
@@ -118,6 +122,17 @@ class ChromeStorageStore<T> implements Writable<T> {
         }
 
         this.storageArea.set({[this.key]: value})
+    }
+
+    get(): Promise<T> {
+        return new Promise((resolve, reject) => {
+            this.storageArea.get(this.key, item => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                }
+                resolve(item[this.key]);
+            })
+        })
     }
 
     subscribe(run: Subscriber<T>): Unsubscriber {

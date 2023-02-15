@@ -32,7 +32,7 @@ import {signTypedData} from "./ethers-service";
 import Autolinker, {UrlMatch} from "autolinker";
 import type {LensNode} from "./lens-nodes";
 import {nodeArticle, nodeAudio, nodeImage, nodePost, nodeVideo} from "./store/preferences-store";
-import {get} from "svelte/store";
+import {get} from "./store/chrome-storage-store";
 import type {User} from "./user";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
@@ -352,24 +352,24 @@ export const getUrlsFromText = (content: string): string[] => {
     });
 }
 
-export const getNodeUrlForPublication = (postType: PublicationMainFocus, postId: string) => {
+export const getNodeUrlForPublication = async (postType: PublicationMainFocus, postId: string) => {
     let node: LensNode;
 
     switch (postType) {
         case PublicationMainFocus.Image:
-            node = get(nodeImage);
+            node = await get(nodeImage);
             break;
         case PublicationMainFocus.Video:
-            node = get(nodeVideo);
+            node = await get(nodeVideo);
             break;
         case PublicationMainFocus.Audio:
-            node = get(nodeAudio);
+            node = await get(nodeAudio);
             break;
         case PublicationMainFocus.Article:
-            node = get(nodeArticle);
+            node = await get(nodeArticle);
             break;
         default:
-            node = get(nodePost);
+            node = await get(nodePost);
     }
 
     let id = postId;

@@ -64,8 +64,8 @@
     import tooltip from "svelte-ktippy"
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import {afterUpdate, beforeUpdate, onMount, tick} from 'svelte';
-    import {push, replace} from 'svelte-spa-router'
+    import {onMount, tick} from 'svelte';
+    import {replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
