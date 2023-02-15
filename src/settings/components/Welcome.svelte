@@ -90,7 +90,7 @@
               </div>
             </div>
           </div>
-          `
+
           <a href="/post" use:link
              class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center rounded-full
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
