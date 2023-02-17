@@ -150,6 +150,13 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
     })
 };
 
+export const isValidSession = async () => {
+    const token = await getOrRefreshAccessToken();
+    const res = await Lens.verify(token);
+    // @ts-ignore
+    return (res.data) ? res.data.verify : false;
+};
+
 export const logOut = async () => {
     await chrome.storage.local.clear();
 };

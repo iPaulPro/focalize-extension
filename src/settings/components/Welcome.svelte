@@ -7,6 +7,16 @@
     import {link} from 'svelte-spa-router'
 
     import {darkMode} from '../../lib/store/preferences-store';
+    import {logOut, isValidSession} from "../../lib/lens-auth";
+    import {onMount} from "svelte";
+
+    onMount(async () => {
+        // Ensure the session is valid
+        const validSession = await isValidSession();
+        if (!validSession) {
+            await logOut();
+        }
+    });
 </script>
 
 <div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'}">
