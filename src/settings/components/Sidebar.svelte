@@ -132,9 +132,9 @@
               </a>
             </div>
 
-            <div class="text-gray-500 dark:text-gray-400">
+            <p class="text-gray-500 dark:text-gray-400 whitespace-pre-wrap line-clamp-6">
               {release.body}
-            </div>
+            </p>
 
             <button on:click={() => $releaseDismissed = release.name}
                     class="w-fit text-orange-700 dark:text-orange-400 font-medium hover:underline pt-1 text-start">
