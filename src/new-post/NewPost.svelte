@@ -418,8 +418,8 @@
         gifSelectionDialog?.close();
     };
 
-    const onViewPostClick = () => {
-        const url = getNodeUrlForPublication(postType, postId)
+    const onViewPostClick = async () => {
+        const url = await getNodeUrlForPublication(postType, postId)
         window.open(url, '_blank');
         window.close();
     };
