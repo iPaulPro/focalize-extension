@@ -1,5 +1,5 @@
 import {initEthers} from "./ethers-service";
-import {getAvatar, getDefaultProfile} from "./lens-profile";
+import {getAvatar, getDefaultProfile, getProfiles} from "./lens-profile";
 
 import type {Profile} from "../graph/lens-service";
 import {getAccessToken} from "./lens-auth";
@@ -32,7 +32,7 @@ export const userFromProfile = (profile: Profile): User => {
 }
 
 export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}> => {
-    let address: string, accessToken: string, profile: Profile;
+    let address: string, accessToken: string, profile: Profile | undefined;
 
     // First initiate the provider and get the address
     try {
@@ -64,6 +64,18 @@ export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}
         profile = await getDefaultProfile(address);
     } catch (e) {
         console.error('getCurrentUser: unable to get default Lens profile', e)
+    }
+
+    if (!profile) {
+        try {
+            const allProfiles = await getProfiles(address);
+            profile = allProfiles[0];
+        } catch (e) {
+            console.error(`getCurrentUser: No profiles found for address ${address}`, e)
+        }
+    }
+
+    if (!profile) {
         return { error: UserError.NO_PROFILE };
     }
 

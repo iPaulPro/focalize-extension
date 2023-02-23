@@ -1,7 +1,6 @@
 <script lang="ts">
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
-    import {getDefaultProfile} from '../lib/lens-profile';
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
