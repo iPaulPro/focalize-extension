@@ -1,5 +1,5 @@
 import {initEthers} from "./ethers-service";
-import {getDefaultProfile} from "./lens-profile";
+import {getAvatar, getDefaultProfile} from "./lens-profile";
 
 import type {Profile} from "../graph/lens-service";
 import {getAccessToken} from "./lens-auth";
@@ -8,7 +8,7 @@ export type User = {
     address: string,
     profileId: string,
     handle: string,
-    avatarUrl: string,
+    avatarUrl: string | undefined,
     canUseRelay: boolean
 };
 
@@ -20,12 +20,7 @@ export enum UserError {
 }
 
 export const userFromProfile = (profile: Profile): User => {
-    let avatarUrl;
-    if (profile.picture?.__typename === "MediaSet") {
-        avatarUrl = profile.picture?.original?.url;
-    } else if (profile.picture?.__typename === "NftImage") {
-        avatarUrl = profile.picture.uri;
-    }
+    const avatarUrl = getAvatar(profile);
 
     return {
         address: profile.ownedBy,

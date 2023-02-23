@@ -89,3 +89,19 @@ export const unpin = async (cid: string): Promise<string[]> => {
 
     return res.data.Pins;
 };
+
+export const ipfsUrlToGatewayUrl = (
+    ipfsUrl: string,
+    gatewayDomain: string = 'https://ipfs.io/ipfs/'
+): string => {
+    // Extract the CID from the IPFS URL
+    const cid = ipfsUrl.replace("ipfs://", "").replace(/^\/+|\/+$/g, "");
+
+    // Build the Infura IPFS gateway URL
+    const gatewayUrl = gatewayDomain + cid;
+
+    // Add the path, if any
+    const path = ipfsUrl.split(cid)[1];
+
+    return path ? `${gatewayUrl}${path}` : gatewayUrl;
+};

@@ -9,6 +9,7 @@ import {AsyncProfiles} from "../graph/lens-service";
 import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
 import type {Profile, ProfileQueryRequest} from "../graph/lens-service";
 import type {OperationResult} from "urql";
+import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 
 /**
  * Gets the default profile of the address supplied.
@@ -97,4 +98,23 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     console.log('setDispatcher: transaction indexed');
 
     return txHash;
+}
+
+export const getAvatar = (profile: Profile) => {
+    let avatarUrl: string | undefined;
+    if (profile.picture?.__typename === "MediaSet") {
+        avatarUrl = profile.picture?.original?.url;
+    } else if (profile.picture?.__typename === "NftImage") {
+        avatarUrl = profile.picture.uri;
+    }
+
+    if (avatarUrl?.startsWith('ipfs://')) {
+        avatarUrl = ipfsUrlToGatewayUrl(avatarUrl);
+    }
+
+    if (!avatarUrl || avatarUrl.length === 0) {
+        avatarUrl = 'https://cdn.stamp.fyi/avatar/' + profile.ownedBy;
+    }
+
+    return avatarUrl;
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import {currentUser} from '../lib/store/user-store'
-    import {getProfiles} from '../lib/lens-profile'
+    import {getAvatar, getProfiles} from '../lib/lens-profile'
     import LoadingSpinner from '../new-post/components/LoadingSpinner.svelte'
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../assets/ic_avatar.svg';
@@ -65,7 +65,7 @@
               <InlineSVG src={ImageAvatar}
                          class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
             {:else}
-              <img src={p.picture?.original?.url} alt="Profile avatar" class="w-8 rounded-full object-cover"
+              <img src={getAvatar(p)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
                    on:error={() => {avatarError.push(index)}}>
             {/if}
 
