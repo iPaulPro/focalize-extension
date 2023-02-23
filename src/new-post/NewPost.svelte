@@ -70,6 +70,7 @@
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
+    import ConfirmAttachmentRemovalDialog from "./components/ConfirmAttachmentRemovalDialog.svelte";
     import {useRelay} from "../lib/store/preferences-store";
     import {getCurrentUser} from "../lib/user";
 
@@ -96,6 +97,7 @@
     let feeCollectDialog: HTMLDialogElement;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
+    let removeAttachmentDialog: HTMLDialogElement;
     let isPopupWindow = false;
     let contentDiv: HTMLElement;
 
@@ -436,6 +438,10 @@
         if ($currentUser === null) {
             replace('/src/').catch(console.error);
         }
+
+        if ($gifAttachment && $attachment) {
+            removeAttachmentDialog?.showModal();
+        }
     }
 
     const updateWindowHeight = async () => {
@@ -539,7 +545,9 @@
 
           {:else if isMediaPostType}
 
-            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
+            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
+                           on:fileSelected={(e) => setAttachment(e.detail)}
+                           on:selectGif={(e) => showGifSelectionDialog()} />
 
           {:else if postType === PublicationMainFocus.Article}
 
@@ -755,6 +763,11 @@
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+</dialog>
+
+<dialog id="removeAttachmentDialog" bind:this={removeAttachmentDialog}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+  <ConfirmAttachmentRemovalDialog on:close={removeAttachmentDialog?.close()} />
 </dialog>
 
 <Toaster />

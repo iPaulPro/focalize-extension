@@ -18,6 +18,7 @@
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";
     import InlineSVG from "svelte-inline-svg";
+    import {createEventDispatcher} from "svelte";
 
     export let disabled: boolean = false;
     export let isCollectable: boolean;
@@ -42,6 +43,8 @@
     let uploadedPct = 0;
     let useContentAsDescription = true;
     let isFileDragged = false;
+
+    const dispatch = createEventDispatcher();
 
     const processId3Tags = async (file: File) => {
         const tags = await id3.fromFile(file);
@@ -199,7 +202,9 @@
 
   {#if filePath && fileType}
 
-    <PlainTextEditor placeholder="Comment (optional)" />
+    <PlainTextEditor placeholder="Comment (optional)"
+                     on:fileSelected={(e) =>dispatch('fileSelected', e.detail)}
+                     on:selectGif={(e) =>dispatch('selectGif')}/>
 
     <div class="flex w-full justify-center bg-gray-100 dark:bg-gray-700 px-4 pt-6 pb-4 rounded-xl">
 
