@@ -380,5 +380,5 @@ export const getNodeUrlForPublication = async (postType: PublicationMainFocus, p
         id = profileId + '-' + publicationId;
     }
 
-    return node.baseUrl + node.path.replace('{$1}', id);
+    return node.baseUrl + node.path.replace('{$id}', id);
 }

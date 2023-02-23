@@ -4,8 +4,11 @@
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
-        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
+        COLLECT_ITEMS,
+        CONTENT_WARNING_ITEMS,
+        FEE_COLLECT_ITEM,
         getCollectModuleParams,
+        REFERENCE_ITEMS,
     } from '../lib/lens-modules';
 
     import {
@@ -38,6 +41,7 @@
         dispatcherDialogShown,
         showLocales,
         useDispatcher,
+        useRelay,
         welcomeShown
     } from "../lib/store/preferences-store";
 
@@ -70,7 +74,6 @@
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
     import ConfirmAttachmentRemovalDialog from "./components/ConfirmAttachmentRemovalDialog.svelte";
-    import {useRelay} from "../lib/store/preferences-store";
     import {getCurrentUser} from "../lib/user";
 
     /**
