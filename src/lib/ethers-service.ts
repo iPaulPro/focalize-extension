@@ -130,26 +130,21 @@ const getProviderFromWeb3Modal = async (): Promise<Web3Provider> => {
 };
 
 export const getAccounts = async (): Promise<string[]> => {
-    if (!provider) throw ('Provider is null. You must call init() first');
-    return await provider.listAccounts();
+    if (!provider) throw ('Provider is null. You must call initEthers() first');
+    let accounts: string[];
+    try {
+        accounts = await provider.listAccounts();
+    } catch (e) {
+        accounts = await provider.send('eth_requestAccounts', []);
+    }
+    return accounts;
 }
-
-const getAccountsFromMetaMask = (): Promise<string[]> => new Promise(async (resolve, reject) => {
-    const inPageProvider = createExternalExtensionProvider();
-    inPageProvider.on('error', (error) => {
-        reject(error);
-    });
-
-    provider = new Web3Provider(inPageProvider, "any");
-    const accounts = await provider.send('eth_requestAccounts', []);
-    resolve(accounts);
-});
 
 export const initEthers = async(): Promise<any[]> => {
     if (!provider) {
         provider = await getProviderFromWeb3Modal();
     }
-    return await provider.listAccounts();
+    return await getAccounts();
 }
 
 export const signTypedData = (
