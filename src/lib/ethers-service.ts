@@ -126,13 +126,20 @@ const getProviderFromWeb3Modal = async (): Promise<Web3Provider> => {
 };
 
 export const getAccounts = async (): Promise<string[]> => {
-    if (!provider) throw ('Provider is null. You must call initEthers() first');
-    let accounts: string[];
-    try {
-        accounts = await provider.listAccounts();
-    } catch (e) {
-        accounts = await provider.send('eth_requestAccounts', []);
+    if (!provider) {
+        provider = await getProviderFromWeb3Modal();
     }
+
+    let accounts = await provider.send('eth_requestAccounts', []);
+
+    if (!accounts || accounts.length === 0) {
+        try {
+            accounts = await provider.listAccounts();
+        } catch (e) {
+            console.error('getAccounts: Unable to get accounts from provider', e)
+        }
+    }
+
     return accounts;
 }
 
@@ -156,4 +163,8 @@ export const signTypedData = (
         omitDeep(types, ['__typename']),
         omitDeep(value, ['__typename'])
     );
+}
+
+export const clearProvider = () => {
+    web3Modal.clearCachedProvider();
 }
