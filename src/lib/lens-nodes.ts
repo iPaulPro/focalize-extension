@@ -3,7 +3,8 @@ import nodes from '../lib/store/nodes.json';
 export type LensNode = {
     name: string,
     baseUrl: string,
-    path: string,
+    posts: string,
+    profiles: string,
     hexIdentifier: boolean,
     notifications: string | null,
     focus: string[],

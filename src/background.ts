@@ -9,6 +9,7 @@ import {getOrRefreshAccessToken} from "./lib/lens-auth";
 import type {Notification, Profile, SearchProfilesQuery} from "./graph/lens-service";
 import type {User} from "./lib/user";
 import {nodeSearch} from "./lib/store/preferences-store";
+import type {LensNode} from "./lib/lens-nodes";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -247,9 +248,9 @@ const searchProfiles = async (query: string, limit: number): Promise<Profile[] |
 
 chrome.omnibox.onInputEntered.addListener(async text => {
     const storage = await chrome.storage.sync.get('nodeSearch');
-    const nodeSearch = storage.nodeSearch;
-
-    await chrome.tabs.create({url: `${nodeSearch.baseUrl}/u/${text}`});
+    const nodeSearch: LensNode = storage.nodeSearch;
+    const path = nodeSearch.profiles.replace('{$handle}', text);
+    await chrome.tabs.create({url: nodeSearch.baseUrl + path});
 });
 
 chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {

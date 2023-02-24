@@ -1,6 +1,7 @@
 <script lang="ts">
     import {
-        compactMode, darkMode, showLocales, useDispatcher, useRelay, nodePost, nodeArticle, nodeAudio, nodeImage, nodeVideo
+        compactMode, darkMode, showLocales, useDispatcher, useRelay,
+        nodePost, nodeArticle, nodeAudio, nodeImage, nodeVideo, nodeSearch
     } from '../../lib/store/preferences-store';
     import LensNodeSelect from "./LensNodeSelect.svelte";
 </script>
@@ -21,8 +22,8 @@
 
     <div class="flex flex-col md:flex-row md:gap-12">
 
-      <div class="w-full md:w-1/3">
-        <div class="flex flex-col pb-6">
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Gasless
           </div>
@@ -80,8 +81,8 @@
 
     <div class="flex flex-col md:flex-row md:gap-12 py-8">
 
-      <div class="w-full md:w-1/3">
-        <div class="flex flex-col pb-6">
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Display
           </div>
@@ -154,12 +155,30 @@
 
     </div>
 
-    <div class="w-full  border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
+    <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
 
     <div class="flex flex-col md:flex-row md:gap-12 py-8">
 
-      <div class="w-full md:w-1/3">
-        <div class="flex flex-col pb-6">
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
+          <div class="text-lg font-medium text-neutral-800 dark:text-white">
+            Omnibox Search
+          </div>
+          <div class="text-base text-neutral-400">
+            Search for Lens profiles directly from the URL bar by typing "lens" then pressing tab. Choose the app to open when selecting a user.
+          </div>
+        </div>
+      </div>
+
+      <LensNodeSelect preference={nodeSearch}/>
+    </div>
+
+    <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700"></div>
+
+    <div class="flex flex-col md:flex-row md:gap-12 py-8">
+
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Lens Apps
           </div>
@@ -169,69 +188,66 @@
         </div>
       </div>
 
-      <div class="w-full md:w-2/3 xl:w-2/3 ">
+      <div class="w-full md:w-2/3 xl:w-1/2 2xl:w-2/5 flex flex-col gap-6">
 
-        <div class="w-full xl:w-2/3 flex flex-col gap-6">
-
-          <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
-            <div class="flex flex-col">
-              <div class="text-base font-medium dark:text-white">
-                Posts
-              </div>
-              <div class="text-base text-neutral-400">
-                Short-form posts and links
-              </div>
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Posts
             </div>
-            <LensNodeSelect preference={nodePost}/>
-          </div>
-
-          <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
-            <div class="flex flex-col">
-              <div class="text-base font-medium dark:text-white">
-                Images
-              </div>
-              <div class="text-base text-neutral-400">
-                Posts containing image attachments
-              </div>
+            <div class="text-base text-neutral-400">
+              Short-form posts and links
             </div>
-            <LensNodeSelect preference={nodeImage}/>
           </div>
+          <LensNodeSelect preference={nodePost}/>
+        </div>
 
-          <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
-            <div class="flex flex-col">
-              <div class="text-base font-medium dark:text-white">
-                Videos
-              </div>
-              <div class="text-base text-neutral-400">
-                Posts containing video attachments
-              </div>
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Images
             </div>
-            <LensNodeSelect preference={nodeVideo}/>
+            <div class="text-base text-neutral-400">
+              Posts containing image attachments
+            </div>
           </div>
+          <LensNodeSelect preference={nodeImage}/>
+        </div>
 
-          <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
-            <div class="flex flex-col">
-              <div class="text-base font-medium dark:text-white">
-                Audio
-              </div>
-              <div class="text-base text-neutral-400">
-                Posts containing audio attachments
-              </div>
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Videos
             </div>
-            <LensNodeSelect preference={nodeAudio}/>
+            <div class="text-base text-neutral-400">
+              Posts containing video attachments
+            </div>
           </div>
+          <LensNodeSelect preference={nodeVideo}/>
+        </div>
 
-          <div class="w-full flex flex-col md:flex-row gap-2 justify-between">
-            <div class="flex flex-col">
-              <div class="text-base font-medium dark:text-white">
-                Articles
-              </div>
-              <div class="text-base text-neutral-400">
-                Long-form posts
-              </div>
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Audio
             </div>
-            <LensNodeSelect preference={nodeArticle}/>
+            <div class="text-base text-neutral-400">
+              Posts containing audio attachments
+            </div>
           </div>
+          <LensNodeSelect preference={nodeAudio}/>
+        </div>
+
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Articles
+            </div>
+            <div class="text-base text-neutral-400">
+              Long-form posts
+            </div>
+          </div>
+          <LensNodeSelect preference={nodeArticle}/>
         </div>
 
       </div>

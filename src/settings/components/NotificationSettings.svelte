@@ -46,8 +46,8 @@
 
     <div class="flex flex-col md:flex-row md:gap-12 pb-8">
 
-      <div class="w-full md:w-1/3">
-        <div class="flex flex-col pb-6">
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Desktop notifications
           </div>
@@ -78,7 +78,7 @@
           </div>
         </div>
 
-        <div class="w-full xl:w-4/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
+        <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
           <div class="flex flex-col pl-[4.5rem]">
             <div class="text-base font-medium dark:text-white">
               Refresh interval
@@ -101,7 +101,7 @@
           </div>
         </div>
 
-        <div class="w-full xl:w-4/5 flex flex-col md:flex-row gap-2 justify-between
+        <div class="w-full xl:w-4/5 2xl:w-3/5 flex gap-2 justify-between
              {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
           <div class="flex flex-col pl-[4.5rem]">
             <div class="text-base font-medium dark:text-white">
@@ -118,7 +118,7 @@
 
     </div>
 
-    <div class="w-full  border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
+    <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
 
   </section>
 </div>
