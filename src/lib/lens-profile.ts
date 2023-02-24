@@ -113,7 +113,7 @@ export const getAvatar = (profile: Profile) => {
     }
 
     if (!avatarUrl || avatarUrl.length === 0) {
-        avatarUrl = 'https://cdn.stamp.fyi/avatar/' + profile.ownedBy;
+        avatarUrl = `https://cdn.stamp.fyi/avatar/${profile.ownedBy}?s=96`
     }
 
     return avatarUrl;

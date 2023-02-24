@@ -53,6 +53,10 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
 const onAlarmTriggered = async () => {
     console.log(`onAlarmTriggered called`)
 
+    const localStorage = await chrome.storage.local.get('currentUser');
+    const currentUser: User = localStorage.currentUser;
+    if (!currentUser) return;
+
     const notifications = await getNotifications();
     if (!notifications) return;
     console.log('onAlarmTriggered: notifications', notifications);
@@ -74,8 +78,6 @@ const onAlarmTriggered = async () => {
     }
 
     const lengthStr = newNotifications.length === NOTIFICATIONS_QUERY_LIMIT ? '49+' : `${newNotifications.length}`;
-    const localStorage = await chrome.storage.local.get('currentUser');
-    const currentUser: User = localStorage.currentUser;
 
     chrome.notifications.create(
         NOTIFICATION_ID,
@@ -85,7 +87,7 @@ const onAlarmTriggered = async () => {
             title: `${lengthStr} new notifications`,
             message: `@${currentUser.handle}`,
             contextMessage: 'Focalize',
-            iconUrl: currentUser.avatarUrl
+            iconUrl: currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`
         }
     );
 };
