@@ -40,6 +40,8 @@ export const nodeArticle: Writable<LensNode> = chromeStorageSync('nodeArticle', 
 
 export const nodeNotifications: Writable<LensNode> = chromeStorageSync('nodeNotifications', defaultNode);
 
+export const nodeSearch: Writable<LensNode> = chromeStorageSync('nodeSearch', defaultNode);
+
 export const notificationsEnabled: Writable<boolean> = chromeStorageSync('notificationsEnabled', true);
 
 export const notificationsRefreshInterval: Writable<RefreshInterval> = chromeStorageSync('notificationsRefreshInterval', {value: 15, label: '15 min'});

@@ -2,19 +2,18 @@ import {AsyncSearchProfiles, SearchRequestTypes} from "../graph/lens-service";
 import type {Profile, SearchQueryRequest} from "../graph/lens-service";
 import type {TributeItem} from "tributejs";
 
-export const searchProfiles = (query: string, limit: number = 5) => {
+export const searchProfiles = (query: string, limit: number = 5): Promise<Profile[]> => {
     const request: SearchQueryRequest = {query, type: SearchRequestTypes.Profile, limit}
-    return AsyncSearchProfiles({variables: {request}})
+    return AsyncSearchProfiles({variables: {request}}).then(res => {
+        if (res.data.search.__typename === "ProfileSearchResult") {
+            return res.data.search.items as Profile[];
+        }
+        return [];
+    })
 }
 
-export const searchHandles = (query: string, limit: number, cb: (profiles: Profile[] | undefined) => void) => {
+export const searchHandles = (query: string, limit: number, cb: (profiles: Profile[]) => void) => {
     searchProfiles(query, limit)
-        .then(res => {
-            if (res.data.search.__typename === "ProfileSearchResult") {
-                return res.data.search.items as Profile[];
-            }
-            return undefined;
-        })
         .then(profiles => cb(profiles))
         .catch(console.error)
 }

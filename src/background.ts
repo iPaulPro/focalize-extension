@@ -3,11 +3,12 @@ import {DateTime} from 'luxon';
 
 import {LENS_API} from "./config";
 
-import {NotificationsDoc} from "./graph/lens-service";
+import {NotificationsDoc, SearchProfilesDoc, SearchRequestTypes} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lib/lens-auth";
 
-import type {Notification} from "./graph/lens-service";
+import type {Notification, Profile, SearchProfilesQuery} from "./graph/lens-service";
 import type {User} from "./lib/user";
+import {nodeSearch} from "./lib/store/preferences-store";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -228,6 +229,47 @@ chrome.action.onClicked.addListener(tab => {
         console.error(e)
         shareUrl({title, url}).catch(console.error);
     })
-})
+});
+
+
+const searchProfiles = async (query: string, limit: number): Promise<Profile[] | undefined> => {
+    const data: SearchProfilesQuery = await client.request(
+        SearchProfilesDoc,
+        {request: {query, limit, type: SearchRequestTypes.Profile}}
+    );
+
+    if (data.search.__typename === "ProfileSearchResult") {
+        return data.search.items as Profile[];
+    }
+
+    return [];
+}
+
+chrome.omnibox.onInputEntered.addListener(async text => {
+    const storage = await chrome.storage.sync.get('nodeSearch');
+    const nodeSearch = storage.nodeSearch;
+
+    await chrome.tabs.create({url: `${nodeSearch.baseUrl}/u/${text}`});
+});
+
+chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
+    const profiles = await searchProfiles(text, 10);
+    if (!profiles) {
+        suggest([]);
+        return;
+    }
+
+    const suggestions = profiles.map(profile => {
+        const regex = new RegExp(text, 'i');
+        const handle = profile.handle.replace(regex, `<match>${text}</match>`)
+
+        return {
+            content: profile.handle,
+            description: `@${handle} <dim>${profile.name}</dim>`
+        }
+    });
+
+    suggest(suggestions);
+});
 
 export {}
