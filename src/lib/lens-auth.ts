@@ -1,11 +1,19 @@
 import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
+import {getAccounts} from "./ethers-service";
 
 export const authenticate = async () => {
     const {getSigner} = await import('./ethers-service');
     const signer = getSigner();
-    const address = await signer.getAddress();
+    let address: string | undefined;
+
+    try {
+        address = await signer.getAddress();
+    } catch (e) {
+        const accounts = await getAccounts();
+        address = accounts[0];
+    }
 
     if (!address) throw 'No address found';
     console.log('authenticate: Authenticating with address', address);

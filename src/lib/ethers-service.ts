@@ -87,10 +87,6 @@ export const getSigner = (): JsonRpcSigner => {
     return provider.getSigner();
 }
 
-export const getAddressFromSigner = (): Promise<string> => {
-    return getSigner().getAddress();
-}
-
 export const getChainId = async (): Promise<number> => {
     return provider.send('eth_chainId', []).then(normalizeChainId);
 }

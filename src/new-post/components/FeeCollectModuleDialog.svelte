@@ -3,7 +3,6 @@
     import {z} from "zod";
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
-    import {getAddressFromSigner} from "../../lib/ethers-service";
     import {collectFee} from '../../lib/store/state-store'
 
     import type {
@@ -15,6 +14,7 @@
         TimedFeeCollectModuleSettings
     } from "../../graph/lens-service";
     import {CollectModules} from "../../graph/lens-service";
+    import {currentUser} from "../../lib/store/user-store";
 
     const dispatch = createEventDispatcher();
 
@@ -90,7 +90,7 @@
 
     const onSetClick = async () => {
         console.log('onSetClick', $collectFee);
-        const recipient = await getAddressFromSigner();
+        const recipient = $currentUser?.address;
 
         if (!validatePrice($collectFee.price) ||
             (hasReferralFee && !validateReferral($collectFee.referralFee)) ||
