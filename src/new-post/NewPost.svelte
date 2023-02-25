@@ -592,7 +592,7 @@
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
               <div slot="item" let:item let:index>
-                <ModuleChoiceItem item={collectFeeString && index === 2 ? feeSelectChoiceItem(item) : item} />
+                <ModuleChoiceItem item={collectFeeString && item === FEE_COLLECT_ITEM ? feeSelectChoiceItem(item) : item} />
               </div>
 
               <div slot="selection" let:selection let:index class="flex">
