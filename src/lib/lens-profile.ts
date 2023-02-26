@@ -1,37 +1,41 @@
-import {Lens} from "lens-protocol";
 import {getLensHub} from "../lens-hub";
-import {Broadcast, CreateSetDispatcherTypedData} from "../graph/lens-service";
+import {AsyncDefaultProfile, AsyncGetProfile, AsyncProfiles, Broadcast, CreateSetDispatcherTypedData} from "../graph/lens-service";
 import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
-import {AsyncProfiles} from "../graph/lens-service";
 
 import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
-import type {Profile, ProfileQueryRequest} from "../graph/lens-service";
-import type {OperationResult} from "urql";
+import type {Profile} from "../graph/lens-service";
 import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 
 /**
  * Gets the default profile of the address supplied.
  */
-export const getDefaultProfile = async (account: string): Promise<Profile> => {
-    const res = await Lens.defaultProfile(account) as OperationResult;
-    if (res.error) return Promise.reject(res.error);
-    return Promise.resolve(res.data.defaultProfile);
+export const getDefaultProfile = async (ethereumAddress: string): Promise<Profile> => {
+    const res = await AsyncDefaultProfile({variables: {request: {ethereumAddress}}})
+    if (res.error) throw res.error;
+    if (res.data?.defaultProfile?.__typename === 'Profile') return res.data.defaultProfile;
+    throw 'Unable to get default profile';
 };
 
 export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
-    const request: ProfileQueryRequest = {ownedBy: [ownedBy]};
-    const res = await AsyncProfiles({variables: {request}});
-    if (res.error) return Promise.reject(res.error);
-    return res.data.profiles.items as Profile[];
+    const res = await AsyncProfiles({variables: {request: {ownedBy: [ownedBy]}}});
+    if (res.error) throw res.error;
+    return res.data?.profiles?.items;
 };
+
+export const getProfileById = async (profileId: string): Promise<Profile> => {
+    const res = await AsyncGetProfile({variables: {request: {profileId}}});
+    if (res.error) throw res.error;
+    if (res.data?.profile?.__typename === 'Profile') return res.data.profile;
+    throw 'Unable to get profile';
+}
 
 export const canUseRelay = async (profileId: string): Promise<boolean> => {
     let profileRes;
 
     try {
-        profileRes = await Lens.profileById(profileId)
+        profileRes = await getProfileById(profileId)
     } catch (e) {
         return false;
     }

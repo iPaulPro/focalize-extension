@@ -2,7 +2,7 @@ import {initEthers} from "./ethers-service";
 import {getAvatar, getDefaultProfile, getProfiles} from "./lens-profile";
 
 import type {Profile} from "../graph/lens-service";
-import {getAccessToken} from "./lens-auth";
+import {getSavedAccessToken} from "./lens-auth";
 
 export type User = {
     address: string,
@@ -50,7 +50,7 @@ export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}
     // Simply check for an existing access token as a signal that the user has logged in before
     // We don't need to know if it's valid right now
     try {
-        accessToken = await getAccessToken()
+        accessToken = await getSavedAccessToken()
     } catch (e) {
         return { error: UserError.NOT_AUTHENTICATED };
     }

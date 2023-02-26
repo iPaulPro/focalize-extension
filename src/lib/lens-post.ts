@@ -1,38 +1,34 @@
 import {v4 as uuid} from "uuid";
-import {BigNumber, utils} from "ethers";
-import {Lens} from "lens-protocol";
+import Autolinker, {UrlMatch} from "autolinker";
 
 import {APP_ID} from "../config";
+import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
+
+import {
+    AsyncValidatePublicationMetadata, Broadcast, CreatePostTypedData, CreatePostViaDispatcher,
+    PublicationContentWarning,
+    PublicationMainFocus,
+    PublicationMetadataDisplayTypes
+} from "../graph/lens-service";
+import {getOrRefreshAccessToken} from "./lens-auth";
+import {uploadAndPin} from "./ipfs-service";
+import {getLensHub} from "../lens-hub";
+import {signTypedData} from "./ethers-service";
+import {nodeArticle, nodeAudio, nodeImage, nodePost, nodeVideo} from "./store/preferences-store";
+import {get} from "./store/chrome-storage-store";
 
 import type {
     BroadcastRequest,
-    CollectModuleParams,
+    CollectModuleParams, CreatePostBroadcastItemResult,
     CreatePublicPostRequest,
-    MetadataAttributeInput, Profile,
+    MetadataAttributeInput,
     PublicationMetadataMediaInput,
     PublicationMetadataV2Input,
     ReferenceModuleParams,
     RelayerResult,
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
-import {
-    AsyncValidatePublicationMetadata, Broadcast, CreatePostViaDispatcher,
-    PublicationContentWarning,
-    PublicationMainFocus,
-    PublicationMetadataDisplayTypes
-} from "../graph/lens-service";
-import {pollUntilIndexed} from "./has-transaction-been-indexed";
-import {getOrRefreshAccessToken} from "./lens-auth";
-import {uploadAndPin} from "./ipfs-service";
-import {getLensHub} from "../lens-hub";
-import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
-
-import type {OperationResult} from "urql";
-import {signTypedData} from "./ethers-service";
-import Autolinker, {UrlMatch} from "autolinker";
 import type {LensNode} from "./lens-nodes";
-import {nodeArticle, nodeAudio, nodeImage, nodePost, nodeVideo} from "./store/preferences-store";
-import {get} from "./store/chrome-storage-store";
 import type {User} from "./user";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
@@ -48,25 +44,6 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const blob = new Blob([JSON.stringify(o)], {type: 'application/json'})
     return new File([blob], `metadata.json`)
 };
-
-const getPublicationId = async (txHash: string) => {
-    const indexedResult = await pollUntilIndexed(txHash);
-
-    const logs = indexedResult?.txReceipt?.logs;
-    const topicId = utils.id(
-        'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
-    );
-
-    const log = logs?.find((l: any) => l.topics[0] === topicId);
-    if (!log) {
-        throw 'getPublicationId: Error while finding log';
-    }
-
-    let profileCreatedEventLog = log.topics;
-
-    const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
-    return BigNumber.from(publicationId).toHexString();
-}
 
 export const generateTextPostMetadata = (
     handle: string,
@@ -221,31 +198,44 @@ const createPostViaDispatcher = (request: CreatePublicPostRequest): Promise<Rela
         })
 }
 
+const createPostTypedData = async (
+    profileId: string,
+    contentURI: string,
+    collectModule: CollectModuleParams,
+    referenceModule: ReferenceModuleParams,
+): Promise<CreatePostBroadcastItemResult> => {
+    const request = {profileId, contentURI, referenceModule, collectModule}
+    const res = await CreatePostTypedData({variables: {request}});
+    if (res.errors) throw res.errors[0];
+    if (res.data?.createPostTypedData?.__typename === 'CreatePostBroadcastItemResult') {
+        return res.data?.createPostTypedData;
+    }
+    throw 'Unable to create post typed data';
+};
+
 const createPostTransaction = async (
     profileId: string,
     contentURI: string,
     accessToken: string,
     useRelay: boolean,
-    referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
+    referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
 ): Promise<string> => {
-    const postResult = await Lens.CreatePostTypedData(
+    const postResult = await createPostTypedData(
         profileId,
         contentURI,
         collectModule,
-        referenceModule,
-        accessToken
-    ) as OperationResult
+        referenceModule
+    );
 
-    if (postResult.error) throw postResult.error
-
-    const typedData = postResult.data.createPostTypedData.typedData;
+    const typedData = postResult.typedData;
     console.log('createPostTransaction: Created post typed data', typedData);
 
     if (useRelay) {
+        // @ts-ignore This function strips the __typename
         const signature = await signTypedData(typedData.domain, typedData.types, typedData.value);
         const request: BroadcastRequest = {
-            id: postResult.data.createPostTypedData.id,
+            id: postResult.id,
             signature
         }
         const res = await Broadcast({variables: {request}});
@@ -312,20 +302,15 @@ export const submitPost = async (
     }
 
     if (!txHash) {
-        txHash = await createPostTransaction(
-            profileId,
-            contentURI,
-            accessToken,
-            useRelay,
-            referenceModule,
-            collectModule
-        );
+        txHash = await createPostTransaction(profileId, contentURI, accessToken, useRelay, collectModule, referenceModule);
     }
 
-    const publicationId = await getPublicationId(txHash);
-    console.log('submitPost: post has been indexed', publicationId);
+    const res = await chrome.runtime.sendMessage({getPublicationId: txHash});
+    if (res.error) throw res.error;
 
-    return publicationId;
+    console.log('submitPost: post has been indexed', res.publicationId);
+
+    return res.publicationId;
 };
 
 export const getUrlsFromText = (content: string): string[] => {

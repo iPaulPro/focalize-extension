@@ -2,83 +2,170 @@ query Profiles($request: ProfileQueryRequest!) {
     profiles(request: $request) {
         __typename
         items {
-            id
-            name
-            bio
+            isFollowedByMe
+            isFollowing
+            onChainIdentity {
+                ens {
+                    name
+                }
+                proofOfHumanity
+                sybilDotOrg {
+                    source {
+                        twitter {
+                            handle
+                        }
+                    }
+                    verified
+                }
+                worldcoin {
+                    isHuman
+                }
+            }
+            followModule {
+                ... on FeeFollowModuleSettings {
+                    __typename
+                    type
+                    recipient
+                    contractAddress
+                    amount {
+                        asset {
+                            address
+                            decimals
+                            name
+                            symbol
+                        }
+                        value
+                    }
+                }
+                ... on ProfileFollowModuleSettings {
+                    __typename
+                    type
+                    contractAddress
+                }
+                ... on RevertFollowModuleSettings {
+                    __typename
+                    type
+                    contractAddress
+                }
+                ... on UnknownFollowModuleSettings {
+                    __typename
+                    type
+                    followModuleReturnData
+                    contractAddress
+                }
+            }
             attributes {
                 displayType
-                traitType
                 key
+                traitType
                 value
             }
-            followNftAddress
-            metadata
-            isDefault
-            picture {
-                ... on NftImage {
-                    contractAddress
-                    tokenId
-                    uri
-                    verified
-                }
-                ... on MediaSet {
-                    original {
-                        url
-                        mimeType
-                    }
-                }
-                __typename
-            }
-            handle
+            bio
             coverPicture {
                 ... on NftImage {
+                    __typename
+                    chainId
                     contractAddress
                     tokenId
                     uri
                     verified
                 }
                 ... on MediaSet {
-                    original {
+                    __typename
+                    medium {
+                        altTag
+                        width
                         url
+                        size
                         mimeType
+                        height
+                        cover
+                    }
+                    original {
+                        altTag
+                        cover
+                        height
+                        mimeType
+                        size
+                        url
+                        width
+                    }
+                    small {
+                        altTag
+                        cover
+                        height
+                        mimeType
+                        size
+                        url
+                        width
                     }
                 }
-                __typename
             }
-            ownedBy
             dispatcher {
                 address
                 canUseRelay
             }
-            stats {
-                totalFollowers
-                totalFollowing
-                totalPosts
-                totalComments
-                totalMirrors
-                totalPublications
-                totalCollects
-            }
-            followModule {
-                ... on FeeFollowModuleSettings {
-                    type
-                    amount {
-                        asset {
-                            symbol
-                            name
-                            decimals
-                            address
-                        }
-                        value
+            followNftAddress
+            handle
+            id
+            interests
+            isDefault
+            metadata
+            name
+            ownedBy
+            picture {
+                ... on NftImage {
+                    __typename
+                    chainId
+                    contractAddress
+                    tokenId
+                    uri
+                    verified
+                }
+                ... on MediaSet {
+                    __typename
+                    small {
+                        width
+                        url
+                        size
+                        mimeType
+                        height
+                        cover
+                        altTag
                     }
-                    recipient
+                    original {
+                        width
+                        url
+                        size
+                        mimeType
+                        height
+                        cover
+                        altTag
+                    }
+                    medium {
+                        width
+                        url
+                        size
+                        mimeType
+                        cover
+                        height
+                        altTag
+                    }
                 }
-                ... on ProfileFollowModuleSettings {
-                    type
-                }
-                ... on RevertFollowModuleSettings {
-                    type
-                }
+            }
+            stats {
+                totalPublications
+                totalPosts
+                totalMirrors
+                totalFollowing
+                totalFollowers
+                totalComments
+                totalCollects
+                publicationsTotal(forSources: "")
+                postsTotal(forSources: "")
+                mirrorsTotal(forSources: "")
+                id
+                commentsTotal(forSources: "")
             }
         }
         pageInfo {

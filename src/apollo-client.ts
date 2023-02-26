@@ -59,7 +59,13 @@ const errorLink = onError(({graphQLErrors, networkError, operation, forward}) =>
     if (networkError) console.log(`[Network error]: ${networkError}`);
 });
 
-const authenticationLink = setContext(async (_, { headers }) => {
+const authenticationLink = setContext(async (request, { headers }) => {
+    if (request.operationName === 'Challenge' ||
+        request.operationName === 'Authenticate' ||
+        request.operationName === 'Refresh') {
+        return headers;
+    }
+
     const token = await getOrRefreshAccessToken();
     return {
         headers: {

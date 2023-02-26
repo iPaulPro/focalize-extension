@@ -72,7 +72,6 @@
     "id3js": "^2.1.1",
     "jose": "^4.11.2",
     "language-tags": "^1.0.7",
-    "lens-protocol": "^0.1.5",
     "luxon": "^3.2.1",
     "medium-editor": "5.23.3",
     "medium-editor-markdown": "^3.2.2",

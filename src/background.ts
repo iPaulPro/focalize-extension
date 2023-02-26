@@ -1,14 +1,17 @@
-import { GraphQLClient } from 'graphql-request'
+import {GraphQLClient} from 'graphql-request'
 import {DateTime} from 'luxon';
+import {BigNumber, utils} from 'ethers';
 
 import {LENS_API} from "./config";
-
 import {NotificationsDoc, SearchProfilesDoc, SearchRequestTypes} from "./graph/lens-service";
-import {getOrRefreshAccessToken} from "./lib/lens-auth";
+import {getOrRefreshAccessToken} from './lib/lens-auth';
+import {pollUntilIndexed} from './lib/has-transaction-been-indexed';
 
-import type {Notification, Profile, SearchProfilesQuery} from "./graph/lens-service";
+import type {
+    Profile, SearchProfilesQuery, SearchProfilesQueryVariables,
+    Notification, NotificationsQuery, NotificationsQueryVariables,
+} from "./graph/lens-service";
 import type {User} from "./lib/user";
-import {nodeSearch} from "./lib/store/preferences-store";
 import type {LensNode} from "./lib/lens-nodes";
 
 const ALARM_ID = 'focalize-notifications-alarm';
@@ -43,13 +46,17 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     if (!storage.currentUser) return undefined;
     const user: User = storage.currentUser;
 
-    const data  = await client.request(
+    const data = await client.request<NotificationsQuery, NotificationsQueryVariables>(
         NotificationsDoc,
         {request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}},
         {'x-access-token': `Bearer ${accessToken}`}
     );
 
-    return data.notifications?.items;
+    if (data.notifications.__typename === "PaginatedNotificationResult") {
+        return data.notifications?.items as Notification[];
+    }
+
+    return [];
 }
 
 const onAlarmTriggered = async () => {
@@ -174,8 +181,29 @@ const shareUrl = async (tags: any) => {
     }).catch(console.error);
 }
 
+const pollForPublicationId = async (txHash: string) => {
+    console.log('pollForPublicationId: txHash=', txHash);
+
+    const indexedResult = await pollUntilIndexed(txHash);
+
+    const logs = indexedResult?.txReceipt?.logs;
+    const topicId = utils.id(
+        'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
+    );
+
+    const log = logs?.find((l: any) => l.topics[0] === topicId);
+    if (!log) {
+        throw 'getPublicationId: Error while finding log';
+    }
+
+    let profileCreatedEventLog = log.topics;
+
+    const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
+    return BigNumber.from(publicationId).toHexString();
+};
+
 chrome.runtime.onMessage.addListener(
-    async (req, sender, res) => {
+    (req, sender, res) => {
         console.log(`Got a message`, req);
         if (sender.id !== chrome.runtime.id || sender.frameId !== 0) {
             res('Unauthorized')
@@ -184,13 +212,21 @@ chrome.runtime.onMessage.addListener(
 
         if (req.setAlarm !== undefined) {
             if (req.setAlarm) {
-                await setAlarm();
+                setAlarm().catch(console.error);
             } else {
-                await clearAlarm();
+                clearAlarm().catch(console.error);
             }
+            return true;
         }
 
-        return true;
+        if (req.getPublicationId) {
+            pollForPublicationId(req.getPublicationId)
+                .then(publicationId => {
+                    res({publicationId});
+                })
+                .catch(error => res({error}));
+            return true;
+        }
     }
 );
 
@@ -232,9 +268,8 @@ chrome.action.onClicked.addListener(tab => {
     })
 });
 
-
-const searchProfiles = async (query: string, limit: number): Promise<Profile[] | undefined> => {
-    const data: SearchProfilesQuery = await client.request(
+const searchProfiles = async (query: string, limit: number): Promise<Profile[]> => {
+    const data = await client.request<SearchProfilesQuery, SearchProfilesQueryVariables>(
         SearchProfilesDoc,
         {request: {query, limit, type: SearchRequestTypes.Profile}}
     );

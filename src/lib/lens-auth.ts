@@ -1,9 +1,41 @@
-import {Lens} from "lens-protocol";
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
+import type {AuthenticationResult} from "../graph/lens-service";
+
+const getChallenge = async (address: string): Promise<string> => {
+    const {AsyncChallenge} = await import('../graph/lens-service');
+    const res = await AsyncChallenge({variables: {request: {address}}});
+    if (res.error) throw res.error;
+    return res.data?.challenge?.text;
+};
+
+const _authenticate = async (address: string, signature: string): Promise<AuthenticationResult> => {
+    const {Authenticate} = await import('../graph/lens-service');
+    const res = await Authenticate({variables: {request: {address, signature}}});
+    if (res.errors) throw res.errors[0];
+    if (res.data?.authenticate?.__typename === 'AuthenticationResult') return res.data?.authenticate;
+    throw 'Unable to authenticate';
+};
+
+const refresh = async (refreshToken: string): Promise<AuthenticationResult> => {
+    const {Refresh} = await import('../graph/lens-service');
+    const res = await Refresh({variables: {request: {refreshToken}}});
+    if (res.errors) throw res.errors[0];
+    if (res.data?.refresh?.__typename === 'AuthenticationResult') return res.data?.refresh;
+    throw 'Unable to refresh authentication';
+}
+
+const verify = async (accessToken: string) => {
+    const {AsyncVerify} = await import('../graph/lens-service');
+    const res = await AsyncVerify({variables: {request: {accessToken}}});
+    if (res.error) throw res.error;
+    return res.data?.verify;
+}
+
 export const authenticate = async () => {
     const {getSigner, getAccounts, clearProvider} = await import('./ethers-service');
+    const {getDefaultProfile} = await import('./lens-profile');
 
     const signer = getSigner();
 
@@ -28,46 +60,34 @@ export const authenticate = async () => {
     console.log('authenticate: Authenticating with address', address);
 
     // Getting the challenge from the server
-    const challenge = await Lens.getChallenge(address);
+    const challenge = await getChallenge(address);
     console.log('authenticate: Lens challenge response', challenge);
 
-    // @ts-ignore
-    const challengeError = challenge.error, challengeData = challenge.data;
-    if (challengeError) throw challengeError;
-
-    // Signing the challenge with the wallet
-    let message = challengeData.challenge.text;
-    const signature = await signer.signMessage(message);
+    const signature = await signer.signMessage(challenge);
     console.log('authenticate: Signed Lens challenge', signature);
 
-    const auth = await Lens.Authenticate(address, signature);
+    const auth = await _authenticate(address, signature);
     console.log('authenticate: Lens auth response', auth);
 
-    // @ts-ignore
-    const authError = auth.error, authData = auth.data;
-    if (authError) throw authError;
-
-    if (authData) {
-        const accessToken = authData?.authenticate?.accessToken;
-        const refreshToken = authData?.authenticate?.refreshToken;
-        chrome.storage.local.set({accessToken, refreshToken}, function () {
+    chrome.storage.local.set(
+        {
+            accessToken: auth.accessToken,
+            refreshToken: auth.refreshToken,
+        },
+        function () {
             console.log('authenticate: Saved tokens to local storage');
-        });
-    }
+        }
+    );
 
-    const profileRes = await Lens.defaultProfile(address);
+    const profile = await getDefaultProfile(address);
+    console.log('authenticate: Default profile', profile);
 
-    // @ts-ignore
-    const profileError = profileRes.error, profileData = profileRes.data;
-    if (profileError) throw profileError;
-    console.log('authenticate: Default profile', profileData.defaultProfile);
-
-    if (!profileData.defaultProfile) {
+    if (!profile) {
         // TODO Check if any profile, prompt to choose a default profile
         throw 'No default Lens profile found';
     }
 
-    return profileData.defaultProfile;
+    return profile;
 };
 
 /**
@@ -78,7 +98,7 @@ export const authenticate = async () => {
  * @throws If the saved refresh token is expired and an access token cannot be returned
  */
 export const getOrRefreshAccessToken = async (): Promise<string> => {
-    let accessToken = await getAccessToken();
+    let accessToken = await getSavedAccessToken();
     if (!accessToken) {
         return Promise.reject('No saved tokens found');
     }
@@ -95,7 +115,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
 
     console.log('getOrRefreshAccessToken: Access token is expired.');
 
-    const savedRefreshToken = await getRefreshToken();
+    const savedRefreshToken = await getSavedRefreshToken();
     if (!savedRefreshToken) {
         return Promise.reject('No saved refresh token found');
     }
@@ -110,7 +130,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     }
 };
 
-export const getAccessToken = async (): Promise<string> => {
+export const getSavedAccessToken = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get(['accessToken'], async result => {
             if (chrome.runtime.lastError) {
@@ -121,7 +141,7 @@ export const getAccessToken = async (): Promise<string> => {
     });
 };
 
-export const getRefreshToken = async (): Promise<string> => {
+export const getSavedRefreshToken = async (): Promise<string> => {
     return new Promise((resolve, reject) => {
         chrome.storage.local.get(['refreshToken'], async result => {
             if (chrome.runtime.lastError) {
@@ -134,32 +154,25 @@ export const getRefreshToken = async (): Promise<string> => {
 
 export const refreshAccessToken = async (refreshToken?: string): Promise<string> => {
     if (!refreshToken) {
-        refreshToken = await getRefreshToken();
+        refreshToken = await getSavedRefreshToken();
     }
 
     console.log('Refreshing access token with refresh token', refreshToken);
 
-    const res = await Lens.RefreshToken(refreshToken);
+    const res = await refresh(refreshToken);
     console.log('Refresh token response', res);
-
-    // @ts-ignore
-    const error = res.error, data = res.data;
-
-    if (error) {
-        throw error;
-    }
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
             {
-                accessToken: data?.refresh?.accessToken,
-                refreshToken: data?.refresh?.refreshToken
+                accessToken: res.accessToken,
+                refreshToken: res.refreshToken
             },
             async () => {
                 if (chrome.runtime.lastError) {
                     return reject(chrome.runtime.lastError);
                 }
-                const accessToken = await getAccessToken();
+                const accessToken = await getSavedAccessToken();
                 console.log('Saved new auth token to local storage', accessToken);
                 resolve(accessToken);
             }
@@ -169,9 +182,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
 
 export const isValidSession = async () => {
     const token = await getOrRefreshAccessToken();
-    const res = await Lens.verify(token);
-    // @ts-ignore
-    return (res.data) ? res.data.verify : false;
+    return await verify(token);
 };
 
 export const logOut = async () => {

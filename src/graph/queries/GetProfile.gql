@@ -1,0 +1,169 @@
+query GetProfile($request: SingleProfileQueryRequest!) {
+    profile(request: $request) {
+        isFollowedByMe
+        isFollowing
+        onChainIdentity {
+            ens {
+                name
+            }
+            proofOfHumanity
+            sybilDotOrg {
+                source {
+                    twitter {
+                        handle
+                    }
+                }
+                verified
+            }
+            worldcoin {
+                isHuman
+            }
+        }
+        followModule {
+            ... on FeeFollowModuleSettings {
+                __typename
+                type
+                recipient
+                contractAddress
+                amount {
+                    asset {
+                        address
+                        decimals
+                        name
+                        symbol
+                    }
+                    value
+                }
+            }
+            ... on ProfileFollowModuleSettings {
+                __typename
+                type
+                contractAddress
+            }
+            ... on RevertFollowModuleSettings {
+                __typename
+                type
+                contractAddress
+            }
+            ... on UnknownFollowModuleSettings {
+                __typename
+                type
+                followModuleReturnData
+                contractAddress
+            }
+        }
+        attributes {
+            displayType
+            key
+            traitType
+            value
+        }
+        bio
+        coverPicture {
+            ... on NftImage {
+                __typename
+                chainId
+                contractAddress
+                tokenId
+                uri
+                verified
+            }
+            ... on MediaSet {
+                __typename
+                medium {
+                    altTag
+                    width
+                    url
+                    size
+                    mimeType
+                    height
+                    cover
+                }
+                original {
+                    altTag
+                    cover
+                    height
+                    mimeType
+                    size
+                    url
+                    width
+                }
+                small {
+                    altTag
+                    cover
+                    height
+                    mimeType
+                    size
+                    url
+                    width
+                }
+            }
+        }
+        dispatcher {
+            address
+            canUseRelay
+        }
+        followNftAddress
+        handle
+        id
+        interests
+        isDefault
+        metadata
+        name
+        ownedBy
+        picture {
+            ... on NftImage {
+                __typename
+                chainId
+                contractAddress
+                tokenId
+                uri
+                verified
+            }
+            ... on MediaSet {
+                __typename
+                small {
+                    width
+                    url
+                    size
+                    mimeType
+                    height
+                    cover
+                    altTag
+                }
+                original {
+                    width
+                    url
+                    size
+                    mimeType
+                    height
+                    cover
+                    altTag
+                }
+                medium {
+                    width
+                    url
+                    size
+                    mimeType
+                    cover
+                    height
+                    altTag
+                }
+            }
+        }
+        stats {
+            totalPublications
+            totalPosts
+            totalMirrors
+            totalFollowing
+            totalFollowers
+            totalComments
+            totalCollects
+            publicationsTotal(forSources: "")
+            postsTotal(forSources: "")
+            mirrorsTotal(forSources: "")
+            id
+            commentsTotal(forSources: "")
+        }
+    }
+}
