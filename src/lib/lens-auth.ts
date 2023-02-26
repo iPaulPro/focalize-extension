@@ -1,30 +1,27 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import client from "../graph/graphql-client";
-import {getSdk} from "../graph/lens-service";
+import gqlClient from "../graph/graphql-client";
 
 import type {AuthenticationResult} from "../graph/lens-service";
 
-const sdk = getSdk(client);
-
 const getChallenge = async (address: string): Promise<string> => {
-    const {challenge} = await sdk.Challenge({request: {address}});
+    const {challenge} = await gqlClient.Challenge({request: {address}});
     return challenge?.text;
 };
 
 const _authenticate = async (address: string, signature: string): Promise<AuthenticationResult> => {
-    const {authenticate} = await sdk.Authenticate({request: {address, signature}});
+    const {authenticate} = await gqlClient.Authenticate({request: {address, signature}});
     return authenticate;
 };
 
 const refresh = async (refreshToken: string): Promise<AuthenticationResult> => {
-    const {refresh} = await sdk.Refresh({request: {refreshToken}});
+    const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
     return refresh;
 }
 
 const verify = async (accessToken: string) => {
-    const {verify} = await sdk.Verify({request: {accessToken}});
+    const {verify} = await gqlClient.Verify({request: {accessToken}});
     return verify;
 }
 

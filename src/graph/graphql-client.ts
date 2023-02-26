@@ -1,6 +1,7 @@
 import {GraphQLClient} from 'graphql-request'
 import {LENS_API} from '../config';
 import {getOrRefreshAccessToken} from "../lib/lens-auth";
+import {getSdk} from "./lens-service";
 
 const middleware = async (request: RequestInit) => {
     // @ts-ignore
@@ -21,7 +22,7 @@ const middleware = async (request: RequestInit) => {
     }
 };
 
-export default new GraphQLClient(
+const client = new GraphQLClient(
     LENS_API,
     {
         fetch,
@@ -29,4 +30,6 @@ export default new GraphQLClient(
         // @ts-ignore
         requestMiddleware: middleware
     }
-)
+);
+
+export default getSdk(client);

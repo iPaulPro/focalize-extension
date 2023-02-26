@@ -3,13 +3,9 @@ import type {
     LimitedTimedFeeCollectModuleSettings, ReferenceModuleParams, TimedFeeCollectModuleSettings,
 } from "../graph/lens-service";
 
-import {
-    getSdk, CollectModules, PublicationContentWarning,
-} from "../graph/lens-service";
+import {CollectModules, PublicationContentWarning} from "../graph/lens-service";
 
-import client from "../graph/graphql-client";
-
-import type {ApolloQueryResult} from "@apollo/client";
+import gqlClient from "../graph/graphql-client";
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 
@@ -133,8 +129,7 @@ export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: 
 export const DEFAULT_REFERENCE_MODULE: ReferenceModuleParams = {followerOnlyReferenceModule: false}
 
 export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
-    const sdk = getSdk(client);
-    const {enabledModuleCurrencies} = await sdk.EnabledModuleCurrencies();
+    const {enabledModuleCurrencies} = await gqlClient.EnabledModuleCurrencies();
     return enabledModuleCurrencies;
 };
 

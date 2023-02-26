@@ -4,15 +4,13 @@ import Autolinker, {UrlMatch} from "autolinker";
 import {APP_ID} from "../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
-import {
-    getSdk, PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes
-} from "../graph/lens-service";
+import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes} from "../graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadAndPin} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 import {signTypedData} from "./ethers-service";
 
-import client from "../graph/graphql-client";
+import gqlClient from "../graph/graphql-client";
 
 import type {
     BroadcastRequest,
@@ -26,8 +24,6 @@ import type {
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
 import type {User} from "./user";
-
-const sdk = getSdk(client);
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -181,12 +177,12 @@ const validateMetadata = async (metadata: PublicationMetadataV2Input) => {
             appId: APP_ID,
         }
     };
-    const {validatePublicationMetadata} = await sdk.ValidatePublicationMetadata({request});
+    const {validatePublicationMetadata} = await gqlClient.ValidatePublicationMetadata({request});
     return validatePublicationMetadata;
 }
 
 const createPostViaDispatcher = async (request: CreatePublicPostRequest): Promise<RelayerResult> => {
-    const {createPostViaDispatcher} = await sdk.CreatePostViaDispatcher({request});
+    const {createPostViaDispatcher} = await gqlClient.CreatePostViaDispatcher({request});
     if (createPostViaDispatcher.__typename === 'RelayError') throw createPostViaDispatcher.reason;
     return createPostViaDispatcher as RelayerResult;
 }
@@ -198,7 +194,7 @@ const createPostTypedData = async (
     referenceModule: ReferenceModuleParams,
 ): Promise<CreatePostBroadcastItemResult> => {
     const request = {profileId, contentURI, referenceModule, collectModule}
-    const {createPostTypedData} = await sdk.CreatePostTypedData({request});
+    const {createPostTypedData} = await gqlClient.CreatePostTypedData({request});
     return createPostTypedData;
 };
 
@@ -227,7 +223,7 @@ const createPostTransaction = async (
             id: postResult.id,
             signature
         }
-        const {broadcast} = await sdk.Broadcast({request});
+        const {broadcast} = await gqlClient.Broadcast({request});
 
         if (broadcast.__typename === 'RelayerResult') {
             console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)

@@ -1,12 +1,10 @@
-import client from "../graph/graphql-client";
-import {getSdk, PublicationMetadataStatusType} from "../graph/lens-service";
+import gqlClient from "../graph/graphql-client";
+import {PublicationMetadataStatusType} from "../graph/lens-service";
 import {sleep} from "./utils";
-
-const sdk = getSdk(client);
 
 export const pollUntilIndexed = async (txHash: string) => {
     while (true) {
-        const {hasTxHashBeenIndexed} = await sdk.HasTransactionBeenIndexed({request: {txHash}});
+        const {hasTxHashBeenIndexed} = await gqlClient.HasTransactionBeenIndexed({request: {txHash}});
 
         if (hasTxHashBeenIndexed.__typename === 'TransactionError') {
             throw hasTxHashBeenIndexed.reason;

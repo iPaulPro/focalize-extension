@@ -3,31 +3,28 @@ import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 
-import client from "../graph/graphql-client";
-import {getSdk} from "../graph/lens-service";
+import gqlClient from "../graph/graphql-client";
 
 import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
 import type {Profile} from "../graph/lens-service";
 import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 
-const sdk = getSdk(client);
-
 /**
  * Gets the default profile of the address supplied.
  */
 export const getDefaultProfile = async (ethereumAddress: string): Promise<Profile> => {
-    const {defaultProfile} = await sdk.DefaultProfile({request: {ethereumAddress}})
+    const {defaultProfile} = await gqlClient.DefaultProfile({request: {ethereumAddress}})
     if (defaultProfile?.__typename === 'Profile') return defaultProfile;
     throw 'Unable to get default profile';
 };
 
 export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
-    const {profiles} = await sdk.Profiles({request: {ownedBy: [ownedBy]}});
+    const {profiles} = await gqlClient.Profiles({request: {ownedBy: [ownedBy]}});
     return profiles.items;
 };
 
 export const getProfileById = async (profileId: string): Promise<Profile> => {
-    const {profile} = await sdk.GetProfile({request: {profileId}});
+    const {profile} = await gqlClient.GetProfile({request: {profileId}});
     if (profile?.__typename === 'Profile') return profile;
     throw 'Unable to get profile';
 }
@@ -50,7 +47,7 @@ export const canUseRelay = async (profileId: string): Promise<boolean> => {
 }
 
 export const setDispatcher = async (request: SetDispatcherRequest): Promise<string> => {
-    const {createSetDispatcherTypedData} = await sdk.CreateSetDispatcherTypedData({request});
+    const {createSetDispatcherTypedData} = await gqlClient.CreateSetDispatcherTypedData({request});
 
     const typedData = createSetDispatcherTypedData.typedData;
     if (!typedData) {
@@ -66,7 +63,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
         id: createSetDispatcherTypedData.id,
         signature
     }
-    const {broadcast} = await sdk.Broadcast({request: broadcastReq});
+    const {broadcast} = await gqlClient.Broadcast({request: broadcastReq});
     console.log('setDispatcher: broadcast result', broadcast);
 
     if (broadcast.__typename === 'RelayError') {

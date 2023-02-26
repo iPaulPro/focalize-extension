@@ -1,18 +1,13 @@
-import {GraphQLClient} from 'graphql-request'
 import {DateTime} from 'luxon';
 import {BigNumber, utils} from 'ethers';
 
 import {getOrRefreshAccessToken} from './lib/lens-auth';
 import {pollUntilIndexed} from './lib/has-transaction-been-indexed';
 
-import client from "./graph/graphql-client";
-import {getSdk, SearchRequestTypes} from "./graph/lens-service";
+import gqlClient from "./graph/graphql-client";
+import {SearchRequestTypes} from "./graph/lens-service";
 
-import type {
-    PublicationMetadataV2Input,
-    Profile, SearchProfilesQuery, SearchProfilesQueryVariables,
-    Notification, NotificationsQuery, NotificationsQueryVariables,
-} from "./graph/lens-service";
+import type {PublicationMetadataV2Input, Profile, Notification,} from "./graph/lens-service";
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
 import {getNodeUrlForPublication} from "./lib/utils";
@@ -21,8 +16,6 @@ import {currentUser} from "./lib/store/user-store";
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
 const NOTIFICATIONS_QUERY_LIMIT = 50;
-
-const sdk = getSdk(client);
 
 const clearAlarm = () => chrome.alarms.clear(ALARM_ID);
 
@@ -50,7 +43,7 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     if (!storage.currentUser) return undefined;
     const user: User = storage.currentUser;
 
-    const {notifications} = await sdk.Notifications({request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}})
+    const {notifications} = await gqlClient.Notifications({request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}})
 
     if (notifications.items) {
         return notifications.items as Notification[];
@@ -295,7 +288,7 @@ chrome.action.onClicked.addListener(tab => {
 });
 
 const searchProfiles = async (query: string, limit: number): Promise<Profile[]> => {
-    const {search} = await sdk.SearchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});
+    const {search} = await gqlClient.SearchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});
 
     if (search.__typename === "ProfileSearchResult" && search.items) {
         return search.items as Profile[];

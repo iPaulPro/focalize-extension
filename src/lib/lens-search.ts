@@ -1,14 +1,12 @@
 import {SearchRequestTypes} from "../graph/lens-service";
-import type {Profile, SearchQueryRequest} from "../graph/lens-service";
-import type {TributeItem} from "tributejs";
+import gqlClient from "../graph/graphql-client";
 
-import client from "../graph/graphql-client";
-import {getSdk} from "../graph/lens-service";
+import type {TributeItem} from "tributejs";
+import type {Profile, SearchQueryRequest} from "../graph/lens-service";
 
 export const searchProfiles = async (query: string, limit: number = 5): Promise<Profile[]> => {
-    const sdk = getSdk(client);
     const request: SearchQueryRequest = {query, type: SearchRequestTypes.Profile, limit}
-    const {search} = await sdk.SearchProfiles({request});
+    const {search} = await gqlClient.SearchProfiles({request});
     if (search.__typename === 'ProfileSearchResult') return search.items as Profile[];
     return [];
 }
