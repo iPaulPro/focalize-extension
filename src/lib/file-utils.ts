@@ -40,5 +40,5 @@ export const getMainFocusFromFileType = (type: string): PublicationMainFocus => 
     } else if (type.startsWith('audio/')) {
         return PublicationMainFocus.Audio;
     }
-    throw 'Unsupported file type';
+    throw new Error('Unsupported file type');
 };

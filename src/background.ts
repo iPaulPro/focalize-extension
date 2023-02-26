@@ -11,7 +11,6 @@ import type {PublicationMetadataV2Input, Profile, Notification,} from "./graph/l
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
 import {getNodeUrlForPublication} from "./lib/utils";
-import {currentUser} from "./lib/store/user-store";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -190,10 +189,10 @@ const pollForPublicationId = async (txHash: string) => {
 
     const log = logs?.find((l: any) => l.topics[0] === topicId);
     if (!log) {
-        throw 'getPublicationId: Error while finding log';
+        throw new Error('getPublicationId: Error while finding log');
     }
 
-    let profileCreatedEventLog = log.topics;
+    const profileCreatedEventLog = log.topics;
 
     const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
     return BigNumber.from(publicationId).toHexString();

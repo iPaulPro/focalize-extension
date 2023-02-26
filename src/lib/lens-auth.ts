@@ -3,29 +3,7 @@ import {Duration} from "luxon";
 
 import gqlClient from "../graph/graphql-client";
 
-import type {AuthenticationResult} from "../graph/lens-service";
-
-const getChallenge = async (address: string): Promise<string> => {
-    const {challenge} = await gqlClient.Challenge({request: {address}});
-    return challenge?.text;
-};
-
-const _authenticate = async (address: string, signature: string): Promise<AuthenticationResult> => {
-    const {authenticate} = await gqlClient.Authenticate({request: {address, signature}});
-    return authenticate;
-};
-
-const refresh = async (refreshToken: string): Promise<AuthenticationResult> => {
-    const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
-    return refresh;
-}
-
-const verify = async (accessToken: string) => {
-    const {verify} = await gqlClient.Verify({request: {accessToken}});
-    return verify;
-}
-
-export const authenticate = async () => {
+export const authenticateUser = async () => {
     const {getSigner, getAccounts, clearProvider} = await import('./ethers-service');
     const {getDefaultProfile} = await import('./lens-profile');
 
@@ -48,26 +26,23 @@ export const authenticate = async () => {
         }
     }
 
-    if (!address) throw 'No address found';
+    if (!address) throw new Error('No address found');
     console.log('authenticate: Authenticating with address', address);
 
     // Getting the challenge from the server
-    const challenge = await getChallenge(address);
+    const {challenge} = await gqlClient.Challenge({request: {address}});
     console.log('authenticate: Lens challenge response', challenge);
 
-    const signature = await signer.signMessage(challenge);
+    const signature = await signer.signMessage(challenge.text);
     console.log('authenticate: Signed Lens challenge', signature);
 
-    const auth = await _authenticate(address, signature);
-    console.log('authenticate: Lens auth response', auth);
+    const {authenticate} = await gqlClient.Authenticate({request: {address, signature}});
+    console.log('authenticate: Lens auth response', authenticate);
 
-    chrome.storage.local.set(
+    await chrome.storage.local.set(
         {
-            accessToken: auth.accessToken,
-            refreshToken: auth.refreshToken,
-        },
-        function () {
-            console.log('authenticate: Saved tokens to local storage');
+            accessToken: authenticate.accessToken,
+            refreshToken: authenticate.refreshToken,
         }
     );
 
@@ -76,7 +51,7 @@ export const authenticate = async () => {
 
     if (!profile) {
         // TODO Check if any profile, prompt to choose a default profile
-        throw 'No default Lens profile found';
+        throw new Error('No default Lens profile found');
     }
 
     return profile;
@@ -90,7 +65,7 @@ export const authenticate = async () => {
  * @throws If the saved refresh token is expired and an access token cannot be returned
  */
 export const getOrRefreshAccessToken = async (): Promise<string> => {
-    let accessToken = await getSavedAccessToken();
+    const accessToken = await getSavedAccessToken();
     if (!accessToken) {
         return Promise.reject('No saved tokens found');
     }
@@ -139,14 +114,14 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
 
     console.log('refreshAccessToken: Refreshing access token with refresh token', refreshToken);
 
-    const res = await refresh(refreshToken);
-    console.log('refreshAccessToken: Refresh token response', res);
+    const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
+    console.log('refreshAccessToken: Refresh token response', refresh);
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
             {
-                accessToken: res.accessToken,
-                refreshToken: res.refreshToken
+                accessToken: refresh.accessToken,
+                refreshToken: refresh.refreshToken
             },
             async () => {
                 if (chrome.runtime.lastError) {
@@ -161,8 +136,9 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
 };
 
 export const isValidSession = async () => {
-    const token = await getOrRefreshAccessToken();
-    return await verify(token);
+    const accessToken = await getOrRefreshAccessToken();
+    const {verify} = await gqlClient.Verify({request: {accessToken}});
+    return verify;
 };
 
 export const logOut = async () => {

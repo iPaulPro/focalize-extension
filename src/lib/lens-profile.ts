@@ -15,7 +15,7 @@ import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 export const getDefaultProfile = async (ethereumAddress: string): Promise<Profile> => {
     const {defaultProfile} = await gqlClient.DefaultProfile({request: {ethereumAddress}})
     if (defaultProfile?.__typename === 'Profile') return defaultProfile;
-    throw 'Unable to get default profile';
+    throw new Error('Unable to get default profile');
 };
 
 export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
@@ -26,7 +26,7 @@ export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
 export const getProfileById = async (profileId: string): Promise<Profile> => {
     const {profile} = await gqlClient.GetProfile({request: {profileId}});
     if (profile?.__typename === 'Profile') return profile;
-    throw 'Unable to get profile';
+    throw new Error('Unable to get profile');
 }
 
 export const canUseRelay = async (profileId: string): Promise<boolean> => {
@@ -51,7 +51,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
 
     const typedData = createSetDispatcherTypedData.typedData;
     if (!typedData) {
-        throw 'Error setting dispatcher';
+        throw new Error('Error setting dispatcher');
     }
 
     // @ts-ignore this function strips the __typename

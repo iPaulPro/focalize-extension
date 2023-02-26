@@ -40,7 +40,7 @@ if (!chrome.storage) {
 
 chrome.storage.onChanged.addListener((changes, area) => {
     // I'm not sure if or when this is the case, but rather be safe than sorry.
-    if (area == 'session') return
+    if (area === 'session') return
 
     const areaAdapters = adapters[area as StorageName]
     Object.entries(changes).forEach(([key, value]) => {
@@ -56,7 +56,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
  * @param key The key to store in the `local` chrome storage area.
  * @param defaultValue The default value to set upon creation.
  * @throws If the `storage` permission is not present in your manifest.
- * */
+ */
 export function chromeStorageLocal<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
     return new ChromeStorageStore('local', key)
 }
@@ -69,7 +69,7 @@ export function chromeStorageLocal<T>(key: string, defaultValue?: T): ChromeStor
  * @param key The key to store in the `sync` chrome storage area.
  * @param defaultValue The default value to set upon creation.
  * @throws If the `storage` permission is not present in your manifest.
- * */
+ */
 export function chromeStorageSync<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
     return new ChromeStorageStore('sync', key, defaultValue)
 }
@@ -85,7 +85,7 @@ export function chromeStorageSync<T>(key: string, defaultValue?: T): ChromeStora
  * @param defaultValue The default value to set upon creation.
  * @throws If the `storage` permission is not present in your manifest.
  * @throws If you try to write to this storage area.
- * */
+ */
 export function chromeStorageManaged<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
     return new ChromeStorageStore('managed', key)
 }
@@ -96,7 +96,7 @@ export function get<T>(writable: Writable<T>): Promise<T> {
 
 /**
  * {@link Writable} implementation that delegates to a chrome storage area.
- * */
+ */
 class ChromeStorageStore<T> implements Writable<T> {
     constructor(
         private area: StorageName,

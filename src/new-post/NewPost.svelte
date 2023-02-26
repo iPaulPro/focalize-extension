@@ -209,7 +209,7 @@
     };
 
     const buildMetadata = (): PublicationMetadataV2Input => {
-        if (!$currentUser) throw "No user found";
+        if (!$currentUser) throw new Error('No user found');
 
         const content = getContent();
 
@@ -292,11 +292,11 @@
             );
         }
 
-        throw 'Unrecognized attachment';
+        throw new Error('Unrecognized attachment');
     };
 
     const onSubmitClick = async () => {
-        if (!$currentUser) throw "No user found";
+        if (!$currentUser) throw new Error('No user found');
 
         isSubmittingPost = true;
 
@@ -431,7 +431,7 @@
     };
 
     const onUseDispatcherSelected = () => {
-        if (!$currentUser) throw "No user found";
+        if (!$currentUser) throw new Error('No user found');
 
         if (!$currentUser.canUseRelay) {
             enableDispatcherDialog.showModal();

@@ -44,7 +44,7 @@ const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_IPFS_PROJECT_ID}:${import.meta
 export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)
 
-    let formData = new FormData();
+    const formData = new FormData();
     formData.append("file", file);
 
     const res = await axios.post(
@@ -71,7 +71,7 @@ export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): P
 }
 
 export const unpin = async (cid: string): Promise<string[]> => {
-    if (!cid) throw 'CID cannot be null';
+    if (!cid) throw new Error('CID cannot be null');
 
     const auth = btoa(`${AUTH_TOKEN}`)
 

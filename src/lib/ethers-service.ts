@@ -13,7 +13,7 @@ import ethProvider from "eth-provider";
 
 let provider: Web3Provider;
 
-const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID);
+const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID, 10);
 
 const networkMap = {
     POLYGON_MAINNET: {

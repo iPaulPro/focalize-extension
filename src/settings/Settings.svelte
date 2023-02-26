@@ -4,7 +4,7 @@
 
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {authenticate} from "../lib/lens-auth";
+    import {authenticateUser} from "../lib/lens-auth";
     import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
     import {currentUser} from "../lib/store/user-store";
     import {ensureCorrectChain} from "../lib/ethers-service";
@@ -55,7 +55,7 @@
         try {
             await ensureCorrectChain();
 
-            const authenticatedProfile = await authenticate();
+            const authenticatedProfile = await authenticateUser();
             $currentUser = userFromProfile(authenticatedProfile);
 
             console.log('Authenticated user', $currentUser);

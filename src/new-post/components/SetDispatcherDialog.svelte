@@ -11,7 +11,7 @@
     let success;
 
     const onEnableClick = async () => {
-        if (!$currentUser) throw "No user found";
+        if (!$currentUser) throw new Error('No user found');
 
         loading = true;
 

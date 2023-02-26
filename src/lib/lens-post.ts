@@ -33,7 +33,7 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
         appId: APP_ID,
         locale: 'en',
     }
-    let o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
+    const o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
     console.log('makeMetadataFile: Creating metadata file for', o);
     const blob = new Blob([JSON.stringify(o)], {type: 'application/json'})
     return new File([blob], `metadata.json`)
@@ -181,13 +181,13 @@ const validateMetadata = async (metadata: PublicationMetadataV2Input) => {
     return validatePublicationMetadata;
 }
 
-const createPostViaDispatcher = async (request: CreatePublicPostRequest): Promise<RelayerResult> => {
+const _createPostViaDispatcher = async (request: CreatePublicPostRequest): Promise<RelayerResult> => {
     const {createPostViaDispatcher} = await gqlClient.CreatePostViaDispatcher({request});
     if (createPostViaDispatcher.__typename === 'RelayError') throw createPostViaDispatcher.reason;
-    return createPostViaDispatcher as RelayerResult;
+    return createPostViaDispatcher;
 }
 
-const createPostTypedData = async (
+const _createPostTypedData = async (
     profileId: string,
     contentURI: string,
     collectModule: CollectModuleParams,
@@ -206,7 +206,7 @@ const createPostTransaction = async (
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
 ): Promise<string> => {
-    const postResult = await createPostTypedData(
+    const postResult = await _createPostTypedData(
         profileId,
         contentURI,
         collectModule,
@@ -273,7 +273,7 @@ export const submitPost = async (
 
     if (useDispatcher && user.canUseRelay) {
         try {
-            const relayerResult = await createPostViaDispatcher(
+            const relayerResult = await _createPostViaDispatcher(
                 {profileId, contentURI, collectModule, referenceModule}
             );
             txHash = relayerResult.txHash;

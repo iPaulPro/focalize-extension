@@ -32,7 +32,9 @@ export const userFromProfile = (profile: Profile): User => {
 }
 
 export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}> => {
-    let address: string, accessToken: string, profile: Profile | undefined;
+    let address: string;
+    let accessToken: string;
+    let profile: Profile | undefined;
 
     // First initiate the provider and get the address
     try {
