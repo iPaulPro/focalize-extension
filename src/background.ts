@@ -8,11 +8,14 @@ import {getOrRefreshAccessToken} from './lib/lens-auth';
 import {pollUntilIndexed} from './lib/has-transaction-been-indexed';
 
 import type {
+    PublicationMetadataV2Input,
     Profile, SearchProfilesQuery, SearchProfilesQueryVariables,
     Notification, NotificationsQuery, NotificationsQueryVariables,
 } from "./graph/lens-service";
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
+import {getNodeUrlForPublication} from "./lib/utils";
+import {currentUser} from "./lib/store/user-store";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -112,12 +115,16 @@ const updateNotificationsTimestamp = async () => chrome.storage.sync.set({
 });
 
 chrome.notifications.onClicked.addListener(async notificationId => {
-    if (notificationId !== NOTIFICATION_ID) return;
-
-    await launchNotifications();
+    if (notificationId !== NOTIFICATION_ID) {
+        // If not the notifications notification we know this is a post published on and the id is the url
+        // If more notification types are added we'll probably want to use some type of prefix
+        chrome.notifications.clear(notificationId);
+        await chrome.tabs.create({url: notificationId});
+        return;
+    }
 
     chrome.notifications.clear(notificationId);
-
+    await launchNotifications();
     await updateNotificationsTimestamp();
 });
 
@@ -202,6 +209,27 @@ const pollForPublicationId = async (txHash: string) => {
     return BigNumber.from(publicationId).toHexString();
 };
 
+const notifyOfPublishedPost = async (metadata: PublicationMetadataV2Input, publicationId: string) => {
+    const localStorage = await chrome.storage.local.get('currentUser');
+    const currentUser: User = localStorage.currentUser;
+    if (!currentUser) return;
+
+    const postId = `${currentUser.profileId}-${publicationId}`;
+    const url = await getNodeUrlForPublication(metadata.mainContentFocus, postId);
+
+    chrome.notifications.create(
+        url,
+        {
+            type: 'basic',
+            requireInteraction: true,
+            title: `Post published!`,
+            message: `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`
+        }
+    );
+};
+
 chrome.runtime.onMessage.addListener(
     (req, sender, res) => {
         console.log(`Got a message`, req);
@@ -220,9 +248,10 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (req.getPublicationId) {
-            pollForPublicationId(req.getPublicationId)
+            pollForPublicationId(req.getPublicationId.txHash)
                 .then(publicationId => {
                     res({publicationId});
+                    return notifyOfPublishedPost(req.getPublicationId.metadata.mainContentFocus, publicationId);
                 })
                 .catch(error => res({error}));
             return true;

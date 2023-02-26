@@ -305,7 +305,7 @@ export const submitPost = async (
         txHash = await createPostTransaction(profileId, contentURI, accessToken, useRelay, collectModule, referenceModule);
     }
 
-    const res = await chrome.runtime.sendMessage({getPublicationId: txHash});
+    const res = await chrome.runtime.sendMessage({getPublicationId: {txHash, metadata}});
     if (res.error) throw res.error;
 
     console.log('submitPost: post has been indexed', res.publicationId);
@@ -335,35 +335,4 @@ export const getUrlsFromText = (content: string): string[] => {
         }
         return match.getUrl();
     });
-}
-
-export const getNodeUrlForPublication = async (postType: PublicationMainFocus, postId: string) => {
-    let node: LensNode;
-
-    switch (postType) {
-        case PublicationMainFocus.Image:
-            node = await get(nodeImage);
-            break;
-        case PublicationMainFocus.Video:
-            node = await get(nodeVideo);
-            break;
-        case PublicationMainFocus.Audio:
-            node = await get(nodeAudio);
-            break;
-        case PublicationMainFocus.Article:
-            node = await get(nodeArticle);
-            break;
-        default:
-            node = await get(nodePost);
-    }
-
-    let id = postId;
-    if (!node.hexIdentifier) {
-        const parts = postId.split('-');
-        const profileId = parseInt(parts[0], 16);
-        const publicationId = parseInt(parts[1], 16);
-        id = profileId + '-' + publicationId;
-    }
-
-    return node.baseUrl + node.posts.replace('{$id}', id);
 }

@@ -18,10 +18,11 @@
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
-        getNodeUrlForPublication,
         getUrlsFromText,
         submitPost,
     } from '../lib/lens-post';
+
+    import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
         article,
@@ -263,8 +264,8 @@
                 $currentUser.handle,
                 mediaMetadata,
                 $title,
-                `ipfs://${$cover.cid}`,
-                $cover.type,
+                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $cover?.type,
                 content,
                 attributes,
                 tags,
@@ -281,8 +282,8 @@
                 $currentUser.handle,
                 mediaMetadata,
                 $title,
-                `ipfs://${$cover.cid}`,
-                $cover.type,
+                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $cover?.type,
                 content,
                 attributes,
                 tags,
@@ -424,6 +425,7 @@
 
     const onViewPostClick = async () => {
         const url = await getNodeUrlForPublication(postType, postId)
+        chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();
     };
@@ -491,6 +493,9 @@
         $welcomeShown = true;
 
         adjustBasedOnWindowType();
+
+        // const res = await chrome.runtime.sendMessage({test: 'test'});
+        // console.log('onMount: sendMessage=', res);
     });
 </script>
 
