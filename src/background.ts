@@ -55,8 +55,8 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
         {'x-access-token': `Bearer ${accessToken}`}
     );
 
-    if (data.notifications.__typename === "PaginatedNotificationResult") {
-        return data.notifications?.items as Notification[];
+    if (data.notifications.items) {
+        return data.notifications.items as Notification[];
     }
 
     return [];
