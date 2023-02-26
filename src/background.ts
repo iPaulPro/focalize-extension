@@ -41,7 +41,7 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     try {
         accessToken = await getOrRefreshAccessToken();
     } catch (e) {
-        console.error('getLatestNotifications: Error getting access token', e);
+        console.error('getNotifications: Error getting access token', e);
     }
     if (!accessToken) return undefined;
 

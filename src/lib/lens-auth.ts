@@ -1,7 +1,10 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import type {AuthenticationResult} from "../graph/lens-service";
+import type {AuthenticationResult, RefreshMutation, RefreshMutationVariables} from "../graph/lens-service";
+import {GraphQLClient} from "graphql-request";
+import {LENS_API} from "../config";
+import {RefreshDoc} from "../graph/lens-service";
 
 const getChallenge = async (address: string): Promise<string> => {
     const {AsyncChallenge} = await import('../graph/lens-service');
@@ -19,10 +22,12 @@ const _authenticate = async (address: string, signature: string): Promise<Authen
 };
 
 const refresh = async (refreshToken: string): Promise<AuthenticationResult> => {
-    const {Refresh} = await import('../graph/lens-service');
-    const res = await Refresh({variables: {request: {refreshToken}}});
-    if (res.errors) throw res.errors[0];
-    if (res.data?.refresh?.__typename === 'AuthenticationResult') return res.data?.refresh;
+    // Cannot use Apollo in background service worker
+    const client = new GraphQLClient(LENS_API, {fetch, cache: "no-cache"});
+    const data = await client.request<RefreshMutation, RefreshMutationVariables>(
+        RefreshDoc, {request: {refreshToken}}
+    )
+    if (data.refresh) return data.refresh;
     throw 'Unable to refresh authentication';
 }
 
@@ -131,25 +136,13 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
 };
 
 export const getSavedAccessToken = async (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(['accessToken'], async result => {
-            if (chrome.runtime.lastError) {
-                return reject(chrome.runtime.lastError);
-            }
-            resolve(result.accessToken);
-        });
-    });
+    const storage = await chrome.storage.local.get(['accessToken']);
+    return storage.accessToken;
 };
 
 export const getSavedRefreshToken = async (): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        chrome.storage.local.get(['refreshToken'], async result => {
-            if (chrome.runtime.lastError) {
-                return reject(chrome.runtime.lastError);
-            }
-            resolve(result.refreshToken);
-        });
-    });
+    const storage = await chrome.storage.local.get(['refreshToken']);
+    return storage.refreshToken;
 };
 
 export const refreshAccessToken = async (refreshToken?: string): Promise<string> => {
@@ -157,10 +150,10 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
         refreshToken = await getSavedRefreshToken();
     }
 
-    console.log('Refreshing access token with refresh token', refreshToken);
+    console.log('refreshAccessToken: Refreshing access token with refresh token', refreshToken);
 
     const res = await refresh(refreshToken);
-    console.log('Refresh token response', res);
+    console.log('refreshAccessToken: Refresh token response', res);
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
