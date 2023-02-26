@@ -1,41 +1,31 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import type {AuthenticationResult, RefreshMutation, RefreshMutationVariables} from "../graph/lens-service";
-import {GraphQLClient} from "graphql-request";
-import {LENS_API} from "../config";
-import {RefreshDoc} from "../graph/lens-service";
+import client from "../graph/graphql-client";
+import {getSdk} from "../graph/lens-service";
+
+import type {AuthenticationResult} from "../graph/lens-service";
+
+const sdk = getSdk(client);
 
 const getChallenge = async (address: string): Promise<string> => {
-    const {AsyncChallenge} = await import('../graph/lens-service');
-    const res = await AsyncChallenge({variables: {request: {address}}});
-    if (res.error) throw res.error;
-    return res.data?.challenge?.text;
+    const {challenge} = await sdk.Challenge({request: {address}});
+    return challenge?.text;
 };
 
 const _authenticate = async (address: string, signature: string): Promise<AuthenticationResult> => {
-    const {Authenticate} = await import('../graph/lens-service');
-    const res = await Authenticate({variables: {request: {address, signature}}});
-    if (res.errors) throw res.errors[0];
-    if (res.data?.authenticate?.__typename === 'AuthenticationResult') return res.data?.authenticate;
-    throw 'Unable to authenticate';
+    const {authenticate} = await sdk.Authenticate({request: {address, signature}});
+    return authenticate;
 };
 
 const refresh = async (refreshToken: string): Promise<AuthenticationResult> => {
-    // Cannot use Apollo in background service worker
-    const client = new GraphQLClient(LENS_API, {fetch, cache: "no-cache"});
-    const data = await client.request<RefreshMutation, RefreshMutationVariables>(
-        RefreshDoc, {request: {refreshToken}}
-    )
-    if (data.refresh) return data.refresh;
-    throw 'Unable to refresh authentication';
+    const {refresh} = await sdk.Refresh({request: {refreshToken}});
+    return refresh;
 }
 
 const verify = async (accessToken: string) => {
-    const {AsyncVerify} = await import('../graph/lens-service');
-    const res = await AsyncVerify({variables: {request: {accessToken}}});
-    if (res.error) throw res.error;
-    return res.data?.verify;
+    const {verify} = await sdk.Verify({request: {accessToken}});
+    return verify;
 }
 
 export const authenticate = async () => {

@@ -2,6 +2,7 @@ query Profiles($request: ProfileQueryRequest!) {
     profiles(request: $request) {
         __typename
         items {
+            __typename
             isFollowedByMe
             isFollowing
             onChainIdentity {

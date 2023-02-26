@@ -1,5 +1,6 @@
 mutation Authenticate($request: SignedAuthChallenge!) {
     authenticate(request: $request) {
+        __typename
         accessToken
         refreshToken
     }

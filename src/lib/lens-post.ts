@@ -5,17 +5,14 @@ import {APP_ID} from "../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import {
-    AsyncValidatePublicationMetadata, Broadcast, CreatePostTypedData, CreatePostViaDispatcher,
-    PublicationContentWarning,
-    PublicationMainFocus,
-    PublicationMetadataDisplayTypes
+    getSdk, PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes
 } from "../graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadAndPin} from "./ipfs-service";
 import {getLensHub} from "../lens-hub";
 import {signTypedData} from "./ethers-service";
-import {nodeArticle, nodeAudio, nodeImage, nodePost, nodeVideo} from "./store/preferences-store";
-import {get} from "./store/chrome-storage-store";
+
+import client from "../graph/graphql-client";
 
 import type {
     BroadcastRequest,
@@ -28,8 +25,9 @@ import type {
     RelayerResult,
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
-import type {LensNode} from "./lens-nodes";
 import type {User} from "./user";
+
+const sdk = getSdk(client);
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
     const obj = {
@@ -174,7 +172,7 @@ export const generateAudioPostMetadata = (
     } as PublicationMetadataV2Input;
 };
 
-const validateMetadata = (metadata: PublicationMetadataV2Input) => {
+const validateMetadata = async (metadata: PublicationMetadataV2Input) => {
     const request: ValidatePublicationMetadataRequest = {
         metadatav2: {
             ...metadata,
@@ -182,20 +180,15 @@ const validateMetadata = (metadata: PublicationMetadataV2Input) => {
             metadata_id: uuid(),
             appId: APP_ID,
         }
-    }
-    return AsyncValidatePublicationMetadata({variables: {request}})
-        .then(res => res.data.validatePublicationMetadata)
+    };
+    const {validatePublicationMetadata} = await sdk.ValidatePublicationMetadata({request});
+    return validatePublicationMetadata;
 }
 
-const createPostViaDispatcher = (request: CreatePublicPostRequest): Promise<RelayerResult> => {
-    return CreatePostViaDispatcher({variables: {request}})
-        .then(res => res.data!!)
-        .then(data => {
-            if (data.createPostViaDispatcher.__typename === 'RelayError') {
-                throw data.createPostViaDispatcher.reason;
-            }
-            return data.createPostViaDispatcher as RelayerResult;
-        })
+const createPostViaDispatcher = async (request: CreatePublicPostRequest): Promise<RelayerResult> => {
+    const {createPostViaDispatcher} = await sdk.CreatePostViaDispatcher({request});
+    if (createPostViaDispatcher.__typename === 'RelayError') throw createPostViaDispatcher.reason;
+    return createPostViaDispatcher as RelayerResult;
 }
 
 const createPostTypedData = async (
@@ -205,12 +198,8 @@ const createPostTypedData = async (
     referenceModule: ReferenceModuleParams,
 ): Promise<CreatePostBroadcastItemResult> => {
     const request = {profileId, contentURI, referenceModule, collectModule}
-    const res = await CreatePostTypedData({variables: {request}});
-    if (res.errors) throw res.errors[0];
-    if (res.data?.createPostTypedData?.__typename === 'CreatePostBroadcastItemResult') {
-        return res.data?.createPostTypedData;
-    }
-    throw 'Unable to create post typed data';
+    const {createPostTypedData} = await sdk.CreatePostTypedData({request});
+    return createPostTypedData;
 };
 
 const createPostTransaction = async (
@@ -238,17 +227,14 @@ const createPostTransaction = async (
             id: postResult.id,
             signature
         }
-        const res = await Broadcast({variables: {request}});
+        const {broadcast} = await sdk.Broadcast({request});
 
-        if (res?.data?.broadcast.__typename === 'RelayerResult') {
-            const broadcast: RelayerResult = res.data.broadcast;
+        if (broadcast.__typename === 'RelayerResult') {
             console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)
             return broadcast.txHash;
-        } else if (res?.data?.broadcast.__typename === 'RelayError') {
-            console.error('createPostTransaction: post with broadcast failed');
-            if (res.data.broadcast.reason) {
-                console.error(res.data.broadcast.reason);
-            }
+        } else if (broadcast.__typename === 'RelayError') {
+            console.error('createPostTransaction: post with broadcast failed', broadcast.reason);
+            // allow fallback to self-broadcasting
         }
     }
 

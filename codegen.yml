@@ -6,10 +6,9 @@ generates:
     plugins:
       - "typescript"
       - "typescript-operations"
-      - "graphql-codegen-svelte-apollo"
+      - "typescript-graphql-request"
     config:
-      clientPath: "../apollo-client"
-      asyncQuery: true
+      useTypeImports: true
   ./graphql.schema.json:
     plugins:
       - "introspection"

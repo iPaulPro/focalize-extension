@@ -1,5 +1,6 @@
 mutation Refresh($request: RefreshRequest!) {
     refresh(request: $request) {
+        __typename
         accessToken
         refreshToken
     }

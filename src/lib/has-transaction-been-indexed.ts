@@ -1,46 +1,36 @@
-// Apollo cannot be used in background service workers
-import {GraphQLClient} from "graphql-request";
-
-import {HasTransactionBeenIndexedDoc, PublicationMetadataStatusType} from "../graph/lens-service";
+import client from "../graph/graphql-client";
+import {getSdk, PublicationMetadataStatusType} from "../graph/lens-service";
 import {sleep} from "./utils";
-import {LENS_API} from "../config";
 
-import type {HasTransactionBeenIndexedQuery, HasTransactionBeenIndexedQueryVariables,} from "../graph/lens-service";
+const sdk = getSdk(client);
 
 export const pollUntilIndexed = async (txHash: string) => {
-    const client = new GraphQLClient(LENS_API, {fetch, cache: "no-cache"});
-
     while (true) {
-        const data = await client.request<HasTransactionBeenIndexedQuery, HasTransactionBeenIndexedQueryVariables>(
-            HasTransactionBeenIndexedDoc,
-            {request: {txHash}}
-        );
+        const {hasTxHashBeenIndexed} = await sdk.HasTransactionBeenIndexed({request: {txHash}});
 
-        const response = data.hasTxHashBeenIndexed;
-        if (response?.__typename === 'TransactionIndexedResult') {
-            console.log('pollUntilIndexed: indexed', response.indexed);
-            console.log('pollUntilIndexed: metadataStatus', response.metadataStatus);
+        if (hasTxHashBeenIndexed.__typename === 'TransactionError') {
+            throw hasTxHashBeenIndexed.reason;
+        }
 
-            if (response.metadataStatus) {
-                if (response.metadataStatus.status === PublicationMetadataStatusType.Success) {
-                    return response;
-                }
+        console.log('pollUntilIndexed: indexed', hasTxHashBeenIndexed.indexed);
+        console.log('pollUntilIndexed: metadataStatus', hasTxHashBeenIndexed.metadataStatus);
 
-                if (response.metadataStatus.status === PublicationMetadataStatusType.MetadataValidationFailed) {
-                    throw new Error(response.metadataStatus.reason!!);
-                }
-            } else {
-                if (response.indexed) {
-                    return response;
-                }
+        if (hasTxHashBeenIndexed.metadataStatus) {
+            if (hasTxHashBeenIndexed.metadataStatus.status === PublicationMetadataStatusType.Success) {
+                return hasTxHashBeenIndexed;
             }
 
-            console.log('pollUntilIndexed: sleep for 1500 milliseconds then try again');
-            // sleep for a second before trying again
-            await sleep(1500);
+            if (hasTxHashBeenIndexed.metadataStatus.status === PublicationMetadataStatusType.MetadataValidationFailed) {
+                throw new Error(hasTxHashBeenIndexed.metadataStatus.reason!!);
+            }
         } else {
-            // it got reverted and failed!
-            throw new Error(response.reason);
+            if (hasTxHashBeenIndexed.indexed) {
+                return hasTxHashBeenIndexed;
+            }
         }
+
+        console.log('pollUntilIndexed: sleep for 1500 milliseconds then try again');
+        // sleep for a second before trying again
+        await sleep(1500);
     }
 };

@@ -1,5 +1,6 @@
 query EnabledModuleCurrencies {
     enabledModuleCurrencies {
+        __typename
         name
         symbol
         decimals

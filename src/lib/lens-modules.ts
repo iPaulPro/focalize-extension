@@ -4,9 +4,10 @@ import type {
 } from "../graph/lens-service";
 
 import {
-    AsyncEnabledModuleCurrencies,
-    CollectModules, PublicationContentWarning,
+    getSdk, CollectModules, PublicationContentWarning,
 } from "../graph/lens-service";
+
+import client from "../graph/graphql-client";
 
 import type {ApolloQueryResult} from "@apollo/client";
 
@@ -132,11 +133,9 @@ export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: 
 export const DEFAULT_REFERENCE_MODULE: ReferenceModuleParams = {followerOnlyReferenceModule: false}
 
 export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
-    const res: ApolloQueryResult<EnabledModuleCurrenciesQuery> = await AsyncEnabledModuleCurrencies({})
-    if (res.error) {
-        return Promise.reject(res.error);
-    }
-    return Promise.resolve(res.data.enabledModuleCurrencies);
+    const sdk = getSdk(client);
+    const {enabledModuleCurrencies} = await sdk.EnabledModuleCurrencies();
+    return enabledModuleCurrencies;
 };
 
 const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModuleParams => {

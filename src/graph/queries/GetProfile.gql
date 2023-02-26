@@ -1,5 +1,6 @@
 query GetProfile($request: SingleProfileQueryRequest!) {
     profile(request: $request) {
+        __typename
         isFollowedByMe
         isFollowing
         onChainIdentity {

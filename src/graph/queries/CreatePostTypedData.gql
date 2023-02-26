@@ -1,5 +1,6 @@
 mutation CreatePostTypedData($request: CreatePublicPostRequest!) {
     createPostTypedData(request: $request) {
+        __typename
         id
         expiresAt
         typedData {

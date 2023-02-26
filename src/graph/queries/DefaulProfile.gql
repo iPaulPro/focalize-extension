@@ -1,5 +1,6 @@
 query DefaultProfile($request: DefaultProfileRequest!) {
     defaultProfile(request: $request) {
+        __typename
         isFollowedByMe
         isFollowing
         onChainIdentity {

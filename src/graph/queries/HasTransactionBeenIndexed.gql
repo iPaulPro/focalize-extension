@@ -1,6 +1,7 @@
 query HasTransactionBeenIndexed($request: HasTxHashBeenIndexedRequest!) {
     hasTxHashBeenIndexed(request: $request) {
         ... on TransactionIndexedResult {
+            __typename
             indexed
             txReceipt {
                 to
@@ -37,6 +38,7 @@ query HasTransactionBeenIndexed($request: HasTxHashBeenIndexedRequest!) {
             }
         }
         ... on TransactionError {
+            __typename
             reason
             txReceipt {
                 to

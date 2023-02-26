@@ -1,15 +1,16 @@
-import {AsyncSearchProfiles, SearchRequestTypes} from "../graph/lens-service";
+import {SearchRequestTypes} from "../graph/lens-service";
 import type {Profile, SearchQueryRequest} from "../graph/lens-service";
 import type {TributeItem} from "tributejs";
 
-export const searchProfiles = (query: string, limit: number = 5): Promise<Profile[]> => {
+import client from "../graph/graphql-client";
+import {getSdk} from "../graph/lens-service";
+
+export const searchProfiles = async (query: string, limit: number = 5): Promise<Profile[]> => {
+    const sdk = getSdk(client);
     const request: SearchQueryRequest = {query, type: SearchRequestTypes.Profile, limit}
-    return AsyncSearchProfiles({variables: {request}}).then(res => {
-        if (res.data.search.__typename === "ProfileSearchResult") {
-            return res.data.search.items as Profile[];
-        }
-        return [];
-    })
+    const {search} = await sdk.SearchProfiles({request});
+    if (search.__typename === 'ProfileSearchResult') return search.items as Profile[];
+    return [];
 }
 
 export const searchHandles = (query: string, limit: number, cb: (profiles: Profile[]) => void) => {

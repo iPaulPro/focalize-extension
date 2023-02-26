@@ -1,10 +1,6 @@
-import client from "../apollo-client";
-import type {
-        ApolloQueryResult, ObservableQuery, WatchQueryOptions, QueryOptions, MutationOptions
-      } from "@apollo/client";
-import { readable } from "svelte/store";
-import type { Readable } from "svelte/store";
-import gql from "graphql-tag"
+import type { GraphQLClient } from 'graphql-request';
+import type * as Dom from 'graphql-request/dist/types.dom';
+import gql from 'graphql-tag';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -4110,82 +4106,82 @@ export type ApprovedModuleAllowanceAmountQueryVariables = Exact<{
 }>;
 
 
-export type ApprovedModuleAllowanceAmountQuery = { __typename?: 'Query', approvedModuleAllowanceAmount: Array<{ __typename?: 'ApprovedAllowanceAmount', currency: any, module: string, contractAddress: any, allowance: string }> };
+export type ApprovedModuleAllowanceAmountQuery = { __typename?: 'Query', approvedModuleAllowanceAmount: Array<{ __typename: 'ApprovedAllowanceAmount', currency: any, module: string, contractAddress: any, allowance: string }> };
 
 export type AuthenticateMutationVariables = Exact<{
   request: SignedAuthChallenge;
 }>;
 
 
-export type AuthenticateMutation = { __typename?: 'Mutation', authenticate: { __typename?: 'AuthenticationResult', accessToken: any, refreshToken: any } };
+export type AuthenticateMutation = { __typename?: 'Mutation', authenticate: { __typename: 'AuthenticationResult', accessToken: any, refreshToken: any } };
 
 export type BroadcastMutationVariables = Exact<{
   request: BroadcastRequest;
 }>;
 
 
-export type BroadcastMutation = { __typename?: 'Mutation', broadcast: { __typename?: 'RelayError', reason: RelayErrorReasons } | { __typename?: 'RelayerResult', txHash: any, txId: any } };
+export type BroadcastMutation = { __typename?: 'Mutation', broadcast: { __typename: 'RelayError', reason: RelayErrorReasons } | { __typename: 'RelayerResult', txHash: any, txId: any } };
 
 export type ChallengeQueryVariables = Exact<{
   request: ChallengeRequest;
 }>;
 
 
-export type ChallengeQuery = { __typename?: 'Query', challenge: { __typename?: 'AuthChallengeResult', text: string } };
+export type ChallengeQuery = { __typename?: 'Query', challenge: { __typename: 'AuthChallengeResult', text: string } };
 
 export type CreatePostTypedDataMutationVariables = Exact<{
   request: CreatePublicPostRequest;
 }>;
 
 
-export type CreatePostTypedDataMutation = { __typename?: 'Mutation', createPostTypedData: { __typename?: 'CreatePostBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreatePostEIP712TypedData', types: { __typename?: 'CreatePostEIP712TypedDataTypes', PostWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreatePostEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, contentURI: any, collectModule: any, collectModuleInitData: any, referenceModule: any, referenceModuleInitData: any } } } };
+export type CreatePostTypedDataMutation = { __typename?: 'Mutation', createPostTypedData: { __typename: 'CreatePostBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreatePostEIP712TypedData', types: { __typename?: 'CreatePostEIP712TypedDataTypes', PostWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreatePostEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, contentURI: any, collectModule: any, collectModuleInitData: any, referenceModule: any, referenceModuleInitData: any } } } };
 
 export type CreatePostViaDispatcherMutationVariables = Exact<{
   request: CreatePublicPostRequest;
 }>;
 
 
-export type CreatePostViaDispatcherMutation = { __typename?: 'Mutation', createPostViaDispatcher: { __typename?: 'RelayError', reason: RelayErrorReasons } | { __typename?: 'RelayerResult', txHash: any, txId: any } };
+export type CreatePostViaDispatcherMutation = { __typename?: 'Mutation', createPostViaDispatcher: { __typename: 'RelayError', reason: RelayErrorReasons } | { __typename: 'RelayerResult', txHash: any, txId: any } };
 
 export type CreateSetDispatcherTypedDataMutationVariables = Exact<{
   request: SetDispatcherRequest;
 }>;
 
 
-export type CreateSetDispatcherTypedDataMutation = { __typename?: 'Mutation', createSetDispatcherTypedData: { __typename?: 'CreateSetDispatcherBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreateSetDispatcherEIP712TypedData', types: { __typename?: 'CreateSetDispatcherEIP712TypedDataTypes', SetDispatcherWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreateSetDispatcherEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, dispatcher: any } } } };
+export type CreateSetDispatcherTypedDataMutation = { __typename?: 'Mutation', createSetDispatcherTypedData: { __typename: 'CreateSetDispatcherBroadcastItemResult', id: any, expiresAt: any, typedData: { __typename?: 'CreateSetDispatcherEIP712TypedData', types: { __typename?: 'CreateSetDispatcherEIP712TypedDataTypes', SetDispatcherWithSig: Array<{ __typename?: 'EIP712TypedDataField', name: string, type: string }> }, domain: { __typename?: 'EIP712TypedDataDomain', name: string, chainId: any, version: string, verifyingContract: any }, value: { __typename?: 'CreateSetDispatcherEIP712TypedDataValue', nonce: any, deadline: any, profileId: any, dispatcher: any } } } };
 
 export type DefaultProfileQueryVariables = Exact<{
   request: DefaultProfileRequest;
 }>;
 
 
-export type DefaultProfileQuery = { __typename?: 'Query', defaultProfile?: { __typename?: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
+export type DefaultProfileQuery = { __typename?: 'Query', defaultProfile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
 
 export type EnabledModuleCurrenciesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type EnabledModuleCurrenciesQuery = { __typename?: 'Query', enabledModuleCurrencies: Array<{ __typename?: 'Erc20', name: string, symbol: string, decimals: number, address: any }> };
+export type EnabledModuleCurrenciesQuery = { __typename?: 'Query', enabledModuleCurrencies: Array<{ __typename: 'Erc20', name: string, symbol: string, decimals: number, address: any }> };
 
 export type GenerateModuleCurrencyApprovalDataQueryVariables = Exact<{
   request: GenerateModuleCurrencyApprovalDataRequest;
 }>;
 
 
-export type GenerateModuleCurrencyApprovalDataQuery = { __typename?: 'Query', generateModuleCurrencyApprovalData: { __typename?: 'GenerateModuleCurrencyApproval', to: any, from: any, data: any } };
+export type GenerateModuleCurrencyApprovalDataQuery = { __typename?: 'Query', generateModuleCurrencyApprovalData: { __typename: 'GenerateModuleCurrencyApproval', to: any, from: any, data: any } };
 
 export type GetProfileQueryVariables = Exact<{
   request: SingleProfileQueryRequest;
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'Query', profile?: { __typename?: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
+export type GetProfileQuery = { __typename?: 'Query', profile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
 
 export type ProfilesQueryVariables = Exact<{
   request: ProfileQueryRequest;
 }>;
 
 
-export type ProfilesQuery = { __typename?: 'Query', profiles: { __typename: 'PaginatedProfileResult', items: Array<{ __typename?: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
+export type ProfilesQuery = { __typename?: 'Query', profiles: { __typename: 'PaginatedProfileResult', items: Array<{ __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
 
 export type NotificationsQueryVariables = Exact<{
   request: NotificationRequest;
@@ -4244,7 +4240,7 @@ export type RefreshMutationVariables = Exact<{
 }>;
 
 
-export type RefreshMutation = { __typename?: 'Mutation', refresh: { __typename?: 'AuthenticationResult', accessToken: any, refreshToken: any } };
+export type RefreshMutation = { __typename?: 'Mutation', refresh: { __typename: 'AuthenticationResult', accessToken: any, refreshToken: any } };
 
 export type SearchProfilesQueryVariables = Exact<{
   request: SearchQueryRequest;
@@ -4258,7 +4254,7 @@ export type ValidatePublicationMetadataQueryVariables = Exact<{
 }>;
 
 
-export type ValidatePublicationMetadataQuery = { __typename?: 'Query', validatePublicationMetadata: { __typename?: 'PublicationValidateMetadataResult', reason?: string | null, valid: boolean } };
+export type ValidatePublicationMetadataQuery = { __typename?: 'Query', validatePublicationMetadata: { __typename: 'PublicationValidateMetadataResult', reason?: string | null, valid: boolean } };
 
 export type VerifyQueryVariables = Exact<{
   request: VerifyRequest;
@@ -4598,9 +4594,10 @@ export const CommonPaginatedResultInfoFragmentDoc = gql`
   totalCount
 }
     `;
-export const ApprovedModuleAllowanceAmountDoc = gql`
+export const ApprovedModuleAllowanceAmountDocument = gql`
     query ApprovedModuleAllowanceAmount($request: ApprovedModuleAllowanceAmountRequest!) {
   approvedModuleAllowanceAmount(request: $request) {
+    __typename
     currency
     module
     contractAddress
@@ -4608,37 +4605,43 @@ export const ApprovedModuleAllowanceAmountDoc = gql`
   }
 }
     `;
-export const AuthenticateDoc = gql`
+export const AuthenticateDocument = gql`
     mutation Authenticate($request: SignedAuthChallenge!) {
   authenticate(request: $request) {
+    __typename
     accessToken
     refreshToken
   }
 }
     `;
-export const BroadcastDoc = gql`
+export const BroadcastDocument = gql`
     mutation Broadcast($request: BroadcastRequest!) {
   broadcast(request: $request) {
+    __typename
     ... on RelayerResult {
+      __typename
       txHash
       txId
     }
     ... on RelayError {
+      __typename
       reason
     }
   }
 }
     `;
-export const ChallengeDoc = gql`
+export const ChallengeDocument = gql`
     query Challenge($request: ChallengeRequest!) {
   challenge(request: $request) {
+    __typename
     text
   }
 }
     `;
-export const CreatePostTypedDataDoc = gql`
+export const CreatePostTypedDataDocument = gql`
     mutation CreatePostTypedData($request: CreatePublicPostRequest!) {
   createPostTypedData(request: $request) {
+    __typename
     id
     expiresAt
     typedData {
@@ -4668,22 +4671,26 @@ export const CreatePostTypedDataDoc = gql`
   }
 }
     `;
-export const CreatePostViaDispatcherDoc = gql`
+export const CreatePostViaDispatcherDocument = gql`
     mutation CreatePostViaDispatcher($request: CreatePublicPostRequest!) {
   createPostViaDispatcher(request: $request) {
+    __typename
     ... on RelayerResult {
+      __typename
       txHash
       txId
     }
     ... on RelayError {
+      __typename
       reason
     }
   }
 }
     `;
-export const CreateSetDispatcherTypedDataDoc = gql`
+export const CreateSetDispatcherTypedDataDocument = gql`
     mutation CreateSetDispatcherTypedData($request: SetDispatcherRequest!) {
   createSetDispatcherTypedData(request: $request) {
+    __typename
     id
     expiresAt
     typedData {
@@ -4709,9 +4716,10 @@ export const CreateSetDispatcherTypedDataDoc = gql`
   }
 }
     `;
-export const DefaultProfileDoc = gql`
+export const DefaultProfileDocument = gql`
     query DefaultProfile($request: DefaultProfileRequest!) {
   defaultProfile(request: $request) {
+    __typename
     isFollowedByMe
     isFollowing
     onChainIdentity {
@@ -4880,9 +4888,10 @@ export const DefaultProfileDoc = gql`
   }
 }
     `;
-export const EnabledModuleCurrenciesDoc = gql`
+export const EnabledModuleCurrenciesDocument = gql`
     query EnabledModuleCurrencies {
   enabledModuleCurrencies {
+    __typename
     name
     symbol
     decimals
@@ -4890,18 +4899,20 @@ export const EnabledModuleCurrenciesDoc = gql`
   }
 }
     `;
-export const GenerateModuleCurrencyApprovalDataDoc = gql`
+export const GenerateModuleCurrencyApprovalDataDocument = gql`
     query GenerateModuleCurrencyApprovalData($request: GenerateModuleCurrencyApprovalDataRequest!) {
   generateModuleCurrencyApprovalData(request: $request) {
+    __typename
     to
     from
     data
   }
 }
     `;
-export const GetProfileDoc = gql`
+export const GetProfileDocument = gql`
     query GetProfile($request: SingleProfileQueryRequest!) {
   profile(request: $request) {
+    __typename
     isFollowedByMe
     isFollowing
     onChainIdentity {
@@ -5070,11 +5081,12 @@ export const GetProfileDoc = gql`
   }
 }
     `;
-export const ProfilesDoc = gql`
+export const ProfilesDocument = gql`
     query Profiles($request: ProfileQueryRequest!) {
   profiles(request: $request) {
     __typename
     items {
+      __typename
       isFollowedByMe
       isFollowing
       onChainIdentity {
@@ -5249,7 +5261,7 @@ export const ProfilesDoc = gql`
   }
 }
     `;
-export const NotificationsDoc = gql`
+export const NotificationsDocument = gql`
     query Notifications($request: NotificationRequest!) {
   notifications(request: $request) {
     items {
@@ -5290,10 +5302,11 @@ ${NewCommentNotificationFieldsFragmentDoc}
 ${NewMentionNotificationFieldsFragmentDoc}
 ${NewReactionNotificationFieldsFragmentDoc}
 ${CommonPaginatedResultInfoFragmentDoc}`;
-export const HasTransactionBeenIndexedDoc = gql`
+export const HasTransactionBeenIndexedDocument = gql`
     query HasTransactionBeenIndexed($request: HasTxHashBeenIndexedRequest!) {
   hasTxHashBeenIndexed(request: $request) {
     ... on TransactionIndexedResult {
+      __typename
       indexed
       txReceipt {
         to
@@ -5330,6 +5343,7 @@ export const HasTransactionBeenIndexedDoc = gql`
       }
     }
     ... on TransactionError {
+      __typename
       reason
       txReceipt {
         to
@@ -5365,15 +5379,16 @@ export const HasTransactionBeenIndexedDoc = gql`
   }
 }
     `;
-export const RefreshDoc = gql`
+export const RefreshDocument = gql`
     mutation Refresh($request: RefreshRequest!) {
   refresh(request: $request) {
+    __typename
     accessToken
     refreshToken
   }
 }
     `;
-export const SearchProfilesDoc = gql`
+export const SearchProfilesDocument = gql`
     query SearchProfiles($request: SearchQueryRequest!) {
   search(request: $request) {
     ... on ProfileSearchResult {
@@ -5392,616 +5407,82 @@ export const SearchProfilesDoc = gql`
   }
 }
     `;
-export const ValidatePublicationMetadataDoc = gql`
+export const ValidatePublicationMetadataDocument = gql`
     query ValidatePublicationMetadata($request: ValidatePublicationMetadataRequest!) {
   validatePublicationMetadata(request: $request) {
+    __typename
     reason
     valid
   }
 }
     `;
-export const VerifyDoc = gql`
+export const VerifyDocument = gql`
     query Verify($request: VerifyRequest!) {
   verify(request: $request)
 }
     `;
-export const ApprovedModuleAllowanceAmount = (
-            options: Omit<
-              WatchQueryOptions<ApprovedModuleAllowanceAmountQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<ApprovedModuleAllowanceAmountQuery> & {
-              query: ObservableQuery<
-                ApprovedModuleAllowanceAmountQuery,
-                ApprovedModuleAllowanceAmountQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: ApprovedModuleAllowanceAmountDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<ApprovedModuleAllowanceAmountQuery> & {
-                query: ObservableQuery<
-                  ApprovedModuleAllowanceAmountQuery,
-                  ApprovedModuleAllowanceAmountQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncApprovedModuleAllowanceAmount = (
-                options: Omit<
-                  QueryOptions<ApprovedModuleAllowanceAmountQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<ApprovedModuleAllowanceAmountQuery>({query: ApprovedModuleAllowanceAmountDoc, ...options})
-              }
-            
-export const Authenticate = (
-            options: Omit<
-              MutationOptions<any, AuthenticateMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<AuthenticateMutation, AuthenticateMutationVariables>({
-              mutation: AuthenticateDoc,
-              ...options,
-            });
-            return m;
-          }
-export const Broadcast = (
-            options: Omit<
-              MutationOptions<any, BroadcastMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<BroadcastMutation, BroadcastMutationVariables>({
-              mutation: BroadcastDoc,
-              ...options,
-            });
-            return m;
-          }
-export const Challenge = (
-            options: Omit<
-              WatchQueryOptions<ChallengeQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<ChallengeQuery> & {
-              query: ObservableQuery<
-                ChallengeQuery,
-                ChallengeQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: ChallengeDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<ChallengeQuery> & {
-                query: ObservableQuery<
-                  ChallengeQuery,
-                  ChallengeQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncChallenge = (
-                options: Omit<
-                  QueryOptions<ChallengeQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<ChallengeQuery>({query: ChallengeDoc, ...options})
-              }
-            
-export const CreatePostTypedData = (
-            options: Omit<
-              MutationOptions<any, CreatePostTypedDataMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<CreatePostTypedDataMutation, CreatePostTypedDataMutationVariables>({
-              mutation: CreatePostTypedDataDoc,
-              ...options,
-            });
-            return m;
-          }
-export const CreatePostViaDispatcher = (
-            options: Omit<
-              MutationOptions<any, CreatePostViaDispatcherMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<CreatePostViaDispatcherMutation, CreatePostViaDispatcherMutationVariables>({
-              mutation: CreatePostViaDispatcherDoc,
-              ...options,
-            });
-            return m;
-          }
-export const CreateSetDispatcherTypedData = (
-            options: Omit<
-              MutationOptions<any, CreateSetDispatcherTypedDataMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<CreateSetDispatcherTypedDataMutation, CreateSetDispatcherTypedDataMutationVariables>({
-              mutation: CreateSetDispatcherTypedDataDoc,
-              ...options,
-            });
-            return m;
-          }
-export const DefaultProfile = (
-            options: Omit<
-              WatchQueryOptions<DefaultProfileQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<DefaultProfileQuery> & {
-              query: ObservableQuery<
-                DefaultProfileQuery,
-                DefaultProfileQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: DefaultProfileDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<DefaultProfileQuery> & {
-                query: ObservableQuery<
-                  DefaultProfileQuery,
-                  DefaultProfileQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncDefaultProfile = (
-                options: Omit<
-                  QueryOptions<DefaultProfileQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<DefaultProfileQuery>({query: DefaultProfileDoc, ...options})
-              }
-            
-export const EnabledModuleCurrencies = (
-            options: Omit<
-              WatchQueryOptions<EnabledModuleCurrenciesQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<EnabledModuleCurrenciesQuery> & {
-              query: ObservableQuery<
-                EnabledModuleCurrenciesQuery,
-                EnabledModuleCurrenciesQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: EnabledModuleCurrenciesDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<EnabledModuleCurrenciesQuery> & {
-                query: ObservableQuery<
-                  EnabledModuleCurrenciesQuery,
-                  EnabledModuleCurrenciesQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncEnabledModuleCurrencies = (
-                options: Omit<
-                  QueryOptions<EnabledModuleCurrenciesQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<EnabledModuleCurrenciesQuery>({query: EnabledModuleCurrenciesDoc, ...options})
-              }
-            
-export const GenerateModuleCurrencyApprovalData = (
-            options: Omit<
-              WatchQueryOptions<GenerateModuleCurrencyApprovalDataQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<GenerateModuleCurrencyApprovalDataQuery> & {
-              query: ObservableQuery<
-                GenerateModuleCurrencyApprovalDataQuery,
-                GenerateModuleCurrencyApprovalDataQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: GenerateModuleCurrencyApprovalDataDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<GenerateModuleCurrencyApprovalDataQuery> & {
-                query: ObservableQuery<
-                  GenerateModuleCurrencyApprovalDataQuery,
-                  GenerateModuleCurrencyApprovalDataQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncGenerateModuleCurrencyApprovalData = (
-                options: Omit<
-                  QueryOptions<GenerateModuleCurrencyApprovalDataQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<GenerateModuleCurrencyApprovalDataQuery>({query: GenerateModuleCurrencyApprovalDataDoc, ...options})
-              }
-            
-export const GetProfile = (
-            options: Omit<
-              WatchQueryOptions<GetProfileQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<GetProfileQuery> & {
-              query: ObservableQuery<
-                GetProfileQuery,
-                GetProfileQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: GetProfileDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<GetProfileQuery> & {
-                query: ObservableQuery<
-                  GetProfileQuery,
-                  GetProfileQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncGetProfile = (
-                options: Omit<
-                  QueryOptions<GetProfileQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<GetProfileQuery>({query: GetProfileDoc, ...options})
-              }
-            
-export const Profiles = (
-            options: Omit<
-              WatchQueryOptions<ProfilesQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<ProfilesQuery> & {
-              query: ObservableQuery<
-                ProfilesQuery,
-                ProfilesQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: ProfilesDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<ProfilesQuery> & {
-                query: ObservableQuery<
-                  ProfilesQuery,
-                  ProfilesQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncProfiles = (
-                options: Omit<
-                  QueryOptions<ProfilesQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<ProfilesQuery>({query: ProfilesDoc, ...options})
-              }
-            
-export const Notifications = (
-            options: Omit<
-              WatchQueryOptions<NotificationsQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<NotificationsQuery> & {
-              query: ObservableQuery<
-                NotificationsQuery,
-                NotificationsQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: NotificationsDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<NotificationsQuery> & {
-                query: ObservableQuery<
-                  NotificationsQuery,
-                  NotificationsQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncNotifications = (
-                options: Omit<
-                  QueryOptions<NotificationsQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<NotificationsQuery>({query: NotificationsDoc, ...options})
-              }
-            
-export const HasTransactionBeenIndexed = (
-            options: Omit<
-              WatchQueryOptions<HasTransactionBeenIndexedQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<HasTransactionBeenIndexedQuery> & {
-              query: ObservableQuery<
-                HasTransactionBeenIndexedQuery,
-                HasTransactionBeenIndexedQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: HasTransactionBeenIndexedDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<HasTransactionBeenIndexedQuery> & {
-                query: ObservableQuery<
-                  HasTransactionBeenIndexedQuery,
-                  HasTransactionBeenIndexedQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncHasTransactionBeenIndexed = (
-                options: Omit<
-                  QueryOptions<HasTransactionBeenIndexedQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<HasTransactionBeenIndexedQuery>({query: HasTransactionBeenIndexedDoc, ...options})
-              }
-            
-export const Refresh = (
-            options: Omit<
-              MutationOptions<any, RefreshMutationVariables>, 
-              "mutation"
-            >
-          ) => {
-            const m = client.mutate<RefreshMutation, RefreshMutationVariables>({
-              mutation: RefreshDoc,
-              ...options,
-            });
-            return m;
-          }
-export const SearchProfiles = (
-            options: Omit<
-              WatchQueryOptions<SearchProfilesQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<SearchProfilesQuery> & {
-              query: ObservableQuery<
-                SearchProfilesQuery,
-                SearchProfilesQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: SearchProfilesDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<SearchProfilesQuery> & {
-                query: ObservableQuery<
-                  SearchProfilesQuery,
-                  SearchProfilesQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncSearchProfiles = (
-                options: Omit<
-                  QueryOptions<SearchProfilesQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<SearchProfilesQuery>({query: SearchProfilesDoc, ...options})
-              }
-            
-export const ValidatePublicationMetadata = (
-            options: Omit<
-              WatchQueryOptions<ValidatePublicationMetadataQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<ValidatePublicationMetadataQuery> & {
-              query: ObservableQuery<
-                ValidatePublicationMetadataQuery,
-                ValidatePublicationMetadataQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: ValidatePublicationMetadataDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<ValidatePublicationMetadataQuery> & {
-                query: ObservableQuery<
-                  ValidatePublicationMetadataQuery,
-                  ValidatePublicationMetadataQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncValidatePublicationMetadata = (
-                options: Omit<
-                  QueryOptions<ValidatePublicationMetadataQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<ValidatePublicationMetadataQuery>({query: ValidatePublicationMetadataDoc, ...options})
-              }
-            
-export const Verify = (
-            options: Omit<
-              WatchQueryOptions<VerifyQueryVariables>, 
-              "query"
-            >
-          ): Readable<
-            ApolloQueryResult<VerifyQuery> & {
-              query: ObservableQuery<
-                VerifyQuery,
-                VerifyQueryVariables
-              >;
-            }
-          > => {
-            const q = client.watchQuery({
-              query: VerifyDoc,
-              ...options,
-            });
-            var result = readable<
-              ApolloQueryResult<VerifyQuery> & {
-                query: ObservableQuery<
-                  VerifyQuery,
-                  VerifyQueryVariables
-                >;
-              }
-            >(
-              { data: {} as any, loading: true, error: undefined, networkStatus: 1, query: q },
-              (set) => {
-                q.subscribe((v: any) => {
-                  set({ ...v, query: q });
-                });
-              }
-            );
-            return result;
-          }
-        
-              export const AsyncVerify = (
-                options: Omit<
-                  QueryOptions<VerifyQueryVariables>,
-                  "query"
-                >
-              ) => {
-                return client.query<VerifyQuery>({query: VerifyDoc, ...options})
-              }
-            
+
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string) => Promise<T>;
+
+
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType) => action();
+
+export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
+  return {
+    ApprovedModuleAllowanceAmount(variables: ApprovedModuleAllowanceAmountQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ApprovedModuleAllowanceAmountQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ApprovedModuleAllowanceAmountQuery>(ApprovedModuleAllowanceAmountDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'ApprovedModuleAllowanceAmount', 'query');
+    },
+    Authenticate(variables: AuthenticateMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthenticateMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AuthenticateMutation>(AuthenticateDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Authenticate', 'mutation');
+    },
+    Broadcast(variables: BroadcastMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<BroadcastMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<BroadcastMutation>(BroadcastDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Broadcast', 'mutation');
+    },
+    Challenge(variables: ChallengeQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChallengeQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ChallengeQuery>(ChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Challenge', 'query');
+    },
+    CreatePostTypedData(variables: CreatePostTypedDataMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreatePostTypedDataMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreatePostTypedDataMutation>(CreatePostTypedDataDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CreatePostTypedData', 'mutation');
+    },
+    CreatePostViaDispatcher(variables: CreatePostViaDispatcherMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreatePostViaDispatcherMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreatePostViaDispatcherMutation>(CreatePostViaDispatcherDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CreatePostViaDispatcher', 'mutation');
+    },
+    CreateSetDispatcherTypedData(variables: CreateSetDispatcherTypedDataMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<CreateSetDispatcherTypedDataMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateSetDispatcherTypedDataMutation>(CreateSetDispatcherTypedDataDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'CreateSetDispatcherTypedData', 'mutation');
+    },
+    DefaultProfile(variables: DefaultProfileQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DefaultProfileQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DefaultProfileQuery>(DefaultProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'DefaultProfile', 'query');
+    },
+    EnabledModuleCurrencies(variables?: EnabledModuleCurrenciesQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<EnabledModuleCurrenciesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<EnabledModuleCurrenciesQuery>(EnabledModuleCurrenciesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'EnabledModuleCurrencies', 'query');
+    },
+    GenerateModuleCurrencyApprovalData(variables: GenerateModuleCurrencyApprovalDataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GenerateModuleCurrencyApprovalDataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GenerateModuleCurrencyApprovalDataQuery>(GenerateModuleCurrencyApprovalDataDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GenerateModuleCurrencyApprovalData', 'query');
+    },
+    GetProfile(variables: GetProfileQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetProfileQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetProfileQuery>(GetProfileDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'GetProfile', 'query');
+    },
+    Profiles(variables: ProfilesQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProfilesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ProfilesQuery>(ProfilesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Profiles', 'query');
+    },
+    Notifications(variables: NotificationsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<NotificationsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<NotificationsQuery>(NotificationsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Notifications', 'query');
+    },
+    HasTransactionBeenIndexed(variables: HasTransactionBeenIndexedQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<HasTransactionBeenIndexedQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<HasTransactionBeenIndexedQuery>(HasTransactionBeenIndexedDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'HasTransactionBeenIndexed', 'query');
+    },
+    Refresh(variables: RefreshMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RefreshMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RefreshMutation>(RefreshDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Refresh', 'mutation');
+    },
+    SearchProfiles(variables: SearchProfilesQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<SearchProfilesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<SearchProfilesQuery>(SearchProfilesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'SearchProfiles', 'query');
+    },
+    ValidatePublicationMetadata(variables: ValidatePublicationMetadataQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ValidatePublicationMetadataQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ValidatePublicationMetadataQuery>(ValidatePublicationMetadataDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'ValidatePublicationMetadata', 'query');
+    },
+    Verify(variables: VerifyQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<VerifyQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<VerifyQuery>(VerifyDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'Verify', 'query');
+    }
+  };
+}
+export type Sdk = ReturnType<typeof getSdk>;

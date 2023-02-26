@@ -1,33 +1,34 @@
 import {getLensHub} from "../lens-hub";
-import {AsyncDefaultProfile, AsyncGetProfile, AsyncProfiles, Broadcast, CreateSetDispatcherTypedData} from "../graph/lens-service";
 import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
+
+import client from "../graph/graphql-client";
+import {getSdk} from "../graph/lens-service";
 
 import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
 import type {Profile} from "../graph/lens-service";
 import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 
+const sdk = getSdk(client);
+
 /**
  * Gets the default profile of the address supplied.
  */
 export const getDefaultProfile = async (ethereumAddress: string): Promise<Profile> => {
-    const res = await AsyncDefaultProfile({variables: {request: {ethereumAddress}}})
-    if (res.error) throw res.error;
-    if (res.data?.defaultProfile?.__typename === 'Profile') return res.data.defaultProfile;
+    const {defaultProfile} = await sdk.DefaultProfile({request: {ethereumAddress}})
+    if (defaultProfile?.__typename === 'Profile') return defaultProfile;
     throw 'Unable to get default profile';
 };
 
 export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
-    const res = await AsyncProfiles({variables: {request: {ownedBy: [ownedBy]}}});
-    if (res.error) throw res.error;
-    return res.data?.profiles?.items;
+    const {profiles} = await sdk.Profiles({request: {ownedBy: [ownedBy]}});
+    return profiles.items;
 };
 
 export const getProfileById = async (profileId: string): Promise<Profile> => {
-    const res = await AsyncGetProfile({variables: {request: {profileId}}});
-    if (res.error) throw res.error;
-    if (res.data?.profile?.__typename === 'Profile') return res.data.profile;
+    const {profile} = await sdk.GetProfile({request: {profileId}});
+    if (profile?.__typename === 'Profile') return profile;
     throw 'Unable to get profile';
 }
 
@@ -49,33 +50,29 @@ export const canUseRelay = async (profileId: string): Promise<boolean> => {
 }
 
 export const setDispatcher = async (request: SetDispatcherRequest): Promise<string> => {
-    const res = await CreateSetDispatcherTypedData({variables: {request}});
-    if (!res.data?.createSetDispatcherTypedData?.typedData) {
+    const {createSetDispatcherTypedData} = await sdk.CreateSetDispatcherTypedData({request});
+
+    const typedData = createSetDispatcherTypedData.typedData;
+    if (!typedData) {
         throw 'Error setting dispatcher';
     }
 
-    const typedData = res.data.createSetDispatcherTypedData.typedData;
-
-    // @ts-ignore
+    // @ts-ignore this function strips the __typename
     const signature = await signTypedData(typedData.domain, typedData.types, typedData.value);
 
     let txHash;
 
     const broadcastReq: BroadcastRequest = {
-        id: res.data.createSetDispatcherTypedData.id,
+        id: createSetDispatcherTypedData.id,
         signature
     }
-    const broadcastRes = await Broadcast({variables: {request: broadcastReq}});
-    console.log('setDispatcher: broadcast result', broadcastRes);
+    const {broadcast} = await sdk.Broadcast({request: broadcastReq});
+    console.log('setDispatcher: broadcast result', broadcast);
 
-    if (!broadcastRes?.data?.broadcast || broadcastRes.data.broadcast.__typename === 'RelayError') {
-        console.error('setDispatcher: post with broadcast failed');
+    if (broadcast.__typename === 'RelayError') {
+        console.error('setDispatcher: post with broadcast failed', broadcast.reason);
 
-        if (broadcastRes?.data?.broadcast?.__typename === 'RelayError' && broadcastRes.data.broadcast.reason) {
-            console.error(broadcastRes.data.broadcast.reason);
-        }
-
-        const { v, r, s } = splitSignature(signature);
+        const {v, r, s} = splitSignature(signature);
 
         const lensHub = getLensHub();
         const tx = await lensHub.setDispatcherWithSig({
@@ -92,8 +89,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
         txHash = tx.hash;
     }
 
-    if (!txHash && broadcastRes?.data) {
-        const broadcast: RelayerResult = broadcastRes.data.broadcast as RelayerResult;
+    if (!txHash && broadcast.__typename === 'RelayerResult') {
         console.log('setDispatcher: broadcast transaction success', broadcast.txHash)
         txHash = broadcast.txHash;
     }

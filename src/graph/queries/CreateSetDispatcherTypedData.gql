@@ -1,5 +1,6 @@
 mutation CreateSetDispatcherTypedData($request: SetDispatcherRequest!) {
     createSetDispatcherTypedData(request: $request) {
+        __typename
         id
         expiresAt
         typedData {

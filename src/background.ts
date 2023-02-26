@@ -2,10 +2,11 @@ import {GraphQLClient} from 'graphql-request'
 import {DateTime} from 'luxon';
 import {BigNumber, utils} from 'ethers';
 
-import {LENS_API} from "./config";
-import {NotificationsDoc, SearchProfilesDoc, SearchRequestTypes} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from './lib/lens-auth';
 import {pollUntilIndexed} from './lib/has-transaction-been-indexed';
+
+import client from "./graph/graphql-client";
+import {getSdk, SearchRequestTypes} from "./graph/lens-service";
 
 import type {
     PublicationMetadataV2Input,
@@ -21,7 +22,7 @@ const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
 const NOTIFICATIONS_QUERY_LIMIT = 50;
 
-const client = new GraphQLClient(LENS_API, {fetch, cache: "no-cache"});
+const sdk = getSdk(client);
 
 const clearAlarm = () => chrome.alarms.clear(ALARM_ID);
 
@@ -49,14 +50,10 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     if (!storage.currentUser) return undefined;
     const user: User = storage.currentUser;
 
-    const data = await client.request<NotificationsQuery, NotificationsQueryVariables>(
-        NotificationsDoc,
-        {request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}},
-        {'x-access-token': `Bearer ${accessToken}`}
-    );
+    const {notifications} = await sdk.Notifications({request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}})
 
-    if (data.notifications.items) {
-        return data.notifications.items as Notification[];
+    if (notifications.items) {
+        return notifications.items as Notification[];
     }
 
     return [];
@@ -298,13 +295,10 @@ chrome.action.onClicked.addListener(tab => {
 });
 
 const searchProfiles = async (query: string, limit: number): Promise<Profile[]> => {
-    const data = await client.request<SearchProfilesQuery, SearchProfilesQueryVariables>(
-        SearchProfilesDoc,
-        {request: {query, limit, type: SearchRequestTypes.Profile}}
-    );
+    const {search} = await sdk.SearchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});
 
-    if (data.search.__typename === "ProfileSearchResult") {
-        return data.search.items as Profile[];
+    if (search.__typename === "ProfileSearchResult" && search.items) {
+        return search.items as Profile[];
     }
 
     return [];

@@ -1,10 +1,13 @@
 mutation CreatePostViaDispatcher($request: CreatePublicPostRequest!) {
     createPostViaDispatcher(request: $request) {
+        __typename
         ... on RelayerResult {
+            __typename
             txHash
             txId
         }
         ... on RelayError {
+            __typename
             reason
         }
     }
