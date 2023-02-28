@@ -30,19 +30,14 @@ export const getProfileById = async (profileId: string): Promise<Profile> => {
 }
 
 export const canUseRelay = async (profileId: string): Promise<boolean> => {
-    let profileRes;
+    let profile;
 
     try {
-        profileRes = await getProfileById(profileId)
+        profile = await getProfileById(profileId)
     } catch (e) {
         return false;
     }
 
-    // @ts-ignore
-    if (profileRes.error) return false;
-
-    // @ts-ignore
-    const profile = profileRes.data.profile;
     return profile.dispatcher?.canUseRelay ?? false;
 }
 
