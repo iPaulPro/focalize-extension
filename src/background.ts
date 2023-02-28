@@ -229,9 +229,9 @@ chrome.runtime.onMessage.addListener(
 
         if (req.setAlarm !== undefined) {
             if (req.setAlarm) {
-                setAlarm().catch(console.error);
+                setAlarm().then(() => res()).catch(console.error);
             } else {
-                clearAlarm().catch(console.error);
+                clearAlarm().then(() => res()).catch(console.error);
             }
             return true;
         }

@@ -59,10 +59,17 @@
             $currentUser = userFromProfile(authenticatedProfile);
 
             console.log('Authenticated user', $currentUser);
-            await chrome.runtime.sendMessage({setAlarm: true});
         } catch (e) {
-            console.error(e);
+            console.error('Error logging in',e);
             toast.error('Error logging in');
+        }
+
+        if ($currentUser) {
+            try {
+                await chrome.runtime.sendMessage({setAlarm: true});
+            } catch (e) {
+                console.error('Error setting alarm', e)
+            }
         }
     };
 

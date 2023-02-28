@@ -25,7 +25,6 @@
     import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
-        article,
         attachment,
         author,
         clearPostState,
@@ -55,10 +54,8 @@
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
-    import MarkdownEditor from './components/MarkdownEditor.svelte';
     import PlainTextEditor from './components/PlainTextEditor.svelte';
     import PostTags from './components/PostTags.svelte';
-    import PostTabs from './components/PostTabs.svelte';
     import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
     import PostMethodChooser from "./components/PostMethodChooser.svelte";
@@ -84,8 +81,6 @@
 
     let onGifDialogShown: () => {};
 
-    let initialMarkdownText: string;
-
     let postType: PublicationMainFocus;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
@@ -108,11 +103,13 @@
     $: referenceModuleParams = referenceItem.value;
 
     $: isTextPostType = postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link;
-    $: isArticlePostType = postType === PublicationMainFocus.Article;
     $: isImagePostType = postType === PublicationMainFocus.Image;
-    $: isMediaPostType = postType === PublicationMainFocus.Audio ||
-        postType === PublicationMainFocus.Image ||
-        postType === PublicationMainFocus.Video;
+
+    const isMediaPostType = (): boolean => {
+        return  postType === PublicationMainFocus.Audio ||
+            postType === PublicationMainFocus.Image ||
+            postType === PublicationMainFocus.Video;
+    }
 
     const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
         if (!urlParams.has('type')) {
@@ -125,8 +122,6 @@
                 return PublicationMainFocus.Image;
             case 'link':
                 return PublicationMainFocus.Link;
-            case 'article':
-                return PublicationMainFocus.Article;
             default:
                 return PublicationMainFocus.TextOnly;
         }
@@ -162,13 +157,8 @@
         }
 
         if (md.length > 0) {
-            $article = md;
             $content = md;
         }
-    };
-
-    const onPostTypeChange = (e) => {
-        postType = e.detail;
     };
 
     const showCollectFeesDialog = () => {
@@ -201,29 +191,20 @@
         onGifDialogShown();
     }
 
-    const getContent = (): string => {
-        if (isArticlePostType) {
-            return $article;
-        }
-        return $content;
-    };
-
     const buildMetadata = (): PublicationMetadataV2Input => {
         if (!$currentUser) throw new Error('No user found');
 
-        const content = getContent();
-
-        if (!isMediaPostType) {
+        if (!isMediaPostType()) {
             // TODO validate
 
-            const urls = getUrlsFromText(content);
+            const urls = getUrlsFromText($content);
             if (urls.length > 0) {
                 postType = PublicationMainFocus.Link;
             }
 
             return generateTextPostMetadata(
                 $currentUser.handle,
-                content,
+                $content,
                 postType,
                 getTags(),
                 postContentWarning.value,
@@ -408,7 +389,6 @@
 
     $: shouldDisableSubmitBtn = isSubmittingPost ||
         (isTextPostType && (!$content?.length)) ||
-        (isArticlePostType && (!$article?.length)) ||
         (isImagePostType && (!$attachment && !$gifAttachment));
 
     const locales = navigator.languages.map(tag => ({
@@ -445,6 +425,10 @@
 
         if ($gifAttachment && $attachment) {
             removeAttachmentDialog?.showModal();
+        }
+
+        if ((!$attachment && !$gifAttachment) && isMediaPostType()) {
+            postType = PublicationMainFocus.TextOnly;
         }
     }
 
@@ -535,36 +519,20 @@
 
       <div id="content" class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-4'}" bind:this={contentDiv}>
 
-        {#if !isCompact}
-          <div class="pb-4">
-            <PostTabs {postType} on:typeChange={onPostTypeChange} disabled={isSubmittingPost}/>
-          </div>
-        {/if}
-
         <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
 
-          {#if isTextPostType}
-
-            <PlainTextEditor disabled={isSubmittingPost} {isCompact}
-                             on:fileSelected={(e) => setAttachment(e.detail)}
-                             on:selectGif={(e) => showGifSelectionDialog()} />
-
-          {:else if isMediaPostType}
-
-            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
+          <PlainTextEditor disabled={isSubmittingPost} {isCompact}
                            on:fileSelected={(e) => setAttachment(e.detail)}
                            on:selectGif={(e) => showGifSelectionDialog()} />
 
-          {:else if postType === PublicationMainFocus.Article}
-
-            <MarkdownEditor defaultValue={initialMarkdownText} />
-
+          {#if $attachment || $gifAttachment}
+            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
           {/if}
 
           <div class="flex flex-wrap gap-4
                {isCompact ? 'pt-2' : 'pt-3'}
-               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
+               {isMediaPostType() ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
                {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}

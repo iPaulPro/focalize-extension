@@ -92,7 +92,7 @@
               </div>
               <div class="ml-4">
                 <h5 class="text-lg leading-6 text-gray-900 dark:text-white font-bold">
-                  Long-form
+                  Long-form <span class="opacity-60">(coming soon)</span>
                 </h5>
                 <p class="mt-2 text-base leading-6 text-gray-500 dark:text-gray-300">
                   Publish articles on Lens with a WYSIWYG Markdown editor.

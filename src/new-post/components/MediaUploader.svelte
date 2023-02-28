@@ -1,18 +1,11 @@
 <script lang="ts">
     import toast from 'svelte-french-toast';
 
-    import PlainTextEditor from '../components/PlainTextEditor.svelte';
     import LoadingSpinner from './LoadingSpinner.svelte';
-
     import imageExternal from '../../assets/ic_external.svg';
 
     import {uploadAndPin, unpin} from "../../lib/ipfs-service";
-    import {
-        IMAGE_TYPES,
-        imageMimeTypesJoined,
-        MAX_FILE_SIZE,
-        supportedMimeTypesJoined
-    } from '../../lib/file-utils'
+    import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
     import {attachment, author, cover, description, gifAttachment, title} from "../../lib/store/state-store";
 
     import * as id3 from "id3js";
@@ -144,9 +137,10 @@
         coverLoading = false;
     };
 
-    const deleteAttachment = async () => {
+    const deleteAttachment = async (notify: boolean = false) => {
         if ($gifAttachment) {
             gifAttachment.set(null);
+            if (notify) dispatch('attachmentRemoved');
             return;
         }
 
@@ -160,10 +154,12 @@
 
         attachment.set(null);
         loading = false;
+
+        if (notify) dispatch('attachmentRemoved');
     }
 
-    const onDeleteMedia = async () => {
-        await deleteAttachment();
+    const onDeleteMedia = async (notify: boolean = false) => {
+        await deleteAttachment(notify);
         await onDeleteCover();
         uploadedPct = 0;
     };
@@ -202,10 +198,6 @@
 
   {#if filePath && fileType}
 
-    <PlainTextEditor placeholder="Comment (optional)"
-                     on:fileSelected={(e) =>dispatch('fileSelected', e.detail)}
-                     on:selectGif={(e) =>dispatch('selectGif')}/>
-
     <div class="flex w-full justify-center bg-gray-100 dark:bg-gray-700 px-4 pt-6 pb-4 rounded-xl">
 
       <div class="flex flex-col items-center justify-center {isCollectable ? 'w-5/12' : 'w-full'} ">
@@ -220,7 +212,7 @@
                  on:load={() => loading = false}>
 
             <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
-              <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
+              <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={() => onDeleteMedia(true)}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
                      class="w-8 h-8 text-white drop-shadow-dark">
                   <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
@@ -331,7 +323,7 @@
             </div>
 
             <button type="button" class="text-red-700 dark:text-white opacity-60 hover:opacity-100"
-                    on:click={onDeleteMedia}>
+                    on:click={() => onDeleteMedia(true)}>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="3 6 5 6 21 6"></polyline>
