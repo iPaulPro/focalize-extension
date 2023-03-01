@@ -107,7 +107,7 @@
         let baseModule = {
             amount,
             recipient,
-            referralFee: $collectFee.referralFee,
+            referralFee: $collectFee.referralFee ?? 0,
             followerOnly: $collectFee.followerOnly
         }
 
