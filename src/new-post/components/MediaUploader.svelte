@@ -6,7 +6,7 @@
 
     import {uploadAndPin, unpin} from "../../lib/ipfs-service";
     import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
-    import {attachment, author, cover, description, gifAttachment, title} from "../../lib/store/state-store";
+    import {fileAttachment, author, cover, description, urlAttachment, title} from "../../lib/store/state-store";
 
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";
@@ -19,10 +19,10 @@
 
     const IPFS_GATEWAY = import.meta.env.VITE_INFURA_GATEWAY_URL;
 
-    $: filePath = $attachment?.cid ? `${IPFS_GATEWAY}${$attachment?.cid}` : $gifAttachment ? $gifAttachment.item : null;
-    $: fileType = $attachment?.type || $gifAttachment?.type;
+    $: filePath = $fileAttachment?.cid ? `${IPFS_GATEWAY}${$fileAttachment?.cid}` : $urlAttachment ? $urlAttachment.item : null;
+    $: fileType = $fileAttachment?.type || $urlAttachment?.type;
 
-    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $gifAttachment ? $gifAttachment.item : null;
+    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $urlAttachment ? $urlAttachment.item : null;
     $: coverType = $cover?.type;
 
     $: isAttachmentImage = fileType?.startsWith('image/');
@@ -81,7 +81,7 @@
                 cover.set(null);
                 coverLoading = false;
             } else {
-                attachment.set(null);
+                fileAttachment.set(null);
                 loading = false;
             }
             uploadedPct = 0;
@@ -98,7 +98,7 @@
             return;
         }
 
-        attachment.set(file);
+        fileAttachment.set(file);
 
         if (file.type.startsWith('audio/')) {
             try {
@@ -138,21 +138,21 @@
     };
 
     const deleteAttachment = async (notify: boolean = false) => {
-        if ($gifAttachment) {
-            gifAttachment.set(null);
+        if ($urlAttachment) {
+            urlAttachment.set(null);
             if (notify) dispatch('attachmentRemoved');
             return;
         }
 
-        if (!$attachment) return;
+        if (!$fileAttachment) return;
 
         try {
-            await unpin($attachment.cid);
+            await unpin($fileAttachment.cid);
         } catch (e) {
-            console.warn('Unable to unpin cid', $attachment.cid)
+            console.warn('Unable to unpin cid', $fileAttachment.cid)
         }
 
-        attachment.set(null);
+        fileAttachment.set(null);
         loading = false;
 
         if (notify) dispatch('attachmentRemoved');
@@ -186,7 +186,7 @@
     };
 
     $: {
-        const file = $attachment;
+        const file = $fileAttachment;
         if (file && !file.cid) {
             onDeleteMedia().catch();
             upload(file).catch();
@@ -305,7 +305,7 @@
         {/if}
 
 
-        {#if $attachment?.cid}
+        {#if $fileAttachment?.cid}
           <div class="w-full text-xs text-gray-400 pt-4 px-1 flex gap-6 truncate justify-center">
 
             <div class="flex truncate">
@@ -315,7 +315,7 @@
               <div class="flex truncate pl-1">
                 <a href={filePath} class="max-w-[10rem] hover:text-gray-600 grow truncate flex" target="_blank"
                    rel="noreferrer">
-                  <div class="truncate">{$attachment?.cid}</div>
+                  <div class="truncate">{$fileAttachment?.cid}</div>
                   <InlineSVG src={imageExternal} class="w-3 h-3 flex-shrink-0 inline mt-[0.1rem]"/>
                 </a>
               </div>

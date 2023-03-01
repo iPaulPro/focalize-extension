@@ -24,12 +24,13 @@ import type {
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
 import type {User} from "./user";
+import {deleteDraft} from "./store/draft-store";
 
-const makeMetadataFile = (metadata: PublicationMetadataV2Input): File => {
+const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uuid()): File => {
     const obj = {
         ...metadata,
         version: '2.0.0',
-        metadata_id: uuid(),
+        metadata_id: id,
         appId: APP_ID,
         locale: 'en',
     }
@@ -249,6 +250,7 @@ const createPostTransaction = async (
 
 export const submitPost = async (
     user: User,
+    draftId: string,
     metadata: PublicationMetadataV2Input,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
@@ -264,7 +266,7 @@ export const submitPost = async (
         throw validate.reason;
     }
 
-    const metadataFile: File = makeMetadataFile(metadata);
+    const metadataFile: File = makeMetadataFile(metadata, draftId);
     const metadataCid = await uploadAndPin(metadataFile);
     const contentURI = `ipfs://${metadataCid}`;
     console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
@@ -291,6 +293,8 @@ export const submitPost = async (
     if (res.error) throw res.error;
 
     console.log('submitPost: post has been indexed', res.publicationId);
+
+    deleteDraft(draftId).catch(console.warn);
 
     return res.publicationId;
 };

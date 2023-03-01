@@ -11,7 +11,7 @@ export type RefreshInterval = {
     label: string
 }
 
-export const compactMode: Writable<boolean> = chromeStorageSync('compactMode', false);
+export const compactMode: Writable<boolean> = chromeStorageSync('compactMode', true);
 
 export const darkMode: Writable<boolean> = chromeStorageSync('darkMode', false);
 

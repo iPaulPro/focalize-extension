@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {createEventDispatcher, onMount} from 'svelte';
+    import {beforeUpdate, createEventDispatcher, onMount} from 'svelte';
     import {z} from "zod";
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
@@ -107,7 +107,7 @@
         let baseModule = {
             amount,
             recipient,
-            referralFee: $collectFee.referralFee,
+            referralFee: $collectFee.referralFee ?? 0,
             followerOnly: $collectFee.followerOnly
         }
 
@@ -143,6 +143,12 @@
 
         dispatch('moduleUpdated', collectModule);
     }
+
+    beforeUpdate(() => {
+       if (!$collectFee) {
+           $collectFee = {};
+       }
+    });
 
     onMount(() => {
         if ($collectFee.limit) {

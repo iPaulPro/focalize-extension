@@ -1,16 +1,16 @@
 <script lang="ts">
-    import {attachment, gifAttachment} from "../../lib/store/state-store";
+    import {fileAttachment, urlAttachment} from "../../lib/store/state-store";
     import {createEventDispatcher} from "svelte";
 
     const dispatch = createEventDispatcher();
 
     const onCancelClick = async () => {
-        $gifAttachment = null;
+        $urlAttachment = null;
         dispatch('close');
     };
 
     const onRemoveClick = async () => {
-        $attachment = null;
+        $fileAttachment = null;
         dispatch('close');
     };
 </script>

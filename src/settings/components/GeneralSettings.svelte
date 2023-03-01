@@ -127,7 +127,7 @@
               Compact popups
             </div>
             <div class="text-base text-neutral-400">
-              Hide top tabs in popup window and condense white space
+              Smaller fonts in popup window and condense white space
             </div>
           </div>
         </div>
