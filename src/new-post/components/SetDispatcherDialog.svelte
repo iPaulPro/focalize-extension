@@ -4,6 +4,7 @@
 
     import {currentUser} from "../../lib/store/user-store";
     import {setDispatcher} from "../../lib/lens-profile";
+    import {useDispatcher} from "../../lib/store/preferences-store";
 
     const dispatch = createEventDispatcher();
 
@@ -23,6 +24,7 @@
 
             if (txHash) {
                 $currentUser.canUseRelay = true;
+                $useDispatcher = true;
                 success = true;
                 toast.success('Dispatcher set!');
                 dispatch('success');

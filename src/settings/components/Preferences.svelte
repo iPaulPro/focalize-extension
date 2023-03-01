@@ -14,10 +14,22 @@
     const activeTab = writable(0);
     setContext('activeTab', activeTab);
 
+    const onDispatcherDialogClosed = () => {
+        $dispatcherDialogShown = true
+
+        if ($currentUser?.canUseRelay === false) {
+            $useDispatcher = false;
+        }
+    };
+
     $: {
-        if ($useDispatcher) {
-            if (!$currentUser?.canUseRelay) {
+        if ($currentUser) {
+            if ($useDispatcher && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
                 enableDispatcherDialog?.showModal();
+            }
+
+            if ($dispatcherDialogShown && $currentUser.canUseRelay === false) {
+                $useDispatcher = false;
             }
         }
     }
@@ -51,7 +63,7 @@
 
 </div>
 
-<dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
+<dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <SetDispatcherDialog on:success={enableDispatcherDialog?.close()}/>
 </dialog>

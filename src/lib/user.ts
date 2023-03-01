@@ -3,6 +3,8 @@ import {getAvatar, getDefaultProfile, getProfiles} from "./lens-profile";
 
 import type {Profile} from "../graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
+import {currentUser} from "./store/user-store";
+import {get} from "./store/chrome-storage-store";
 
 export type User = {
     address: string,
@@ -60,6 +62,11 @@ export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}
     if (!accessToken) {
         console.log('getCurrentUser: No saved access token found, likely first session...');
         return { error: UserError.NOT_AUTHENTICATED };
+    }
+
+    const savedUser = await get(currentUser);
+    if (savedUser) {
+        return {user: savedUser};
     }
 
     try {

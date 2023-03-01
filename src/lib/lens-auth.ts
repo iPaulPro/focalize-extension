@@ -135,8 +135,10 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
     })
 };
 
-export const isValidSession = async () => {
-    const accessToken = await getOrRefreshAccessToken();
+export const isValidSession = async (accessToken: string | undefined) => {
+    if (!accessToken) {
+        accessToken = await getOrRefreshAccessToken();
+    }
     const {verify} = await gqlClient.Verify({request: {accessToken}});
     return verify;
 };

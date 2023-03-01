@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {ensureCorrectChain} from '../lib/ethers-service';
+    import {ensureCorrectChain, initEthers} from '../lib/ethers-service';
     import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
@@ -418,6 +418,14 @@
         }
     };
 
+    const onDispatcherDialogClosed = () => {
+        $dispatcherDialogShown = true
+
+        if ($currentUser?.canUseRelay === false) {
+            $useDispatcher = false;
+        }
+    };
+
     $: {
         if ($currentUser === null) {
             replace('/src/').catch(console.error);
@@ -429,6 +437,10 @@
 
         if ((!$attachment && !$gifAttachment) && isMediaPostType()) {
             postType = PublicationMainFocus.TextOnly;
+        }
+
+        if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
+            $useDispatcher = false;
         }
     }
 
@@ -453,33 +465,32 @@
     $: isCompact = isPopupWindow && $compactMode;
     $: $compactMode, updateWindowHeight().catch();
 
-    onMount(async () => {
-        if (!$currentUser) {
-            try {
-                const {user, error} = await getCurrentUser();
-                if (error !== undefined) {
-                    await replace('/src/');
-                    return;
-                }
+    const ensureUser = async () => {
+        if ($currentUser) return;
 
-                $currentUser = user;
+        try {
+            const {user, error} = await getCurrentUser();
 
-                if (!user?.canUseRelay && !$dispatcherDialogShown) {
-                    enableDispatcherDialog.showModal();
-                }
-            } catch (e) {
+            if (error || !user) {
                 await replace('/src/');
+                return;
             }
+
+            $currentUser = user;
+
+            if (!user.canUseRelay && !$dispatcherDialogShown && !enableDispatcherDialog?.open) {
+                enableDispatcherDialog.showModal();
+            }
+        } catch (e) {
+            await replace('/src/');
         }
+    };
 
+    onMount(async () => {
+        await ensureUser();
         parseSearchParams();
-
         $welcomeShown = true;
-
         adjustBasedOnWindowType();
-
-        // const res = await chrome.runtime.sendMessage({test: 'test'});
-        // console.log('onMount: sendMessage=', res);
     });
 </script>
 
@@ -735,7 +746,7 @@
   <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
 </dialog>
 
-<dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={() => $dispatcherDialogShown = true}
+<dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
 </dialog>
