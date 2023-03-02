@@ -4,9 +4,9 @@
     import LoadingSpinner from './LoadingSpinner.svelte';
     import imageExternal from '../../assets/ic_external.svg';
 
-    import {uploadAndPin, unpin} from "../../lib/ipfs-service";
+    import {uploadAndPin, unpin, getCidFromIpfsUrl} from "../../lib/ipfs-service";
     import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
-    import {attachment, author, cover, description, gifAttachment, title} from "../../lib/store/state-store";
+    import {attachment, author, cover, description, file, title} from "../../lib/store/state-store";
 
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";
@@ -19,15 +19,16 @@
 
     const IPFS_GATEWAY = import.meta.env.VITE_INFURA_GATEWAY_URL;
 
-    $: filePath = $attachment?.cid ? `${IPFS_GATEWAY}${$attachment?.cid}` : $gifAttachment ? $gifAttachment.item : null;
-    $: fileType = $attachment?.type || $gifAttachment?.type;
+    $: attachmentCid = $attachment?.item.startsWith('ipfs://') ? getCidFromIpfsUrl($attachment.item) : undefined;
+    $: attachmentPath = attachmentCid ? `${IPFS_GATEWAY}${attachmentCid}` : $attachment?.item;
+    $: attachmentType = $attachment?.type;
 
-    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $gifAttachment ? $gifAttachment.item : null;
+    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $attachment?.item;
     $: coverType = $cover?.type;
 
-    $: isAttachmentImage = fileType?.startsWith('image/');
-    $: isAttachmentAudio = fileType?.startsWith('audio/');
-    $: isAttachmentVideo = fileType?.startsWith('video/');
+    $: isAttachmentImage = attachmentType?.startsWith('image/');
+    $: isAttachmentAudio = attachmentType?.startsWith('audio/');
+    $: isAttachmentVideo = attachmentType?.startsWith('video/');
 
     let fileInput;
     let coverInput;
@@ -61,8 +62,8 @@
         }
     };
 
-    const upload = async (file: Web3File, isCover: boolean = false) => {
-        console.log('uploadFile: ', file.name);
+    const upload = async (fileToUpload: Web3File, isCover: boolean = false) => {
+        console.log('upload: ', fileToUpload.name);
         if (isCover) {
             coverLoading = true;
         } else {
@@ -70,8 +71,8 @@
         }
 
         try {
-            file.cid = await uploadAndPin(file, pct => {
-                console.log('Uploading...', pct.toFixed(2))
+            fileToUpload.cid = await uploadAndPin(fileToUpload, pct => {
+                console.log('upload: Uploading...', pct.toFixed(2))
                 uploadedPct = pct;
             });
         } catch (e) {
@@ -81,32 +82,41 @@
                 cover.set(null);
                 coverLoading = false;
             } else {
-                attachment.set(null);
+                $attachment = null;
                 loading = false;
             }
-            uploadedPct = 0;
 
-            toast.error('Error uploading file');
+            uploadedPct = 0;
+            $file = null;
+
+            toast.error('upload: Error uploading file');
 
             return;
         }
 
-        console.log('Uploaded file at', file.cid);
+        console.log('upload: Uploaded file at', fileToUpload.cid);
 
         if (isCover) {
-            cover.set(file);
+            cover.set(fileToUpload);
             return;
         }
 
-        attachment.set(file);
+        $attachment = {
+            item: 'ipfs://' + fileToUpload.cid,
+            type: fileToUpload.type,
+        };
 
-        if (file.type.startsWith('audio/')) {
+        console.log('upload: created attachment', $attachment);
+
+        if (fileToUpload.type.startsWith('audio/')) {
             try {
-                await processId3Tags(file);
+                await processId3Tags(fileToUpload);
             } catch (e) {
-                console.warn('Error loading audio ID3 tag metadata');
+                console.warn('upload: Error loading audio ID3 tag metadata');
             }
         }
+
+        $file = null;
     };
 
     const onFileSelected = async (e, isCover: boolean = false) => {
@@ -138,21 +148,18 @@
     };
 
     const deleteAttachment = async (notify: boolean = false) => {
-        if ($gifAttachment) {
-            gifAttachment.set(null);
-            if (notify) dispatch('attachmentRemoved');
-            return;
+        if ($attachment?.item?.startsWith('ipfs://')) {
+            const cid = getCidFromIpfsUrl($attachment?.item);
+            if (cid) {
+                try {
+                    await unpin(cid);
+                } catch (e) {
+                    console.warn('Unable to unpin cid', cid)
+                }
+            }
         }
 
-        if (!$attachment) return;
-
-        try {
-            await unpin($attachment.cid);
-        } catch (e) {
-            console.warn('Unable to unpin cid', $attachment.cid)
-        }
-
-        attachment.set(null);
+        $attachment = null;
         loading = false;
 
         if (notify) dispatch('attachmentRemoved');
@@ -185,18 +192,23 @@
         await upload(file, true);
     };
 
+    const onAttachmentLoaded = () => {
+        loading = false
+        dispatch('attachmentLoaded')
+    };
+
     $: {
-        const file = $attachment;
-        if (file && !file.cid) {
+        console.log('reactive: file=',$file);
+        if ($file && !$file.cid) {
             onDeleteMedia().catch();
-            upload(file).catch();
+            upload($file).catch();
         }
     }
 </script>
 
 <div class="min-h-48 w-full flex flex-col justify-center items-center gap-4 pb-2">
 
-  {#if filePath && fileType}
+  {#if attachmentPath && attachmentType}
 
     <div class="flex w-full justify-center bg-gray-100 dark:bg-gray-700 px-4 pt-6 pb-4 rounded-xl">
 
@@ -208,8 +220,8 @@
           {/if}
 
           <div class="relative">
-            <img src={filePath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin
-                 on:load={() => loading = false}>
+            <img src={attachmentPath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin
+                 on:load={onAttachmentLoaded}>
 
             <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
               <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={() => onDeleteMedia(true)}>
@@ -290,13 +302,13 @@
             </div>
 
             {#if isAttachmentAudio}
-              <audio src={filePath} type={fileType} crossorigin
+              <audio src={attachmentPath} type={attachmentType} crossorigin
                      class="border border-gray-300 rounded-full {!isCollectable ? 'w-full ml-4' : ''}"
                      on:load={() => loading = false}
                      preload="metadata" controls controlslist="nodownload"></audio>
             {:else if isAttachmentVideo}
               <!-- svelte-ignore a11y-media-has-caption -->
-              <video src={filePath} type={fileType} class="rounded-xl" crossorigin
+              <video src={attachmentPath} type={attachmentType} class="rounded-xl" crossorigin
                      on:load={() => loading = false}
                      preload="metadata" controls controlslist="nodownload"></video>
             {/if}
@@ -305,7 +317,7 @@
         {/if}
 
 
-        {#if $attachment?.cid}
+        {#if attachmentCid}
           <div class="w-full text-xs text-gray-400 pt-4 px-1 flex gap-6 truncate justify-center">
 
             <div class="flex truncate">
@@ -313,9 +325,9 @@
               <span class="font-semibold">IPFS:</span>
 
               <div class="flex truncate pl-1">
-                <a href={filePath} class="max-w-[10rem] hover:text-gray-600 grow truncate flex" target="_blank"
+                <a href={attachmentPath} class="max-w-[10rem] hover:text-gray-600 grow truncate flex" target="_blank"
                    rel="noreferrer">
-                  <div class="truncate">{$attachment?.cid}</div>
+                  <div class="truncate">{attachmentCid}</div>
                   <InlineSVG src={imageExternal} class="w-3 h-3 flex-shrink-0 inline mt-[0.1rem]"/>
                 </a>
               </div>

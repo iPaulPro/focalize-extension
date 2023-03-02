@@ -84,7 +84,7 @@
 
 {#if loading}
 
-  <main class="w-full h-full">
+  <main class="w-full h-[100dvh]">
 
     <div class="w-full h-full flex justify-center items-center">
       <span class="echo-loader">Loading…</span>
@@ -104,7 +104,7 @@
 
   {:else}
 
-    <main class="w-full h-full">
+    <main class="w-full h-[100dvh]">
 
       <div class="w-full h-full flex justify-center items-center">
 

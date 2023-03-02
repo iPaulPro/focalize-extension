@@ -150,8 +150,6 @@ const shareUrl = async (tags: any) => {
     const path = chrome.runtime.getURL('src/index.html#/post');
     const url = new URL(path);
 
-    url.searchParams.append('type', 'link');
-
     if (tags.url) {
         url.searchParams.append('url', tags.url);
     }
@@ -166,7 +164,6 @@ const shareUrl = async (tags: any) => {
 
     const storage = await chrome.storage.sync.get('compactMode');
     const compactMode = storage.compactMode;
-    console.log('shareUrl', compactMode);
 
     chrome.windows.create({
         url: url.toString(),

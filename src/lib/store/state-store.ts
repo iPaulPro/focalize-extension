@@ -33,14 +33,14 @@ export const article: any | Writable<string> = writable();
 export const description: any | Writable<string> = writable();
 
 /**
- * The main post attachment. Can be an image, audio, or video file.
+ * A file ready for uploading and transformation into an attachment
  */
-export const attachment: any | Writable<Web3File> = writable();
+export const file: any | Writable<Web3File> = writable();
 
 /**
- * The main post gif attachment.
+ * The main post attachment. Can represent an image, audio, or video file.
  */
-export const gifAttachment: any | Writable<PublicationMetadataMediaInput> = writable();
+export const attachment: any | Writable<PublicationMetadataMediaInput> = writable();
 
 /**
  * The cover image for audio and video attachments
@@ -65,8 +65,8 @@ export const clearPostState = () => {
     content.set(null);
     article.set(null);
     description.set(null);
+    // attachment.set(null);
     attachment.set(null);
-    gifAttachment.set(null);
     cover.set(null);
     author.set(null);
     collectFee.set({})

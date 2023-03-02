@@ -90,18 +90,17 @@ export const unpin = async (cid: string): Promise<string[]> => {
     return res.data.Pins;
 };
 
+export const getCidFromIpfsUrl = (ipfsUrl: string): string => {
+    if (!ipfsUrl.startsWith('ipfs://')) throw new Error('IPFS urls must begin with ipfs://');
+    return ipfsUrl.replace("ipfs://", "").replace(/^\/+|\/+$/g, "");
+}
+
 export const ipfsUrlToGatewayUrl = (
     ipfsUrl: string,
     gatewayDomain: string = 'https://ipfs.io/ipfs/'
 ): string => {
-    // Extract the CID from the IPFS URL
-    const cid = ipfsUrl.replace("ipfs://", "").replace(/^\/+|\/+$/g, "");
-
-    // Build the Infura IPFS gateway URL
+    const cid = getCidFromIpfsUrl(ipfsUrl);
     const gatewayUrl = gatewayDomain + cid;
-
-    // Add the path, if any
     const path = ipfsUrl.split(cid)[1];
-
     return path ? `${gatewayUrl}${path}` : gatewayUrl;
 };

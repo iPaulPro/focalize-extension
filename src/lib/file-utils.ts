@@ -32,7 +32,7 @@ export const imageMimeTypesJoined = () => {
     return IMAGE_TYPES.join(',');
 };
 
-export const getMainFocusFromFileType = (type: string): PublicationMainFocus => {
+export const getMainFocusFromMimeType = (type: string): PublicationMainFocus => {
     if (type.startsWith('image/')) {
         return PublicationMainFocus.Image;
     } else if (type.startsWith('video/')) {

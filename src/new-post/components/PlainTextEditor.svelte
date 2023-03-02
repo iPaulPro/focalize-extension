@@ -28,6 +28,7 @@
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
+    export let initialContent: string;
 
     let editor: MediumEditor;
     let fileInput;
@@ -49,10 +50,6 @@
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
     });
-
-    $: {
-        emojiPicker.setTheme($darkMode ? 'dark' : 'light');
-    }
 
     const saveSelection = () => {
         inputSelection = window.getSelection();
@@ -80,11 +77,11 @@
         // textInput.focus();
     });
 
-    const setDefaultValue = async () => {
-        if (!$content) return;
-
-        const html = fromMarkdown.makeHtml($content);
-        editor.setContent(html);
+    const setDefaultValue = (content: string = initialContent) => {
+        if (initialContent && editor) {
+            const html = fromMarkdown.makeHtml(initialContent);
+            editor.setContent(html);
+        }
     };
 
     const makeEditor = async (element) => {
@@ -133,6 +130,12 @@
         logoutDialog.showModal();
     };
 
+    $: {
+        emojiPicker.setTheme($darkMode ? 'dark' : 'light');
+
+        if (initialContent) setDefaultValue(initialContent);
+    }
+
     onDestroy(() => {
         editor?.destroy();
         emojiPicker?.destroyPicker();
@@ -168,12 +171,14 @@
     {#if isCompact}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
-           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
+           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none
+           break-keep ![overflow-wrap:anywhere]">
       </div>
     {:else}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
-           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none break-keep">
+           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 min-h-[8rem] focus:outline-none
+           break-keep ![overflow-wrap:anywhere]">
       </div>
     {/if}
 

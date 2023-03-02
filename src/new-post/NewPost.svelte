@@ -1,6 +1,6 @@
 <script lang="ts">
-    import {ensureCorrectChain, initEthers} from '../lib/ethers-service';
-    import {getMainFocusFromFileType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
+    import {ensureCorrectChain} from '../lib/ethers-service';
+    import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
@@ -25,13 +25,13 @@
     import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
-        attachment,
         author,
         clearPostState,
         content,
         cover,
         description,
-        gifAttachment,
+        file,
+        attachment,
         title
     } from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
@@ -81,7 +81,7 @@
 
     let onGifDialogShown: () => {};
 
-    let postType: PublicationMainFocus;
+    let mainFocus: PublicationMainFocus;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
     let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
@@ -98,40 +98,16 @@
     let removeAttachmentDialog: HTMLDialogElement;
     let isPopupWindow = false;
     let contentDiv: HTMLElement;
+    let initialContent: string;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
 
-    $: isTextPostType = postType === PublicationMainFocus.TextOnly || postType === PublicationMainFocus.Link;
-    $: isImagePostType = postType === PublicationMainFocus.Image;
-
-    const isMediaPostType = (): boolean => {
-        return  postType === PublicationMainFocus.Audio ||
-            postType === PublicationMainFocus.Image ||
-            postType === PublicationMainFocus.Video;
-    }
-
-    const getMainFocusFromUrlParams = (urlParams: URLSearchParams): PublicationMainFocus => {
-        if (!urlParams.has('type')) {
-            return PublicationMainFocus.TextOnly;
-        }
-
-        switch (urlParams.get('type')) {
-            case 'image':
-            case 'video':
-                return PublicationMainFocus.Image;
-            case 'link':
-                return PublicationMainFocus.Link;
-            default:
-                return PublicationMainFocus.TextOnly;
-        }
-    };
+    $: isMediaPostType = $attachment !== null && $attachment !== undefined;
 
     const parseSearchParams = () => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-
-        postType = getMainFocusFromUrlParams(urlParams);
 
         if (urlParams.has('text')) {
             const plainText = urlParams.get('text');
@@ -157,8 +133,9 @@
         }
 
         if (md.length > 0) {
-            $content = md;
+            initialContent = md;
         }
+        console.log('parseSearchParams: initialContent', initialContent)
     };
 
     const showCollectFeesDialog = () => {
@@ -194,8 +171,10 @@
     const buildMetadata = (): PublicationMetadataV2Input => {
         if (!$currentUser) throw new Error('No user found');
 
-        if (!isMediaPostType()) {
+        if (!isMediaPostType) {
             // TODO validate
+
+            let postType = PublicationMainFocus.TextOnly;
 
             const urls = getUrlsFromText($content);
             if (urls.length > 0) {
@@ -211,66 +190,54 @@
             );
         }
 
-        let mediaMetadata: PublicationMetadataMediaInput;
-
-        if ($attachment) {
-            mediaMetadata = {
-                item: `ipfs://${$attachment.cid}`,
-                type: $attachment.type,
-            };
-        } else if ($gifAttachment) {
-            mediaMetadata = $gifAttachment;
-        }
-
         if ($cover) {
-            mediaMetadata.cover = `ipfs://${$cover.cid}`
+            $attachment.cover = `ipfs://${$cover.cid}`
         }
 
         const tags = getTags().length === 0 ? null : getTags();
+        let attributes: MetadataAttributeInput[] = [];
 
-        if ($attachment?.type.startsWith('image/') || $gifAttachment) {
-            return generateImagePostMetadata(
-                $currentUser.handle,
-                mediaMetadata,
-                $title,
-                content,
-                tags,
-                postContentWarning.value,
-                $description,
-            );
-        } else if ($attachment?.type.startsWith('video/')) {
-            const attributes = createVideoAttributes();
+        mainFocus = getMainFocusFromMimeType($attachment.type);
 
-            return generateVideoPostMetadata(
-                $currentUser.handle,
-                mediaMetadata,
-                $title,
-                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                $cover?.type,
-                content,
-                attributes,
-                tags,
-                postContentWarning.value,
-                $description,
-            );
-        } else if ($attachment?.type.startsWith('audio/')) {
-            let attributes: MetadataAttributeInput[] = [];
-            if ($author) {
-                attributes = createAudioAttributes($author);
-            }
-
-            return generateAudioPostMetadata(
-                $currentUser.handle,
-                mediaMetadata,
-                $title,
-                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                $cover?.type,
-                content,
-                attributes,
-                tags,
-                postContentWarning.value,
-                $description,
-            );
+        switch (mainFocus) {
+            case PublicationMainFocus.Image:
+                return generateImagePostMetadata(
+                    $currentUser.handle,
+                    $attachment,
+                    $title,
+                    $content,
+                    tags,
+                    postContentWarning.value,
+                    $description,
+                );
+            case PublicationMainFocus.Video:
+                attributes = createVideoAttributes();
+                return generateVideoPostMetadata(
+                    $currentUser.handle,
+                    $attachment,
+                    $title,
+                    $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                    $cover?.type,
+                    $content,
+                    attributes,
+                    tags,
+                    postContentWarning.value,
+                    $description,
+                );
+            case PublicationMainFocus.Audio:
+                if ($author) attributes = createAudioAttributes($author);
+                return generateAudioPostMetadata(
+                    $currentUser.handle,
+                    $attachment,
+                    $title,
+                    $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                    $cover?.type,
+                    $content,
+                    attributes,
+                    tags,
+                    postContentWarning.value,
+                    $description,
+                );
         }
 
         throw new Error('Unrecognized attachment');
@@ -360,24 +327,19 @@
         {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog}
     );
 
-    const setAttachment = (file: File) => {
-        if (!file || !file.type ||
-            !SUPPORTED_MIME_TYPES.includes(file.type) ||
-            file.size > MAX_FILE_SIZE
+    const setAttachment = (f: File) => {
+        if (!f || !f.type ||
+            !SUPPORTED_MIME_TYPES.includes(f.type) ||
+            f.size > MAX_FILE_SIZE
         ) {
             toast.error('File not supported');
             isFileDragged = false;
             return;
         }
 
-        attachment.set(file);
+        file.set(f);
+        console.log('setAttachment: file', $file);
         isFileDragged = false;
-
-        try {
-            postType = getMainFocusFromFileType(file.type);
-        } catch (e) {
-            toast.error('File not supported');
-        }
     };
 
     const onFileDropped = (ev) => {
@@ -387,9 +349,7 @@
         setAttachment(file);
     };
 
-    $: shouldDisableSubmitBtn = isSubmittingPost ||
-        (isTextPostType && (!$content?.length)) ||
-        (isImagePostType && (!$attachment && !$gifAttachment));
+    $: submitEnabled = !isSubmittingPost && ($content?.length > 0 || $attachment);
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
@@ -399,12 +359,11 @@
     $: locale = navigator.languages[0];
 
     const onGifSelected = () => {
-        postType = PublicationMainFocus.Image;
         gifSelectionDialog?.close();
     };
 
     const onViewPostClick = async () => {
-        const url = await getNodeUrlForPublication(postType, postId)
+        const url = await getNodeUrlForPublication(mainFocus, postId)
         chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();
@@ -431,14 +390,6 @@
             replace('/src/').catch(console.error);
         }
 
-        if ($gifAttachment && $attachment) {
-            removeAttachmentDialog?.showModal();
-        }
-
-        if ((!$attachment && !$gifAttachment) && isMediaPostType()) {
-            postType = PublicationMainFocus.TextOnly;
-        }
-
         if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
             $useDispatcher = false;
         }
@@ -447,9 +398,9 @@
     const updateWindowHeight = async () => {
         await tick();
         if (!contentDiv) return;
-        const x = ($compactMode ? 672 : 768) - document.body.clientWidth;
-        const y = contentDiv.scrollHeight - document.body.clientHeight;
-        window.resizeBy(x, y);
+        const x = $compactMode ? 672 : 768;
+        const y = contentDiv.offsetHeight + (window.outerHeight - window.innerHeight);
+        window.resizeTo(x, Math.max(396, y));
     };
 
     const adjustBasedOnWindowType = () => {
@@ -533,24 +484,25 @@
         <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
 
-          <PlainTextEditor disabled={isSubmittingPost} {isCompact}
+          <PlainTextEditor disabled={isSubmittingPost} {isCompact} {initialContent}
                            on:fileSelected={(e) => setAttachment(e.detail)}
                            on:selectGif={(e) => showGifSelectionDialog()} />
 
-          {#if $attachment || $gifAttachment}
-            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice} />
+          {#if $attachment || $file}
+            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
+                           on:attachmentLoaded={updateWindowHeight} on:attachmentRemoved={updateWindowHeight} />
           {/if}
 
           <div class="flex flex-wrap gap-4
                {isCompact ? 'pt-2' : 'pt-3'}
-               {isMediaPostType() ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
-               {isTextPostType ? 'ml-[4.5rem]' : 'ml-0 justify-center'}">
+               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
+               {$attachment ? 'ml-0 justify-center' : 'ml-[4.5rem]'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-56}
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
-                    --list-max-height="auto" --background="transparent"
+                    --list-max-height="auto" --background="transparent" --list-z-index={20}
                     --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent" --list-border-radius="0.75rem"
                     class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
@@ -570,7 +522,7 @@
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
                     disabled={isSubmittingPost} listOffset={-56}
                     --item-height="auto" --item-padding="0" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
-                    --list-max-height="auto" --background="transparent" --list-border-radius="0.75rem"
+                    --list-max-height="auto" --background="transparent" --list-border-radius="0.75rem" --list-z-index={20}
                     --list-background={$darkMode ? '#374354' : 'white'} --disabled-background="transparent"
                     class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
@@ -595,7 +547,7 @@
           {#if $showLocales && locales.length > 0}
             <Select items={locales} bind:value={locale} disabled={isSubmittingPost}
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
-                    --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
+                    --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                     --font-size="0.875rem" --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                     class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
@@ -614,7 +566,7 @@
           <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false}
                   showChevron={true} disabled={isSubmittingPost}
                   bind:value={postContentWarning}
-                  --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
+                  --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                   --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                   class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
@@ -657,7 +609,7 @@
 
           <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
 
-            <button type="button" on:click={onSubmitClick} disabled={shouldDisableSubmitBtn}
+            <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
                     class="group w-fit py-2 {$useDispatcher ? 'px-10' : 'px-6'} flex justify-center items-center rounded-l-xl w-auto
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
@@ -697,7 +649,7 @@
               {/if}
             </button>
 
-            <button type="button" disabled={shouldDisableSubmitBtn}
+            <button type="button" disabled={!submitEnabled}
                     class="px-4 flex justify-center items-center rounded-r-xl tooltip
                     border-l border-orange-300 dark:border-orange-800 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800

@@ -1,11 +1,10 @@
 <script lang="ts">
-    import {attachment, gifAttachment} from "../../lib/store/state-store";
+    import {attachment} from "../../lib/store/state-store";
     import {createEventDispatcher} from "svelte";
 
     const dispatch = createEventDispatcher();
 
     const onCancelClick = async () => {
-        $gifAttachment = null;
         dispatch('close');
     };
 
