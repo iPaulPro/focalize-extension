@@ -80,12 +80,15 @@
         // textInput.focus();
     });
 
-    const setDefaultValue = async () => {
-        if (!$content) return;
-
-        const html = fromMarkdown.makeHtml($content);
-        editor.setContent(html);
-    };
+    $: {
+        if ($content && editor && textInput) {
+            const existing = fromHtml.turndown(textInput.innerHTML)
+            if (existing !== $content) {
+                const html = fromMarkdown.makeHtml($content);
+                editor.setContent(html);
+            }
+        }
+    }
 
     const makeEditor = async (element) => {
         editor = new MediumEditor(element, {
@@ -106,8 +109,6 @@
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
             $content = fromHtml.turndown(editable);
         });
-
-        await setDefaultValue();
     };
 
     const tribute = async (node) => {

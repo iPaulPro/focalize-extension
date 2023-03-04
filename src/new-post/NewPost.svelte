@@ -60,6 +60,7 @@
     import { debounceTime } from 'rxjs/operators';
     import {DateTime} from "luxon";
     import PostDraftsList from "../components/PostDraftsList.svelte";
+    import AutoRelativeTimeView from "../components/AutoRelativeTimeView.svelte";
 
     /**
      * Bound to the tag component
@@ -459,7 +460,6 @@
     $: $compactMode, updateWindowHeight().catch();
 
     $: {
-        console.log('reactive run: draftId=', $draftId);
         if ($draftId || $title || $content || $description || $fileAttachment || $urlAttachment || $author) {
             const mediaMetadata = buildMediaMetadata();
             draftSubject.next({
@@ -477,6 +477,7 @@
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(2000))
         .subscribe(async (draft) => {
             postDraft = await saveDraft(draft);
+            $draftId = postDraft.id;
             console.log('debouncedDraftUpdate: saved draft', postDraft);
         });
 
@@ -501,7 +502,6 @@
 
         parseSearchParams();
 
-        console.log('onMount: draftId=', $draftId);
         if ($draftId) {
             postDraft = await getDraft($draftId);
             loadFromDraft(postDraft);
@@ -517,7 +517,7 @@
     });
 </script>
 
-<main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'} {isCompact ? 'compact' : ''}"
+<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isCompact ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
       on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -680,18 +680,14 @@
 
           <div class="flex items-center gap-4">
 
-            <div class="">
-
-
-                <button type="button" class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300" on:click={() => postDraftsDialog.showModal()}>
-                  {#if postDraft}
-                    Draft saved at {DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.TIME_WITH_SECONDS)}
-                  {:else if $postDrafts.size > 0}
-                    View all drafts ({[...$postDrafts.values()].length})
-                  {/if}
-                </button>
-
-            </div>
+            <button type="button" on:click={() => postDraftsDialog.showModal()}
+                    class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
+              {#if postDraft}
+                Draft saved <AutoRelativeTimeView prefix="at" timestamp={postDraft.timestamp} className="transition-none" />
+              {:else if $postDrafts.size > 0}
+                View all drafts ({[...$postDrafts.values()].length})
+              {/if}
+            </button>
 
             <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
 
@@ -777,14 +773,15 @@
 
 {#if showFeeCollectDialog}
   <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
-          class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+          class="w-2/3 lg:w-1/4 rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
     <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
   </dialog>
 {/if}
 
 <dialog id="selectGif" bind:this={gifSelectionDialog}
-        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
-          border border-gray-200 dark:border-gray-600">
+        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0
+        border border-gray-200 dark:border-gray-600"
+        on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
   <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
 </dialog>
 
@@ -799,10 +796,11 @@
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}
-        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
-        border border-gray-200 dark:border-gray-600">
+        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+        on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
   <PostDraftsList />
 </dialog>
+
 <Toaster />
 
 <style>

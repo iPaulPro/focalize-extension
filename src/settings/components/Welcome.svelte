@@ -19,7 +19,7 @@
     });
 </script>
 
-<div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'}">
+<div class="flex flex-col w-full h-full dark:bg-gray-900 bg-neutral-50">
 
   <Toolbar/>
 

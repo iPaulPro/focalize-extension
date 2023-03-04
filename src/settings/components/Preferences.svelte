@@ -23,7 +23,7 @@
     }
 </script>
 
-<div class="flex flex-col w-full h-full {$darkMode ? 'dark bg-gray-800' : ''}">
+<div class="flex flex-col w-full h-full dark:bg-gray-800">
 
   <main class="relative h-screen overflow-hidden">
 
