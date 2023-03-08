@@ -5,7 +5,7 @@
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
         COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
-        getCollectModuleParams,
+        getCollectModuleParams, FREE_COLLECT_FOLLOWERS_ITEM, FREE_COLLECT_ITEM,
     } from '../lib/lens-modules';
 
     import {
@@ -457,15 +457,27 @@
         }
     };
 
+    const openDraft = async () => {
+        postDraft = await getDraft($draftId);
+        loadFromDraft(postDraft);
+        if ($collectFee) {
+            collectItem = $collectFee.price ? FEE_COLLECT_ITEM :
+                ($collectFee.followerOnly ? FREE_COLLECT_FOLLOWERS_ITEM : FREE_COLLECT_ITEM);
+        }
+    };
+
+    $: {
+        if ($draftId !== postDraft?.id) {
+            openDraft();
+        }
+    }
+
     onMount(async () => {
         await ensureUser();
-        parseSearchParams();
         $welcomeShown = true;
+        parseSearchParams();
+        if ($draftId) await openDraft();
         adjustBasedOnWindowType();
-        if ($draftId) {
-            postDraft = await getDraft($draftId);
-            loadFromDraft(postDraft);
-        }
     });
 
     onDestroy(() => {

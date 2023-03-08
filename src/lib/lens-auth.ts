@@ -69,7 +69,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     if (!accessToken) {
         return Promise.reject('No saved tokens found');
     }
-    console.log('getOrRefreshAccessToken: found saved access token', accessToken);
+    console.log('getOrRefreshAccessToken: found saved access token');
 
     const now = Date.now();
 
@@ -112,10 +112,9 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
         refreshToken = await getSavedRefreshToken();
     }
 
-    console.log('refreshAccessToken: Refreshing access token with refresh token', refreshToken);
+    console.log('refreshAccessToken: Refreshing access token with refresh token...');
 
     const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
-    console.log('refreshAccessToken: Refresh token response', refresh);
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
@@ -128,7 +127,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
                     return reject(chrome.runtime.lastError);
                 }
                 const accessToken = await getSavedAccessToken();
-                console.log('Saved new auth token to local storage', accessToken);
+                console.log('Saved new auth token to local storage');
                 resolve(accessToken);
             }
         );

@@ -15,7 +15,7 @@
     $: items = [...$postDrafts.values()].sort((a, b) => b.timestamp - a.timestamp);
 
     const onDraftClick = (draft: PostDraft) => {
-        loadFromDraft(draft);
+        $draftId = draft.id;
         closeButton.click();
     };
 </script>

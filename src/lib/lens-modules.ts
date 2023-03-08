@@ -85,7 +85,27 @@ export const FEE_COLLECT_ITEM: SelectItem<CollectModuleItem> = {
     label: 'Sell NFT',
     summary: 'Charge for NFT collection',
     icon: 'collect_paid'
-}
+};
+
+export const FREE_COLLECT_ITEM: SelectItem<CollectModuleItem> = {
+    value: {
+        type: CollectModules.FreeCollectModule,
+        followerOnly: false,
+    },
+    label: 'Free to collect',
+    summary: 'Post can be collected as an NFT for free',
+    icon: 'collect_free'
+};
+
+export const FREE_COLLECT_FOLLOWERS_ITEM: SelectItem<CollectModuleItem> = {
+    value: {
+        type: CollectModules.FreeCollectModule,
+        followerOnly: true,
+    },
+    label: 'Free for followers',
+    summary: 'Followers can collect the post as an NFT for free',
+    icon: 'followers'
+};
 
 export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
     {
@@ -96,24 +116,8 @@ export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
         summary: 'Do not allow the post to be collected as an NFT',
         icon: 'collect_disabled'
     },
-    {
-        value: {
-            type: CollectModules.FreeCollectModule,
-            followerOnly: false,
-        },
-        label: 'Free to collect',
-        summary: 'Post can be collected as an NFT for free',
-        icon: 'collect_free'
-    },
-    {
-        value: {
-            type: CollectModules.FreeCollectModule,
-            followerOnly: true,
-        },
-        label: 'Free for followers',
-        summary: 'Followers can collect the post as an NFT for free',
-        icon: 'followers'
-    },
+    FREE_COLLECT_ITEM,
+    FREE_COLLECT_FOLLOWERS_ITEM,
     FEE_COLLECT_ITEM,
 ];
 
