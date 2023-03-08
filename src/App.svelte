@@ -4,6 +4,7 @@
 
     import Settings from './settings/Settings.svelte';
     import NotFound from './components/NotFound.svelte';
+    import {darkMode} from "./lib/store/preferences-store";
 
     const routes = {
         '/': Settings,
@@ -13,6 +14,14 @@
         }),
 
         '*': NotFound,
+    }
+
+    $: {
+        if ($darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
     }
 </script>
 

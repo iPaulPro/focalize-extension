@@ -66,14 +66,20 @@
   {/if}
 
   {#each tags as tag}
-    <div class="tag px-2 py-1 flex items-center rounded-full text-gray-900 bg-white dark:bg-gray-800 shadow">
+    <div class="tag px-2 py-1 flex items-center rounded-full text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800 shadow">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 ml-1" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="9" x2="20" y2="9"></line>
+        <line x1="4" y1="15" x2="20" y2="15"></line>
+        <line x1="10" y1="3" x2="8" y2="21"></line>
+        <line x1="16" y1="3" x2="14" y2="21"></line>
+      </svg>
 
-      <input type="text" size={Math.max(tag?.length + 1 || 0, 5)}
+      <input type="text" size={Math.max(tag?.length || 0, 3)}
              bind:value={tag} on:keypress={onKeyPress} on:blur={() => removeTagIfEmpty(tag)}
-             class="border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100" maxlength="50">
+             class="border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100 pl-2 pr-0" maxlength="50">
 
-      <button type="button" class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full
-              dark:text-gray-200"
+      <button type="button" class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full"
               on:click={() => removeTag(tag)} disabled={disabled}>
 
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none"

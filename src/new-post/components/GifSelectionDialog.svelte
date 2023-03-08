@@ -19,11 +19,10 @@
 
 <div class="flex flex-col">
 
-  <div class="w-full flex justify-between">
-    <div class="text-xl font-semibold pt-2 pl-2 dark:text-gray-100">
+  <div class="flex justify-between items-center p-4 pr-2 border-b border-gray-200 dark:border-gray-600">
+    <h1 class="text-xl font-semibold dark:text-gray-100">
       Attach a GIF
-    </div>
-
+    </h1>
     <form method="dialog">
       <button class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
@@ -35,7 +34,7 @@
     </form>
   </div>
 
-  <div class="relative p-2 flex-shrink-0">
+  <div class="relative p-2 pt-3 flex-shrink-0 dark:bg-gray-800">
     <input type="text" name="search" id="gifSearch" placeholder="Search gifs..." autocomplete="off"
            class="w-full text-lg rounded-xl py-2 px-4 placeholder-gray-400
            dark:bg-gray-600 dark:text-gray-200 dark:border-transparent
@@ -58,7 +57,7 @@
     {/if}
   </div>
 
-  <div class="p-2 h-[24rem] overflow-y-scroll">
+  <div class="p-2 h-[24rem] overflow-y-scroll dark:bg-gray-800">
     <GiphyGrid {searchQuery} on:gifSelected={onGifSelected} />
   </div>
 

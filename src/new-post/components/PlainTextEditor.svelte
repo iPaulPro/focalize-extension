@@ -28,7 +28,6 @@
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
-    export let initialContent: string;
 
     let editor: MediumEditor;
     let fileInput;
@@ -50,6 +49,10 @@
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
     });
+
+    $: {
+        emojiPicker.setTheme($darkMode ? 'dark' : 'light');
+    }
 
     const saveSelection = () => {
         inputSelection = window.getSelection();
@@ -77,12 +80,15 @@
         // textInput.focus();
     });
 
-    const setDefaultValue = (content: string = initialContent) => {
-        if (initialContent && editor) {
-            const html = fromMarkdown.makeHtml(initialContent);
-            editor.setContent(html);
+    $: {
+        if ($content && editor && textInput) {
+            const existing = fromHtml.turndown(textInput.innerHTML)
+            if (existing !== $content) {
+                const html = fromMarkdown.makeHtml($content);
+                editor.setContent(html);
+            }
         }
-    };
+    }
 
     const makeEditor = async (element) => {
         editor = new MediumEditor(element, {
@@ -103,8 +109,6 @@
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
             $content = fromHtml.turndown(editable);
         });
-
-        await setDefaultValue();
     };
 
     const tribute = async (node) => {
@@ -130,12 +134,6 @@
         logoutDialog.showModal();
     };
 
-    $: {
-        emojiPicker.setTheme($darkMode ? 'dark' : 'light');
-
-        if (initialContent) setDefaultValue(initialContent);
-    }
-
     onDestroy(() => {
         editor?.destroy();
         emojiPicker?.destroyPicker();
@@ -144,7 +142,7 @@
 
 <div class="flex w-full {isCompact ? 'pb-2' : 'pb-4'}">
 
-  <div class="w-16 h-16 mx-3 pt-3 cursor-pointer tooltip"
+  <div class="w-20 h-20 px-3 pt-3 cursor-pointer tooltip shrink-0"
        use:tooltip={{
            component: AccountChooser,
            props: {},
@@ -165,7 +163,7 @@
 
   </div>
 
-  <div class="flex flex-col w-full pr-2 pl-1.5">
+  <div class="flex flex-col w-full pr-2 pl-1.5 shrink">
 
     <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
     {#if isCompact}

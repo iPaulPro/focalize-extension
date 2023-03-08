@@ -2,6 +2,7 @@ import {writable} from 'svelte/store';
 import type {Writable} from 'svelte/store';
 import type {Web3File} from "web3.storage/src/lib/interface";
 import type {Erc20, PublicationMetadataMediaInput} from "../../graph/lens-service";
+import type {PostDraft} from "./draft-store";
 
 export interface CollectFee {
     price?: number;
@@ -13,6 +14,11 @@ export interface CollectFee {
 }
 
 /**
+ * The post unique id, used for drafts
+ */
+export const draftId: any | Writable<string> = writable();
+
+/**
  * The post title, used as the NFT name
  */
 export const title: any | Writable<string> = writable();
@@ -21,11 +27,6 @@ export const title: any | Writable<string> = writable();
  * The post content
  */
 export const content: any | Writable<string> = writable();
-
-/**
- * The article content
- */
-export const article: any | Writable<string> = writable();
 
 /**
  * The NFT description
@@ -55,19 +56,28 @@ export const author: any | Writable<string> = writable();
 /**
  * The collect module settings when set to one of the fee types
  */
-export const collectFee: any | Writable<CollectFee> = writable({});
+export const collectFee: any | Writable<CollectFee> = writable();
 
 /**
  * Clears all post-related stores
  */
 export const clearPostState = () => {
+    draftId.set(null);
     title.set(null);
     content.set(null);
-    article.set(null);
     description.set(null);
-    // attachment.set(null);
     attachment.set(null);
     cover.set(null);
     author.set(null);
     collectFee.set({})
+}
+
+export const loadFromDraft = (postDraft: PostDraft) => {
+    draftId.set(postDraft.id);
+    title.set(postDraft.title);
+    content.set(postDraft.content);
+    description.set(postDraft.description);
+    attachment.set(postDraft.attachment);
+    author.set(postDraft.author);
+    collectFee.set(postDraft.collectFee ?? {});
 }

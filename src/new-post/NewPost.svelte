@@ -4,45 +4,25 @@
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
-        COLLECT_ITEMS,
-        CONTENT_WARNING_ITEMS,
-        FEE_COLLECT_ITEM,
+        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
         getCollectModuleParams,
-        REFERENCE_ITEMS,
     } from '../lib/lens-modules';
 
     import {
-        createAudioAttributes,
-        createVideoAttributes,
-        generateAudioPostMetadata,
-        generateImagePostMetadata,
-        generateTextPostMetadata,
-        generateVideoPostMetadata,
-        getUrlsFromText,
-        submitPost,
+        createAudioAttributes, createVideoAttributes,
+        generateAudioPostMetadata, generateImagePostMetadata, generateTextPostMetadata, generateVideoPostMetadata,
+        getUrlsFromText, submitPost,
     } from '../lib/lens-post';
 
     import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
-        author,
-        clearPostState,
-        content,
-        cover,
-        description,
-        file,
-        attachment,
-        title
+        author, collectFee, content, cover, description, file, attachment, draftId, title,
+        clearPostState, loadFromDraft,
     } from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
     import {
-        compactMode,
-        darkMode,
-        dispatcherDialogShown,
-        showLocales,
-        useDispatcher,
-        useRelay,
-        welcomeShown
+        compactMode, darkMode, dispatcherDialogShown, showLocales, useDispatcher, useRelay, welcomeShown
     } from "../lib/store/preferences-store";
 
     import type {
@@ -65,7 +45,7 @@
     import tooltip from "svelte-ktippy"
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import {onMount, tick} from 'svelte';
+    import {onDestroy, onMount, tick} from 'svelte';
     import {replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
@@ -73,6 +53,14 @@
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
     import ConfirmAttachmentRemovalDialog from "./components/ConfirmAttachmentRemovalDialog.svelte";
     import {getCurrentUser} from "../lib/user";
+    import {getDraft, postDrafts, saveDraft} from "../lib/store/draft-store";
+    import type {PostDraft} from "../lib/store/draft-store";
+
+    import { Subject } from 'rxjs';
+    import { debounceTime } from 'rxjs/operators';
+    import {DateTime} from "luxon";
+    import PostDraftsList from "../components/PostDraftsList.svelte";
+    import AutoRelativeTimeView from "../components/AutoRelativeTimeView.svelte";
 
     /**
      * Bound to the tag component
@@ -93,12 +81,16 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
     let feeCollectDialog: HTMLDialogElement;
+    let showFeeCollectDialog = false;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
     let removeAttachmentDialog: HTMLDialogElement;
+    let postDraftsDialog: HTMLDialogElement;
     let isPopupWindow = false;
     let contentDiv: HTMLElement;
-    let initialContent: string;
+
+    const draftSubject: Subject<PostDraft> = new Subject();
+    let postDraft: PostDraft | undefined;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
@@ -115,6 +107,10 @@
             return;
         }
 
+        if (urlParams.has('draft')) {
+            $draftId = urlParams.get('draft');
+        }
+
         let md = '';
 
         if (urlParams.has('title')) {
@@ -124,7 +120,7 @@
 
         if (urlParams.has('desc')) {
             const desc: String = urlParams.get('desc');
-            md += `\n\n  > ${desc.replace('\n', '\n> ')}`;
+            md += `\n  > ${desc.replace('\n', '\n> ')}`;
         }
 
         if (urlParams.has('url')) {
@@ -133,12 +129,13 @@
         }
 
         if (md.length > 0) {
-            initialContent = md;
+            $content = md;
         }
-        console.log('parseSearchParams: initialContent', initialContent)
     };
 
-    const showCollectFeesDialog = () => {
+    const showCollectFeesDialog = async () => {
+        showFeeCollectDialog = true;
+        await tick();
         feeCollectDialog?.showModal();
     };
 
@@ -161,9 +158,10 @@
         console.log('onFeeCollectModuleUpdated', feeCollectModule);
         collectItem = FEE_COLLECT_ITEM;
         feeCollectDialog?.close();
+        showFeeCollectDialog = false;
     };
 
-    const showGifSelectionDialog = () => {
+    const showGifSelectionDialog = async () => {
         gifSelectionDialog?.showModal();
         onGifDialogShown();
     }
@@ -261,6 +259,7 @@
 
             const publicationId = await submitPost(
                 $currentUser,
+                $draftId,
                 metadata,
                 referenceModuleParams,
                 collectModuleParams,
@@ -416,6 +415,27 @@
     $: isCompact = isPopupWindow && $compactMode;
     $: $compactMode, updateWindowHeight().catch();
 
+    $: {
+        if ($draftId || $title || $content || $description || $attachment || $author) {
+            draftSubject.next({
+                id: $draftId,
+                title: $title,
+                content: $content,
+                description: $description,
+                attachment: $attachment,
+                author: $author,
+                collectFee: $collectFee
+            });
+        }
+    }
+
+    const debouncedDraftUpdate = draftSubject.pipe(debounceTime(2000))
+        .subscribe(async (draft) => {
+            postDraft = await saveDraft(draft);
+            $draftId = postDraft.id;
+            console.log('debouncedDraftUpdate: saved draft', postDraft);
+        });
+
     const ensureUser = async () => {
         if ($currentUser) return;
 
@@ -442,10 +462,18 @@
         parseSearchParams();
         $welcomeShown = true;
         adjustBasedOnWindowType();
+        if ($draftId) {
+            postDraft = await getDraft($draftId);
+            loadFromDraft(postDraft);
+        }
+    });
+
+    onDestroy(() => {
+        debouncedDraftUpdate?.unsubscribe();
     });
 </script>
 
-<main class="w-full min-h-full {$darkMode ? 'dark bg-gray-900' : 'bg-neutral-50'} {isCompact ? 'compact' : ''}"
+<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isCompact ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
       on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -484,7 +512,7 @@
         <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
 
-          <PlainTextEditor disabled={isSubmittingPost} {isCompact} {initialContent}
+          <PlainTextEditor disabled={isSubmittingPost} {isCompact}
                            on:fileSelected={(e) => setAttachment(e.detail)}
                            on:selectGif={(e) => showGifSelectionDialog()} />
 
@@ -499,7 +527,7 @@
                {$attachment ? 'ml-0 justify-center' : 'ml-[4.5rem]'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-56}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-48}
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
                     --list-max-height="auto" --background="transparent" --list-z-index={20}
@@ -520,7 +548,7 @@
 
             <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
-                    disabled={isSubmittingPost} listOffset={-56}
+                    disabled={isSubmittingPost} listOffset={-48}
                     --item-height="auto" --item-padding="0" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
                     --list-max-height="auto" --background="transparent" --list-border-radius="0.75rem" --list-z-index={20}
                     --list-background={$darkMode ? '#374354' : 'white'} --disabled-background="transparent"
@@ -545,14 +573,14 @@
              {isSubmittingPost ? 'opacity-60' : ''}">
 
           {#if $showLocales && locales.length > 0}
-            <Select items={locales} bind:value={locale} disabled={isSubmittingPost}
+            <Select items={locales} bind:value={locale} disabled={isSubmittingPost} listOffset={-48}
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                     --font-size="0.875rem" --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                     class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
                     shadow text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                    rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+                    rounded-full border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
               <div slot="prepend" class="pr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -563,15 +591,15 @@
             </Select>
           {/if}
 
-          <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={false}
-                  showChevron={true} disabled={isSubmittingPost}
+          <Select items={CONTENT_WARNING_ITEMS} clearable={false} searchable={false} listAutoWidth={true}
+                  showChevron={true} disabled={isSubmittingPost} listOffset={-48}
                   bind:value={postContentWarning}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                   --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
                   class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                   text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                  rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+                  rounded-full border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
             <div slot="prepend" class="pr-1">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -607,57 +635,68 @@
             </span>
           </label>
 
-          <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
+          <div class="flex items-center gap-4">
+
+            <button type="button" on:click={() => postDraftsDialog.showModal()}
+                    class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
+              {#if postDraft}
+                Draft saved <AutoRelativeTimeView prefix="at" timestamp={postDraft.timestamp} className="transition-none" />
+              {:else if $postDrafts.size > 0}
+                View all drafts ({[...$postDrafts.values()].length})
+              {/if}
+            </button>
+
+            <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
 
             <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
-                    class="group w-fit py-2 {$useDispatcher ? 'px-10' : 'px-6'} flex justify-center items-center rounded-l-xl w-auto
+                    class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center rounded-l-full w-auto
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center {isCompact ? 'text-base' : 'text-lg'}
                     transition ease-in duration-200 font-semibold shadow-md">
 
-              {#if isSubmittingPost}
-                <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
-                     fill="none" xmlns="http://www.w3.org/2000/svg"
-                     >
-                  <path
-                      d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
-                      fill="#E5E7EB"/>
-                  <path
-                      d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
-                      fill="currentColor"/>
-                </svg>
-                Creating post...
-              {:else}
-                <span>Post</span>
-                {#if $useRelay && !$useDispatcher}
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2">
-                    <polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon>
-                    <line x1="3" y1="22" x2="21" y2="22"></line>
-                  </svg>
-                  {:else if !$useDispatcher}
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="currentColor"
-                       class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2"
-                       use:tippy={({content: 'Pay for your own gas', delay: 200})}>
+                {#if isSubmittingPost}
+                  <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
+                       fill="none" xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
-                        d="M32.6 27.2q1.25 0 2.225-.975.975-.975.975-2.275 0-1.25-.975-2.2-.975-.95-2.225-.95t-2.225.95q-.975.95-.975 2.2 0 1.3.975 2.275.975.975 2.225.975ZM9 36.35V39 9 36.35ZM9 42q-1.15 0-2.075-.9Q6 40.2 6 39V9q0-1.15.925-2.075Q7.85 6 9 6h30q1.2 0 2.1.925Q42 7.85 42 9v6.7h-3V9H9v30h30v-6.65h3V39q0 1.2-.9 2.1-.9.9-2.1.9Zm17.9-8.65q-1.7 0-2.7-1-1-1-1-2.65V18.35q0-1.7 1-2.675 1-.975 2.7-.975h13.5q1.7 0 2.7.975 1 .975 1 2.675V29.7q0 1.65-1 2.65t-2.7 1Zm14.2-3V17.7H26.2v12.65Z"/>
+                        d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                        fill="#E5E7EB"/>
+                    <path
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        fill="currentColor"/>
                   </svg>
+                  Creating post...
+                {:else}
+                  <span>Post</span>
+                  {#if $useRelay && !$useDispatcher}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2">
+                      <polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon>
+                      <line x1="3" y1="22" x2="21" y2="22"></line>
+                    </svg>
+                  {:else if !$useDispatcher}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="currentColor"
+                         class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2"
+                         use:tippy={({content: 'Pay for your own gas', delay: 200})}>
+                      <path
+                          d="M32.6 27.2q1.25 0 2.225-.975.975-.975.975-2.275 0-1.25-.975-2.2-.975-.95-2.225-.95t-2.225.95q-.975.95-.975 2.2 0 1.3.975 2.275.975.975 2.225.975ZM9 36.35V39 9 36.35ZM9 42q-1.15 0-2.075-.9Q6 40.2 6 39V9q0-1.15.925-2.075Q7.85 6 9 6h30q1.2 0 2.1.925Q42 7.85 42 9v6.7h-3V9H9v30h30v-6.65h3V39q0 1.2-.9 2.1-.9.9-2.1.9Zm17.9-8.65q-1.7 0-2.7-1-1-1-1-2.65V18.35q0-1.7 1-2.675 1-.975 2.7-.975h13.5q1.7 0 2.7.975 1 .975 1 2.675V29.7q0 1.65-1 2.65t-2.7 1Zm14.2-3V17.7H26.2v12.65Z"/>
+                    </svg>
+                  {/if}
                 {/if}
-              {/if}
-            </button>
+              </button>
 
             <button type="button" disabled={!submitEnabled}
-                    class="px-4 flex justify-center items-center rounded-r-xl tooltip
+                    class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
                     border-l border-orange-300 dark:border-orange-800 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center text-lg dark:disabled:text-gray-400
-                    transition ease-in duration-200"
-                    use:tooltip={{
+                    transition ease-in duration-200 shadow-md"
+                      use:tooltip={{
                       component: PostMethodChooser,
                       props: {},
                       trigger: 'click',
@@ -665,15 +704,17 @@
                       placement: 'bottom-end',
                       offset: [0, 5]
                     }}
-                    on:useDispatcher={onUseDispatcherSelected}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-4 h-4" fill="currentColor">
-                <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com
-                License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
-                <path
-                    d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/>
-              </svg>
-            </button>
+                      on:useDispatcher={onUseDispatcherSelected}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-4 h-4" fill="currentColor">
+                  <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com
+                  License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                  <path
+                      d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/>
+                </svg>
+              </button>
+
+            </div>
 
           </div>
 
@@ -687,14 +728,17 @@
 
 </main>
 
-<dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
-</dialog>
+{#if showFeeCollectDialog}
+  <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
+          class="w-2/3 lg:w-1/4 rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+    <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+  </dialog>
+{/if}
 
 <dialog id="selectGif" bind:this={gifSelectionDialog}
-        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700
-          border border-gray-200 dark:border-gray-600">
+        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0
+        border border-gray-200 dark:border-gray-600"
+        on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
   <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
 </dialog>
 
@@ -706,6 +750,12 @@
 <dialog id="removeAttachmentDialog" bind:this={removeAttachmentDialog}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <ConfirmAttachmentRemovalDialog on:close={removeAttachmentDialog?.close()} />
+</dialog>
+
+<dialog id="postDraftsDialog" bind:this={postDraftsDialog}
+        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+        on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
+  <PostDraftsList />
 </dialog>
 
 <Toaster />
