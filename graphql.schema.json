@@ -2295,6 +2295,18 @@
             "deprecationReason": null
           },
           {
+            "name": "rankingScore",
+            "description": "Comment ranking score",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "reaction",
             "description": null,
             "args": [
@@ -2351,6 +2363,52 @@
         "inputFields": null,
         "interfaces": [],
         "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "CommentOrderingTypes",
+        "description": "The comment ordering types",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "DESC",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "RANKING",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "CommentRankingFilter",
+        "description": "The comment ranking filter types",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "NONE_RELEVANT",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "RELEVANT",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
         "possibleTypes": null
       },
       {
@@ -4154,7 +4212,7 @@
           },
           {
             "name": "contentURI",
-            "description": "The metadata uploaded somewhere passing in the url to reach it",
+            "description": "The metadata contentURI resolver",
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -6038,6 +6096,16 @@
       },
       {
         "kind": "SCALAR",
+        "name": "DataAvailabilityId",
+        "description": "The da id",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "SCALAR",
         "name": "DateTime",
         "description": "The javascript `Date` as string. Type represents date and time as the ISO Date string.",
         "fields": null,
@@ -7756,7 +7824,7 @@
           },
           {
             "name": "contractAddress",
-            "description": "The ERC20 token's ethereum address",
+            "description": "The ERC20 token ethereum address",
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -7846,7 +7914,7 @@
           },
           {
             "name": "contractAddress",
-            "description": "The ERC20 token's ethereum address",
+            "description": "The ERC20 token ethereum address",
             "args": [],
             "type": {
               "kind": "NON_NULL",
@@ -7870,6 +7938,38 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "Float",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "name",
+            "description": "The name of the ERC20 token",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "symbol",
+            "description": "The symbol of the ERC20 token",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
                 "ofType": null
               }
             },
@@ -21226,6 +21326,30 @@
             "deprecationReason": null
           },
           {
+            "name": "commentsOfOrdering",
+            "description": "The comment ordering type - only used when you use commentsOf",
+            "type": {
+              "kind": "ENUM",
+              "name": "CommentOrderingTypes",
+              "ofType": null
+            },
+            "defaultValue": "RANKING",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "commentsRankingFilter",
+            "description": "The comment ranking filter, you can use  - only used when you use commentsOf + commentsOfOrdering=ranking",
+            "type": {
+              "kind": "ENUM",
+              "name": "CommentRankingFilter",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "cursor",
             "description": null,
             "type": {
@@ -23182,7 +23306,7 @@
           },
           {
             "name": "split",
-            "description": "Split %, should be between 1 and 100. All % should add up to 100",
+            "description": "Split %, should be between 0.01 and 100. Up to 2 decimal points supported. All % should add up to 100",
             "type": {
               "kind": "NON_NULL",
               "name": null,
@@ -23224,7 +23348,7 @@
           },
           {
             "name": "split",
-            "description": "Split %, should be between 1 and 100. All % should add up to 100",
+            "description": "Split %, should be between 0.01 and 100. Up to 2 decimal points supported. All % should add up to 100",
             "args": [],
             "type": {
               "kind": "NON_NULL",
@@ -23555,6 +23679,22 @@
         "name": "RelayerResult",
         "description": "The relayer result",
         "fields": [
+          {
+            "name": "dataAvailabilityId",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "DataAvailabilityId",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "txHash",
             "description": "The tx hash - you should use the `txId` as your identifier as gas prices can be upgraded meaning txHash will change",

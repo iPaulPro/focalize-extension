@@ -1,11 +1,17 @@
 import type {
-    CollectModuleParams, EnabledModuleCurrenciesQuery, Erc20, FeeCollectModuleSettings, LimitedFeeCollectModuleSettings,
-    LimitedTimedFeeCollectModuleSettings, ReferenceModuleParams, TimedFeeCollectModuleSettings,
+    CollectModuleParams,
+    Erc20,
+    FeeCollectModuleSettings,
+    LimitedFeeCollectModuleSettings,
+    LimitedTimedFeeCollectModuleSettings,
+    ReferenceModuleParams,
+    TimedFeeCollectModuleSettings,
 } from "../graph/lens-service";
 
 import {CollectModules, PublicationContentWarning} from "../graph/lens-service";
 
 import gqlClient from "../graph/graphql-client";
+import {DateTime} from "luxon";
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 
@@ -150,35 +156,48 @@ const getPaidCollectModuleParams = (module: PaidCollectModule): CollectModulePar
             value: module.amount.value
         },
         followerOnly: module.followerOnly ?? false,
-        recipient: module.recipient,
+        recipients: [
+            {
+                recipient: module.recipient,
+                split: 98
+            },
+            {
+                recipient: "0x10E1DEB36F41b4Fad35d10d0aB870a4dc52Dbb2c", // focalize.eth
+                split: 2
+            },
+        ],
         referralFee: module.referralFee
     }
+
+    const endTimestamp = DateTime.utc().plus({days:1}).toISO();
 
     switch (module.__typename) {
         case 'LimitedTimedFeeCollectModuleSettings':
             return {
-                limitedTimedFeeCollectModule: {
+                multirecipientFeeCollectModule: {
                     ...baseModule,
-                    collectLimit: module.collectLimit.toString()
+                    collectLimit: module.collectLimit.toString(),
+                    endTimestamp,
                 }
             }
         case 'LimitedFeeCollectModuleSettings':
             return {
-                limitedFeeCollectModule: {
+                multirecipientFeeCollectModule: {
                     ...baseModule,
                     collectLimit: module.collectLimit.toString()
                 }
             }
         case 'TimedFeeCollectModuleSettings':
             return {
-                timedFeeCollectModule: {
-                    ...baseModule
+                multirecipientFeeCollectModule: {
+                    ...baseModule,
+                    endTimestamp,
                 }
             }
     }
 
     return {
-        feeCollectModule: {
+        multirecipientFeeCollectModule: {
             ...baseModule
         }
     }

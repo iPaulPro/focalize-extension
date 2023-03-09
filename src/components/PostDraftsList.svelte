@@ -80,7 +80,7 @@
         {/if}
 
         <button type="button"
-                class="flex-none p-3 rounded-full dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600"
+                class="draft-menu flex-none p-3 rounded-full dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600"
                 use:tooltip={{
                   component: PostDraftMenu,
                   props: {draftId: item.id},
@@ -102,3 +102,9 @@
   </div>
 
 </div>
+
+<style global>
+  .draft-menu .tippy-content {
+    padding: 0 !important;
+  }
+</style>

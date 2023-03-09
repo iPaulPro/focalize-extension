@@ -1,4 +1,6 @@
 <script lang="ts">
+    //@ts-ignore
+    import tippy from "sveltejs-tippy";
     import {beforeUpdate, createEventDispatcher, onMount} from 'svelte';
     import {z} from "zod";
 
@@ -15,7 +17,6 @@
     } from "../../graph/lens-service";
     import {CollectModules} from "../../graph/lens-service";
     import {currentUser} from "../../lib/store/user-store";
-    import {darkMode} from "../../lib/store/preferences-store.js";
 
     const dispatch = createEventDispatcher();
 
@@ -42,7 +43,7 @@
     let priceError: string;
     let limitError: string;
     let referralError: string;
-    
+
     const validatePrice = (price: number): number => {
         try {
             priceSchema.parse(price);
@@ -58,7 +59,7 @@
         const value = event.target.value;
         validatePrice(Number(value))
     };
-    
+
     const validateReferral = (referral: number) => {
         try {
             referralSchema.parse(referral);
@@ -100,6 +101,10 @@
             (isLimited && !validateLimit($collectFee.limit))
         ) {
             return;
+        }
+
+        if (!$collectFee.token) {
+            $collectFee.token = token;
         }
 
         const amount: ModuleFeeAmount = {
@@ -148,9 +153,9 @@
     }
 
     beforeUpdate(() => {
-       if (!$collectFee) {
-           $collectFee = {};
-       }
+        if (!$collectFee) {
+            $collectFee = {};
+        }
     });
 
     onMount(() => {
@@ -193,7 +198,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
       </button>
     </form>
   </div>
@@ -209,13 +216,13 @@
       <div class="mt-1 relative rounded-lg">
 
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span class="text-gray-500 sm:text-sm">$</span>
+          <span class="text-gray-500 sm:text-sm">$</span>
         </div>
 
         <input type="number" name="price" id="price" autocomplete="off" placeholder="0.00" min="0"
                bind:value={$collectFee.price} on:change={onPriceValueChange}
                class="focus:ring-orange-500 border-l border-b border-t border-gray-300 py-2 px-4 focus:border-orange-500
-               block w-full pl-7 pr-12 rounded-xl text-base dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100" />
+               block w-full pl-7 pr-12 rounded-xl text-base dark:bg-gray-600 dark:border-gray-600 dark:text-gray-100"/>
 
         <div class="absolute inset-y-0 right-0 flex items-center">
           <label for="currency" class="sr-only">
@@ -224,7 +231,8 @@
 
           {#await getEnabledModuleCurrencies()}
 
-            <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101" fill="none"
+            <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
+                 fill="none"
                  xmlns="http://www.w3.org/2000/svg">
               <path
                   d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
@@ -258,7 +266,7 @@
 
     <div id="collectLimit" class="flex items-center py-2 mt-4 gap-6">
 
-      <div class="grow">
+      <div class="grow flex items-center">
         <div class="relative inline-block w-10 mr-2 align-middle select-none">
           <input type="checkbox" name="toggle" id="collectLimitToggle" bind:checked={isLimited}
                  class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
@@ -267,7 +275,12 @@
           <label for="collectLimitToggle"
                  class="block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-500 cursor-pointer"></label>
         </div>
-        <span class="text-gray-400 text-base pr-2">
+        <span class="text-gray-400 text-base pr-2 inline-flex items-center">
+          <svg viewBox="0 0 24 24" fill="none" class="inline w-4 mr-1.5" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
           Limited edition
         </span>
       </div>
@@ -288,7 +301,7 @@
 
     <div id="timed" class="flex items-center py-2 mt-2 gap-6">
 
-      <div class="grow">
+      <div class="grow flex items-center">
         <div class="relative inline-block w-10 mr-2 align-middle select-none">
           <input type="checkbox" name="toggle" id="collectTimedToggle" bind:checked={$collectFee.timed}
                  class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
@@ -297,16 +310,21 @@
           <label for="collectTimedToggle"
                  class="block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-500 cursor-pointer"></label>
         </div>
-        <span class="text-gray-400 text-base">
-        Only available for 24 hours
-      </span>
+        <span class="text-gray-400 text-base inline-flex items-center">
+          <svg viewBox="0 0 24 24" fill="none" class="inline w-4 mr-1.5"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Only available for 24 hours
+        </span>
       </div>
 
     </div><!-- #timed -->
 
     <div id="follower-only" class="flex items-center py-2 mt-2 gap-6">
 
-      <div class="grow">
+      <div class="grow flex items-center">
         <div class="relative inline-block w-10 mr-2 align-middle select-none">
           <input type="checkbox" name="toggle" id="followerOnlyToggle" bind:checked={$collectFee.followerOnly}
                  class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
@@ -315,16 +333,23 @@
           <label for="followerOnlyToggle"
                  class="block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-500 cursor-pointer"></label>
         </div>
-        <span class="text-gray-400 text-base">
-        Followers only
-      </span>
+        <span class="text-gray-400 text-base inline-flex items-center">
+          <svg viewBox="0 0 24 24" fill="none" class="inline w-4 mr-1.5"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Followers only
+        </span>
       </div>
 
     </div><!-- #follower-only -->
 
     <div id="referralFee" class="flex items-center py-2 mt-1 gap-6">
 
-      <div class="grow">
+      <div class="grow flex items-center">
         <div class="relative inline-block w-10 mr-2 align-middle select-none">
           <input type="checkbox" name="toggle" id="referralFeeToggle" bind:checked={hasReferralFee}
                  class="checked:bg-orange-500 outline-none focus:outline-none right-4 checked:right-0 duration-200 ease-in
@@ -333,9 +358,15 @@
           <label for="referralFeeToggle"
                  class="block overflow-hidden h-6 rounded-full bg-gray-300 dark:bg-gray-500 cursor-pointer"></label>
         </div>
-        <span class="text-gray-400 text-base">
-        Referral fee
-      </span>
+        <span class="text-gray-400 text-base inline-flex items-center">
+          <svg viewBox="0 0 24 24" class="inline w-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 2.1l4 4-4 4"/>
+            <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4"/>
+            <path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"/>
+          </svg>
+          Referral fee
+        </span>
       </div>
 
       <div class="relative rounded-lg {hasReferralFee ? '' : 'hidden'}">
@@ -356,20 +387,32 @@
       <div class="text-orange-600 w-full text-right">{referralError}</div>
     {/if}
 
-    <div class="flex justify-end">
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-400 dark:border-gray-700">
+      <div class="flex items-center text-xs pr-2 text-neutral-800 dark:text-neutral-300 cursor-help"
+           use:tippy={({
+             content: 'A 2% fee is collected only when your NFT sells, and only for the initial sale.',
+             appendTo: 'parent'
+           })}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="inline w-4"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span class="pl-1.5">Focalize collects a 2% fee</span>
+      </div>
 
       <button type="button" on:click={onSetClick}
               disabled={!$collectFee.price || priceError || referralError || limitError}
-              class="w-auto mt-4 py-1.5 px-8 flex justify-center items-center
-        bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
-        dark:bg-orange-700 dark:hover:bg-orange-800 dark:disabled:bg-gray-600
-        rounded-lg shadow-md
-        focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-        text-white text-center text-lg font-semibold dark:disabled:text-gray-400
-        transition ease-in duration-200 ">
+              class="w-auto py-1.5 px-8 flex justify-center items-center
+              bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
+              dark:bg-orange-700 dark:hover:bg-orange-800 dark:disabled:bg-gray-600
+              rounded-lg shadow-md
+              focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+              text-white text-center text-lg font-semibold dark:disabled:text-gray-400
+              transition ease-in duration-200 ">
         Set
       </button>
-
     </div>
   </div>
 

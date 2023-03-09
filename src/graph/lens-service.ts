@@ -21,6 +21,7 @@ export type Scalars = {
   ContractAddress: any;
   CreateHandle: any;
   Cursor: any;
+  DataAvailabilityId: any;
   DateTime: any;
   EncryptedValueScalar: any;
   Ens: any;
@@ -377,6 +378,8 @@ export type Comment = {
   onChainContentURI: Scalars['String'];
   /** The profile ref */
   profile: Profile;
+  /** Comment ranking score */
+  rankingScore?: Maybe<Scalars['Float']>;
   reaction?: Maybe<ReactionTypes>;
   /** The reference module */
   referenceModule?: Maybe<ReferenceModule>;
@@ -420,6 +423,18 @@ export type CommentMirrorsArgs = {
 export type CommentReactionArgs = {
   request?: InputMaybe<ReactionFieldResolverRequest>;
 };
+
+/** The comment ordering types */
+export enum CommentOrderingTypes {
+  Desc = 'DESC',
+  Ranking = 'RANKING'
+}
+
+/** The comment ranking filter types */
+export enum CommentRankingFilter {
+  NoneRelevant = 'NONE_RELEVANT',
+  Relevant = 'RELEVANT'
+}
 
 /** The gated publication access criteria contract types */
 export enum ContractType {
@@ -683,7 +698,7 @@ export type CreatePostEip712TypedDataValue = {
 export type CreatePublicCommentRequest = {
   /** The collect module */
   collectModule: CollectModuleParams;
-  /** The metadata uploaded somewhere passing in the url to reach it */
+  /** The metadata contentURI resolver */
   contentURI: Scalars['Url'];
   /** The criteria to access the publication data */
   gated?: InputMaybe<GatedPublicationParamsInput>;
@@ -1257,7 +1272,7 @@ export type Erc20OwnershipInput = {
   chainID: Scalars['ChainId'];
   /** The operator to use when comparing the amount of tokens */
   condition: ScalarOperator;
-  /** The ERC20 token's ethereum address */
+  /** The ERC20 token ethereum address */
   contractAddress: Scalars['ContractAddress'];
   /** The amount of decimals of the ERC20 contract */
   decimals: Scalars['Float'];
@@ -1271,10 +1286,14 @@ export type Erc20OwnershipOutput = {
   chainID: Scalars['ChainId'];
   /** The operator to use when comparing the amount of tokens */
   condition: ScalarOperator;
-  /** The ERC20 token's ethereum address */
+  /** The ERC20 token ethereum address */
   contractAddress: Scalars['ContractAddress'];
   /** The amount of decimals of the ERC20 contract */
   decimals: Scalars['Float'];
+  /** The name of the ERC20 token */
+  name: Scalars['String'];
+  /** The symbol of the ERC20 token */
+  symbol: Scalars['String'];
 };
 
 /** The paginated publication result */
@@ -3323,6 +3342,10 @@ export type PublicationsQueryRequest = {
   collectedBy?: InputMaybe<Scalars['EthereumAddress']>;
   /** The publication id you wish to get comments for */
   commentsOf?: InputMaybe<Scalars['InternalPublicationId']>;
+  /** The comment ordering type - only used when you use commentsOf */
+  commentsOfOrdering?: InputMaybe<CommentOrderingTypes>;
+  /** The comment ranking filter, you can use  - only used when you use commentsOf + commentsOfOrdering=ranking */
+  commentsRankingFilter?: InputMaybe<CommentRankingFilter>;
   cursor?: InputMaybe<Scalars['Cursor']>;
   customFilters?: InputMaybe<Array<CustomFiltersTypes>>;
   limit?: InputMaybe<Scalars['LimitScalar']>;
@@ -3642,7 +3665,7 @@ export enum ReactionTypes {
 export type RecipientDataInput = {
   /** Recipient of collect fees. */
   recipient: Scalars['EthereumAddress'];
-  /** Split %, should be between 1 and 100. All % should add up to 100 */
+  /** Split %, should be between 0.01 and 100. Up to 2 decimal points supported. All % should add up to 100 */
   split: Scalars['Float'];
 };
 
@@ -3650,7 +3673,7 @@ export type RecipientDataOutput = {
   __typename?: 'RecipientDataOutput';
   /** Recipient of collect fees. */
   recipient: Scalars['EthereumAddress'];
-  /** Split %, should be between 1 and 100. All % should add up to 100 */
+  /** Split %, should be between 0.01 and 100. Up to 2 decimal points supported. All % should add up to 100 */
   split: Scalars['Float'];
 };
 
@@ -3709,6 +3732,7 @@ export type RelayResult = RelayError | RelayerResult;
 /** The relayer result */
 export type RelayerResult = {
   __typename?: 'RelayerResult';
+  dataAvailabilityId: Scalars['DataAvailabilityId'];
   /** The tx hash - you should use the `txId` as your identifier as gas prices can be upgraded meaning txHash will change */
   txHash: Scalars['TxHash'];
   /** The tx id */

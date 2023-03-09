@@ -29,9 +29,3 @@
   </button>
 
 </div>
-
-<style global>
-  .tippy-content {
-    padding: 0 !important;
-  }
-</style>
