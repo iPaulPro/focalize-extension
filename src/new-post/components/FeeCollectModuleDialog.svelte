@@ -6,7 +6,7 @@
     import {collectFee} from '../../lib/store/state-store'
 
     import type {
-        CollectModule,
+        CollectModule, Erc20,
         FeeCollectModuleSettings,
         LimitedFeeCollectModuleSettings,
         LimitedTimedFeeCollectModuleSettings,
@@ -36,6 +36,8 @@
         required_error: "Limit is not set",
         invalid_type_error: "Limit must be a number",
     }).positive('Limit must be greater than zero');
+
+    let token: Erc20;
 
     let priceError: string;
     let limitError: string;
@@ -161,6 +163,10 @@
         }
     });
 
+    const onCurrencyChange = () => {
+        $collectFee.token = token;
+    };
+
     $: {
         if (!hasReferralFee) {
             referralError = null;
@@ -230,7 +236,7 @@
 
           {:then tokens}
 
-            <select id="Currency" name="currency" bind:value={$collectFee.token}
+            <select id="Currency" name="currency" bind:value={token} on:change={onCurrencyChange}
                     class="focus:ring-orange-500 py-2 px-4 border-t border-r border-gray-300 border-b bo focus:border-orange-500
                   h-full pl-2 pr-7 border-transparent bg-transparent text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-xl">
 

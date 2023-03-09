@@ -5,7 +5,7 @@
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
         COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
-        getCollectModuleParams, FREE_COLLECT_FOLLOWERS_ITEM, FREE_COLLECT_ITEM,
+        getCollectModuleParams, FREE_COLLECT_FOLLOWERS_ITEM, FREE_COLLECT_ITEM, REVERT_COLLECT_ITEM,
     } from '../lib/lens-modules';
 
     import {
@@ -416,7 +416,7 @@
     $: $compactMode, updateWindowHeight().catch();
 
     $: {
-        if ($draftId || $title || $content || $description || $attachment || $author) {
+        if ($title || $content || $description || $attachment || $author) {
             draftSubject.next({
                 id: $draftId,
                 title: $title,
@@ -459,10 +459,15 @@
 
     const openDraft = async () => {
         postDraft = await getDraft($draftId);
-        loadFromDraft(postDraft);
+        if (postDraft) {
+            loadFromDraft(postDraft);
+        }
+
         if ($collectFee) {
             collectItem = $collectFee.price ? FEE_COLLECT_ITEM :
                 ($collectFee.followerOnly ? FREE_COLLECT_FOLLOWERS_ITEM : FREE_COLLECT_ITEM);
+        } else {
+            collectItem = REVERT_COLLECT_ITEM
         }
     };
 

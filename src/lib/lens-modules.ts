@@ -107,15 +107,17 @@ export const FREE_COLLECT_FOLLOWERS_ITEM: SelectItem<CollectModuleItem> = {
     icon: 'followers'
 };
 
-export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
-    {
-        value: {
-            type: CollectModules.RevertCollectModule
-        },
-        label: 'Disable NFT Collection',
-        summary: 'Do not allow the post to be collected as an NFT',
-        icon: 'collect_disabled'
+export const REVERT_COLLECT_ITEM: SelectItem<CollectModuleItem> = {
+    value: {
+        type: CollectModules.RevertCollectModule
     },
+    label: 'Disable NFT Collection',
+    summary: 'Do not allow the post to be collected as an NFT',
+    icon: 'collect_disabled'
+};
+
+export const COLLECT_ITEMS: SelectItem<CollectModuleItem>[] = [
+    REVERT_COLLECT_ITEM,
     FREE_COLLECT_ITEM,
     FREE_COLLECT_FOLLOWERS_ITEM,
     FEE_COLLECT_ITEM,
@@ -186,7 +188,7 @@ export const getCollectModuleParams = (
     item: SelectItem<CollectModuleItem>,
     feeCollectModule: PaidCollectModule
 ): CollectModuleParams | undefined => {
-    switch (item.value.type) {
+    switch (item?.value?.type) {
         case CollectModules.FreeCollectModule:
             return {freeCollectModule: {followerOnly: item.value.followerOnly ?? false}};
         case CollectModules.RevertCollectModule:
@@ -194,5 +196,5 @@ export const getCollectModuleParams = (
         case CollectModules.FeeCollectModule:
             return getPaidCollectModuleParams(feeCollectModule);
     }
-    return undefined;
+    return REVERT_COLLECT_MODULE;
 }

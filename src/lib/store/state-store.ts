@@ -69,15 +69,16 @@ export const clearPostState = () => {
     attachment.set(null);
     cover.set(null);
     author.set(null);
-    collectFee.set({})
+    collectFee.set(null)
 }
 
 export const loadFromDraft = (postDraft: PostDraft) => {
+    if (!postDraft) return;
     draftId.set(postDraft.id);
     title.set(postDraft.title);
     content.set(postDraft.content);
     description.set(postDraft.description);
     attachment.set(postDraft.attachment);
     author.set(postDraft.author);
-    collectFee.set(postDraft.collectFee ?? {});
+    collectFee.set(postDraft.collectFee);
 }
