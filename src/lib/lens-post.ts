@@ -25,6 +25,7 @@ import type {
 } from "../graph/lens-service";
 import type {User} from "./user";
 import {deleteDraft} from "./store/draft-store";
+import {DateTime} from "luxon";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uuid()): File => {
     const obj = {
@@ -270,6 +271,12 @@ export const submitPost = async (
     const metadataCid = await uploadAndPin(metadataFile);
     const contentURI = `ipfs://${metadataCid}`;
     console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
+
+    if (collectModule.multirecipientFeeCollectModule?.endTimestamp) {
+        // Ensure the 24 hours starts from now, as the existing timestamp may be old
+        // TODO remove when custom end times are supported
+        collectModule.multirecipientFeeCollectModule.endTimestamp = DateTime.utc().plus({days:1}).toISO();
+    }
 
     let txHash: string | undefined;
 

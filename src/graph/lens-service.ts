@@ -3732,7 +3732,6 @@ export type RelayResult = RelayError | RelayerResult;
 /** The relayer result */
 export type RelayerResult = {
   __typename?: 'RelayerResult';
-  dataAvailabilityId: Scalars['DataAvailabilityId'];
   /** The tx hash - you should use the `txId` as your identifier as gas prices can be upgraded meaning txHash will change */
   txHash: Scalars['TxHash'];
   /** The tx id */
