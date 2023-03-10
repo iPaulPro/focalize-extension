@@ -21,7 +21,6 @@ export default defineConfig({
     },
     plugins: [
         svelte(),
-        // @ts-ignore
         crx({manifest})
     ],
     resolve: {

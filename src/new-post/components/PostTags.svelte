@@ -12,8 +12,9 @@
     const focusEmptyTagInput = () => {
         const tags = document.querySelectorAll('.tag');
         tags.forEach(tag => {
-            if (tag.firstChild?.value === '') {
-                tag.firstChild.focus();
+            const input = tag.querySelector('.tag-edit');
+            if (input?.value === '') {
+                input.focus();
             }
         })
     };
@@ -39,6 +40,7 @@
     });
 
     const onKeyPress = (e) => {
+        console.log('onKeyPress', e);
         if (e.code === 'Enter') {
             addTag();
         }
@@ -77,7 +79,7 @@
 
       <input type="text" size={Math.max(tag?.length || 0, 3)}
              bind:value={tag} on:keypress={onKeyPress} on:blur={() => removeTagIfEmpty(tag)}
-             class="border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100 pl-2 pr-0" maxlength="50">
+             class="tag-edit border-none leading-4 focus:ring-0 text-sm bg-transparent dark:text-gray-100 pl-2 pr-0" maxlength="50">
 
       <button type="button" class="bg-transparent enabled:hover:bg-gray-200 enabled:dark:hover:bg-gray-600 p-2 rounded-full"
               on:click={() => removeTag(tag)} disabled={disabled}>

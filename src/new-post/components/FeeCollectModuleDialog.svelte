@@ -349,7 +349,7 @@
       <div class="text-orange-600 w-full text-right">{referralError}</div>
     {/if}
 
-    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-400 dark:border-gray-700">
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
       <div class="flex items-center text-xs pr-2 text-neutral-800 dark:text-neutral-300 cursor-help"
            use:tippy={({
              content: 'A 2% fee is collected only when your NFT sells, and only for the initial sale.',
