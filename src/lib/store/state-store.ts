@@ -78,7 +78,7 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     title.set(postDraft.title);
     content.set(postDraft.content);
     description.set(postDraft.description);
-    attachment.set(postDraft.attachment);
+    attachment.set(postDraft.attachments?.[0]);
     author.set(postDraft.author);
     collectFee.set(postDraft.collectFee);
 }

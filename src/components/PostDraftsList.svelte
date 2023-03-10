@@ -59,7 +59,7 @@
               {/if}
 
               <div class="w-full truncate dark:text-white opacity-70">
-                {#if item.attachment}
+                {#if item.attachments?.length > 0}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 inline"
                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path

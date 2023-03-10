@@ -4,8 +4,15 @@
 
     import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
     import {
-        COLLECT_ITEMS, CONTENT_WARNING_ITEMS, FEE_COLLECT_ITEM, REFERENCE_ITEMS,
-        getCollectModuleParams, FREE_COLLECT_FOLLOWERS_ITEM, FREE_COLLECT_ITEM, REVERT_COLLECT_ITEM,
+        COLLECT_ITEMS,
+        CONTENT_WARNING_ITEMS,
+        FEE_COLLECT_ITEM,
+        REFERENCE_ITEMS,
+        getCollectModuleParams,
+        FREE_COLLECT_FOLLOWERS_ITEM,
+        FREE_COLLECT_ITEM,
+        REVERT_COLLECT_ITEM,
+        collectFeeToCollectModule,
     } from '../lib/lens-modules';
 
     import {
@@ -27,10 +34,14 @@
 
     import type {
         MetadataAttributeInput,
-        PublicationMetadataMediaInput,
+        MultirecipientFeeCollectModuleSettings,
         PublicationMetadataV2Input,
     } from '../graph/lens-service';
-    import {CollectModules, PublicationMainFocus, ReferenceModules} from '../graph/lens-service';
+    import {
+        CollectModules,
+        PublicationMainFocus,
+        ReferenceModules
+    } from '../graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
@@ -284,31 +295,22 @@
         return module.amount.value + ' $' + module.amount.asset.symbol;
     };
 
-    const getCollectFeeString = (module: PaidCollectModule): string => {
+    const getCollectFeeString = (module: MultirecipientFeeCollectModuleSettings): string => {
         if (!module) return null;
 
         let subtext: string, edition: string;
 
-        switch (module.__typename) {
-            case 'LimitedTimedFeeCollectModuleSettings':
-                edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
-                subtext = `${module.collectLimit} ${edition}, 24 hours`;
-                break;
-            case 'LimitedFeeCollectModuleSettings':
-                edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
-                subtext = `${module.collectLimit} ${edition}`;
-                break;
-            case 'TimedFeeCollectModuleSettings':
-                subtext = '24 hours'
-                break;
+        if (module.collectLimit) {
+            edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
+            subtext = `${module.collectLimit} ${edition}` + (module.endTimestamp ? ', 24 hours' : '');
+        } else if (module.endTimestamp) {
+            subtext = '24 hours'
         }
-        console.log('getCollectFeeString: edition =', edition);
-        console.log('getCollectFeeString: subtext =', subtext);
+
         let text = getCollectPrice(module);
         if (subtext) {
             text += ', ' + subtext;
         }
-        console.log('getCollectFeeString: text =', text);
         return text;
     }
 
@@ -417,15 +419,16 @@
 
     $: {
         if ($title || $content || $description || $attachment || $author) {
-            draftSubject.next({
+            const draft: PostDraft = {
                 id: $draftId,
                 title: $title,
                 content: $content,
                 description: $description,
-                attachment: $attachment,
+                attachments: $attachment ? [$attachment] : undefined,
                 author: $author,
                 collectFee: $collectFee
-            });
+            };
+            draftSubject.next(draft);
         }
     }
 
@@ -459,13 +462,14 @@
 
     const openDraft = async () => {
         postDraft = await getDraft($draftId);
+        console.log('openDraft: postDraft', postDraft);
         if (postDraft) {
             loadFromDraft(postDraft);
         }
-
         if ($collectFee) {
             collectItem = $collectFee.price ? FEE_COLLECT_ITEM :
                 ($collectFee.followerOnly ? FREE_COLLECT_FOLLOWERS_ITEM : FREE_COLLECT_ITEM);
+            feeCollectModule = collectFeeToCollectModule($currentUser?.address, $collectFee);
         } else {
             collectItem = REVERT_COLLECT_ITEM
         }

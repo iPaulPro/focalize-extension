@@ -4,7 +4,7 @@
     import {beforeUpdate, createEventDispatcher, onMount} from 'svelte';
     import {z} from "zod";
 
-    import {getEnabledModuleCurrencies} from '../../lib/lens-modules'
+    import {collectFeeToCollectModule, getEnabledModuleCurrencies} from '../../lib/lens-modules'
     import {collectFee} from '../../lib/store/state-store'
 
     import type {
@@ -94,7 +94,6 @@
 
     const onSetClick = async () => {
         console.log('onSetClick', $collectFee);
-        const recipient = $currentUser?.address;
 
         if (!validatePrice($collectFee.price) ||
             (hasReferralFee && !validateReferral($collectFee.referralFee)) ||
@@ -107,47 +106,10 @@
             $collectFee.token = token;
         }
 
-        const amount: ModuleFeeAmount = {
-            asset: $collectFee.token,
-            value: $collectFee.price?.toString()
-        }
-
-        let baseModule = {
-            amount,
-            recipient,
-            referralFee: $collectFee.referralFee ?? 0,
-            followerOnly: $collectFee.followerOnly
-        }
-
-        let collectModule: CollectModule;
-
-        if (isLimited && $collectFee.limit && $collectFee.timed) {
-            collectModule = {
-                ...baseModule,
-                collectLimit: $collectFee.limit.toString(),
-                type: CollectModules.LimitedTimedFeeCollectModule,
-                __typename: "LimitedTimedFeeCollectModuleSettings"
-            } as LimitedTimedFeeCollectModuleSettings;
-        } else if (isLimited && $collectFee.limit) {
-            collectModule = {
-                ...baseModule,
-                collectLimit: $collectFee.limit.toString(),
-                type: CollectModules.LimitedFeeCollectModule,
-                __typename: "LimitedFeeCollectModuleSettings"
-            } as LimitedFeeCollectModuleSettings;
-        } else if ($collectFee.timed) {
-            collectModule = {
-                ...baseModule,
-                type: CollectModules.TimedFeeCollectModule,
-                __typename: "TimedFeeCollectModuleSettings"
-            } as TimedFeeCollectModuleSettings;
-        } else {
-            collectModule = {
-                ...baseModule,
-                type: CollectModules.FeeCollectModule,
-                __typename: "FeeCollectModuleSettings"
-            } as FeeCollectModuleSettings;
-        }
+        const collectModule = collectFeeToCollectModule(
+            $currentUser?.address,
+            $collectFee,
+        );
 
         dispatch('moduleUpdated', collectModule);
     }

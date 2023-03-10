@@ -6,16 +6,19 @@ import type {
     LimitedTimedFeeCollectModuleSettings,
     ReferenceModuleParams,
     TimedFeeCollectModuleSettings,
+    ModuleFeeAmount,
 } from "../graph/lens-service";
 
 import {CollectModules, PublicationContentWarning} from "../graph/lens-service";
 
 import gqlClient from "../graph/graphql-client";
 import {DateTime} from "luxon";
+import type {CollectFee} from "./store/state-store";
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 
-export type PaidCollectModule = FeeCollectModuleSettings | LimitedFeeCollectModuleSettings | LimitedTimedFeeCollectModuleSettings | TimedFeeCollectModuleSettings;
+export type PaidCollectModule = FeeCollectModuleSettings | LimitedFeeCollectModuleSettings
+    | LimitedTimedFeeCollectModuleSettings | TimedFeeCollectModuleSettings;
 
 export type SelectItem<Type> = {
     value: Type,
@@ -216,4 +219,61 @@ export const getCollectModuleParams = (
             return getPaidCollectModuleParams(feeCollectModule);
     }
     return REVERT_COLLECT_MODULE;
+}
+
+export const collectFeeToCollectModule = (
+    address: string,
+    collectFee: CollectFee,
+): PaidCollectModule => {
+    if (!address) {
+        throw new Error('Address cannot be null or undefined');
+    }
+
+    if (!collectFee.token || !collectFee.price) {
+        throw new Error('Token and price cannot be undefined');
+    }
+
+    const amount: ModuleFeeAmount = {
+        asset: collectFee.token,
+        value: collectFee.price?.toString()
+    }
+
+    const baseModule = {
+        amount,
+        recipient: address,
+        referralFee: collectFee.referralFee ?? 0,
+        followerOnly: collectFee.followerOnly
+    };
+
+    let collectModule: PaidCollectModule;
+
+    if (collectFee.limit && collectFee.timed) {
+        collectModule = {
+            ...baseModule,
+            collectLimit: collectFee.limit.toString(),
+            type: CollectModules.LimitedTimedFeeCollectModule,
+            __typename: "LimitedTimedFeeCollectModuleSettings"
+        } as LimitedTimedFeeCollectModuleSettings;
+    } else if (collectFee.limit) {
+        collectModule = {
+            ...baseModule,
+            collectLimit: collectFee.limit.toString(),
+            type: CollectModules.LimitedFeeCollectModule,
+            __typename: "LimitedFeeCollectModuleSettings"
+        } as LimitedFeeCollectModuleSettings;
+    } else if (collectFee.timed) {
+        collectModule = {
+            ...baseModule,
+            type: CollectModules.TimedFeeCollectModule,
+            __typename: "TimedFeeCollectModuleSettings"
+        } as TimedFeeCollectModuleSettings;
+    } else {
+        collectModule = {
+            ...baseModule,
+            type: CollectModules.FeeCollectModule,
+            __typename: "FeeCollectModuleSettings"
+        } as FeeCollectModuleSettings;
+    }
+
+    return collectModule;
 }

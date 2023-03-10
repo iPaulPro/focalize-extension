@@ -5,16 +5,16 @@ import {readable} from "svelte/store";
 import type {CollectFee} from './state-store';
 import type {PublicationMetadataMediaInput} from '../../graph/lens-service';
 
-export interface PostDraft {
+export type PostDraft = {
     id?: string,
     title?: string,
     content?: string,
     description?: string,
-    attachment?: PublicationMetadataMediaInput,
+    attachments?: PublicationMetadataMediaInput[],
     author?: string,
     collectFee?: CollectFee,
     timestamp?: number,
-}
+};
 
 const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
     const storage = await chrome.storage.local.get('postDrafts');
