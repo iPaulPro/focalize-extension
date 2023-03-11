@@ -62,19 +62,19 @@ export const generateTextPostMetadata = (
 
 export const generateImagePostMetadata = (
     handle: string,
-    media: PublicationMetadataMediaInput,
+    media: PublicationMetadataMediaInput[],
     title?: string,
     content?: string,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
-    image: string = media.item,
-    imageMimeType: string = media.type,
+    image: string = media[0].item,
+    imageMimeType: string = media[0].type,
     attributes: MetadataAttributeInput[] = [],
 ): PublicationMetadataV2Input => (
     {
         name: title || `Post by @${handle}`,
-        media: [media],
+        media,
         image,
         imageMimeType,
         content,
@@ -99,7 +99,7 @@ export const createVideoAttributes = (): MetadataAttributeInput[] => {
 
 export const generateVideoPostMetadata = (
     handle: string,
-    media: PublicationMetadataMediaInput,
+    media: PublicationMetadataMediaInput[],
     title?: string,
     image?: string,
     imageMimeType?: string,
@@ -108,11 +108,11 @@ export const generateVideoPostMetadata = (
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
-    animationUrl: string = media.item,
+    animationUrl: string = media[0].item,
 ): PublicationMetadataV2Input => (
     {
         name: title || `Post by @${handle}`,
-        media: [media],
+        media,
         image,
         imageMimeType,
         animation_url: animationUrl,
@@ -143,7 +143,7 @@ export const createAudioAttributes = (author: string): MetadataAttributeInput[] 
 
 export const generateAudioPostMetadata = (
     handle: string,
-    media: PublicationMetadataMediaInput,
+    media: PublicationMetadataMediaInput[],
     title?: string,
     image?: string,
     imageMimeType?: string,
@@ -152,12 +152,12 @@ export const generateAudioPostMetadata = (
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
-    animationUrl: string = media.item,
+    animationUrl: string = media[0].item,
 ): PublicationMetadataV2Input => {
     const artistAttr = attributes?.find(attr => attr.traitType === 'author');
     return {
         name: artistAttr ? `${artistAttr.value} - ${title}` : title,
-        media: [media],
+        media,
         image,
         imageMimeType,
         animation_url: animationUrl,

@@ -6,7 +6,7 @@
 
     import {uploadAndPin, unpin, getCidFromIpfsUrl} from "../../lib/ipfs-service";
     import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
-    import {attachment, author, cover, description, file, title} from "../../lib/store/state-store";
+    import {attachments, author, cover, description, file, title} from "../../lib/store/state-store";
 
     import * as id3 from "id3js";
     import type {Web3File} from "web3.storage";
@@ -19,9 +19,9 @@
 
     const IPFS_GATEWAY = import.meta.env.VITE_INFURA_GATEWAY_URL;
 
-    $: attachmentCid = $attachment?.item.startsWith('ipfs://') ? getCidFromIpfsUrl($attachment.item) : undefined;
-    $: attachmentPath = attachmentCid ? `${IPFS_GATEWAY}${attachmentCid}` : $attachment?.item;
-    $: attachmentType = $attachment?.type;
+    $: attachmentCid = $attachments?.[0]?.item.startsWith('ipfs://') ? getCidFromIpfsUrl($attachments[0].item) : undefined;
+    $: attachmentPath = attachmentCid ? `${IPFS_GATEWAY}${attachmentCid}` : $attachments?.[0]?.item;
+    $: attachmentType = $attachments?.[0]?.type;
 
     $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : undefined;
     $: coverType = $cover?.type;
@@ -82,7 +82,7 @@
                 cover.set(null);
                 coverLoading = false;
             } else {
-                $attachment = null;
+                $attachments = null;
                 loading = false;
             }
 
@@ -101,12 +101,16 @@
             return;
         }
 
-        $attachment = {
+        if (!$attachments) {
+            $attachments = [];
+        }
+
+        $attachments[0] = {
             item: 'ipfs://' + fileToUpload.cid,
             type: fileToUpload.type,
         };
 
-        console.log('upload: created attachment', $attachment);
+        console.log('upload: created attachment', $attachments);
 
         if (fileToUpload.type.startsWith('audio/')) {
             try {
@@ -148,8 +152,8 @@
     };
 
     const deleteAttachment = async (notify: boolean = false) => {
-        if ($attachment?.item?.startsWith('ipfs://')) {
-            const cid = getCidFromIpfsUrl($attachment?.item);
+        if ($attachments?.[0]?.item?.startsWith('ipfs://')) {
+            const cid = getCidFromIpfsUrl($attachments?.[0]?.item);
             if (cid) {
                 try {
                     await unpin(cid);
@@ -159,7 +163,7 @@
             }
         }
 
-        $attachment = null;
+        $attachments = null;
         loading = false;
 
         if (notify) dispatch('attachmentRemoved');

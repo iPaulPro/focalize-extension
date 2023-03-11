@@ -3,7 +3,7 @@
     import {GiphyFetch} from "@giphy/js-fetch-api";
     import {renderGrid} from "@giphy/js-components";
     import type {IGif} from "@giphy/js-types";
-    import {attachment} from "../../lib/store/state-store";
+    import {attachments} from "../../lib/store/state-store";
     import {createEventDispatcher} from "svelte";
 
     export let searchQuery: string;
@@ -17,7 +17,11 @@
 
         const onClick = (gif: IGif) => {
             console.log('GiphyGrid: on gif click', gif);
-            $attachment = {
+            if (!$attachments) {
+                $attachments = [];
+            }
+
+            $attachments[0] = {
                 item: gif.images.original.url,
                 type: 'image/gif',
                 altTag: gif.title

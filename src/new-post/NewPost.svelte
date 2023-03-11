@@ -24,7 +24,7 @@
     import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
-        author, collectFee, content, cover, description, file, attachment, draftId, title, publicationState,
+        author, collectFee, content, cover, description, file, attachments, draftId, title, publicationState,
         clearPostState, loadFromDraft,
     } from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
@@ -62,7 +62,6 @@
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import ConfirmAttachmentRemovalDialog from "./components/ConfirmAttachmentRemovalDialog.svelte";
     import {getCurrentUser} from "../lib/user";
     import {getDraft, postDrafts, saveDraft} from "../lib/store/draft-store";
     import type {PostDraft} from "../lib/store/draft-store";
@@ -95,7 +94,6 @@
     let showFeeCollectDialog = false;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
-    let removeAttachmentDialog: HTMLDialogElement;
     let postDraftsDialog: HTMLDialogElement;
     let isPopupWindow = false;
     let contentDiv: HTMLElement;
@@ -107,7 +105,7 @@
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
 
-    $: isMediaPostType = $attachment !== null && $attachment !== undefined;
+    $: isMediaPostType = $attachments && $attachments.length > 0;
 
     const parseSearchParams = () => {
         const queryString = window.location.search;
@@ -201,19 +199,19 @@
         }
 
         if ($cover) {
-            $attachment.cover = `ipfs://${$cover.cid}`
+            $attachments[0].cover = `ipfs://${$cover.cid}`
         }
 
         const tags = getTags().length === 0 ? null : getTags();
         let attributes: MetadataAttributeInput[] = [];
 
-        mainFocus = getMainFocusFromMimeType($attachment.type);
+        mainFocus = getMainFocusFromMimeType($attachments[0].type);
 
         switch (mainFocus) {
             case PublicationMainFocus.Image:
                 return generateImagePostMetadata(
                     $currentUser.handle,
-                    $attachment,
+                    $attachments,
                     $title,
                     $content,
                     tags,
@@ -224,7 +222,7 @@
                 attributes = createVideoAttributes();
                 return generateVideoPostMetadata(
                     $currentUser.handle,
-                    $attachment,
+                    $attachments,
                     $title,
                     $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
                     $cover?.type,
@@ -238,7 +236,7 @@
                 if ($author) attributes = createAudioAttributes($author);
                 return generateAudioPostMetadata(
                     $currentUser.handle,
-                    $attachment,
+                    $attachments,
                     $title,
                     $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
                     $cover?.type,
@@ -351,7 +349,7 @@
         setAttachment(file);
     };
 
-    $: submitEnabled = !isSubmittingPost && ($content?.length > 0 || $attachment);
+    $: submitEnabled = !isSubmittingPost && ($content?.length > 0 || isMediaPostType);
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
@@ -419,13 +417,13 @@
     $: $compactMode, updateWindowHeight().catch();
 
     $: {
-        if ($title || $content || $description || $attachment || $author) {
+        if ($title || $content || $description || $attachments || $author) {
             const draft: PostDraft = {
                 id: $draftId,
                 title: $title,
                 content: $content,
                 description: $description,
-                attachments: $attachment ? [$attachment] : undefined,
+                attachments: $attachments,
                 author: $author,
                 collectFee: $collectFee
             };
@@ -518,15 +516,14 @@
                            on:fileSelected={(e) => setAttachment(e.detail)}
                            on:selectGif={(e) => showGifSelectionDialog()} />
 
-          {#if $attachment || $file}
+          {#if isMediaPostType || $file}
             <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
                            on:attachmentLoaded={updateWindowHeight} on:attachmentRemoved={updateWindowHeight} />
           {/if}
 
-          <div class="flex flex-wrap gap-4
+          <div class="flex flex-wrap gap-4 ml-[4.5rem]
                {isCompact ? 'pt-2' : 'pt-3'}
-               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}
-               {$attachment ? 'ml-0 justify-center' : 'ml-[4.5rem]'}">
+               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-48}
@@ -747,11 +744,6 @@
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
-</dialog>
-
-<dialog id="removeAttachmentDialog" bind:this={removeAttachmentDialog}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <ConfirmAttachmentRemovalDialog on:close={removeAttachmentDialog?.close()} />
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}

@@ -58,7 +58,7 @@ export const file: any | Writable<Web3File> = writable();
 /**
  * The main post attachment. Can represent an image, audio, or video file.
  */
-export const attachment: any | Writable<PublicationMetadataMediaInput> = writable();
+export const attachments: any | Writable<PublicationMetadataMediaInput[]> = writable();
 
 /**
  * The cover image for audio and video attachments
@@ -88,7 +88,7 @@ export const clearPostState = () => {
     title.set(null);
     content.set(null);
     description.set(null);
-    attachment.set(null);
+    attachments.set(null);
     cover.set(null);
     author.set(null);
     collectFee.set(null)
@@ -100,7 +100,7 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     title.set(postDraft.title);
     content.set(postDraft.content);
     description.set(postDraft.description);
-    attachment.set(postDraft.attachments?.[0]);
+    attachments.set(postDraft.attachments);
     author.set(postDraft.author);
     collectFee.set(postDraft.collectFee);
 }
