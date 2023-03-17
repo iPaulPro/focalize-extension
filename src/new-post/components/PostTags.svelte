@@ -40,7 +40,6 @@
     });
 
     const onKeyPress = (e) => {
-        console.log('onKeyPress', e);
         if (e.code === 'Enter') {
             addTag();
         }

@@ -341,4 +341,9 @@
   .dark .medium-editor-element a {
     color: rgba(255, 179, 142, 1);
   }
+
+  .medium-editor-element blockquote {
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.5rem; /* 28px */
+  }
 </style>

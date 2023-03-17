@@ -1,8 +1,7 @@
 import {DateTime} from 'luxon';
-import {BigNumber, utils} from 'ethers';
 
 import {getOrRefreshAccessToken} from './lib/lens-auth';
-import {pollUntilIndexed} from './lib/has-transaction-been-indexed';
+import {pollForPublicationId} from './lib/has-transaction-been-indexed';
 
 import gqlClient from "./graph/graphql-client";
 import {SearchRequestTypes} from "./graph/lens-service";
@@ -11,6 +10,7 @@ import type {PublicationMetadataV2Input, Profile, Notification,} from "./graph/l
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
 import {getNodeUrlForPublication} from "./lib/utils";
+import type {PublicationState} from "./lib/store/state-store";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -174,27 +174,6 @@ const shareUrl = async (tags: any) => {
     }).catch(console.error);
 }
 
-const pollForPublicationId = async (txHash: string) => {
-    console.log('pollForPublicationId: txHash=', txHash);
-
-    const indexedResult = await pollUntilIndexed(txHash);
-
-    const logs = indexedResult?.txReceipt?.logs;
-    const topicId = utils.id(
-        'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
-    );
-
-    const log = logs?.find((l: any) => l.topics[0] === topicId);
-    if (!log) {
-        throw new Error('getPublicationId: Error while finding log');
-    }
-
-    const profileCreatedEventLog = log.topics;
-
-    const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
-    return BigNumber.from(publicationId).toHexString();
-};
-
 const notifyOfPublishedPost = async (metadata: PublicationMetadataV2Input, publicationId: string) => {
     const localStorage = await chrome.storage.local.get('currentUser');
     const currentUser: User = localStorage.currentUser;
@@ -234,7 +213,16 @@ chrome.runtime.onMessage.addListener(
         }
 
         if (req.getPublicationId) {
-            pollForPublicationId(req.getPublicationId.txHash)
+            let port: chrome.runtime.Port;
+            if (sender.tab?.id) {
+                port = chrome.tabs.connect(sender.tab.id, {name: 'getPublicationId'});
+            }
+            const onPublicationStateChange = (state: PublicationState) => {
+                if (!port) return;
+                port.postMessage({state})
+            }
+
+            pollForPublicationId(req.getPublicationId.txHash, onPublicationStateChange)
                 .then(publicationId => {
                     res({publicationId});
                     return notifyOfPublishedPost(req.getPublicationId.metadata.mainContentFocus, publicationId);

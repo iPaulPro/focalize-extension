@@ -13,6 +13,23 @@ export interface CollectFee {
     timed?: boolean;
 }
 
+export enum PublicationState {
+    /**
+     * Transaction submitted
+     */
+    SUBMITTED = 'SUBMITTED',
+
+    /**
+     * Transaction successful
+     */
+    SUCCESS = 'SUCCESS',
+
+    /**
+     * Index pending
+     */
+    PENDING = 'PENDING',
+}
+
 /**
  * The post unique id, used for drafts
  */
@@ -57,6 +74,11 @@ export const author: any | Writable<string> = writable();
  * The collect module settings when set to one of the fee types
  */
 export const collectFee: any | Writable<CollectFee> = writable();
+
+/**
+ * Used for optimistic display while waiting to be indexed
+ */
+export const publicationState: Writable<PublicationState> = writable();
 
 /**
  * Clears all post-related stores

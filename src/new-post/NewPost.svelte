@@ -24,7 +24,7 @@
     import {getNodeUrlForPublication} from '../lib/utils';
 
     import {
-        author, collectFee, content, cover, description, file, attachment, draftId, title,
+        author, collectFee, content, cover, description, file, attachment, draftId, title, publicationState,
         clearPostState, loadFromDraft,
     } from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
@@ -69,9 +69,9 @@
 
     import { Subject } from 'rxjs';
     import { debounceTime } from 'rxjs/operators';
-    import {DateTime} from "luxon";
     import PostDraftsList from "../components/PostDraftsList.svelte";
     import AutoRelativeTimeView from "../components/AutoRelativeTimeView.svelte";
+    import PostPreview from "./components/PostPreview.svelte";
 
     /**
      * Bound to the tag component
@@ -101,7 +101,8 @@
     let contentDiv: HTMLElement;
 
     const draftSubject: Subject<PostDraft> = new Subject();
-    let postDraft: PostDraft | undefined;
+    let postDraft: PostDraft;
+    let postMetaData: PublicationMetadataV2Input;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
@@ -265,13 +266,13 @@
         }
 
         try {
-            const metadata = buildMetadata();
-            metadata.locale = locale.value ?? navigator.languages[0];
+            postMetaData = buildMetadata();
+            postMetaData.locale = locale.value ?? navigator.languages[0];
 
             const publicationId = await submitPost(
                 $currentUser,
                 $draftId,
-                metadata,
+                postMetaData,
                 referenceModuleParams,
                 collectModuleParams,
                 $useDispatcher,
@@ -500,29 +501,9 @@
       on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
       on:dragleave|preventDefault|stopPropagation={() => isFileDragged = false}>
 
-  {#if postId}
+  {#if (postMetaData && $publicationState) || postId}
 
-    <div class="w-full h-screen flex flex-col justify-center items-center dark:bg-gray-900">
-
-      <svg xmlns="http://www.w3.org/2000/svg" class="text-green-600" width="72" height="72" viewBox="0 0 24 24"
-           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-
-      <div class="text-2xl mt-4 dark:text-gray-100">Post created!</div>
-
-      <button type="button" on:click={onViewPostClick}
-              class="mt-4 w-auto py-2.5 px-12 flex justify-center items-center
-              bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 disabled:bg-neutral-400
-              rounded-lg shadow-md
-              text-white text-center text-lg font-semibold
-              focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-              transition ease-in duration-200">
-        View Post
-      </button>
-
-    </div>
+    <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId} />
 
   {:else}
 

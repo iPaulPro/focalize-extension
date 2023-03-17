@@ -98,7 +98,8 @@ export const getCidFromIpfsUrl = (ipfsUrl: string): string => {
 export const ipfsUrlToGatewayUrl = (
     ipfsUrl: string,
     gatewayDomain: string = 'https://ipfs.io/ipfs/'
-): string => {
+): string | undefined => {
+    if (!ipfsUrl || ipfsUrl.length === 0 || !ipfsUrl.startsWith('ipfs://')) return ipfsUrl;
     const cid = getCidFromIpfsUrl(ipfsUrl);
     const gatewayUrl = gatewayDomain + cid;
     const path = ipfsUrl.split(cid)[1];

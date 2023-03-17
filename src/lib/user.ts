@@ -10,6 +10,7 @@ export type User = {
     address: string,
     profileId: string,
     handle: string,
+    name: string | undefined | null,
     avatarUrl: string | undefined,
     canUseRelay: boolean
 };
@@ -28,6 +29,7 @@ export const userFromProfile = (profile: Profile): User => {
         address: profile.ownedBy,
         profileId: profile.id,
         handle: profile.handle,
+        name: profile.name,
         avatarUrl,
         canUseRelay: profile.dispatcher?.canUseRelay ?? false
     }

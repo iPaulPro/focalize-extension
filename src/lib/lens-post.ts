@@ -1,20 +1,14 @@
 import {v4 as uuid} from "uuid";
 import Autolinker, {UrlMatch} from "autolinker";
+import {DateTime} from "luxon";
 
 import {APP_ID} from "../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
-import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes} from "../graph/lens-service";
-import {getOrRefreshAccessToken} from "./lens-auth";
-import {uploadAndPin} from "./ipfs-service";
-import {getLensHub} from "../lens-hub";
-import {signTypedData} from "./ethers-service";
-
-import gqlClient from "../graph/graphql-client";
-
 import type {
     BroadcastRequest,
-    CollectModuleParams, CreatePostBroadcastItemResult,
+    CollectModuleParams,
+    CreatePostBroadcastItemResult,
     CreatePublicPostRequest,
     MetadataAttributeInput,
     PublicationMetadataMediaInput,
@@ -23,9 +17,16 @@ import type {
     RelayerResult,
     ValidatePublicationMetadataRequest
 } from "../graph/lens-service";
-import type {User} from "./user";
+import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes,} from "../graph/lens-service";
+import {getOrRefreshAccessToken} from "./lens-auth";
+import {uploadAndPin} from "./ipfs-service";
+import {getLensHub} from "../lens-hub";
+import {signTypedData} from "./ethers-service";
 import {deleteDraft} from "./store/draft-store";
-import {DateTime} from "luxon";
+
+import gqlClient from "../graph/graphql-client";
+import type {User} from "./user";
+import {PublicationState, publicationState} from "./store/state-store";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uuid()): File => {
     const obj = {
@@ -278,6 +279,9 @@ export const submitPost = async (
         collectModule.multirecipientFeeCollectModule.endTimestamp = DateTime.utc().plus({days:1}).toISO();
     }
 
+    // At this point we know the metadata is valid and available on IPFS, so show optimistic completion
+    publicationState.set(PublicationState.SUBMITTED);
+
     let txHash: string | undefined;
 
     if (useDispatcher && user.canUseRelay) {
@@ -296,6 +300,8 @@ export const submitPost = async (
         txHash = await createPostTransaction(profileId, contentURI, accessToken, useRelay, collectModule, referenceModule);
     }
 
+    publicationState.set(PublicationState.SUCCESS);
+
     const res = await chrome.runtime.sendMessage({getPublicationId: {txHash, metadata}});
     if (res.error) throw res.error;
 
@@ -305,6 +311,20 @@ export const submitPost = async (
 
     return res.publicationId;
 };
+
+/**
+ * Listen for publication state updates from background.ts
+ */
+chrome.runtime.onConnect.addListener(port => {
+    console.log('chrome.runtime.onConnect: port', port);
+    if (port.name !== 'getPublicationId') return;
+
+    port.onMessage.addListener(msg => {
+        const state: PublicationState = msg.state;
+        console.log('port.onMessage: state', state);
+        publicationState.set(state);
+    });
+});
 
 export const getUrlsFromText = (content: string): string[] => {
     const matches = Autolinker.parse(content, {

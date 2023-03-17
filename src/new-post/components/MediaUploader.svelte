@@ -23,7 +23,7 @@
     $: attachmentPath = attachmentCid ? `${IPFS_GATEWAY}${attachmentCid}` : $attachment?.item;
     $: attachmentType = $attachment?.type;
 
-    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : $attachment?.item;
+    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : undefined;
     $: coverType = $cover?.type;
 
     $: isAttachmentImage = attachmentType?.startsWith('image/');
@@ -238,9 +238,9 @@
 
         {:else}
 
-          <div class="w-full flex {isCollectable ? 'flex-col' : 'flex-row'} items-center">
+          <div class="w-full flex {isCollectable ? 'flex-col' : 'flex-row gap-4'} items-center">
 
-            <div class="{isCollectable ? 'w-full' : 'w-1/2'} mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'}
+            <div class="{isCollectable ? 'w-full' : 'w-2/5'} mb-4 rounded-xl {isAttachmentVideo ? 'p-0' : 'p-1'}
                  {isFileDragged ? 'bg-orange-50 dark:bg-gray-800' : 'bg-none'}"
                  on:drop|preventDefault|stopPropagation={onCoverFileDropped}
                  on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
@@ -249,9 +249,10 @@
 
               {#if coverPath}
 
-                <div class="w-full relative bg-gray-200 rounded-xl {isAttachmentVideo ? 'aspect-video' : ''}">
+                <div class="w-full relative bg-gray-200 rounded-xl flex justify-center items-center
+                     {isAttachmentVideo ? 'aspect-video' : ''}">
                   <img src={coverPath} alt="Cover" crossorigin
-                       class="max-w-full max-h-full w-auto h-auto mx-auto rounded-xl
+                       class="w-full h-full bg-cover rounded-xl
                              {isFileDragged ? 'border border-orange-500' : 'border-none'}"
                        on:load={() => coverLoading = false}>
 
@@ -282,7 +283,7 @@
                        bind:this={coverInput}/>
 
                 <button type="button" class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} w-full flex flex-col
-                        items-center justify-center border border-gray-300 dark:border-gray-500 text-gray-300
+                        flex-shrink-0 items-center justify-center border border-gray-300 dark:border-gray-500 text-gray-300
                         dark:text-gray-300 rounded-xl cursor-pointer hover:bg-orange-50"
                         on:click={()=>{coverInput.click();}} disabled={coverLoading}>
 
@@ -308,7 +309,7 @@
                      preload="metadata" controls controlslist="nodownload"></audio>
             {:else if isAttachmentVideo}
               <!-- svelte-ignore a11y-media-has-caption -->
-              <video src={attachmentPath} type={attachmentType} class="rounded-xl" crossorigin
+              <video src={attachmentPath} type={attachmentType} class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'}" crossorigin
                      on:load={() => loading = false}
                      preload="metadata" controls controlslist="nodownload"></video>
             {/if}
