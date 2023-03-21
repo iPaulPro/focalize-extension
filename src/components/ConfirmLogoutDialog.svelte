@@ -27,7 +27,7 @@
     </div>
 
     <form method="dialog">
-      <button>
+      <button class="p-2 hover:bg-gray-300 focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -43,7 +43,7 @@
   <div class="flex justify-end">
     <button type="button" on:click={onConfirm}
             class="mt-4 py-2 px-12 flex justify-center items-center rounded-xl w-fit
-          bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
+          bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
           disabled:bg-neutral-400 dark:disabled:bg-gray-600
           focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
           text-white text-center text-lg dark:disabled:text-gray-400

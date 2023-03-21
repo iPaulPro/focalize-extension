@@ -25,6 +25,8 @@ export const useRelay: Writable<boolean> = chromeStorageSync('useRelay', true);
 
 export const welcomeShown: Writable<boolean> = chromeStorageSync('welcomeShown', false);
 
+export const pinPromptShown: Writable<boolean> = chromeStorageSync('pinPromptShown', false);
+
 export const releaseDismissed: Writable<string> = chromeStorageSync('releaseDismissed');
 
 export const nodePost: Writable<LensNode> = chromeStorageSync('nodePost', defaultNode);

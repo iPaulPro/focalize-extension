@@ -156,7 +156,8 @@
       Sell as an NFT
     </h1>
     <form method="dialog">
-      <button class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+      <button class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none
+              focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -368,8 +369,8 @@
               disabled={!$collectFee.price || priceError || referralError || limitError}
               class="w-auto py-1.5 px-8 flex justify-center items-center
               bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
-              dark:bg-orange-700 dark:hover:bg-orange-800 dark:disabled:bg-gray-600
-              rounded-lg shadow-md
+              dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600
+              rounded-full shadow-md
               focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
               text-white text-center text-lg font-semibold dark:disabled:text-gray-400
               transition ease-in duration-200 ">

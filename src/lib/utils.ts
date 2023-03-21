@@ -37,3 +37,8 @@ export const getNodeUrlForPublication = async (postType: PublicationMainFocus, p
 
     return node.baseUrl + node.posts.replace('{$id}', id);
 }
+
+export const isOnToolbar = async (): Promise<boolean> => {
+    const settings = await chrome.action.getUserSettings();
+    return settings.isOnToolbar;
+}

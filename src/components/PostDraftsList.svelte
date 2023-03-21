@@ -5,10 +5,8 @@
     import AutoRelativeTimeView from "./AutoRelativeTimeView.svelte";
 
     import type {PostDraft} from "../lib/store/draft-store";
-    import {loadFromDraft} from "../lib/store/state-store";
     import {draftId} from "../lib/store/state-store.js";
     import PostDraftMenu from "./PostDraftMenu.svelte";
-    import {darkMode} from "../lib/store/preferences-store.js";
 
     let closeButton: HTMLButtonElement;
 
@@ -27,7 +25,8 @@
       Post drafts
     </h1>
     <form method="dialog">
-      <button bind:this={closeButton} class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+      <button bind:this={closeButton} class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none
+              focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
              class="w-6 h-6 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-none">

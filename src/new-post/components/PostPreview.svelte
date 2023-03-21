@@ -63,7 +63,7 @@
           {#if postId}
             <button type="button" on:click={onViewPostClick}
                     class="mr-4 py-1.5 px-6 flex justify-center items-center rounded-lg
-                    bg-orange-600 hover:bg-orange-800 dark:bg-orange-700 dark:hover:bg-orange-800
+                    bg-orange-600 hover:bg-orange-800 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center text-sm dark:disabled:text-gray-400 font-medium

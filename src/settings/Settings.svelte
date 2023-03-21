@@ -4,22 +4,27 @@
 
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {authenticateUser} from "../lib/lens-auth";
+    import {authenticateUser, logOut} from "../lib/lens-auth";
     import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
     import {currentUser} from "../lib/store/user-store";
     import {ensureCorrectChain} from "../lib/ethers-service";
-    import {welcomeShown} from "../lib/store/preferences-store";
+    import {pinPromptShown, welcomeShown} from "../lib/store/preferences-store";
 
     import InlineSVG from 'svelte-inline-svg';
 
-    import {onMount} from "svelte";
+    import {onMount, tick} from "svelte";
     import Welcome from './components/Welcome.svelte'
     import Preferences from "./components/Preferences.svelte";
+    import PinPromptDialog from "./components/PinPromptDialog.svelte";
+    import {isOnToolbar} from "../lib/utils";
 
     let loading = true;
     let noProfileDialog: HTMLDialogElement;
 
-    const onUserError = (userError: UserError) => {
+    let pinPromptDialog: HTMLDialogElement;
+    let showPinPromptDialog = false;
+
+    const onUserError = async (userError: UserError) => {
         switch (userError) {
             case UserError.WALLET_NOT_CONNECTED:
                 // TODO show connect wallet button
@@ -32,6 +37,8 @@
                 // TODO show unrecoverable error
                 break;
         }
+
+        await logOut()
     };
 
     const ensureUser = async () => {
@@ -40,7 +47,7 @@
         const {user, error} = await getCurrentUser()
 
         if (error !== undefined) {
-            onUserError(error);
+            await onUserError(error);
             return;
         }
 
@@ -65,11 +72,22 @@
         }
 
         if ($currentUser) {
+            await showPinPromptIfNecessary();
+
             try {
                 await chrome.runtime.sendMessage({setAlarm: true});
             } catch (e) {
                 console.error('Error setting alarm', e)
             }
+        }
+    };
+
+    const showPinPromptIfNecessary = async () => {
+        const onToolbar = await isOnToolbar();
+        if ($currentUser && !onToolbar && !$pinPromptShown) {
+            showPinPromptDialog = true;
+            await tick();
+            pinPromptDialog?.showModal();
         }
     };
 
@@ -79,6 +97,8 @@
         } finally {
             loading = false;
         }
+
+        await showPinPromptIfNecessary();
     });
 </script>
 
@@ -130,14 +150,22 @@
 
 {/if}
 
-<Toaster />
-
-<dialog bind:this={noProfileDialog}
+<dialog id="noProfileDialog" bind:this={noProfileDialog} on:click={(event) => {if (event.target.id === 'noProfileDialog') noProfileDialog?.close()}}
         class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
   <div>
     A Lens profile is required for using Focalize.
   </div>
 </dialog>
+
+{#if showPinPromptDialog}
+  <dialog id="pinPromptDialog" bind:this={pinPromptDialog} on:close={() => showPinPromptDialog = false}
+          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200
+        dark:bg-gray-700 dark:border-gray-600">
+    <PinPromptDialog/>
+  </dialog>
+{/if}
+
+<Toaster />
 
 <style global>
   /* :not(:required) hides this rule from IE9 and below */

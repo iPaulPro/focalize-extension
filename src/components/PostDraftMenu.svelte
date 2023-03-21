@@ -16,7 +16,7 @@
 
 <div class="flex flex-col divider">
 
-  <button type="button" class="h-10 px-4 flex items-center hover:bg-gray-200 dark:hover:bg-gray-500 rounded"
+  <button type="button" class="h-10 px-4 flex items-center hover:bg-gray-500 rounded"
           on:click={onDeleteClick}>
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-4 inline"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

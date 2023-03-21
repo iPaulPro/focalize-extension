@@ -6,20 +6,21 @@
     import welcomeImage from '../../assets/quill.webp';
     import {link} from 'svelte-spa-router'
 
-    import {darkMode} from '../../lib/store/preferences-store';
     import {logOut, isValidSession} from "../../lib/lens-auth";
-    import {onMount} from "svelte";
+    import {onMount, tick} from "svelte";
 
     onMount(async () => {
         // Ensure the session is valid
         const validSession = await isValidSession();
         if (!validSession) {
             await logOut();
+            return;
         }
     });
+
 </script>
 
-<div class="flex flex-col w-full h-full dark:bg-gray-900 bg-neutral-50">
+<div class="flex flex-col w-full h-full min-h-screen dark:bg-gray-900 bg-neutral-50">
 
   <Toolbar/>
 
@@ -103,7 +104,7 @@
 
           <a href="/post" use:link
              class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center rounded-full
-                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-700 dark:hover:bg-orange-800
+                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center text-lg font-medium shadow-md
                     transition ease-in duration-200">
