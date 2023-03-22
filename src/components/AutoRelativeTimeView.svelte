@@ -4,9 +4,9 @@
 
     export let timestamp: number;
     export let relative: boolean = true;
-    export let className: string;
-    export let prefix: string;
-    export let capitalize: string;
+    export let className: string = '';
+    export let prefix: string = undefined;
+    export let capitalize: string = false;
 
     let formattedTime: string;
     let intervalID: number;

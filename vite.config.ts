@@ -1,8 +1,8 @@
 import {defineConfig} from 'vite'
 import {svelte} from '@sveltejs/vite-plugin-svelte'
 import {crx} from '@crxjs/vite-plugin'
-import nodePolyfills from "rollup-plugin-node-polyfills";
 import manifest from './manifest.config'
+import nodePolyfills from 'vite-plugin-node-stdlib-browser'
 
 export default defineConfig({
     build: {
@@ -10,23 +10,14 @@ export default defineConfig({
             input: {
                 main: 'src/index.html'
             },
-            plugins: [
-                nodePolyfills()
-            ]
         },
         commonjsOptions: {
             transformMixedEsModules: true
         },
     },
     plugins: [
+        nodePolyfills(),
         svelte(),
         crx({manifest})
     ],
-    resolve: {
-        alias: {
-            process: "process/browser",
-            stream: "stream-browserify",
-            util: "util/",
-        }
-    },
 })
