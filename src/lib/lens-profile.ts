@@ -60,7 +60,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     console.log('setDispatcher: broadcast result', broadcast);
 
     if (broadcast.__typename === 'RelayError') {
-        console.error('setDispatcher: post with broadcast failed', broadcast.reason);
+        console.error('setDispatcher: relay broadcast failed', broadcast.reason);
 
         const {v, r, s} = splitSignature(signature);
 

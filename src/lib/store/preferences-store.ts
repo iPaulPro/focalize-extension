@@ -50,3 +50,15 @@ export const notificationsRefreshInterval: Writable<RefreshInterval> = chromeSto
 export const notificationsTimestamp: Writable<string> = chromeStorageSync('notificationsTimestamp');
 
 export const notificationsGrouped: Writable<boolean> = chromeStorageSync('notificationsGrouped', false);
+
+export const notificationsForFollows: Writable<boolean> = chromeStorageSync('notificationsForFollows', true);
+
+export const notificationsForMirrors: Writable<boolean> = chromeStorageSync('notificationsForMirrors', true);
+
+export const notificationsForCollects: Writable<boolean> = chromeStorageSync('notificationsForCollects', true);
+
+export const notificationsForComments: Writable<boolean> = chromeStorageSync('notificationsForComments', true);
+
+export const notificationsForMentions: Writable<boolean> = chromeStorageSync('notificationsForMentions', true);
+
+export const notificationsForReactions: Writable<boolean> = chromeStorageSync('notificationsForReactions', true);

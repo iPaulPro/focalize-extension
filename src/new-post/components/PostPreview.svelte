@@ -3,9 +3,9 @@
     import {DateTime} from "luxon";
 
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {ipfsUrlToGatewayUrl} from "../../lib/ipfs-service.js";
+    import {ipfsUrlToGatewayUrl} from '../../lib/ipfs-service';
     import {htmlFromMarkdown} from "../../lib/utils";
-    import {PublicationState} from "../../lib/store/state-store.js";
+    import {PublicationState} from '../../lib/store/state-store';
     import LoadingSpinner from "./LoadingSpinner.svelte";
 
     import type {PublicationMetadataV2Input} from "../../graph/lens-service";

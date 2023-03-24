@@ -1,6 +1,6 @@
 <script lang="ts">
     import video from '../../assets/pin-extension.mp4';
-    import {pinPromptShown} from "../../lib/store/preferences-store.js";
+    import {pinPromptShown} from '../../lib/store/preferences-store';
     import {interval, Subscription} from 'rxjs';
     import {takeWhile, switchMap} from 'rxjs/operators';
     import {onDestroy, onMount} from "svelte";

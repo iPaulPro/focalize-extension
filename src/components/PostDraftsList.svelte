@@ -5,7 +5,7 @@
     import AutoRelativeTimeView from "./AutoRelativeTimeView.svelte";
 
     import type {PostDraft} from "../lib/store/draft-store";
-    import {draftId} from "../lib/store/state-store.js";
+    import {draftId} from '../lib/store/state-store';
     import PostDraftMenu from "./PostDraftMenu.svelte";
 
     let closeButton: HTMLButtonElement;

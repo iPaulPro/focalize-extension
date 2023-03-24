@@ -4,7 +4,7 @@ import {getOrRefreshAccessToken} from './lib/lens-auth';
 import {pollForPublicationId} from './lib/has-transaction-been-indexed';
 
 import gqlClient from "./graph/graphql-client";
-import {SearchRequestTypes} from "./graph/lens-service";
+import {NotificationTypes, SearchRequestTypes} from "./graph/lens-service";
 
 import type {
     PublicationMetadataV2Input,
@@ -49,11 +49,30 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     }
     if (!accessToken) return undefined;
 
-    const storage = await chrome.storage.local.get('currentUser');
-    if (!storage.currentUser) return undefined;
-    const user: User = storage.currentUser;
+    const localStorage = await chrome.storage.local.get('currentUser');
+    if (!localStorage.currentUser) return undefined;
+    const user: User = localStorage.currentUser;
 
-    const {notifications} = await gqlClient.Notifications({request: {profileId: user.profileId, limit: NOTIFICATIONS_QUERY_LIMIT}})
+    const notificationTypes: NotificationTypes[] = [];
+    const syncStorage = await chrome.storage.sync.get(
+        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions', 'notificationsForComments', 'notificationsForCollects']
+    );
+    if (syncStorage.notificationsForFollows) notificationTypes.push(NotificationTypes.Followed);
+    if (syncStorage.notificationsForReactions) notificationTypes.push(NotificationTypes.ReactionPost, NotificationTypes.ReactionComment);
+    if (syncStorage.notificationsForCollects) notificationTypes.push(NotificationTypes.CollectedPost, NotificationTypes.CollectedComment);
+    if (syncStorage.notificationsForComments) notificationTypes.push(NotificationTypes.CommentedPost, NotificationTypes.CommentedComment);
+    if (syncStorage.notificationsForMentions) notificationTypes.push(NotificationTypes.MentionPost, NotificationTypes.MentionPost);
+    if (syncStorage.notificationsForMirrors) notificationTypes.push(NotificationTypes.MirroredPost, NotificationTypes.MirroredComment);
+
+    if (notificationTypes.length === 0) return undefined;
+
+    const {notifications} = await gqlClient.Notifications({
+        request: {
+            profileId: user.profileId,
+            limit: NOTIFICATIONS_QUERY_LIMIT,
+            notificationTypes
+        }
+    })
 
     if (notifications.items) {
         return notifications.items as Notification[];

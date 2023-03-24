@@ -18,9 +18,9 @@
 
   <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 py-3 md:py-6"></div>
 
-  <section class="w-full flex flex-col py-6 md:py-12">
+  <section class="w-full flex flex-col py-6 md:py-10">
 
-    <div class="flex flex-col md:flex-row md:gap-12">
+    <div class="flex flex-col md:flex-row md:gap-12 pb-4">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
         <div class="flex flex-col pb-6 pr-6">
@@ -77,9 +77,9 @@
 
     </div>
 
-    <div class="w-full  border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
+    <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
 
-    <div class="flex flex-col md:flex-row md:gap-12 py-8">
+    <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
         <div class="flex flex-col pb-6 pr-6">
@@ -157,7 +157,7 @@
 
     <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
 
-    <div class="flex flex-col md:flex-row md:gap-12 py-8">
+    <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
         <div class="flex flex-col pb-6 pr-6">
@@ -175,7 +175,7 @@
 
     <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700"></div>
 
-    <div class="flex flex-col md:flex-row md:gap-12 py-8">
+    <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
         <div class="flex flex-col pb-6 pr-6">
@@ -183,7 +183,7 @@
             Lens Apps
           </div>
           <div class="text-base text-neutral-400">
-            Select the apps to open when viewing your publications.
+            Select the apps to launch when opening notifications and viewing your publications.
           </div>
         </div>
       </div>
