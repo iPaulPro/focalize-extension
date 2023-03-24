@@ -6,11 +6,22 @@ import {pollForPublicationId} from './lib/has-transaction-been-indexed';
 import gqlClient from "./graph/graphql-client";
 import {SearchRequestTypes} from "./graph/lens-service";
 
-import type {PublicationMetadataV2Input, Profile, Notification,} from "./graph/lens-service";
+import type {
+    PublicationMetadataV2Input,
+    Profile,
+    Notification,
+    NewFollowerNotification,
+    NewMirrorNotification,
+    NewMentionNotification,
+    NewCommentNotification,
+    NewReactionNotification,
+    NewCollectNotification,
+} from "./graph/lens-service";
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
-import {getNodeUrlForPublication} from "./lib/utils";
+import {getAvatar, limitString, stripMarkdown} from "./lib/utils";
 import type {PublicationState} from "./lib/store/state-store";
+import {getPublicationUrl, getProfileUrl, getPublicationUrlFromNode} from "./lib/lens-nodes";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -51,6 +62,164 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
     return [];
 }
 
+// clear all chrome notifications
+const clearNotifications = () => {
+    chrome.notifications.getAll(notifications => {
+        Object.keys(notifications).forEach(notificationId => {
+            chrome.notifications.clear(notificationId);
+        })
+    });
+}
+
+const createReactionNotification = (notification: NewReactionNotification, currentUser: User, node: LensNode) => {
+    const reactionProfile = notification.profile;
+    if (!reactionProfile || notification.reaction !== 'UPVOTE') return;
+    const reactionAvatarUrl = getAvatar(reactionProfile);
+    const content = notification.publication.metadata.content;
+    const contentStripped = stripMarkdown(content);
+    const publicationType = notification.notificationId.startsWith('reaction_comment') ? 'comment' : 'post';
+    const notificationId = getPublicationUrlFromNode(node, notification.publication.id);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            title: `@${reactionProfile.handle.replace('.lens', '')} liked your ${publicationType}`,
+            message: limitString(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: reactionAvatarUrl
+        }
+    );
+};
+
+const createMirrorNotification = (notification: NewMirrorNotification, currentUser: User, node: LensNode) => {
+    const mirrorProfile = notification.profile;
+    if (!mirrorProfile) return;
+    const mirrorAvatarUrl = getAvatar(mirrorProfile);
+    const content = notification.publication.metadata.content;
+    const contentStripped = stripMarkdown(content);
+    const notificationId = getPublicationUrlFromNode(node, notification.publication.id);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            title: `@${mirrorProfile.handle.replace('.lens', '')} mirrored your post`,
+            message: limitString(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: mirrorAvatarUrl
+        }
+    );
+};
+
+const createFollowerNotification = (notification: NewFollowerNotification, currentUser: User, node: LensNode) => {
+    const followerProfile = notification.wallet.defaultProfile;
+    if (!followerProfile) return;
+    const followerAvatarUrl = getAvatar(followerProfile);
+    const notificationId = getProfileUrl(node, followerProfile.handle);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            title: `@${followerProfile.handle.replace('.lens', '')} followed you`,
+            message: `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: followerAvatarUrl,
+            buttons: [
+                {
+                    title: 'Follow back',
+                }
+            ]
+        }
+    );
+};
+
+const createMentionNotification = (notification: NewMentionNotification, currentUser: User, node: LensNode) => {
+    const mentionProfile = notification.mentionPublication.profile;
+    if (!mentionProfile) return;
+    const mentionAvatarUrl = getAvatar(mentionProfile);
+    const content = notification.mentionPublication.metadata.content;
+    const contentStripped = stripMarkdown(content);
+    const notificationId = getPublicationUrlFromNode(node, notification.mentionPublication.id);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            requireInteraction: true,
+            title: `@${mentionProfile.handle.replace('.lens', '')} mentioned you`,
+            message: contentStripped ?? notification.mentionPublication.metadata.name ?? `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: mentionAvatarUrl
+        }
+    );
+};
+
+const createCommentNotification = (notification: NewCommentNotification, currentUser: User, node: LensNode) => {
+    const commentProfile = notification.profile;
+    if (!commentProfile) return;
+    const commentAvatarUrl = getAvatar(commentProfile);
+    const content = notification.comment.metadata?.content;
+    const contentStripped = stripMarkdown(content);
+    const notificationId = getPublicationUrlFromNode(node, notification.comment.id);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            requireInteraction: true,
+            title: `@${commentProfile.handle.replace('.lens', '')} commented on your post`,
+            message: contentStripped ?? notification.comment.commentOn?.metadata.name ?? `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: commentAvatarUrl
+        }
+    );
+};
+
+const createCollectNotification = (notification: NewCollectNotification, currentUser: User, node: LensNode) => {
+    const collectProfile = notification.collectedPublication.profile;
+    if (!collectProfile) return;
+    const collectAvatarUrl = getAvatar(collectProfile);
+    const content = notification.collectedPublication.metadata.content;
+    const contentStripped = stripMarkdown(content);
+    const notificationId = getPublicationUrlFromNode(node, notification.collectedPublication.id);
+
+    chrome.notifications.create(
+        notificationId,
+        {
+            type: 'basic',
+            eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+            title: `@${collectProfile.handle.replace('.lens', '')} collected your post`,
+            message: limitString(contentStripped, 25) ?? notification.collectedPublication.metadata.name ?? `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: collectAvatarUrl
+        }
+    );
+};
+
+const createGroupNotification = (newNotifications: Notification[], currentUser: User) => {
+    const lengthStr = newNotifications.length === NOTIFICATIONS_QUERY_LIMIT ? '49+' : `${newNotifications.length}`;
+
+    chrome.notifications.create(
+        NOTIFICATION_ID,
+        {
+            type: 'basic',
+            eventTime: DateTime.now().toMillis(),
+            requireInteraction: true,
+            title: `${lengthStr} new notifications`,
+            message: `@${currentUser.handle}`,
+            contextMessage: 'Focalize',
+            iconUrl: currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`
+        }
+    );
+};
+
 const onAlarmTriggered = async () => {
     console.log(`onAlarmTriggered called`)
 
@@ -62,10 +231,12 @@ const onAlarmTriggered = async () => {
     if (!notifications) return;
     console.log('onAlarmTriggered: notifications', notifications);
 
-    const syncStorage = await chrome.storage.sync.get('notificationsTimestamp');
+    const syncStorage = await chrome.storage.sync.get(
+        ['notificationsTimestamp', 'notificationsGrouped', 'nodeNotifications']
+    );
     const lastUpdateDate = syncStorage.notificationsTimestamp ? DateTime.fromISO(syncStorage.notificationsTimestamp) : null;
 
-    let newNotifications;
+    let newNotifications: Notification[] = [];
     if (lastUpdateDate) {
         newNotifications = notifications.filter(notification =>
             DateTime.fromISO(notification.createdAt) > lastUpdateDate
@@ -73,24 +244,39 @@ const onAlarmTriggered = async () => {
         console.log(`onAlarmTriggered: ${newNotifications.length} notifications since last update at ${lastUpdateDate.toLocaleString(DateTime.TIME_SIMPLE)}`);
     }
 
-    if (!newNotifications || newNotifications.length === 0) {
-        await updateNotificationsTimestamp();
+    await updateNotificationsTimestamp();
+
+    if (newNotifications.length === 0) {
         return;
     }
 
-    const lengthStr = newNotifications.length === NOTIFICATIONS_QUERY_LIMIT ? '49+' : `${newNotifications.length}`;
+    if (syncStorage.notificationsGrouped) {
+        createGroupNotification(newNotifications, currentUser);
+        return;
+    }
 
-    chrome.notifications.create(
-        NOTIFICATION_ID,
-        {
-            type: 'basic',
-            requireInteraction: true,
-            title: `${lengthStr} new notifications`,
-            message: `@${currentUser.handle}`,
-            contextMessage: 'Focalize',
-            iconUrl: currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`
+    for (const notification of newNotifications) {
+        switch (notification.__typename) {
+            case 'NewCollectNotification':
+                createCollectNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
+            case 'NewCommentNotification':
+                createCommentNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
+            case 'NewFollowerNotification':
+                createFollowerNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
+            case 'NewMentionNotification':
+                createMentionNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
+            case 'NewMirrorNotification':
+                createMirrorNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
+            case 'NewReactionNotification':
+                createReactionNotification(notification, currentUser, syncStorage.nodeNotifications);
+                break;
         }
-    );
+    }
 };
 
 const launchNotifications = async () => {
@@ -104,9 +290,7 @@ const updateNotificationsTimestamp = async () => chrome.storage.sync.set({
 });
 
 chrome.notifications.onClicked.addListener(async notificationId => {
-    if (notificationId !== NOTIFICATION_ID) {
-        // If not the notifications notification we know this is a post published on and the id is the url
-        // If more notification types are added we'll probably want to use some type of prefix
+    if (notificationId.startsWith('http')) {
         chrome.notifications.clear(notificationId);
         await chrome.tabs.create({url: notificationId});
         return;
@@ -114,12 +298,6 @@ chrome.notifications.onClicked.addListener(async notificationId => {
 
     chrome.notifications.clear(notificationId);
     await launchNotifications();
-    await updateNotificationsTimestamp();
-});
-
-chrome.notifications.onClosed.addListener(async (notificationId, byUser) => {
-    if (!byUser || notificationId !== NOTIFICATION_ID) return;
-
     await updateNotificationsTimestamp();
 });
 
@@ -180,7 +358,7 @@ const notifyOfPublishedPost = async (metadata: PublicationMetadataV2Input, publi
     if (!currentUser) return;
 
     const postId = `${currentUser.profileId}-${publicationId}`;
-    const url = await getNodeUrlForPublication(metadata.mainContentFocus, postId);
+    const url = await getPublicationUrl(metadata.mainContentFocus, postId);
 
     chrome.notifications.create(
         url,

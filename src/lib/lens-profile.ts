@@ -5,9 +5,7 @@ import {pollUntilIndexed} from "./has-transaction-been-indexed";
 
 import gqlClient from "../graph/graphql-client";
 
-import type {BroadcastRequest, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
-import type {Profile} from "../graph/lens-service";
-import {ipfsUrlToGatewayUrl} from "./ipfs-service";
+import type {BroadcastRequest, Profile, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
 
 /**
  * Gets the default profile of the address supplied.
@@ -92,21 +90,3 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     return txHash;
 }
 
-export const getAvatar = (profile: Profile) => {
-    let avatarUrl: string | undefined;
-    if (profile.picture?.__typename === "MediaSet") {
-        avatarUrl = profile.picture?.original?.url;
-    } else if (profile.picture?.__typename === "NftImage") {
-        avatarUrl = profile.picture.uri;
-    }
-
-    if (avatarUrl?.startsWith('ipfs://')) {
-        avatarUrl = ipfsUrlToGatewayUrl(avatarUrl);
-    }
-
-    if (!avatarUrl || avatarUrl.length === 0) {
-        avatarUrl = `https://cdn.stamp.fyi/avatar/${profile.ownedBy}?s=96`
-    }
-
-    return avatarUrl;
-}

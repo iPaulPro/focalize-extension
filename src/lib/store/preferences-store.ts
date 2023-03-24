@@ -48,3 +48,5 @@ export const notificationsEnabled: Writable<boolean> = chromeStorageSync('notifi
 export const notificationsRefreshInterval: Writable<RefreshInterval> = chromeStorageSync('notificationsRefreshInterval', {value: 15, label: '15 min'});
 
 export const notificationsTimestamp: Writable<string> = chromeStorageSync('notificationsTimestamp');
+
+export const notificationsGrouped: Writable<boolean> = chromeStorageSync('notificationsGrouped', false);

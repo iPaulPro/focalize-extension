@@ -1,38 +1,33 @@
 <script lang="ts">
-    import showdown from "showdown";
     import InlineSVG from "svelte-inline-svg";
     import {DateTime} from "luxon";
 
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {ipfsUrlToGatewayUrl} from "../../lib/ipfs-service.js";
-    import {getNodeForPublicationMainFocus, getNodeUrlForPublication} from "../../lib/utils";
+    import {htmlFromMarkdown} from "../../lib/utils";
     import {PublicationState} from "../../lib/store/state-store.js";
     import LoadingSpinner from "./LoadingSpinner.svelte";
 
     import type {PublicationMetadataV2Input} from "../../graph/lens-service";
     import type {User} from "../../lib/user";
+    import {getNodeForPublicationMainFocus, getPublicationUrl} from "../../lib/lens-nodes";
 
     export let currentUser: User;
     export let publicationState: PublicationState;
     export let postMetaData: PublicationMetadataV2Input;
     export let postId: string;
 
-    const fromMarkdown = new showdown.Converter({
-        simpleLineBreaks: true,
-        simplifiedAutoLink: true,
-    });
-
     let avatarError;
     let now = DateTime.now();
     let imageLoading = true;
 
-    $: contentHtml = postMetaData?.content ? fromMarkdown.makeHtml(postMetaData?.content) : '';
+    $: contentHtml = postMetaData?.content ? htmlFromMarkdown(postMetaData?.content) : '';
     $: cover = postMetaData?.media?.[0]?.cover ?? postMetaData?.image;
     $: artist = postMetaData?.attributes?.find(attr => attr.traitType === 'author')?.value ?? currentUser?.handle ?? 'unknown';
 
     const onViewPostClick = async () => {
         if (!postMetaData || !postId) return;
-        const url = await getNodeUrlForPublication(postMetaData.mainContentFocus, postId)
+        const url = await getPublicationUrl(postMetaData.mainContentFocus, postId)
         chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();

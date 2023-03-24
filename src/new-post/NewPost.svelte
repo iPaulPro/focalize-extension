@@ -21,8 +21,6 @@
         getUrlsFromText, submitPost,
     } from '../lib/lens-post';
 
-    import {getNodeUrlForPublication} from '../lib/utils';
-
     import {
         author, collectFee, content, cover, description, file, attachments, draftId, title, publicationState,
         clearPostState, loadFromDraft,
@@ -71,6 +69,7 @@
     import PostDraftsList from "../components/PostDraftsList.svelte";
     import AutoRelativeTimeView from "../components/AutoRelativeTimeView.svelte";
     import PostPreview from "./components/PostPreview.svelte";
+    import {getPublicationUrl} from "../lib/lens-nodes";
 
     /**
      * Bound to the tag component
@@ -363,7 +362,7 @@
     };
 
     const onViewPostClick = async () => {
-        const url = await getNodeUrlForPublication(mainFocus, postId)
+        const url = await getPublicationUrl(mainFocus, postId)
         chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();

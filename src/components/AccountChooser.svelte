@@ -1,11 +1,12 @@
 <script lang="ts">
     import {currentUser} from '../lib/store/user-store'
-    import {getAvatar, getProfiles} from '../lib/lens-profile'
+    import {getProfiles} from '../lib/lens-profile'
     import LoadingSpinner from '../new-post/components/LoadingSpinner.svelte'
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../assets/ic_avatar.svg';
     import {push} from 'svelte-spa-router';
     import {userFromProfile} from '../lib/user';
+    import {getAvatar} from "../lib/utils";
 
     export let anchorNode;
     export let showSettings = true;

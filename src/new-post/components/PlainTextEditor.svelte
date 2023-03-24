@@ -20,11 +20,11 @@
 
     import MediumEditor from 'medium-editor';
     import TurndownService from "turndown";
-    import showdown from "showdown";
 
     import 'font-awesome/css/font-awesome.css';
     import 'medium-editor/dist/css/medium-editor.css';
     import 'medium-editor/dist/css/themes/tim.css';
+    import {htmlFromMarkdown} from "../../lib/utils";
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
@@ -43,11 +43,6 @@
 
     const fromHtml = new TurndownService({
         preformattedCode: true
-    });
-
-    const fromMarkdown = new showdown.Converter({
-        simpleLineBreaks: true,
-        simplifiedAutoLink: true,
     });
 
     $: {
@@ -84,7 +79,7 @@
         if ($content && editor && textInput) {
             const existing = fromHtml.turndown(textInput.innerHTML)
             if (existing !== $content) {
-                const html = fromMarkdown.makeHtml($content);
+                const html = htmlFromMarkdown($content);
                 editor.setContent(html);
             }
         }
