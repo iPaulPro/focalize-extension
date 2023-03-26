@@ -66,28 +66,23 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
 
     if (notificationTypes.length === 0) return undefined;
 
-    const {notifications} = await gqlClient.Notifications({
-        request: {
-            profileId: user.profileId,
-            limit: NOTIFICATIONS_QUERY_LIMIT,
-            notificationTypes
-        }
-    })
+    try {
+        const {notifications} = await gqlClient.Notifications({
+            request: {
+                profileId: user.profileId,
+                limit: NOTIFICATIONS_QUERY_LIMIT,
+                notificationTypes
+            }
+        })
 
-    if (notifications.items) {
-        return notifications.items as Notification[];
+        if (notifications.items) {
+            return notifications.items as Notification[];
+        }
+    } catch (e) {
+        return [];
     }
 
     return [];
-}
-
-// clear all chrome notifications
-const clearNotifications = () => {
-    chrome.notifications.getAll(notifications => {
-        Object.keys(notifications).forEach(notificationId => {
-            chrome.notifications.clear(notificationId);
-        })
-    });
 }
 
 const createReactionNotification = (notification: NewReactionNotification, currentUser: User, node: LensNode) => {

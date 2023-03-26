@@ -67,7 +67,7 @@ export const authenticateUser = async () => {
 export const getOrRefreshAccessToken = async (): Promise<string> => {
     const accessToken = await getSavedAccessToken();
     if (!accessToken) {
-        return Promise.reject('No saved tokens found');
+        throw new Error('No saved tokens found');
     }
     console.log('getOrRefreshAccessToken: found saved access token');
 
@@ -77,14 +77,14 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     if (accessTokenExpiration > now) {
         const duration = Duration.fromMillis(accessTokenExpiration - now).shiftTo('minutes');
         console.log(`getOrRefreshAccessToken: saved access token expires in ${duration.toHuman()}`);
-        return Promise.resolve(accessToken);
+        return accessToken;
     }
 
     console.log('getOrRefreshAccessToken: Access token is expired.');
 
     const savedRefreshToken = await getSavedRefreshToken();
     if (!savedRefreshToken) {
-        return Promise.reject('No saved refresh token found');
+        throw new Error('No saved refresh token found');
     }
     console.log('getOrRefreshAccessToken: found saved refresh token')
 
@@ -93,7 +93,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
         return refreshAccessToken(savedRefreshToken);
     } else {
         await logOut();
-        return Promise.reject('Refresh token is expired');
+        throw new Error('Refresh token is expired');
     }
 };
 

@@ -688,7 +688,7 @@
 
             <button type="button" disabled={!submitEnabled}
                     class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
-                    border-l border-orange-300 dark:border-orange-800 disabled:border-neutral-300 dark:disabled:border-gray-700
+                    border-l border-orange-300 dark:border-orange-600 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
