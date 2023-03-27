@@ -23,9 +23,8 @@
 
     import {
         author, collectFee, content, cover, description, file, attachments, draftId, title, publicationState,
-        clearPostState, loadFromDraft,
+        clearPostState, loadFromDraft, PublicationState,
     } from '../lib/store/state-store';
-    import type {PublicationState} from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
     import {
         compactMode, darkMode, dispatcherDialogShown, showLocales, useDispatcher, useRelay, welcomeShown
