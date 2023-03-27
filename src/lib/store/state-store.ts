@@ -28,6 +28,11 @@ export enum PublicationState {
      * Index pending
      */
     PENDING = 'PENDING',
+
+    /**
+     * There was an error during indexing
+     */
+    ERROR = 'ERROR',
 }
 
 /**

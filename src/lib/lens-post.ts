@@ -303,7 +303,10 @@ export const submitPost = async (
     publicationState.set(PublicationState.SUCCESS);
 
     const res = await chrome.runtime.sendMessage({getPublicationId: {txHash, metadata}});
-    if (res.error) throw res.error;
+    if (res.error) {
+        publicationState.set(PublicationState.ERROR);
+        throw res.error;
+    }
 
     console.log('submitPost: post has been indexed', res.publicationId);
 

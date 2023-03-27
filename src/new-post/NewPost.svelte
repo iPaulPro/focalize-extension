@@ -25,6 +25,7 @@
         author, collectFee, content, cover, description, file, attachments, draftId, title, publicationState,
         clearPostState, loadFromDraft,
     } from '../lib/store/state-store';
+    import type {PublicationState} from '../lib/store/state-store';
     import {currentUser} from "../lib/store/user-store";
     import {
         compactMode, darkMode, dispatcherDialogShown, showLocales, useDispatcher, useRelay, welcomeShown
@@ -498,7 +499,7 @@
       on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
       on:dragleave|preventDefault|stopPropagation={() => isFileDragged = false}>
 
-  {#if (postMetaData && $publicationState) || postId}
+  {#if (postMetaData && $publicationState && $publicationState !== PublicationState.ERROR) || postId}
 
     <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId} />
 
