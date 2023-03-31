@@ -53,31 +53,31 @@ export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
             }
         },
         label: 'No comments',
-        summary: 'No one can comment, including you. Anyone can\nrepost',
+        summary: 'No one can comment, including you',
         icon: 'lock'
     },
     {
         value: {
             degreesOfSeparationReferenceModule: {
                 "commentsRestricted": true,
-                "mirrorsRestricted": true,
+                "mirrorsRestricted": false,
                 "degreesOfSeparation": 1
             }
         },
         label: 'Friends only',
-        summary: 'Only profiles that you follow can reply and repost',
+        summary: 'Only profiles that you follow can reply',
         icon: 'friends'
     },
     {
         value: {
             degreesOfSeparationReferenceModule: {
                 "commentsRestricted": true,
-                "mirrorsRestricted": true,
+                "mirrorsRestricted": false,
                 "degreesOfSeparation": 2
             }
         },
         label: 'Friends of friends',
-        summary: 'Only profiles that you follow, and the profiles they\nfollow, can reply and repost',
+        summary: 'Only profiles that you follow, and the profiles they\nfollow, can reply',
         icon: 'friends_of_friends'
     },
 ];
