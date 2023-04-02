@@ -10,6 +10,7 @@
     import ImageAvatar from '../../assets/ic_avatar.svg';
 
     import {currentUser} from "../../lib/store/user-store";
+    import DialogOuter from "../../components/DialogOuter.svelte";
 
     let avatarError;
     let logoutDialog: HTMLDialogElement;
@@ -110,5 +111,7 @@
 </nav>
 
 <dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <ConfirmLogoutDialog/>
+  <DialogOuter title="Log out">
+    <ConfirmLogoutDialog/>
+  </DialogOuter>
 </dialog>

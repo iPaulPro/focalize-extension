@@ -20,22 +20,6 @@
 
 <div class="h-full bg-white dark:bg-gray-800">
 
-  <div class="flex justify-between items-center p-4 pr-2 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-    <h1 class="dark:text-gray-100 text-xl font-semibold">
-      Post drafts
-    </h1>
-    <form method="dialog">
-      <button bind:this={closeButton} class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none
-              focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="w-6 h-6 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-none">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-      </button>
-    </form>
-  </div>
-
   <div class="grow flex flex-col divider overflow-y-auto max-h-96">
 
     {#each items as item}

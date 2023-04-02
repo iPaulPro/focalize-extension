@@ -28,29 +28,6 @@
 
 <div class="flex flex-col">
 
-  <div class="flex justify-between items-center p-4 pr-2 border-b border-gray-200 dark:border-gray-600">
-    <div class="flex items-center text-xl font-semibold dark:text-gray-100 gap-1.5">
-      <svg viewBox="0 0 24 24" fill="none" class="w-7 bg-orange text-white inline rounded-full"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-      Focalize is meant to be pinned!
-    </div>
-    <form method="dialog">
-      <button bind:this={closeButton} class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none
-              focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line>
-          <line x1="9" y1="9" x2="15" y2="15"></line>
-        </svg>
-      </button>
-    </form>
-  </div>
-
   <div class="w-full px-4 pt-4">
     <video src={video} class="w-full border" autoplay loop preload="auto"></video>
   </div>

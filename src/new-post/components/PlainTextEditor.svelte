@@ -25,6 +25,7 @@
     import 'medium-editor/dist/css/medium-editor.css';
     import 'medium-editor/dist/css/themes/tim.css';
     import {htmlFromMarkdown} from "../../lib/utils";
+    import DialogOuter from "../../components/DialogOuter.svelte";
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
@@ -100,6 +101,7 @@
             buttonLabels: 'fontawesome',
             delay: 500,
             autoLink: true,
+            targetBlank: true,
         });
         editor.subscribe('editableInput', async (event, editable: HTMLElement) => {
             $content = fromHtml.turndown(editable);
@@ -125,7 +127,6 @@
     };
 
     const showLogoutDialog = () => {
-        logoutDialog = document.getElementById('logoutDialog');
         logoutDialog.showModal();
     };
 
@@ -221,8 +222,12 @@
 
 </div>
 
-<dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <ConfirmLogoutDialog />
+<dialog id="logoutDialog" bind:this={logoutDialog}
+        on:click={(event) => {if (event.target.id === 'logoutDialog') logoutDialog?.close()}}
+        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+  <DialogOuter title="Log out" {isCompact}>
+    <ConfirmLogoutDialog />
+  </DialogOuter>
 </dialog>
 
 <style global>

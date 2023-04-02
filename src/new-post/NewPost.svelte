@@ -45,7 +45,7 @@
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte'
     import PlainTextEditor from './components/PlainTextEditor.svelte';
     import PostTags from './components/PostTags.svelte';
-    import CollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
+    import FeeCollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
     import PostMethodChooser from "./components/PostMethodChooser.svelte";
 
@@ -70,6 +70,7 @@
     import AutoRelativeTimeView from "../components/AutoRelativeTimeView.svelte";
     import PostPreview from "./components/PostPreview.svelte";
     import {getPublicationUrl} from "../lib/lens-nodes";
+    import DialogOuter from "../components/DialogOuter.svelte";
 
     /**
      * Bound to the tag component
@@ -361,13 +362,6 @@
         gifSelectionDialog?.close();
     };
 
-    const onViewPostClick = async () => {
-        const url = await getPublicationUrl(mainFocus, postId)
-        chrome.notifications.clear(url);
-        window.open(url, '_blank');
-        window.close();
-    };
-
     const onUseDispatcherSelected = () => {
         if (!$currentUser) throw new Error('No user found');
 
@@ -506,7 +500,7 @@
 
     <div class="w-full min-h-screen {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
 
-      <div id="content" class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-4'}" bind:this={contentDiv}>
+      <div id="content" class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-6'}" bind:this={contentDiv}>
 
         <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
@@ -688,7 +682,7 @@
 
             <button type="button" disabled={!submitEnabled}
                     class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
-                    border-l border-orange-300 dark:border-orange-600 disabled:border-neutral-300 dark:disabled:border-gray-700
+                    border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -728,27 +722,35 @@
 
 {#if showFeeCollectDialog}
   <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
-          class="w-2/3 lg:w-1/4 rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-    <CollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+          class="w-2/3 max-w-sm rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+    <DialogOuter title="Sell as an NFT" {isCompact}>
+      <FeeCollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+    </DialogOuter>
   </dialog>
 {/if}
 
 <dialog id="selectGif" bind:this={gifSelectionDialog}
-        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0
+        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0
         border border-gray-200 dark:border-gray-600"
         on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
-  <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
+  <DialogOuter title="Attach a GIF" {isCompact}>
+    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
+  </DialogOuter>
 </dialog>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+  <DialogOuter title="Enable Dispatcher" {isCompact}>
+    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+  </DialogOuter>
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}
-        class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
         on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
-  <PostDraftsList />
+  <DialogOuter title="Post drafts" {isCompact}>
+    <PostDraftsList />
+  </DialogOuter>
 </dialog>
 
 <Toaster />

@@ -67,6 +67,4 @@
     };
 </script>
 
-<div>
-  <div use:giphy={searchQuery}></div>
-</div>
+<div use:giphy={searchQuery}></div>

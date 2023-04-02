@@ -17,6 +17,7 @@
     import Preferences from "./components/Preferences.svelte";
     import PinPromptDialog from "./components/PinPromptDialog.svelte";
     import {isOnToolbar} from "../lib/utils";
+    import DialogOuter from "../components/DialogOuter.svelte";
 
     let loading = true;
     let noProfileDialog: HTMLDialogElement;
@@ -161,7 +162,9 @@
   <dialog id="pinPromptDialog" bind:this={pinPromptDialog} on:close={() => showPinPromptDialog = false}
           class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200
         dark:bg-gray-700 dark:border-gray-600">
-    <PinPromptDialog/>
+    <DialogOuter title="⚠️ Focalize is meant to be pinned!">
+      <PinPromptDialog/>
+    </DialogOuter>
   </dialog>
 {/if}
 

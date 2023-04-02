@@ -19,23 +19,7 @@
 
 <div class="flex flex-col">
 
-  <div class="flex justify-between items-center p-4 pr-2 border-b border-gray-200 dark:border-gray-600">
-    <h1 class="text-xl font-semibold dark:text-gray-100">
-      Attach a GIF
-    </h1>
-    <form method="dialog">
-      <button class="p-2 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none
-              focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="w-6 h-6 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-none">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-      </button>
-    </form>
-  </div>
-
-  <div class="relative p-2 pt-3 flex-shrink-0 dark:bg-gray-800">
+  <div class="flex-shrink-0 relative p-2 pt-3 flex-shrink-0 dark:bg-gray-800">
     <input type="text" name="search" id="gifSearch" placeholder="Search gifs..." autocomplete="off"
            class="w-full text-lg rounded-xl py-2 px-4 placeholder-gray-400
            dark:bg-gray-600 dark:text-gray-200 dark:border-transparent
@@ -58,7 +42,7 @@
     {/if}
   </div>
 
-  <div class="p-2 h-[24rem] overflow-y-scroll dark:bg-gray-800">
+  <div class="p-2 flex-grow max-h-56 xl:max-h-96 overflow-y-scroll dark:bg-gray-800">
     <GiphyGrid {searchQuery} on:gifSelected={onGifSelected} />
   </div>
 
