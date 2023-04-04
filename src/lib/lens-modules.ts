@@ -7,13 +7,13 @@ import type {
     ReferenceModuleParams,
     TimedFeeCollectModuleSettings,
     ModuleFeeAmount,
-} from "../graph/lens-service";
+} from "./graph/lens-service";
 
-import {CollectModules, PublicationContentWarning} from "../graph/lens-service";
+import {CollectModules, PublicationContentWarning} from "./graph/lens-service";
 
-import gqlClient from "../graph/graphql-client";
+import gqlClient from "./graph/graphql-client";
 import {DateTime} from "luxon";
-import type {CollectFee} from "./store/state-store";
+import type {CollectFee} from "./stores/state-store";
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 

@@ -1,4 +1,4 @@
-import type {Profile} from "../graph/lens-service";
+import type {Profile} from "./graph/lens-service";
 import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 import showdown from "showdown";
 import * as cheerio from 'cheerio';

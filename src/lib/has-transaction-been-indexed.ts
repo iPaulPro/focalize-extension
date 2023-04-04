@@ -1,10 +1,10 @@
-import gqlClient from "../graph/graphql-client";
-import type {TransactionReceipt} from "../graph/lens-service";
-import {PublicationMetadataStatusType} from "../graph/lens-service";
+import gqlClient from "./graph/graphql-client";
+import type {TransactionReceipt} from "./graph/lens-service";
+import {PublicationMetadataStatusType} from "./graph/lens-service";
 import {sleep} from "./utils";
 import {BigNumber, utils} from "ethers";
 import type {Log} from "@ethersproject/providers";
-import {PublicationState} from "./store/state-store";
+import {PublicationState} from "./stores/state-store";
 
 const getPublicationId = (logs: Array<Log>) => {
     const topicId = utils.id(

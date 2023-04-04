@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "generate-types": "typechain --target=ethers-v5 'src/abis/*.json'",
+    "generate-types": "typechain --target=ethers-v5 --out-dir src/contracts/types 'src/contracts/*.json'",
     "codegen": "graphql-codegen --config codegen.yml"
   },
   "devDependencies": {

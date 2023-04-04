@@ -16,17 +16,17 @@ import type {
     ReferenceModuleParams,
     RelayerResult,
     ValidatePublicationMetadataRequest
-} from "../graph/lens-service";
-import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes,} from "../graph/lens-service";
+} from "./graph/lens-service";
+import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes,} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import {uploadAndPin} from "./ipfs-service";
-import {getLensHub} from "../lens-hub";
+import {getLensHub} from "./lens-hub";
 import {signTypedData} from "./ethers-service";
-import {deleteDraft} from "./store/draft-store";
+import {deleteDraft} from "./stores/draft-store";
 
-import gqlClient from "../graph/graphql-client";
+import gqlClient from "./graph/graphql-client";
 import type {User} from "./user";
-import {PublicationState, publicationState} from "./store/state-store";
+import {PublicationState, publicationState} from "./stores/state-store";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uuid()): File => {
     const obj = {

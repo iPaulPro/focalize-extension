@@ -8,7 +8,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import MetaMaskLogo from '../assets/metamask.svg';
-import MetaMaskInPageProvider from "../providers/connectors";
+import MetaMaskInPageProvider from "./providers/connectors";
 import ethProvider from "eth-provider";
 
 let provider: Web3Provider;

@@ -2,15 +2,15 @@
     import Router from 'svelte-spa-router';
     import {wrap} from 'svelte-spa-router/wrap';
 
-    import Settings from './settings/Settings.svelte';
-    import NotFound from './components/NotFound.svelte';
-    import {darkMode} from "./lib/store/preferences-store";
+    import Settings from './options/Settings.svelte';
+    import NotFound from './lib/components/NotFound.svelte';
+    import {darkMode} from "./lib/stores/preferences-store";
 
     const routes = {
         '/': Settings,
 
         '/post': wrap({
-            asyncComponent: () => import('./new-post/NewPost.svelte')
+            asyncComponent: () => import('./popup/NewPost.svelte')
         }),
 
         '*': NotFound,

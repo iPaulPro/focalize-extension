@@ -2,13 +2,13 @@ overwrite: true
 schema: "https://api.lens.dev"
 documents: "src/**/*.gql"
 generates:
-  ./src/graph/lens-service.ts:
+  ./src/lib/graph/lens-service.ts:
     plugins:
       - "typescript"
       - "typescript-operations"
       - "typescript-graphql-request"
     config:
       useTypeImports: true
-  ./graphql.schema.json:
+  ./src/lib/graph/graphql.schema.json:
     plugins:
       - "introspection"

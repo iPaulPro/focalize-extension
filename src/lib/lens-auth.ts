@@ -1,7 +1,7 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import gqlClient from "../graph/graphql-client";
+import gqlClient from "./graph/graphql-client";
 
 export const authenticateUser = async () => {
     const {getSigner, getAccounts, clearProvider} = await import('./ethers-service');

@@ -1,11 +1,11 @@
-import {getLensHub} from "../lens-hub";
+import {getLensHub} from "./lens-hub";
 import {signTypedData} from "./ethers-service";
 import {splitSignature} from "ethers/lib/utils";
 import {pollUntilIndexed} from "./has-transaction-been-indexed";
 
-import gqlClient from "../graph/graphql-client";
+import gqlClient from "./graph/graphql-client";
 
-import type {BroadcastRequest, Profile, RelayerResult, SetDispatcherRequest} from "../graph/lens-service";
+import type {BroadcastRequest, Profile, RelayerResult, SetDispatcherRequest} from "./graph/lens-service";
 
 /**
  * Gets the default profile of the address supplied.

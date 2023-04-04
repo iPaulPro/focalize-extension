@@ -1,10 +1,10 @@
 import {initEthers} from "./ethers-service";
 import {getDefaultProfile, getProfiles} from "./lens-profile";
 
-import type {Profile} from "../graph/lens-service";
+import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
-import {currentUser} from "./store/user-store";
-import {get} from "./store/chrome-storage-store";
+import {currentUser} from "./stores/user-store";
+import {get} from "./stores/chrome-storage-store";
 import {getAvatar} from "./utils";
 
 export type User = {

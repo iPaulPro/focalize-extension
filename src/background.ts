@@ -3,8 +3,8 @@ import {DateTime} from 'luxon';
 import {getOrRefreshAccessToken} from './lib/lens-auth';
 import {pollForPublicationId} from './lib/has-transaction-been-indexed';
 
-import gqlClient from "./graph/graphql-client";
-import {NotificationTypes, SearchRequestTypes} from "./graph/lens-service";
+import gqlClient from "./lib/graph/graphql-client";
+import {NotificationTypes, SearchRequestTypes} from "./lib/graph/lens-service";
 
 import type {
     PublicationMetadataV2Input,
@@ -16,11 +16,11 @@ import type {
     NewCommentNotification,
     NewReactionNotification,
     NewCollectNotification,
-} from "./graph/lens-service";
+} from "./lib/graph/lens-service";
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
 import {getAvatar, limitString, stripMarkdown} from "./lib/utils";
-import type {PublicationState} from "./lib/store/state-store";
+import type {PublicationState} from "./lib/stores/state-store";
 import {getPublicationUrl, getProfileUrl, getPublicationUrlFromNode} from "./lib/lens-nodes";
 
 const ALARM_ID = 'focalize-notifications-alarm';
