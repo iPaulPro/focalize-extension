@@ -150,7 +150,7 @@
 
       {#if avatarError || !$currentUser?.avatarUrl}
         <InlineSVG src={ImageAvatar}
-                   class="w-full rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
+                   class="w-full aspect-square rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
       {:else if $currentUser}
         <img src={$currentUser.avatarUrl} alt="Profile avatar"
              class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"

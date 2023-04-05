@@ -69,8 +69,8 @@
     import PostDraftsList from "../lib/components/PostDraftsList.svelte";
     import AutoRelativeTimeView from "../lib/components/AutoRelativeTimeView.svelte";
     import PostPreview from "./components/PostPreview.svelte";
-    import {getPublicationUrl} from "../lib/lens-nodes";
     import DialogOuter from "../lib/components/DialogOuter.svelte";
+    import {throttle} from "throttle-debounce";
 
     /**
      * Bound to the tag component
@@ -343,6 +343,9 @@
     };
 
     const onFileDropped = (ev) => {
+        // setFileIsDragged.cancel({upcomingOnly: true});
+        // isFileDragged = false;
+        setFileIsDragged(false);
         const dt = ev.dataTransfer;
         const file: File = dt.files[0];
         console.log('File dropped', file);
@@ -467,6 +470,10 @@
         }
     };
 
+    const setFileIsDragged = throttle(300, (isDragged: boolean) => {
+        isFileDragged = isDragged;
+    });
+
     $: {
         if ($draftId !== postDraft?.id) {
             openDraft();
@@ -488,9 +495,9 @@
 
 <main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isCompact ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
-      on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
-      on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
-      on:dragleave|preventDefault|stopPropagation={() => isFileDragged = false}>
+      on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
+      on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
+      on:dragleave|preventDefault|stopPropagation={() => setFileIsDragged(false)}>
 
   {#if (postMetaData && $publicationState && $publicationState !== PublicationState.ERROR) || postId}
 
@@ -498,9 +505,10 @@
 
   {:else}
 
-    <div class="w-full min-h-screen {isFileDragged ? 'bg-orange-50 dark:bg-gray-500' : ''} ">
+    <div class="w-full min-h-screen">
 
-      <div id="content" class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-6'}" bind:this={contentDiv}>
+      <div id="content" bind:this={contentDiv}
+           class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-6'}">
 
         <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
@@ -714,6 +722,13 @@
 
       </div><!-- container -->
 
+      {#if isFileDragged}
+        <div class="absolute inset-0 flex justify-center items-center bg-orange-50 dark:bg-gray-600 opacity-90">
+          <div class="text-3xl font-bold opacity-80 dark:opacity-100">
+            Drop anywhere to attach
+          </div>
+        </div>
+      {/if}
     </div>
 
   {/if}
