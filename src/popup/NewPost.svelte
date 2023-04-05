@@ -343,8 +343,6 @@
     };
 
     const onFileDropped = (ev) => {
-        // setFileIsDragged.cancel({upcomingOnly: true});
-        // isFileDragged = false;
         setFileIsDragged(false);
         const dt = ev.dataTransfer;
         const file: File = dt.files[0];
@@ -510,7 +508,7 @@
       <div id="content" bind:this={contentDiv}
            class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-6'}">
 
-        <div class="min-h-[12rem] mx-2 rounded-xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
+        <div class="min-h-[12rem] mx-2 rounded-2xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
              {isSubmittingPost ? 'opacity-60' : ''}">
 
           <PlainTextEditor disabled={isSubmittingPost} {isCompact}
@@ -749,7 +747,7 @@
         border border-gray-200 dark:border-gray-600"
         on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
   <DialogOuter title="Attach a GIF" {isCompact}>
-    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown />
+    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown {isCompact}/>
   </DialogOuter>
 </dialog>
 

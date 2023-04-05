@@ -40,14 +40,26 @@
 
     const dispatch = createEventDispatcher();
 
-    const emojiPicker = new EmojiButton();
+    let emojiPicker: EmojiButton;
 
     const fromHtml = new TurndownService({
         preformattedCode: true
     });
 
     $: {
-        emojiPicker.setTheme($darkMode ? 'dark' : 'light');
+        emojiPicker = new EmojiButton({
+            rows: isCompact ? 4 : 5,
+            emojiSize: isCompact? '24px' : '32px',
+            showPreview: !isCompact,
+        });
+
+        emojiPicker.on('emoji', (selection) => {
+            insertTextAtCaret(selection.emoji);
+            // editor.selectElement(textInput);
+            // textInput.focus();
+        });
+
+        emojiPicker?.setTheme($darkMode ? 'dark' : 'light');
     }
 
     const saveSelection = () => {
@@ -69,12 +81,6 @@
         inputSelection = null;
         selectionRange = null;
     };
-
-    emojiPicker.on('emoji', (selection) => {
-        insertTextAtCaret(selection.emoji);
-        // editor.selectElement(textInput);
-        // textInput.focus();
-    });
 
     $: {
         if ($content && editor && textInput) {
@@ -129,6 +135,10 @@
     const showLogoutDialog = () => {
         logoutDialog.showModal();
     };
+
+    onMount(() => {
+
+    })
 
     onDestroy(() => {
         editor?.destroy();
