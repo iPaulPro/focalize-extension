@@ -328,6 +328,12 @@
     );
 
     const setAttachment = (f: File) => {
+        if (f.type === 'image/heic') {
+            toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.');
+            isFileDragged = false;
+            return;
+        }
+
         if (!f || !f.type ||
             !SUPPORTED_MIME_TYPES.includes(f.type) ||
             f.size > MAX_FILE_SIZE
