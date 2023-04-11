@@ -4,7 +4,6 @@
     import LoadingSpinner from '../../popup/components/LoadingSpinner.svelte'
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {push} from 'svelte-spa-router';
     import {userFromProfile} from '../user';
     import {getAvatar} from "../utils";
 
@@ -14,13 +13,7 @@
     let avatarError: Number[] = [];
 
     const launchOptions = () => {
-        chrome.windows.getCurrent((window: Window) => {
-            if (window['type'] === 'popup') {
-                chrome.runtime.openOptionsPage();
-            } else {
-                push('/src/')
-            }
-        });
+        chrome.runtime.openOptionsPage();
     };
 
     const showLogoutDialog = () => {

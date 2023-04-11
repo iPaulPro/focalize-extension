@@ -55,7 +55,6 @@
     //@ts-ignore
     import tippy from "sveltejs-tippy";
     import {onDestroy, onMount, tick} from 'svelte';
-    import {replace} from 'svelte-spa-router'
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
@@ -386,8 +385,14 @@
     };
 
     $: {
+        if ($darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
         if ($currentUser === null) {
-            replace('/src/').catch(console.error);
+            chrome.runtime.openOptionsPage();
         }
 
         if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
@@ -445,7 +450,7 @@
             const {user, error} = await getCurrentUser();
 
             if (error || !user) {
-                await replace('/src/');
+                chrome.runtime.openOptionsPage();
                 return;
             }
 
@@ -455,7 +460,7 @@
                 enableDispatcherDialog.showModal();
             }
         } catch (e) {
-            await replace('/src/');
+            chrome.runtime.openOptionsPage();
         }
     };
 

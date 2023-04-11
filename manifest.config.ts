@@ -17,7 +17,7 @@ export default defineManifest(async (env) => ({
         "notifications",
         "alarms"
     ],
-    options_page: "src/index.html",
+    options_page: "src/options/index.html",
     action: {
         default_title: "Share on Lens",
         default_icon: {

@@ -339,7 +339,7 @@ const truncate = (str: string, n: number) => (str.length > n) ? str.slice(0, n -
 
 const shareUrl = async (tags: any) => {
     console.log('shareUrl called with', tags);
-    const path = chrome.runtime.getURL('src/index.html#/post');
+    const path = chrome.runtime.getURL('src/popup/index.html');
     const url = new URL(path);
 
     if (tags.url) {
@@ -434,7 +434,7 @@ chrome.action.onClicked.addListener(tab => {
             // @ts-ignore
             tab.id,
             {
-                url: chrome.runtime.getURL('src/index.html#/post')
+                url: chrome.runtime.getURL('src/popup/index.html')
             }
         ).catch(console.error);
         return;

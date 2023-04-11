@@ -4,7 +4,6 @@
     import focalizeLogo from '../../assets/focalize.svg';
     import focalizeLogoName from '../../assets/focalize-logo-name.svg';
     import welcomeImage from '../../assets/quill.webp';
-    import {link} from 'svelte-spa-router'
 
     import {logOut, isValidSession} from "../../lib/lens-auth";
     import {onMount, tick} from "svelte";
@@ -102,7 +101,7 @@
             </div>
           </div>
 
-          <a href="/post" use:link
+          <a href="/src/new-post/index.html"
              class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center rounded-full
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2

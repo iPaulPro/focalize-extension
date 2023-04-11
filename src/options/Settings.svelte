@@ -8,7 +8,7 @@
     import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
     import {currentUser} from "../lib/stores/user-store";
     import {ensureCorrectChain} from "../lib/ethers-service";
-    import {pinPromptShown, welcomeShown} from "../lib/stores/preferences-store";
+    import {darkMode, pinPromptShown, welcomeShown} from "../lib/stores/preferences-store";
 
     import InlineSVG from 'svelte-inline-svg';
 
@@ -91,6 +91,14 @@
             pinPromptDialog?.showModal();
         }
     };
+
+    $: {
+        if ($darkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
 
     onMount(async () => {
         try {

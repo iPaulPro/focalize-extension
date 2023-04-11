@@ -1,7 +1,6 @@
 <script lang="ts">
     import tooltip from "svelte-ktippy"
     import InlineSVG from 'svelte-inline-svg';
-    import {link} from 'svelte-spa-router'
 
     import AccountChooser from "../../lib/components/AccountChooser.svelte";
     import ConfirmLogoutDialog from '../../lib/components/ConfirmLogoutDialog.svelte'
@@ -31,7 +30,7 @@
 
       {#if showIcon}
         <div class="flex items-center">
-          <a href="/src/" class="flex-shrink-0" use:link>
+          <a href="/src/options/index.html" class="flex-shrink-0">
             <InlineSVG class="h-8 w-8" src={focalizeLogo} alt="Focalize"/>
           </a>
         </div>
@@ -52,7 +51,7 @@
 
         <div class="ml-4 flex items-center md:ml-6">
 
-          <a href="/post" use:link
+          <a href="/src/popup/index.html"
              class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500
              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
 
