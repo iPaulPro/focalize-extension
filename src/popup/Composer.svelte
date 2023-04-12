@@ -70,6 +70,7 @@
     import PostPreview from "./components/PostPreview.svelte";
     import DialogOuter from "../lib/components/DialogOuter.svelte";
     import {throttle} from "throttle-debounce";
+    import {DateTime} from "luxon";
 
     /**
      * Bound to the tag component
@@ -536,12 +537,13 @@
                {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false} listOffset={-48}
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={true} listOffset={-48}
                     containerStyles="cursor: pointer;" disabled={isSubmittingPost}
                     --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
                     --list-max-height="auto" --background="transparent" --list-z-index={20}
                     --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent" --list-border-radius="0.75rem"
+                    --chevron-color={$darkMode ? '#FFB38E' : '#A33500'} --selected-item-padding="0"
                     class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
@@ -556,11 +558,13 @@
             </Select>
 
             <Select items={COLLECT_ITEMS} bind:value={collectItem} on:change={onCollectModuleChange}
-                    clearable={false} searchable={false} listAutoWidth={false} showChevron={false}
-                    disabled={isSubmittingPost} listOffset={-48}
-                    --item-height="auto" --item-padding="0" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
-                    --list-max-height="auto" --background="transparent" --list-border-radius="0.75rem" --list-z-index={20}
-                    --list-background={$darkMode ? '#374354' : 'white'} --disabled-background="transparent"
+                    clearable={false} searchable={false} listAutoWidth={false} showChevron={true} listOffset={-48}
+                    containerStyles="cursor: pointer;" disabled={isSubmittingPost}
+                    --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg="transparent"
+                    --list-max-height="auto" --background="transparent" --list-z-index={20}
+                    --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
+                    --disabled-background="transparent" --list-border-radius="0.75rem"
+                    --chevron-color={$darkMode ? '#FFB38E' : '#A33500'} --selected-item-padding="0"
                     class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
                     focus:outline-none focus:ring-0 focus:border-none bg-none">
 
@@ -584,8 +588,9 @@
           {#if $showLocales && locales.length > 0}
             <Select items={locales} bind:value={locale} disabled={isSubmittingPost} listOffset={-48}
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
-                    --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
-                    --font-size="0.875rem" --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
+                    --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
+                    --font-size="0.875rem" --list-border-radius="0.75rem" --list-z-index={20}
+                    --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                     class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
                     shadow text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
@@ -605,7 +610,8 @@
                   bind:value={postContentWarning}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
-                  --selected-item-padding="{isCompact ? '0.25rem' : '0.5rem'}" --list-border-radius="0.75rem"
+                  --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
+                  --list-border-radius="0.75rem"
                   class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
                   text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                   rounded-full border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
@@ -649,7 +655,9 @@
             <button type="button" on:click={() => postDraftsDialog.showModal()}
                     class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
               {#if postDraft}
-                Draft saved <AutoRelativeTimeView prefix="at" timestamp={postDraft.timestamp} className="transition-none" />
+                <span use:tippy={({delay: 500, content: DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.DATETIME_MED)})}>
+                  Draft saved <AutoRelativeTimeView prefix="at" timestamp={postDraft.timestamp} className="transition-none" />
+                </span>
               {:else if $postDrafts.size > 0}
                 View all drafts ({[...$postDrafts.values()].length})
               {/if}

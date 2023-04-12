@@ -120,7 +120,7 @@ export const REVERT_COLLECT_ITEM: SelectItem<CollectModuleItem> = {
     value: {
         type: CollectModules.RevertCollectModule
     },
-    label: 'Disable collection',
+    label: 'Collection disabled',
     summary: 'Do not allow the post to be collected as an NFT',
     icon: 'collect_disabled'
 };

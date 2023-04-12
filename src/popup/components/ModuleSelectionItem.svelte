@@ -33,7 +33,7 @@
     <InlineSVG src={IconCollectDisabled} class="w-5 h-5" />
   {/if}
 
-  <div class="px-3 font-semibold sm:text-sm">
+  <div class="pl-3 font-semibold sm:text-sm">
     {selection.label}
   </div>
 

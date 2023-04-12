@@ -1,6 +1,4 @@
 <script lang="ts">
-    //@ts-ignore
-    import tippy from "sveltejs-tippy";
     import InlineSVG from "svelte-inline-svg";
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import {releaseDismissed} from '../../lib/stores/preferences-store';

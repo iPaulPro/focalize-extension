@@ -7,15 +7,7 @@
     import {collectFeeToCollectModule, getEnabledModuleCurrencies} from '../../lib/lens-modules'
     import {collectFee} from '../../lib/stores/state-store'
 
-    import type {
-        CollectModule, Erc20,
-        FeeCollectModuleSettings,
-        LimitedFeeCollectModuleSettings,
-        LimitedTimedFeeCollectModuleSettings,
-        ModuleFeeAmount,
-        TimedFeeCollectModuleSettings
-    } from "../../lib/graph/lens-service";
-    import {CollectModules} from "../../lib/graph/lens-service";
+    import type {Erc20,} from "../../lib/graph/lens-service";
     import {currentUser} from "../../lib/stores/user-store";
 
     const dispatch = createEventDispatcher();

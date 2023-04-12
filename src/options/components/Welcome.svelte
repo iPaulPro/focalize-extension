@@ -101,7 +101,7 @@
             </div>
           </div>
 
-          <a href="/src/new-post/index.html"
+          <a href="/src/popup/index.html"
              class="mt-10 w-fit py-2.5 px-12 flex justify-center items-center rounded-full
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
