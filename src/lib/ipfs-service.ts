@@ -1,6 +1,7 @@
 import axios from "axios";
+import {INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET} from "../config";
 
-const AUTH_TOKEN = `${import.meta.env.VITE_INFURA_IPFS_PROJECT_ID}:${import.meta.env.VITE_INFURA_IPFS_PROJECT_SECRET}`
+const AUTH_TOKEN = `${INFURA_IPFS_PROJECT_ID}:${INFURA_IPFS_PROJECT_SECRET}`
 
 export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)

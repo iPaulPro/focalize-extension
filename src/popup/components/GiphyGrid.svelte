@@ -5,6 +5,7 @@
     import type {IGif} from "@giphy/js-types";
     import {attachments} from "../../lib/stores/state-store";
     import {createEventDispatcher} from "svelte";
+    import {GIPHY_KEY} from "../../config";
 
     export let searchQuery: string;
 
@@ -13,7 +14,7 @@
     const dispatch = createEventDispatcher();
 
     const giphy = (node: HTMLElement, params: any) => {
-        const gf = new GiphyFetch(import.meta.env.VITE_GIPHY_KEY);
+        const gf = new GiphyFetch(GIPHY_KEY);
 
         const onClick = (gif: IGif) => {
             console.log('GiphyGrid: on gif click', gif);

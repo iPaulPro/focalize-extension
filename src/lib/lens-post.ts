@@ -2,7 +2,7 @@ import {v4 as uuid} from "uuid";
 import Autolinker, {UrlMatch} from "autolinker";
 import {DateTime} from "luxon";
 
-import {APP_ID} from "../config";
+import {APP_ID, LENS_PREVIEW_NODE} from "../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import type {
@@ -83,7 +83,7 @@ export const generateImagePostMetadata = (
         tags,
         contentWarning,
         attributes,
-        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/'+ handle,
+        external_url: LENS_PREVIEW_NODE + 'u/'+ handle,
     } as PublicationMetadataV2Input
 )
 
@@ -122,7 +122,7 @@ export const generateVideoPostMetadata = (
         mainContentFocus: PublicationMainFocus.Video,
         tags,
         contentWarning,
-        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/'+ handle,
+        external_url: LENS_PREVIEW_NODE + 'u/'+ handle,
     } as PublicationMetadataV2Input
 );
 
@@ -167,7 +167,7 @@ export const generateAudioPostMetadata = (
         mainContentFocus: PublicationMainFocus.Audio,
         tags,
         contentWarning,
-        external_url: import.meta.env.VITE_LENS_PREVIEW_NODE + 'u/' + handle,
+        external_url: LENS_PREVIEW_NODE + 'u/' + handle,
     } as PublicationMetadataV2Input;
 };
 

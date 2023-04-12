@@ -1,3 +1,4 @@
+import {CHAIN_ID, INFURA_IPFS_PROJECT_ID, INFURA_PROJECT_ID} from '../config';
 import {createExternalExtensionProvider} from '@metamask/providers';
 import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
@@ -13,7 +14,7 @@ import ethProvider from "eth-provider";
 
 let provider: Web3Provider;
 
-const CHAIN_ID = Number.parseInt(import.meta.env.VITE_CHAIN_ID, 10);
+const chainId = Number.parseInt(CHAIN_ID, 10);
 
 const networkMap = {
     POLYGON_MAINNET: {
@@ -46,20 +47,20 @@ const web3ModalProviderOptions = {
     walletconnect: {
         package: WalletConnectProvider,
         options: {
-            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
+            infuraId: INFURA_PROJECT_ID,
             rpc: {
-                137: "https://polygon-mainnet.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
-                80001: "https://polygon-mumbai.infura.io/v3/" + import.meta.env.VITE_INFURA_PROJECT_ID,
+                137: "https://polygon-mainnet.infura.io/v3/" + INFURA_PROJECT_ID,
+                80001: "https://polygon-mumbai.infura.io/v3/" + INFURA_PROJECT_ID,
             },
-            network: CHAIN_ID === 80001 ? 'mumbai' : 'matic'
+            network: chainId === 80001 ? 'mumbai' : 'matic'
         }
     },
     coinbasewallet: {
         package: CoinbaseWalletSDK,
         options: {
             appName: "Focalize",
-            infuraId: import.meta.env.VITE_INFURA_PROJECT_ID,
-            chainId: import.meta.env.VITE_CHAIN_ID
+            infuraId: INFURA_PROJECT_ID,
+            chainId: CHAIN_ID
         }
     },
     frame: {
@@ -105,7 +106,7 @@ export const switchChains = async (chainId: number) => {
             console.log("this network is not in the user's wallet")
             await provider.send(
                 "wallet_addEthereumChain",
-                [CHAIN_ID === 80001 ? networkMap.MUMBAI_TESTNET : networkMap.POLYGON_MAINNET],
+                [chainId === 80001 ? networkMap.MUMBAI_TESTNET : networkMap.POLYGON_MAINNET],
             );
         }
 
@@ -115,8 +116,8 @@ export const switchChains = async (chainId: number) => {
 
 export const ensureCorrectChain = async () => {
     const chainId = await getChainId();
-    if (CHAIN_ID !== chainId) {
-        await switchChains(CHAIN_ID);
+    if (chainId !== chainId) {
+        await switchChains(chainId);
     }
 }
 

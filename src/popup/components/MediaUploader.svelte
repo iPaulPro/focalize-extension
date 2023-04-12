@@ -12,18 +12,17 @@
     import type {Web3File} from "web3.storage";
     import InlineSVG from "svelte-inline-svg";
     import {createEventDispatcher} from "svelte";
+    import {INFURA_GATEWAY_URL} from "../../config";
 
     export let disabled: boolean = false;
     export let isCollectable: boolean;
     export let collectPrice: string;
 
-    const IPFS_GATEWAY = import.meta.env.VITE_INFURA_GATEWAY_URL;
-
     $: attachmentCid = $attachments?.[0]?.item.startsWith('ipfs://') ? getCidFromIpfsUrl($attachments[0].item) : undefined;
-    $: attachmentPath = attachmentCid ? `${IPFS_GATEWAY}${attachmentCid}` : $attachments?.[0]?.item;
+    $: attachmentPath = attachmentCid ? `${INFURA_GATEWAY_URL}${attachmentCid}` : $attachments?.[0]?.item;
     $: attachmentType = $attachments?.[0]?.type;
 
-    $: coverPath = $cover?.cid ? `${IPFS_GATEWAY}${$cover?.cid}` : undefined;
+    $: coverPath = $cover?.cid ? `${INFURA_GATEWAY_URL}${$cover?.cid}` : undefined;
     $: coverType = $cover?.type;
 
     $: isAttachmentImage = attachmentType?.startsWith('image/');

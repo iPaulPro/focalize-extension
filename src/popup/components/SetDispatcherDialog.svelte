@@ -19,7 +19,6 @@
         try {
             const txHash = await setDispatcher({
                 profileId: $currentUser.profileId,
-                dispatcher: import.meta.env.VITE_LENS_DISPATCHER_ADDRESS,
             });
 
             if (txHash) {
