@@ -22,6 +22,7 @@ import type {LensNode} from "./lib/lens-nodes";
 import {getAvatar, limitString, stripMarkdown} from "./lib/utils";
 import type {PublicationState} from "./lib/stores/state-store";
 import {getPublicationUrl, getProfileUrl, getPublicationUrlFromNode} from "./lib/lens-nodes";
+import {notificationsFiltered} from "./lib/stores/preferences-store";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -55,14 +56,27 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
 
     const notificationTypes: NotificationTypes[] = [];
     const syncStorage = await chrome.storage.sync.get(
-        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions', 'notificationsForComments', 'notificationsForCollects']
+        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions',
+            'notificationsForComments', 'notificationsForCollects', 'notificationsFiltered']
     );
-    if (syncStorage.notificationsForFollows) notificationTypes.push(NotificationTypes.Followed);
-    if (syncStorage.notificationsForReactions) notificationTypes.push(NotificationTypes.ReactionPost, NotificationTypes.ReactionComment);
-    if (syncStorage.notificationsForCollects) notificationTypes.push(NotificationTypes.CollectedPost, NotificationTypes.CollectedComment);
-    if (syncStorage.notificationsForComments) notificationTypes.push(NotificationTypes.CommentedPost, NotificationTypes.CommentedComment);
-    if (syncStorage.notificationsForMentions) notificationTypes.push(NotificationTypes.MentionPost, NotificationTypes.MentionPost);
-    if (syncStorage.notificationsForMirrors) notificationTypes.push(NotificationTypes.MirroredPost, NotificationTypes.MirroredComment);
+    if (syncStorage.notificationsForFollows !== false) {
+        notificationTypes.push(NotificationTypes.Followed);
+    }
+    if (syncStorage.notificationsForReactions !== false) {
+        notificationTypes.push(NotificationTypes.ReactionPost, NotificationTypes.ReactionComment);
+    }
+    if (syncStorage.notificationsForCollects !== false) {
+        notificationTypes.push(NotificationTypes.CollectedPost, NotificationTypes.CollectedComment);
+    }
+    if (syncStorage.notificationsForComments !== false) {
+        notificationTypes.push(NotificationTypes.CommentedPost, NotificationTypes.CommentedComment);
+    }
+    if (syncStorage.notificationsForMentions !== false) {
+        notificationTypes.push(NotificationTypes.MentionPost, NotificationTypes.MentionComment);
+    }
+    if (syncStorage.notificationsForMirrors !== false) {
+        notificationTypes.push(NotificationTypes.MirroredPost, NotificationTypes.MirroredComment);
+    }
 
     if (notificationTypes.length === 0) return undefined;
 
@@ -71,6 +85,7 @@ const getNotifications = async (): Promise<Notification[] | undefined> => {
             request: {
                 profileId: user.profileId,
                 limit: NOTIFICATIONS_QUERY_LIMIT,
+                highSignalFilter: syncStorage.notificationsFiltered === true,
                 notificationTypes
             }
         })

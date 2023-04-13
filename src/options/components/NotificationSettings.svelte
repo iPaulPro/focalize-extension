@@ -7,8 +7,7 @@
 
     import LensNodeSelect from "./LensNodeSelect.svelte";
     import {
-        notificationsForCollects,
-        notificationsForComments,
+        notificationsFiltered, notificationsForCollects, notificationsForComments,
         notificationsForMentions, notificationsForMirrors, notificationsForReactions
     } from "../../lib/stores/preferences-store.js";
 
@@ -103,6 +102,25 @@
                     {$notificationsEnabled ? 'hover:bg-gray-100 dark:hover:bg-gray-600 shadow' : ''}
                     text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
                     rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none"/>
+          </div>
+        </div>
+
+        <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$notificationsFiltered}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Filter notifications
+            </div>
+            <div class="text-base text-neutral-400">
+              Only notify me of high-signal notifications
+            </div>
           </div>
         </div>
 

@@ -51,6 +51,8 @@ export const notificationsTimestamp: Writable<string> = chromeStorageSync('notif
 
 export const notificationsGrouped: Writable<boolean> = chromeStorageSync('notificationsGrouped', false);
 
+export const notificationsFiltered: Writable<boolean> = chromeStorageSync('notificationsFiltered', false);
+
 export const notificationsForFollows: Writable<boolean> = chromeStorageSync('notificationsForFollows', true);
 
 export const notificationsForMirrors: Writable<boolean> = chromeStorageSync('notificationsForMirrors', true);
