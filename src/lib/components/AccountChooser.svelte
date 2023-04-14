@@ -1,11 +1,11 @@
 <script lang="ts">
     import {currentUser} from '../stores/user-store'
     import {getProfiles} from '../lens-profile'
-    import LoadingSpinner from '../../popup/components/LoadingSpinner.svelte'
+    import LoadingSpinner from '../../window/components/LoadingSpinner.svelte'
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user';
-    import {getAvatar} from "../utils";
+    import {getAvatarFromProfile} from "../utils";
 
     export let anchorNode;
     export let showSettings = true;
@@ -59,7 +59,7 @@
               <InlineSVG src={ImageAvatar}
                          class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
             {:else}
-              <img src={getAvatar(p)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
+              <img src={getAvatarFromProfile(p)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
                    on:error={() => {avatarError.push(index)}}>
             {/if}
 

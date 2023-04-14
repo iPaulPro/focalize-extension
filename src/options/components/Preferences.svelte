@@ -2,7 +2,7 @@
     import Toolbar from './Toolbar.svelte';
     import { setContext } from 'svelte';
     import {darkMode, useDispatcher, dispatcherDialogShown} from '../../lib/stores/preferences-store';
-    import SetDispatcherDialog from "../../popup/components/SetDispatcherDialog.svelte";
+    import SetDispatcherDialog from "../../window/components/SetDispatcherDialog.svelte";
     import {currentUser} from "../../lib/stores/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";
     import Sidebar from "./Sidebar.svelte";

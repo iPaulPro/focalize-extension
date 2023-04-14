@@ -1,5 +1,11 @@
 const config = {
-  content: ["./src/**/*.{html,js,svelte,ts}"],
+  content: [
+    './src/**/*.{html,js,svelte,ts}',
+    require('path').join(require.resolve(
+        '@skeletonlabs/skeleton'),
+      '../**/*.{html,js,svelte,ts}'
+    )
+  ],
 
   theme: {
     extend: {
@@ -21,18 +27,16 @@ const config = {
       dropShadow: {
         'dark': '0 1px 1px rgba(0, 0, 0, 0.7)'
       }
-    },
+    }
   },
 
   plugins: [
     require('@tailwindcss/typography'),
-    require('@tailwindcss/line-clamp'),
-    require('@tailwindcss/forms')
+    require('@tailwindcss/forms'),
+    ...require('@skeletonlabs/skeleton/tailwind/skeleton.cjs')()
   ],
 
-  darkMode: 'class',
+  darkMode: 'class'
+}
 
-  important: true,
-};
-
-module.exports = config;
+module.exports = config

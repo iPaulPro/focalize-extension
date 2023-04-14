@@ -19,14 +19,13 @@ import type {
 } from "./lib/graph/lens-service";
 import type {User} from "./lib/user";
 import type {LensNode} from "./lib/lens-nodes";
-import {getAvatar, limitString, stripMarkdown} from "./lib/utils";
+import {getAvatarFromProfile, truncate, stripMarkdown} from "./lib/utils";
 import type {PublicationState} from "./lib/stores/state-store";
 import {getPublicationUrl, getProfileUrl, getPublicationUrlFromNode} from "./lib/lens-nodes";
-import {notificationsFiltered} from "./lib/stores/preferences-store";
+import {getNotifications, NOTIFICATIONS_QUERY_LIMIT} from "./lib/lens-notifications";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
-const NOTIFICATIONS_QUERY_LIMIT = 50;
 
 const clearAlarm = () => chrome.alarms.clear(ALARM_ID);
 
@@ -35,75 +34,16 @@ const setAlarm = async () => {
     const alarmPeriodInSeconds = storage.notificationsRefreshInterval;
     console.log(`setlAlarm: alarmPeriodInSeconds`, alarmPeriodInSeconds)
     await clearAlarm()
-    chrome.alarms.create(ALARM_ID, {
+    await chrome.alarms.create(ALARM_ID, {
         periodInMinutes: alarmPeriodInSeconds.value,
         delayInMinutes: 0
     })
 };
 
-const getNotifications = async (): Promise<Notification[] | undefined> => {
-    let accessToken;
-    try {
-        accessToken = await getOrRefreshAccessToken();
-    } catch (e) {
-        console.error('getNotifications: Error getting access token', e);
-    }
-    if (!accessToken) return undefined;
-
-    const localStorage = await chrome.storage.local.get('currentUser');
-    if (!localStorage.currentUser) return undefined;
-    const user: User = localStorage.currentUser;
-
-    const notificationTypes: NotificationTypes[] = [];
-    const syncStorage = await chrome.storage.sync.get(
-        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions',
-            'notificationsForComments', 'notificationsForCollects', 'notificationsFiltered']
-    );
-    if (syncStorage.notificationsForFollows !== false) {
-        notificationTypes.push(NotificationTypes.Followed);
-    }
-    if (syncStorage.notificationsForReactions !== false) {
-        notificationTypes.push(NotificationTypes.ReactionPost, NotificationTypes.ReactionComment);
-    }
-    if (syncStorage.notificationsForCollects !== false) {
-        notificationTypes.push(NotificationTypes.CollectedPost, NotificationTypes.CollectedComment);
-    }
-    if (syncStorage.notificationsForComments !== false) {
-        notificationTypes.push(NotificationTypes.CommentedPost, NotificationTypes.CommentedComment);
-    }
-    if (syncStorage.notificationsForMentions !== false) {
-        notificationTypes.push(NotificationTypes.MentionPost, NotificationTypes.MentionComment);
-    }
-    if (syncStorage.notificationsForMirrors !== false) {
-        notificationTypes.push(NotificationTypes.MirroredPost, NotificationTypes.MirroredComment);
-    }
-
-    if (notificationTypes.length === 0) return undefined;
-
-    try {
-        const {notifications} = await gqlClient.Notifications({
-            request: {
-                profileId: user.profileId,
-                limit: NOTIFICATIONS_QUERY_LIMIT,
-                highSignalFilter: syncStorage.notificationsFiltered === true,
-                notificationTypes
-            }
-        })
-
-        if (notifications.items) {
-            return notifications.items as Notification[];
-        }
-    } catch (e) {
-        return [];
-    }
-
-    return [];
-}
-
 const createReactionNotification = (notification: NewReactionNotification, currentUser: User, node: LensNode) => {
     const reactionProfile = notification.profile;
     if (!reactionProfile || notification.reaction !== 'UPVOTE') return;
-    const reactionAvatarUrl = getAvatar(reactionProfile);
+    const reactionAvatarUrl = getAvatarFromProfile(reactionProfile);
     const content = notification.publication.metadata.content;
     const contentStripped = stripMarkdown(content);
     const publicationType = notification.notificationId.startsWith('reaction_comment') ? 'comment' : 'post';
@@ -115,7 +55,7 @@ const createReactionNotification = (notification: NewReactionNotification, curre
             type: 'basic',
             eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
             title: `@${reactionProfile.handle.replace('.lens', '')} liked your ${publicationType}`,
-            message: limitString(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
+            message: truncate(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
             contextMessage: 'Focalize',
             iconUrl: reactionAvatarUrl
         }
@@ -125,7 +65,7 @@ const createReactionNotification = (notification: NewReactionNotification, curre
 const createMirrorNotification = (notification: NewMirrorNotification, currentUser: User, node: LensNode) => {
     const mirrorProfile = notification.profile;
     if (!mirrorProfile) return;
-    const mirrorAvatarUrl = getAvatar(mirrorProfile);
+    const mirrorAvatarUrl = getAvatarFromProfile(mirrorProfile);
     const content = notification.publication.metadata.content;
     const contentStripped = stripMarkdown(content);
     const notificationId = getPublicationUrlFromNode(node, notification.publication.id);
@@ -136,7 +76,7 @@ const createMirrorNotification = (notification: NewMirrorNotification, currentUs
             type: 'basic',
             eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
             title: `@${mirrorProfile.handle.replace('.lens', '')} mirrored your post`,
-            message: limitString(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
+            message: truncate(contentStripped, 25) ?? notification.publication.metadata.name ?? `@${currentUser.handle}`,
             contextMessage: 'Focalize',
             iconUrl: mirrorAvatarUrl
         }
@@ -146,7 +86,7 @@ const createMirrorNotification = (notification: NewMirrorNotification, currentUs
 const createFollowerNotification = (notification: NewFollowerNotification, currentUser: User, node: LensNode) => {
     const followerProfile = notification.wallet.defaultProfile;
     if (!followerProfile) return;
-    const followerAvatarUrl = getAvatar(followerProfile);
+    const followerAvatarUrl = getAvatarFromProfile(followerProfile);
     const notificationId = getProfileUrl(node, followerProfile.handle);
 
     chrome.notifications.create(
@@ -170,7 +110,7 @@ const createFollowerNotification = (notification: NewFollowerNotification, curre
 const createMentionNotification = (notification: NewMentionNotification, currentUser: User, node: LensNode) => {
     const mentionProfile = notification.mentionPublication.profile;
     if (!mentionProfile) return;
-    const mentionAvatarUrl = getAvatar(mentionProfile);
+    const mentionAvatarUrl = getAvatarFromProfile(mentionProfile);
     const content = notification.mentionPublication.metadata.content;
     const contentStripped = stripMarkdown(content);
     const notificationId = getPublicationUrlFromNode(node, notification.mentionPublication.id);
@@ -192,7 +132,7 @@ const createMentionNotification = (notification: NewMentionNotification, current
 const createCommentNotification = (notification: NewCommentNotification, currentUser: User, node: LensNode) => {
     const commentProfile = notification.profile;
     if (!commentProfile) return;
-    const commentAvatarUrl = getAvatar(commentProfile);
+    const commentAvatarUrl = getAvatarFromProfile(commentProfile);
     const content = notification.comment.metadata?.content;
     const contentStripped = stripMarkdown(content);
     const notificationId = getPublicationUrlFromNode(node, notification.comment.id);
@@ -214,7 +154,7 @@ const createCommentNotification = (notification: NewCommentNotification, current
 const createCollectNotification = (notification: NewCollectNotification, currentUser: User, node: LensNode) => {
     const collectProfile = notification.collectedPublication.profile;
     if (!collectProfile) return;
-    const collectAvatarUrl = getAvatar(collectProfile);
+    const collectAvatarUrl = getAvatarFromProfile(collectProfile);
     const content = notification.collectedPublication.metadata.content;
     const contentStripped = stripMarkdown(content);
     const notificationId = getPublicationUrlFromNode(node, notification.collectedPublication.id);
@@ -225,7 +165,7 @@ const createCollectNotification = (notification: NewCollectNotification, current
             type: 'basic',
             eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
             title: `@${collectProfile.handle.replace('.lens', '')} collected your post`,
-            message: limitString(contentStripped, 25) ?? notification.collectedPublication.metadata.name ?? `@${currentUser.handle}`,
+            message: truncate(contentStripped, 25) ?? notification.collectedPublication.metadata.name ?? `@${currentUser.handle}`,
             contextMessage: 'Focalize',
             iconUrl: collectAvatarUrl
         }
@@ -338,49 +278,6 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-const parseOGTags = (): {
-    url?: string;
-    title?: string | null,
-    description?: string | null
-} => ({
-    title: document.head.querySelector("meta[property='og:title']")?.getAttribute("content") ||
-        document.head.querySelector("meta[name='twitter:title']")?.getAttribute("content"),
-    description: document.head.querySelector("meta[property='og:description']")?.getAttribute("content") ||
-        document.head.querySelector("meta[name='description']")?.getAttribute("content") ||
-        document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
-});
-
-const truncate = (str: string, n: number) => (str.length > n) ? str.slice(0, n - 1) + '&hellip;' : str;
-
-const shareUrl = async (tags: any) => {
-    console.log('shareUrl called with', tags);
-    const path = chrome.runtime.getURL('src/popup/index.html');
-    const url = new URL(path);
-
-    if (tags.url) {
-        url.searchParams.append('url', tags.url);
-    }
-
-    if (tags.title) {
-        url.searchParams.append('title', truncate(tags.title, 160));
-    }
-
-    if (tags.description) {
-        url.searchParams.append('desc', truncate(tags.description, 160));
-    }
-
-    const storage = await chrome.storage.sync.get('compactMode');
-    const compactMode = storage.compactMode;
-
-    chrome.windows.create({
-        url: url.toString(),
-        focused: true,
-        type: 'popup',
-        width: compactMode ? 672 : 768,
-        height: compactMode ? 396 : 600
-    }).catch(console.error);
-}
-
 const notifyOfPublishedPost = async (metadata: PublicationMetadataV2Input, publicationId: string) => {
     const localStorage = await chrome.storage.local.get('currentUser');
     const currentUser: User = localStorage.currentUser;
@@ -439,44 +336,6 @@ chrome.runtime.onMessage.addListener(
         }
     }
 );
-
-chrome.action.onClicked.addListener(tab => {
-    const url = tab.url!!;
-    const title = tab.title;
-
-    if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
-        chrome.tabs.update(
-            // @ts-ignore
-            tab.id,
-            {
-                url: chrome.runtime.getURL('src/popup/index.html')
-            }
-        ).catch(console.error);
-        return;
-    }
-
-    chrome.scripting.executeScript(
-        {
-            // @ts-ignore
-            target: {tabId: tab.id},
-            func: parseOGTags
-        }
-    ).then(results => {
-        const tags = results[0]?.result;
-        if (tags) {
-            console.log('found open graph tags', tags);
-            tags.url = url; // og:url is often misused
-            if (!tags.title) tags.title = title;
-            return shareUrl(tags);
-        } else {
-            console.log('no tags found')
-            return shareUrl({title, url});
-        }
-    }).catch(e => {
-        console.error(e)
-        shareUrl({title, url}).catch(console.error);
-    })
-});
 
 const searchProfiles = async (query: string, limit: number): Promise<Profile[]> => {
     const {search} = await gqlClient.SearchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});

@@ -10,8 +10,9 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatar = (profile: Profile) => {
+export const getAvatarFromProfile = (profile: Profile) => {
     let avatarUrl: string | undefined;
+
     if (profile.picture?.__typename === "MediaSet") {
         avatarUrl = profile.picture?.original?.url;
     } else if (profile.picture?.__typename === "NftImage") {
@@ -49,12 +50,38 @@ export const stripMarkdown = (markdown: string | undefined): string | undefined 
     return extractTextFromHtml(htmlFromMarkdown(markdown));
 };
 
-export const limitString = (str: string | undefined, limit: number): string | undefined => {
-    if (!str || str.length <= limit) {
-        // String is already within the limit, no need to truncate
-        return str;
-    } else {
-        // String is longer than the limit, truncate and add ellipsis
-        return str.slice(0, limit) + '...';
+export const truncate = (str: string | undefined, limit: number): string | undefined => {
+    return (!str || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
+};
+
+export const launchComposerWindow = async (
+    tags?: { url?: string, title?: string, description?: string }
+) => {
+    const path = chrome.runtime.getURL('src/window/index.html');
+    const url = new URL(path);
+
+    if (tags?.url) {
+        url.searchParams.append('url', tags.url);
     }
+
+    if (tags?.title) {
+        url.searchParams.append('title', truncate(tags.title, 160) ?? '');
+    }
+
+    if (tags?.description) {
+        url.searchParams.append('desc', truncate(tags.description, 160) ?? '');
+    }
+
+    const storage = await chrome.storage.sync.get('compactMode');
+    const compactMode = storage.compactMode;
+
+    chrome.windows.create({
+        url: url.toString(),
+        focused: true,
+        type: 'popup',
+        width: compactMode ? 672 : 768,
+        height: compactMode ? 396 : 600
+    }).catch(console.error);
+
+    window.close();
 };

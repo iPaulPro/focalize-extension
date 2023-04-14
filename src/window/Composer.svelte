@@ -544,8 +544,8 @@
                     --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent" --list-border-radius="0.75rem"
                     --chevron-color={$darkMode ? '#FFB38E' : '#A33500'} --selected-item-padding="0"
-                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
-                    focus:outline-none focus:ring-0 focus:border-none bg-none">
+                    class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-xl !border-none !ring-0
+                    focus:!outline-none !focus:ring-0 focus:!border-none !bg-none">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem {item} />
@@ -565,8 +565,8 @@
                     --list-background={$darkMode ? '#374354' : 'white'} --item-padding="0"
                     --disabled-background="transparent" --list-border-radius="0.75rem"
                     --chevron-color={$darkMode ? '#FFB38E' : '#A33500'} --selected-item-padding="0"
-                    class="w-fit hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl border-none ring-0
-                    focus:outline-none focus:ring-0 focus:border-none bg-none">
+                    class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-xl !border-none !ring-0
+                    focus:!outline-none focus:!ring-0 focus:!border-none !bg-none">
 
               <div slot="item" let:item let:index>
                 <ModuleChoiceItem item={collectFeeString && item === FEE_COLLECT_ITEM ? feeSelectChoiceItem(item) : item} />
@@ -592,9 +592,9 @@
                     --font-size="0.875rem" --list-border-radius="0.75rem" --list-z-index={20}
                     --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
-                    class="w-fit h-fit max-w-xs bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600
-                    shadow text-sm text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                    rounded-full border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+                    class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
+                  !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
+                  !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
               <div slot="prepend" class="pr-1">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -612,9 +612,9 @@
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                   --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                   --list-border-radius="0.75rem"
-                  class="w-fit h-fit bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 shadow
-                  text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                  rounded-full border-none ring-0 focus:outline-none focus:ring-0 focus:border-none">
+                  class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
+                  !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
+                  !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
             <div slot="prepend" class="pr-1">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -633,7 +633,7 @@
 
           <label class="switch">
             <input type="checkbox" bind:checked={$darkMode}>
-            <span class="slider bg-gray-200 dark:bg-gray-700 round flex justify-between items-center px-2
+            <span class="slider !bg-gray-200 dark:!bg-gray-700 round flex justify-between items-center px-2
                   shadow-none">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                    class="w-4 h-4 text-orange-300"

@@ -98,10 +98,10 @@
                     --font-size="0.875rem" --background="transparent"
                     --list-background={$darkMode ? '#374354' : 'white'}
                     --selected-item-padding="0" --list-border-radius="0.75rem"
-                    class="w-fit h-fit bg-white dark:bg-gray-800
-                    {$notificationsEnabled ? 'hover:bg-gray-100 dark:hover:bg-gray-600 shadow' : ''}
-                    text-gray-800 dark:text-gray-300 dark:hover:text-gray-100
-                    rounded-xl border-none ring-0 focus:outline-none focus:ring-0 focus:border-none"/>
+                    class="!w-fit !h-fit !bg-white dark:!bg-gray-800
+                    {$notificationsEnabled ? 'hover:!bg-gray-100 dark:hover:!bg-gray-600 !shadow' : ''}
+                    !text-gray-800 dark:!text-gray-300 dark:hover:!text-gray-100
+                    !rounded-xl !border-none ring-0 !focus:outline-none focus:!ring-0 focus:!border-none"/>
           </div>
         </div>
 

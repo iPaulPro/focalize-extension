@@ -51,7 +51,7 @@
 
         <div class="ml-4 flex items-center md:ml-6">
 
-          <a href="/src/popup/index.html"
+          <a href="/src/window/index.html"
              class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500
              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
 
@@ -61,8 +61,8 @@
 
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 11.08V8l-6-6H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h6"/>
-              <path d="M14 3v5h5M18 21v-6M15 18h6"/>
+              <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path>
+              <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
             </svg>
 
           </a>

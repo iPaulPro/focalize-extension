@@ -5,7 +5,7 @@ import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
 import {currentUser} from "./stores/user-store";
 import {get} from "./stores/chrome-storage-store";
-import {getAvatar} from "./utils";
+import {getAvatarFromProfile} from "./utils";
 
 export type User = {
     address: string,
@@ -24,7 +24,7 @@ export enum UserError {
 }
 
 export const userFromProfile = (profile: Profile): User => {
-    const avatarUrl = getAvatar(profile);
+    const avatarUrl = getAvatarFromProfile(profile);
 
     return {
         address: profile.ownedBy,
