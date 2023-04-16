@@ -28,7 +28,7 @@ export default defineManifest(async (env) => ({
             "128": "images/icon-128.png",
             "512": "images/icon-512.png"
         },
-        default_popup: "src/action/index.html"
+        default_popup: "src/popup/index.html"
     },
     icons: {
         "16": "images/icon-16.png",
