@@ -2,6 +2,8 @@ import type {Profile} from "./graph/lens-service";
 import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 import showdown from "showdown";
 import * as cheerio from 'cheerio';
+import {fromEvent, Subject, takeUntil} from "rxjs";
+import {debounceTime} from "rxjs/operators";
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -84,4 +86,30 @@ export const launchComposerWindow = async (
     }).catch(console.error);
 
     window.close();
+};
+
+interface ScrollEndListenerOptions {
+    delay?: number;
+    onScrollEnd?: () => void;
+}
+
+export const scrollEndListener = (
+    node: HTMLElement,
+    options: ScrollEndListenerOptions = {}
+): { destroy: () => void } => {
+    const { delay = 200, onScrollEnd = (node: HTMLElement) => {} } = options;
+    const destroy$ = new Subject<void>();
+
+    fromEvent(node, "scroll")
+        .pipe(debounceTime(delay), takeUntil(destroy$))
+        .subscribe(() => {
+            onScrollEnd(node);
+        });
+
+    return {
+        destroy() {
+            destroy$.next();
+            destroy$.complete();
+        },
+    };
 };

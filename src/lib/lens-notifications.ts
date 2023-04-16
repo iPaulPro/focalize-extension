@@ -8,7 +8,30 @@ import type {User} from "./user";
 import type {Notification, PaginatedNotificationResult} from "./graph/lens-service";
 import type {LensNode} from "./lens-nodes";
 
+import {KEY_NOTIFICATION_ITEMS_CACHE} from "./stores/cache-store";
+
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
+
+const cacheNotifications = async (notificationRes: PaginatedNotificationResult) => {
+    console.log('cacheNotifications: Caching notifications', notificationRes);
+    const notifications = notificationRes.items as Notification[];
+    if (notifications.length === 0) return;
+
+    const storage = await chrome.storage.local.get(KEY_NOTIFICATION_ITEMS_CACHE);
+    const notificationItemsCache = storage.notificationItemsCache || [];
+    console.log('cacheNotifications: notificationItemsCache', notificationItemsCache);
+
+    const newItems = notifications.filter((notification) => {
+        return !notificationItemsCache.find((cached: Notification) => cached.notificationId === notification.notificationId);
+    });
+    console.log('cacheNotifications: newItems', newItems);
+    if (newItems.length > 0) {
+        await chrome.storage.local.set({
+            notificationItemsCache: [...notificationItemsCache, ...newItems],
+            notificationPageInfoCache: notificationRes.pageInfo,
+        });
+    }
+};
 
 export const getPaginatedNotificationResult = async (
     cursor?: any,
@@ -71,7 +94,9 @@ export const getPaginatedNotificationResult = async (
         console.log('getPaginatedNotificationResult: notifications', notifications);
 
         if (notifications.__typename === 'PaginatedNotificationResult') {
-            return notifications as PaginatedNotificationResult;
+            const notificationsRes = notifications as PaginatedNotificationResult;
+            await cacheNotifications(notificationsRes);
+            return notificationsRes;
         }
     } catch (e) {
         return null;

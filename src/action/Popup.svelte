@@ -4,10 +4,13 @@
     import {darkMode} from "../lib/stores/preferences-store";
     import {TabGroup, Tab} from '@skeletonlabs/skeleton';
     import NotificationsList from "./components/NotificationsList.svelte";
-    import {launchComposerWindow} from "../lib/utils";
+    import {launchComposerWindow, scrollEndListener} from "../lib/utils";
     import {DateTime} from "luxon";
+    import {notificationsScrollTop} from "../lib/stores/cache-store";
 
     let tabSet: number = 0;
+
+    let notificationList: NotificationsList;
 
     $: {
         if ($darkMode) {
@@ -77,13 +80,22 @@
         chrome.runtime.openOptionsPage();
         window.close();
     };
+
+    const onNotificationsTabClick = async () => {
+        await chrome.storage.local.remove(['notificationItemsCache', 'notificationPageInfoCache']);
+    };
+
+    const handleScrollEnd = (node: HTMLElement) => {
+        console.log("Scrolling ended!", node.scrollTop);
+        $notificationsScrollTop = node.scrollTop;
+    };
 </script>
 
 <div class="w-full h-full flex flex-col">
 
   <TabGroup regionPanel="w-full flex-grow overflow-y-auto min-h-0 my-0" regionList="flex-shrink-0" padding="px-6 py-3"
             border="border-b border-gray-200 dark:border-gray-700" class="flex flex-col h-full !space-y-0">
-    <Tab bind:group={tabSet} name="tab1" value={0}>
+    <Tab bind:group={tabSet} name="tab1" value={0} on:click={onNotificationsTabClick}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
@@ -97,8 +109,9 @@
       </svg>
     </Tab>
 
-    <div class="w-full flex justify-end items-center px-2">
-      <button type="button" on:click={onCreatePostClick}  use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
+    <div on:click={() => notificationList.scrollToTop()}
+        class="w-full flex justify-end items-center px-2">
+      <button type="button" on:click|stopPropagation={onCreatePostClick}  use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -107,7 +120,7 @@
         </svg>
       </button>
 
-      <button type="button" on:click={onSettingsClick} use:tippy={{content: 'Settings', placement: 'bottom', delay: 500}}
+      <button type="button" on:click|stopPropagation={onSettingsClick} use:tippy={{content: 'Settings', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -122,12 +135,13 @@
     <svelte:fragment slot="panel">
       {#if tabSet === 0}
         {#await getLastNotificationUpdateDate() then lastUpdate}
-          <NotificationsList {lastUpdate}/>
+          <div use:scrollEndListener={{ onScrollEnd: handleScrollEnd }} class="h-full overflow-y-auto">
+            <NotificationsList {lastUpdate} bind:this={notificationList}/>
+          </div>
         {/await}
       {:else if tabSet === 1}
 
         <div class="w-full h-full flex flex-col justify-center items-center">
-
           <div class="animate-pulse">
             <svg class="w-24 opacity-60" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
