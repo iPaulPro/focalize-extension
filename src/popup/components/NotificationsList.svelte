@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getPaginatedNotificationResult} from "../../lib/lens-notifications";
+    import {getNextNotifications} from "../../lib/lens-notifications";
     import InfiniteLoading from 'svelte-infinite-loading';
     import type {Notification} from "../../lib/graph/lens-service";
     import NotificationItem from "./NotificationItem.svelte";
@@ -60,17 +60,16 @@
                 return;
             }
 
-            const notificationResult = await getPaginatedNotificationResult(cursor, 20);
-            console.log('infiniteHandler: notificationResult', notificationResult);
-            if (!notificationResult) {
+            const nextNotifications = await getNextNotifications();
+            if (!nextNotifications.notifications || !nextNotifications.cursor) {
                 complete();
                 return;
             }
 
-            cursor = notificationResult.pageInfo.next;
+            cursor = nextNotifications.cursor;
 
-            if (notificationResult.items.length) {
-                notifications = [...notifications, ...notificationResult.items];
+            if (nextNotifications.notifications.length) {
+                notifications = [...notifications, ...nextNotifications.notifications];
                 loaded();
             } else {
                 complete();
@@ -84,11 +83,11 @@
 
 {#if error}
 
-  <div class="h-full flex flex-col justify-center items-center">
-    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">Error</p>
-    <p class="text-gray-600 dark:text-gray-400">There was an error loading notifications.</p>
+  <div class="h-full flex flex-col justify-center items-center gap-1">
+    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">Error</div>
+    <div class="text text-gray-600 dark:text-gray-400">There was an error loading notifications.</div>
     <button type="button" on:click={reload}
-            class="w-auto py-1.5 px-8 flex justify-center items-center
+            class="w-auto mt-2 py-1.5 px-8 flex justify-center items-center
             bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
             dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600
             rounded-full shadow-md

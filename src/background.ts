@@ -22,7 +22,7 @@ import type {LensNode} from "./lib/lens-nodes";
 import {getAvatarFromProfile, truncate, stripMarkdown} from "./lib/utils";
 import type {PublicationState} from "./lib/stores/state-store";
 import {getPublicationUrl, getProfileUrl, getPublicationUrlFromNode} from "./lib/lens-nodes";
-import {getNotifications, NOTIFICATIONS_QUERY_LIMIT} from "./lib/lens-notifications";
+import {getLatestNotifications, NOTIFICATIONS_QUERY_LIMIT} from "./lib/lens-notifications";
 
 const ALARM_ID = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -152,7 +152,7 @@ const createCommentNotification = (notification: NewCommentNotification, current
 };
 
 const createCollectNotification = (notification: NewCollectNotification, currentUser: User, node: LensNode) => {
-    const collectProfile = notification.collectedPublication.profile;
+    const collectProfile = notification.wallet.defaultProfile;
     if (!collectProfile) return;
     const collectAvatarUrl = getAvatarFromProfile(collectProfile);
     const content = notification.collectedPublication.metadata.content;
@@ -196,35 +196,33 @@ const onAlarmTriggered = async () => {
     const currentUser: User = localStorage.currentUser;
     if (!currentUser) return;
 
-    const notifications = await getNotifications();
-    if (!notifications) return;
-    console.log('onAlarmTriggered: notifications', notifications);
+    const latestNotifications = await getLatestNotifications(true);
+    console.log('onAlarmTriggered: notifications', latestNotifications);
+    if (!latestNotifications.notifications) {
+        await updateNotificationsTimestamp();
+        return;
+    }
 
     const syncStorage = await chrome.storage.sync.get(
         ['notificationsTimestamp', 'notificationsGrouped', 'nodeNotifications']
     );
     const lastUpdateDate = syncStorage.notificationsTimestamp ? DateTime.fromISO(syncStorage.notificationsTimestamp) : null;
 
-    let newNotifications: Notification[] = [];
-    if (lastUpdateDate) {
-        newNotifications = notifications.filter(notification =>
-            DateTime.fromISO(notification.createdAt) > lastUpdateDate
-        );
-        console.log(`onAlarmTriggered: ${newNotifications.length} notifications since last update at ${lastUpdateDate.toLocaleString(DateTime.TIME_SIMPLE)}`);
-    }
+    let notifications: Notification[] = latestNotifications.notifications;
+    console.log(`onAlarmTriggered: ${notifications.length} new notifications ${lastUpdateDate ? 'since last update at ' + lastUpdateDate.toLocaleString(DateTime.TIME_SIMPLE) : ''}`);
 
     await updateNotificationsTimestamp();
 
-    if (newNotifications.length === 0) {
+    if (notifications.length === 0) {
         return;
     }
 
     if (syncStorage.notificationsGrouped) {
-        createGroupNotification(newNotifications, currentUser);
+        createGroupNotification(notifications, currentUser);
         return;
     }
 
-    for (const notification of newNotifications) {
+    for (const notification of notifications) {
         switch (notification.__typename) {
             case 'NewCollectNotification':
                 createCollectNotification(notification, currentUser, syncStorage.nodeNotifications);

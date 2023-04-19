@@ -181,7 +181,7 @@
           {:then tokens}
 
             <select id="Currency" name="currency" bind:value={token} on:change={onCurrencyChange}
-                    class="focus:ring-orange-500 py-2 px-4 border-t border-r border-gray-300 border-b bo focus:border-orange-500
+                    class="focus:ring-orange-500 py-2 px-4 border-t border-r border-gray-300 border-b focus:border-orange-500
                   h-full pl-2 pr-7 border-transparent bg-transparent text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-xl">
 
               {#each tokens as token}

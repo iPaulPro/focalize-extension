@@ -77,7 +77,7 @@
               Notifications enabled
             </div>
             <div class="text-base text-neutral-400">
-              Notify me of activity on Lens
+              Notify of activity on Lens
             </div>
           </div>
         </div>
@@ -108,25 +108,6 @@
         <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
           <div class="pt-1">
             <label class="switch">
-              <input type="checkbox" bind:checked={$notificationsFiltered}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
-
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Filter notifications
-            </div>
-            <div class="text-base text-neutral-400">
-              Only notify me of high-signal notifications
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
-          <div class="pt-1">
-            <label class="switch">
               <input type="checkbox" bind:checked={$notificationsGrouped}>
               <span class="slider round flex justify-between items-center px-2
                   shadow-none"></span>
@@ -138,7 +119,7 @@
               Group notifications
             </div>
             <div class="text-base text-neutral-400">
-              Show one notification for all unread
+              Show one system notification for all unread
             </div>
           </div>
         </div>
@@ -171,17 +152,17 @@
             Customize
           </div>
           <div class="text-base text-neutral-400">
-            Specify which kinds of notifications you'll receive
+            Specify which kinds of notifications you'll see and receive system notifications for
           </div>
         </div>
       </div>
 
       <div class="w-full md:w-2/3 flex flex-col gap-6">
 
-        <div class="w-full flex">
+        <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
           <div class="pt-1">
             <label class="switch">
-              <input type="checkbox" bind:checked={$notificationsForComments}>
+              <input type="checkbox" bind:checked={$notificationsFiltered}>
               <span class="slider round flex justify-between items-center px-2
                   shadow-none"></span>
             </label>
@@ -189,29 +170,10 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Comments
+              Filter notifications
             </div>
             <div class="text-base text-neutral-400">
-              Notify me of new comments on my content
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full flex">
-          <div class="pt-1">
-            <label class="switch">
-              <input type="checkbox" bind:checked={$notificationsForMentions}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
-
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Mentions
-            </div>
-            <div class="text-base text-neutral-400">
-              Notify me when someone mentions me
+              Only show me high-signal notifications
             </div>
           </div>
         </div>
@@ -227,10 +189,29 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Collects
+              Collect alerts
             </div>
             <div class="text-base text-neutral-400">
-              Notify me when someone collects my content
+              Notify when someone collects my content
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$notificationsForComments}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Comment alerts
+            </div>
+            <div class="text-base text-neutral-400">
+              Notify of new comments on my content
             </div>
           </div>
         </div>
@@ -246,10 +227,29 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Follows
+              Follow alerts
             </div>
             <div class="text-base text-neutral-400">
-              Notify me of new followers
+              Notify of new followers
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$notificationsForMentions}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Mention alerts
+            </div>
+            <div class="text-base text-neutral-400">
+              Notify when someone mentions me
             </div>
           </div>
         </div>
@@ -265,10 +265,10 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Mirrors
+              Mirror alerts
             </div>
             <div class="text-base text-neutral-400">
-              Notify me when someone mirrors my content
+              Notify when someone mirrors my content
             </div>
           </div>
         </div>
@@ -284,10 +284,10 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Reactions
+              Reaction alerts
             </div>
             <div class="text-base text-neutral-400">
-              Notify me when someone reacts to my content
+              Notify when someone likes my content
             </div>
           </div>
         </div>

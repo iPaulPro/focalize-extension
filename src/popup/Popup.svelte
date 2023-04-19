@@ -86,7 +86,6 @@
     };
 
     const handleScrollEnd = (node: HTMLElement) => {
-        console.log("Scrolling ended!", node.scrollTop);
         $notificationsScrollTop = node.scrollTop;
     };
 </script>

@@ -1,23 +1,23 @@
-import {NotificationTypes} from "./graph/lens-service";
+import {NotificationTypes, type PaginatedResultInfo} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import gqlClient from "./graph/graphql-client";
-import {getAvatarFromProfile, truncate, stripMarkdown} from "./utils";
+import {getAvatarFromProfile, stripMarkdown, truncate} from "./utils";
 import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from "./lens-nodes";
 
 import type {User} from "./user";
 import type {Notification, PaginatedNotificationResult} from "./graph/lens-service";
 import type {LensNode} from "./lens-nodes";
 
-import {KEY_NOTIFICATION_ITEMS_CACHE} from "./stores/cache-store";
+import {KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE} from "./stores/cache-store";
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
-const cacheNotifications = async (notificationRes: PaginatedNotificationResult) => {
-    console.log('cacheNotifications: Caching notifications', notificationRes);
+const cacheNotifications = async (notificationRes: PaginatedNotificationResult, prepend: boolean) => {
+    console.log('cacheNotifications', notificationRes, prepend);
     const notifications = notificationRes.items as Notification[];
     if (notifications.length === 0) return;
 
-    const storage = await chrome.storage.local.get(KEY_NOTIFICATION_ITEMS_CACHE);
+    const storage = await chrome.storage.local.get([KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE]);
     const notificationItemsCache = storage.notificationItemsCache || [];
     console.log('cacheNotifications: notificationItemsCache', notificationItemsCache);
 
@@ -25,23 +25,56 @@ const cacheNotifications = async (notificationRes: PaginatedNotificationResult) 
         return !notificationItemsCache.find((cached: Notification) => cached.notificationId === notification.notificationId);
     });
     console.log('cacheNotifications: newItems', newItems);
+
     if (newItems.length > 0) {
+        let pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+
+        if (!pageInfo) {
+            // If we don't have a cache yet, we need to set the entire pageInfo object
+            pageInfo = notificationRes.pageInfo;
+        }
+        // If we're prepending, we need to update only the prev cursor, and vice versa
+        else if (prepend) {
+            pageInfo.prev = notificationRes.pageInfo.prev;
+        } else {
+            pageInfo.next = notificationRes.pageInfo.next;
+        }
+
         await chrome.storage.local.set({
-            notificationItemsCache: [...notificationItemsCache, ...newItems],
-            notificationPageInfoCache: notificationRes.pageInfo,
+            notificationPageInfoCache: pageInfo,
+            notificationItemsCache: prepend ? [...newItems, ...notificationItemsCache] : [...notificationItemsCache, ...newItems],
         });
     }
 };
 
-export const getPaginatedNotificationResult = async (
+export const getNotificationType = (notification: Notification): NotificationTypes => {
+    switch (notification.__typename) {
+        case 'NewFollowerNotification':
+            return NotificationTypes.Followed;
+        case 'NewCollectNotification':
+            return notification.notificationId.includes('comment') ? NotificationTypes.CollectedComment : NotificationTypes.CollectedPost;
+        case 'NewReactionNotification':
+            return notification.notificationId.includes('comment') ? NotificationTypes.ReactionComment : NotificationTypes.ReactionPost;
+        case 'NewCommentNotification':
+            return notification.notificationId.includes('comment') ? NotificationTypes.CommentedComment : NotificationTypes.CollectedPost;
+        case 'NewMentionNotification':
+            return notification.notificationId.includes('comment') ? NotificationTypes.MentionComment : NotificationTypes.MentionPost;
+        case 'NewMirrorNotification':
+            return notification.notificationId.includes('comment') ? NotificationTypes.MirroredComment : NotificationTypes.MirroredPost;
+        default:
+            throw new Error(`Unknown notification type: ${notification.__typename}`);
+    }
+}
+
+const getPaginatedNotificationResult = async (
     cursor?: any,
     limit: number = NOTIFICATIONS_QUERY_LIMIT,
-    filter: boolean = false
 ): Promise<PaginatedNotificationResult | null> => {
     let accessToken;
     try {
         accessToken = await getOrRefreshAccessToken();
     } catch (e) {
+        // TODO show notification to log back in if needed
         console.error('getNotifications: Error getting access token', e);
     }
     if (!accessToken) return null;
@@ -55,47 +88,20 @@ export const getPaginatedNotificationResult = async (
             'notificationsForComments', 'notificationsForCollects', 'notificationsFiltered']
     );
 
-    let notificationTypes: NotificationTypes[] | undefined;
-    if (filter) {
-        notificationTypes = [];
-
-        if (syncStorage.notificationsForFollows !== false) {
-            notificationTypes.push(NotificationTypes.Followed);
-        }
-        if (syncStorage.notificationsForReactions !== false) {
-            notificationTypes.push(NotificationTypes.ReactionPost, NotificationTypes.ReactionComment);
-        }
-        if (syncStorage.notificationsForCollects !== false) {
-            notificationTypes.push(NotificationTypes.CollectedPost, NotificationTypes.CollectedComment);
-        }
-        if (syncStorage.notificationsForComments !== false) {
-            notificationTypes.push(NotificationTypes.CommentedPost, NotificationTypes.CommentedComment);
-        }
-        if (syncStorage.notificationsForMentions !== false) {
-            notificationTypes.push(NotificationTypes.MentionPost, NotificationTypes.MentionComment);
-        }
-        if (syncStorage.notificationsForMirrors !== false) {
-            notificationTypes.push(NotificationTypes.MirroredPost, NotificationTypes.MirroredComment);
-        }
-
-        if (notificationTypes.length === 0) return null;
-    }
-
     try {
         const {notifications} = await gqlClient.Notifications({
             request: {
                 profileId: user.profileId,
                 limit,
                 highSignalFilter: syncStorage.notificationsFiltered === true,
-                notificationTypes,
                 cursor
             },
-        })
+        });
         console.log('getPaginatedNotificationResult: notifications', notifications);
 
         if (notifications.__typename === 'PaginatedNotificationResult') {
             const notificationsRes = notifications as PaginatedNotificationResult;
-            await cacheNotifications(notificationsRes);
+            await cacheNotifications(notificationsRes, cursor && JSON.parse(cursor).cursorDirection === 'BEFORE');
             return notificationsRes;
         }
     } catch (e) {
@@ -104,19 +110,82 @@ export const getPaginatedNotificationResult = async (
     return null;
 }
 
-export const getNotifications = async (): Promise<Notification[] | null> => {
-    const notifications = await getPaginatedNotificationResult();
+export const getLatestNotifications = async (
+    filter: boolean = false
+): Promise<{ notifications?: Notification[], cursor?: any }> => {
+    const storage = await chrome.storage.local.get(
+        [KEY_NOTIFICATION_PAGE_INFO_CACHE, KEY_NOTIFICATION_ITEMS_CACHE]
+    );
+    const pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+
+    const notificationsRes: PaginatedNotificationResult | null = await getPaginatedNotificationResult(pageInfo?.prev);
+    console.log('getNotifications: notifications result', notificationsRes);
+
+    // If we don't have a cache yet there are no "latest" notifications
+    if (!storage.notificationItemsCache || !notificationsRes?.items) {
+        return {};
+    }
+
+    if (!filter) {
+        return {
+            notifications: notificationsRes.items,
+            cursor: notificationsRes.pageInfo.prev,
+        };
+    }
+
+    const syncStorage = await chrome.storage.sync.get(
+        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions',
+            'notificationsForComments', 'notificationsForCollects', 'notificationsFiltered']
+    );
+
+    const filteredNotifications: Notification[] = notificationsRes.items.filter((notification: Notification) => {
+        const notificationType: NotificationTypes = getNotificationType(notification);
+        switch (notificationType) {
+            case NotificationTypes.Followed:
+                return syncStorage.notificationsForFollows !== false;
+            case NotificationTypes.ReactionPost:
+            case NotificationTypes.ReactionComment:
+                return syncStorage.notificationsForReactions !== false;
+            case NotificationTypes.CollectedPost:
+            case NotificationTypes.CollectedComment:
+                return syncStorage.notificationsForCollects !== false;
+            case NotificationTypes.CommentedPost:
+            case NotificationTypes.CommentedComment:
+                return syncStorage.notificationsForComments !== false;
+            case NotificationTypes.MentionPost:
+            case NotificationTypes.MentionComment:
+                return syncStorage.notificationsForMentions !== false;
+            case NotificationTypes.MirroredPost:
+            case NotificationTypes.MirroredComment:
+                return syncStorage.notificationsForMirrors !== false;
+            default:
+                return false;
+        }
+    });
+
+    return {
+        notifications: filteredNotifications,
+        cursor: notificationsRes.pageInfo.prev
+    };
+}
+
+export const getNextNotifications = async (): Promise<{ notifications?: Notification[], cursor?: any }> => {
+    const storage = await chrome.storage.local.get([KEY_NOTIFICATION_PAGE_INFO_CACHE]);
+    const pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+    const notifications = await getPaginatedNotificationResult(pageInfo?.next);
     console.log('getNotifications: notifications', notifications);
     if (notifications?.items) {
-        return notifications.items as Notification[];
+        return {
+            notifications: notifications.items as Notification[],
+            cursor: notifications.pageInfo.next
+        };
     }
-    return null;
+    return {};
 }
 
 export const getAvatarFromNotification = (notification: Notification): string | null => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
-            return getAvatarFromProfile(notification.collectedPublication.profile);
         case 'NewFollowerNotification':
             const profile = notification.wallet.defaultProfile;
             if (profile) return getAvatarFromProfile(profile);
@@ -153,9 +222,8 @@ export const getNotificationAction = (notification: Notification): string => {
 export const getNotificationHandle = (notification: Notification): string => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
-            return notification.collectedPublication.profile.handle.replace('.lens', '');
         case 'NewFollowerNotification':
-            return notification.wallet.defaultProfile?.handle.replace('.lens', '') || notification.wallet.address;
+            return notification.wallet.defaultProfile?.handle.replace('.lens', '') ?? notification.wallet.address;
         case 'NewMentionNotification':
             return notification.mentionPublication.profile.handle.replace('.lens', '');
         case 'NewCommentNotification':
