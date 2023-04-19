@@ -27,7 +27,7 @@
       <div class="flex shrink-0 h-24 pl-4 pr-1 items-center border-b border-gray-200 dark:border-gray-700
          hover:bg-gray-50 dark:hover:bg-gray-900">
 
-        <a class="min-w-0 grow h-full block cursor-pointer" on:click={() => onDraftClick(item)}>
+        <div class="min-w-0 grow h-full block cursor-pointer" on:click={() => onDraftClick(item)}>
 
           <div class="w-full h-full flex items-center">
 
@@ -57,7 +57,7 @@
 
             </div>
           </div>
-        </a>
+        </div>
 
         {#if $draftId === item.id}
           <div class="mr-1 p-1.5 rounded-full bg-orange"></div>

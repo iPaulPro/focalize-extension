@@ -4,12 +4,11 @@
     import LoadingSpinner from './LoadingSpinner.svelte';
     import imageExternal from '../../assets/ic_external.svg';
 
-    import {uploadAndPin, unpin, getCidFromIpfsUrl} from "../../lib/ipfs-service";
+    import {uploadAndPin, unpin, getCidFromIpfsUrl, type Web3File} from "../../lib/ipfs-service";
     import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
     import {attachments, author, cover, description, file, title} from "../../lib/stores/state-store";
 
     import * as id3 from "id3js";
-    import type {Web3File} from "web3.storage";
     import InlineSVG from "svelte-inline-svg";
     import {createEventDispatcher} from "svelte";
     import {INFURA_GATEWAY_URL} from "../../config";

@@ -3,7 +3,6 @@
   import toast from "svelte-french-toast";
 
   export let draftId: string;
-  export let anchorNode;
 
   const onDeleteClick = async () => {
       try {

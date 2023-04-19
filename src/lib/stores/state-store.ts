@@ -1,8 +1,9 @@
-import {writable} from 'svelte/store';
 import type {Writable} from 'svelte/store';
-import type {Web3File} from "web3.storage/src/lib/interface";
+import {writable} from 'svelte/store';
 import type {Erc20, PublicationMetadataMediaInput} from "../graph/lens-service";
 import type {PostDraft} from "./draft-store";
+import type {Web3File} from "../ipfs-service";
+
 
 export interface CollectFee {
     price?: number;

@@ -786,9 +786,3 @@
 </dialog>
 
 <Toaster />
-
-<style>
-  .dark .slider:before {
-    background-color: #91A3B8 !important;
-  }
-</style>

@@ -18,7 +18,15 @@ export default defineConfig({
     },
     plugins: [
         nodePolyfills(),
-        svelte(),
+        svelte({
+            onwarn: (warning, handler) => {
+                if (warning.code === 'a11y-click-events-have-key-events' ||
+                    warning.code === 'a11y-media-has-caption') {
+                    return;
+                }
+                handler(warning);
+            }
+        }),
         crx({manifest}),
         removeConsole({includes: ['log', 'warn', 'info']})
     ],

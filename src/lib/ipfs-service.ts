@@ -3,6 +3,13 @@ import {INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET} from "../config";
 
 const AUTH_TOKEN = `${INFURA_IPFS_PROJECT_ID}:${INFURA_IPFS_PROJECT_SECRET}`
 
+export interface Web3File extends File {
+    /**
+     * Content Identifier for the file data.
+     */
+    cid: string
+}
+
 export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)
 

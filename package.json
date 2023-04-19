@@ -89,7 +89,6 @@
     "vite": "^3.2.5",
     "vite-plugin-node-stdlib-browser": "^0.2.1",
     "vite-plugin-remove-console": "^2.1.0",
-    "web3.storage": "^4.5.4",
     "web3modal": "^1.9.12",
     "zod": "^3.21.4"
   }
