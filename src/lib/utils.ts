@@ -59,6 +59,7 @@ export const truncate = (str: string | undefined, limit: number): string | undef
 export const launchComposerWindow = async (
     tags?: { url?: string, title?: string, description?: string }
 ) => {
+    console.log('launchComposerWindow', tags);
     const path = chrome.runtime.getURL('src/window/index.html');
     const url = new URL(path);
 
@@ -98,18 +99,32 @@ export const scrollEndListener = (
     options: ScrollEndListenerOptions = {}
 ): { destroy: () => void } => {
     const { delay = 200, onScrollEnd = (node: HTMLElement) => {} } = options;
-    const destroy$ = new Subject<void>();
+    const destroy = new Subject<void>();
 
     fromEvent(node, "scroll")
-        .pipe(debounceTime(delay), takeUntil(destroy$))
+        .pipe(debounceTime(delay), takeUntil(destroy))
         .subscribe(() => {
             onScrollEnd(node);
         });
 
     return {
         destroy() {
-            destroy$.next();
-            destroy$.complete();
+            destroy.next();
+            destroy.complete();
         },
     };
 };
+
+export interface OpenGraphTags {
+    url?: string;
+    title?: string | null,
+    description?: string | null
+}
+
+export const getOpenGraphTags = (): OpenGraphTags => ({
+    title: document.head.querySelector("meta[property='og:title']")?.getAttribute("content") ??
+        document.head.querySelector("meta[name='twitter:title']")?.getAttribute("content"),
+    description: document.head.querySelector("meta[property='og:description']")?.getAttribute("content") ??
+        document.head.querySelector("meta[name='description']")?.getAttribute("content") ??
+        document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
+});
