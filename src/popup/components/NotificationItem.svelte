@@ -39,8 +39,8 @@
 </script>
 
 <div on:click={launchNotification}
-     class="flex py-4 px-4 gap-1 items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
-     {isNew ? 'bg-gray-100 dark:bg-gray-700 dark:bg-opacity-40' : ''}">
+     class="flex py-4 px-4 gap-1 items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600
+     {isNew ? 'bg-white dark:bg-gray-700/60' : ''}">
 
   <NotificationIcon {notification} />
 

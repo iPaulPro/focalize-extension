@@ -1,4 +1,4 @@
-import {NotificationTypes, type PaginatedResultInfo} from "./graph/lens-service";
+import {NotificationTypes, type PaginatedResultInfo, type Profile, type Wallet} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import gqlClient from "./graph/graphql-client";
 import {getAvatarFromProfile, stripMarkdown, truncate} from "./utils";
@@ -183,23 +183,56 @@ export const getNextNotifications = async (): Promise<{ notifications?: Notifica
     return {};
 }
 
-export const getAvatarFromNotification = (notification: Notification): string | null => {
+/**
+ * Returns the profile of the user that triggered the notification
+ */
+export const getNotificationProfile = (notification: Notification): Profile | null | undefined => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
         case 'NewFollowerNotification':
-            const profile = notification.wallet.defaultProfile;
-            if (profile) return getAvatarFromProfile(profile);
-            return `https://cdn.stamp.fyi/avatar/${notification.wallet.address}?s=96`
+            return notification.wallet.defaultProfile;
         case 'NewMentionNotification':
-            return getAvatarFromProfile(notification.mentionPublication.profile);
+            return notification.mentionPublication.profile;
         case 'NewCommentNotification':
         case 'NewReactionNotification':
         case 'NewMirrorNotification':
-            return getAvatarFromProfile(notification.profile);
+            return notification.profile;
     }
+    return null;
+}
+
+export const getNotificationWallet = (notification: Notification): Wallet | undefined | null => {
+    switch (notification.__typename) {
+        case 'NewCollectNotification':
+        case 'NewFollowerNotification':
+            return notification.wallet;
+        case 'NewMentionNotification':
+            return notification.mentionPublication.profile.ownedBy;
+        case 'NewCommentNotification':
+        case 'NewReactionNotification':
+        case 'NewMirrorNotification':
+            return notification.profile.ownedBy;
+    }
+    return null;
+}
+
+export const getAvatarFromNotification = (notification: Notification): string | null => {
+    const profile = getNotificationProfile(notification);
+    if (profile) {
+        return getAvatarFromProfile(profile);
+    }
+
+    const wallet = getNotificationWallet(notification);
+    if (wallet) {
+        return `https://cdn.stamp.fyi/avatar/${wallet}?s=96`;
+    }
+
     return null;
 };
 
+/**
+ * Returns a human-readable action for the notification
+ */
 export const getNotificationAction = (notification: Notification): string => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
@@ -220,18 +253,7 @@ export const getNotificationAction = (notification: Notification): string => {
 };
 
 export const getNotificationHandle = (notification: Notification): string => {
-    switch (notification.__typename) {
-        case 'NewCollectNotification':
-        case 'NewFollowerNotification':
-            return notification.wallet.defaultProfile?.handle.replace('.lens', '') ?? notification.wallet.address;
-        case 'NewMentionNotification':
-            return notification.mentionPublication.profile.handle.replace('.lens', '');
-        case 'NewCommentNotification':
-        case 'NewReactionNotification':
-        case 'NewMirrorNotification':
-            return notification.profile.handle.replace('.lens', '');
-    }
-    return '';
+    return getNotificationProfile(notification)?.handle?.replace('.lens', '') ?? '';
 };
 
 export const getNotificationContent = (notification: Notification): string | undefined | null => {
@@ -244,12 +266,12 @@ export const getNotificationContent = (notification: Notification): string | und
         case 'NewMentionNotification': {
             const content = notification.mentionPublication.metadata.content;
             const contentStripped = stripMarkdown(content);
-            return truncate(contentStripped, 100) ?? notification.mentionPublication.metadata.name;
+            return truncate(contentStripped, 250) ?? notification.mentionPublication.metadata.name;
         }
         case 'NewCommentNotification': {
             const content = notification.comment.metadata?.content;
             const contentStripped = stripMarkdown(content);
-            return truncate(contentStripped, 100) ?? notification.comment.commentOn?.metadata?.name;
+            return truncate(contentStripped, 250) ?? notification.comment.commentOn?.metadata?.name;
         }
         case 'NewMirrorNotification':
         case 'NewReactionNotification': {

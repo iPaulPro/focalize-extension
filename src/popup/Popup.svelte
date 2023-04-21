@@ -7,6 +7,7 @@
     import {getOpenGraphTags, launchComposerWindow, scrollEndListener} from "../lib/utils";
     import {DateTime} from "luxon";
     import {notificationsScrollTop} from "../lib/stores/cache-store";
+    import {onMount} from "svelte";
 
     let tabSet: number = 0;
 
@@ -81,6 +82,14 @@
     const handleScrollEnd = (node: HTMLElement) => {
         $notificationsScrollTop = node.scrollTop;
     };
+
+    const updateNotificationsTimestamp = async () => chrome.storage.sync.set({
+        notificationsTimestamp: DateTime.now().toISO()
+    });
+
+    onMount(async () => {
+        await updateNotificationsTimestamp();
+    });
 </script>
 
 <div class="w-full h-full flex flex-col">

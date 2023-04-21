@@ -52,7 +52,7 @@ export const stripMarkdown = (markdown: string | undefined): string | undefined 
     return extractTextFromHtml(htmlFromMarkdown(markdown));
 };
 
-export const truncate = (str: string | undefined, limit: number): string | undefined => {
+export const truncate = (str: string | null | undefined, limit: number): string | null | undefined => {
     return (!str || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
 };
 
