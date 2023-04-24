@@ -128,3 +128,12 @@ export const getOpenGraphTags = (): OpenGraphTags => ({
         document.head.querySelector("meta[name='description']")?.getAttribute("content") ??
         document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
 });
+
+export const formatFollowerCount = (count: number): string => {
+    if (count >= 1_000_000) {
+        return (count / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    } else if (count >= 10_000) {
+        return (count / 10_000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return count.toString();
+};

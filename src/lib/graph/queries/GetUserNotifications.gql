@@ -263,6 +263,7 @@ fragment CompactProfile on Profile {
     isDefault
     handle
     picture {
+        __typename
         ... on NftImage {
             contractAddress
             tokenId

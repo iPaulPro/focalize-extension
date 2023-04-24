@@ -5,7 +5,16 @@ import {pollUntilIndexed} from "./has-transaction-been-indexed";
 
 import gqlClient from "./graph/graphql-client";
 
-import type {BroadcastRequest, Profile, RelayerResult, SetDispatcherRequest} from "./graph/lens-service";
+import type {
+    BroadcastRequest,
+    Profile,
+    ProxyActionMutation,
+    RelayerResult,
+    SetDispatcherRequest,
+    CreateFollowEip712TypedData,
+    CreateFollowTypedDataMutation
+} from './graph/lens-service';
+import type {User} from './user';
 
 /**
  * Gets the default profile of the address supplied.
@@ -22,7 +31,7 @@ export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
 };
 
 export const getProfileById = async (profileId: string): Promise<Profile> => {
-    const {profile} = await gqlClient.GetProfile({request: {profileId}});
+    const {profile} = await gqlClient.GetProfile({profileId});
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }
@@ -88,5 +97,46 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     console.log('setDispatcher: transaction indexed');
 
     return txHash;
-}
+};
 
+export const followProfile = async (profile: Profile): Promise<boolean> => {
+    if (!profile.followModule) {
+        try {
+            const {proxyAction}: ProxyActionMutation = await gqlClient.ProxyAction({request: {follow: {freeFollow: {profileId: profile.id}}}});
+            const proxyActionId = proxyAction.proxyAction;
+            console.log('followProfile: proxy action id', proxyActionId);
+            // send proxy action to background worker to track status
+            return true;
+        } catch (e) {
+            console.warn('followProfile: error using proxy action', e);
+        }
+    }
+
+    const {createFollowTypedData}: CreateFollowTypedDataMutation = await gqlClient.CreateFollowTypedData({
+        request: {
+            follow: [
+                {
+                    profile: profile.id,
+                    // followModule: profile.followModule,
+                }
+            ]
+        }
+    });
+    const typedData: CreateFollowEip712TypedData = createFollowTypedData.typedData;
+
+    return false;
+};
+
+export const getMutualFollows = async (
+    viewingProfileId: string,
+    yourProfileId: string
+): Promise<{profiles: Profile[], total:number}> => {
+    const {mutualFollowersProfiles} = await gqlClient.MutualFollowersProfiles({
+        request: {viewingProfileId, yourProfileId}
+    });
+
+    return {
+        profiles: mutualFollowersProfiles.items,
+        total: mutualFollowersProfiles.pageInfo.totalCount ?? 0,
+    };
+}

@@ -217,8 +217,17 @@ export const getNotificationWallet = (notification: Notification): Wallet | unde
 }
 
 export const getAvatarFromNotification = (notification: Notification): string | null => {
+    if (notification.notificationId === 'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed') {
+        console.log('getAvatarFromNotification: notification', notification);
+    }
     const profile = getNotificationProfile(notification);
+    if (notification.notificationId === 'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed') {
+        console.log('getAvatarFromNotification: profile', profile);
+    }
     if (profile) {
+        if (notification.notificationId === 'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed') {
+            console.log('getAvatarFromNotification: avatar', getAvatarFromProfile(profile));
+        }
         return getAvatarFromProfile(profile);
     }
 

@@ -9,7 +9,7 @@
     import {
         notificationsFiltered, notificationsForCollects, notificationsForComments,
         notificationsForMentions, notificationsForMirrors, notificationsForReactions
-    } from "../../lib/stores/preferences-store.js";
+    } from '../../lib/stores/preferences-store';
 
     const collection: RefreshInterval[] = [
         {value: 1, label: '1 min'},
