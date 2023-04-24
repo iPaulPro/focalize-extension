@@ -2,8 +2,8 @@
     import {autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig} from '@floating-ui/dom';
     import {onDestroy} from 'svelte';
 
-    const showEvents = ["mouseenter", "focus"];
-    const hideEvents = ["mouseleave", "blur"];
+    const showEvents = ['mouseenter', 'focus'];
+    const hideEvents = ['mouseleave', 'blur'];
 
     export let anchors: HTMLElement[] = [];
     export let showDelay: number = 0;
@@ -21,15 +21,23 @@
     let initialized = false;
     let showTimeout: ReturnType<typeof setTimeout>;
     let hideTimeout: ReturnType<typeof setTimeout>;
+    let isShown = false;
 
-    const show = () => (component.style.display = 'block');
-    const hide = () => (component.style.display = '');
+    const show = () => {
+        component.style.display = 'block';
+        isShown = true;
+    };
+
+    const hide = () => {
+        component.style.display = '';
+        isShown = false;
+    };
 
     const showWithDelay = (anchor: HTMLElement) => () => {
         activeAnchor = anchor;
         clearTimeout(hideTimeout);
         showTimeout = setTimeout(show, showDelay);
-    }
+    };
 
     const hideWithDelay = () => {
         if (interactive && component.matches(':hover')) {
@@ -37,7 +45,7 @@
         }
         hideTimeout = setTimeout(hide, hideDelay);
         clearTimeout(showTimeout);
-    }
+    };
 
     const updatePosition = async () => {
         if (!component || !activeAnchor) return;
@@ -48,7 +56,7 @@
             left: `${x}px`,
             top: `${y}px`,
         });
-    }
+    };
 
     const addListeners = (element: HTMLElement) => {
         showEvents.forEach((event) => element.addEventListener(event, showWithDelay(element)));
@@ -89,5 +97,7 @@
 </script>
 
 <div bind:this={component} class="hidden absolute w-max top-0 left-0 z-[9999]">
-  <slot></slot>
+  {#if isShown}
+    <slot></slot>
+  {/if}
 </div>

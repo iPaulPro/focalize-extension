@@ -89,6 +89,8 @@
 
     onMount(async () => {
         await updateNotificationsTimestamp();
+        await chrome.action.setBadgeText({text: ''});
+        await chrome.action.setTitle({title: 'Share on Lens'});
     });
 </script>
 

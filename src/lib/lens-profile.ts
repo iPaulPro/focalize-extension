@@ -31,7 +31,9 @@ export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
 };
 
 export const getProfileById = async (profileId: string): Promise<Profile> => {
-    const {profile} = await gqlClient.GetProfile({profileId});
+    const storage = await chrome.storage.local.get('currentUser');
+    const userProfileId = storage.currentUser?.profileId;
+    const {profile} = await gqlClient.GetProfile({profileId, userProfileId});
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }
@@ -129,14 +131,15 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
 
 export const getMutualFollows = async (
     viewingProfileId: string,
-    yourProfileId: string
+    yourProfileId: string,
+    limit?: number,
 ): Promise<{profiles: Profile[], total:number}> => {
     const {mutualFollowersProfiles} = await gqlClient.MutualFollowersProfiles({
         request: {viewingProfileId, yourProfileId}
     });
-
+    console.log('getMutualFollows: mutualFollowersProfiles', mutualFollowersProfiles, 'items', mutualFollowersProfiles.items, 'total', mutualFollowersProfiles.pageInfo.totalCount ?? 'none');
     return {
-        profiles: mutualFollowersProfiles.items,
+        profiles: limit ? mutualFollowersProfiles.items.slice(0, 3) : mutualFollowersProfiles.items,
         total: mutualFollowersProfiles.pageInfo.totalCount ?? 0,
     };
 }

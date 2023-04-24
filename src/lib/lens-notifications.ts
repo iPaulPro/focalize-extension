@@ -96,6 +96,7 @@ const getPaginatedNotificationResult = async (
                 highSignalFilter: syncStorage.notificationsFiltered === true,
                 cursor
             },
+            userProfileId: user.profileId
         });
         console.log('getPaginatedNotificationResult: notifications', notifications);
 

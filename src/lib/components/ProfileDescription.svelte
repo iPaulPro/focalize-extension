@@ -13,14 +13,27 @@
         let truncatedText = truncate(text, maxLength);
         if (!truncatedText?.length) return;
 
-        let formatted = truncatedText.replace(/(https?:\/\/)?(www\.)?([^\s]+(\.[^\s]+))(\/)?(?=[\s\.,;!?]|[^\s]*$)/gi, (_, __, ___, domain, ____, slash) => {
-            let cleanDomain = domain.replace(/[\.,;!?]+$/, '');
-            let punctuation = domain.slice(cleanDomain.length);
-            return `<a href="https://${cleanDomain}${slash || ''}" class="${anchorClass}" target="_blank" rel="noreferrer">${cleanDomain}</a>${punctuation}`;
+        // First, strip the domain part from the @mentions
+        truncatedText = truncatedText.replace(/@([\w\.]+)/g, (match, handle) => {
+            const cleanHandle = handle.split('.')[0];
+            return `@${cleanHandle}`;
         });
 
+        // Then, replace the links with anchors
+        let formatted = truncatedText.replace(/(?<!\w)(https?:\/\/)?(www\.)?([^\s\W]+(\.[^\s\W]+)+)(?!\w)/gi, (_, __, ___, domain) => {
+            let cleanDomain = domain.replace(/[\.,;!?]+$/, '');
+            let punctuation = domain.slice(cleanDomain.length);
+            return `<a href="https://${cleanDomain}" class="${anchorClass}" target="_blank">${cleanDomain}</a>${punctuation}`;
+        });
+
+        // Replace @mentions with anchors
         formatted = formatted.replace(/@(\w+)/g, (match, handle) => {
-            return `<a href="https://lenster.xyz/u/${handle}" class="${anchorClass}" target="_blank" rel="noreferrer">@${handle}</a>`;
+            return `<a href="https://lenster.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
+        });
+
+        // Replace hashtags with anchors
+        formatted = formatted.replace(/(?<!\w)#(\w+)/g, (match, hashtag) => {
+            return `<a href="https://lenster.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
         });
 
         formattedText = DOMPurify.sanitize(formatted, {

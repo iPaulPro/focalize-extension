@@ -1,4 +1,4 @@
-query Notifications($request: NotificationRequest!) {
+query Notifications($request: NotificationRequest!, $userProfileId: ProfileId!) {
     notifications(request: $request) {
         __typename
         items {
@@ -259,6 +259,8 @@ fragment CompactProfile on Profile {
         key
         value
     }
+    isFollowedByMe
+    isFollowing(who: $userProfileId)
     metadata
     isDefault
     handle

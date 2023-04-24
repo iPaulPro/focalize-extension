@@ -1,8 +1,8 @@
-query GetProfile($profileId: ProfileId!) {
+query GetProfile($profileId: ProfileId!, $userProfileId: ProfileId!) {
     profile(request: {profileId: $profileId}) {
         __typename
         isFollowedByMe
-        isFollowing(who: $profileId)
+        isFollowing(who: $userProfileId)
         onChainIdentity {
             ens {
                 name
