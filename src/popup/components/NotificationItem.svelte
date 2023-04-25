@@ -40,10 +40,7 @@
         await chrome.tabs.create({url});
     };
 
-    const launchUserProfile = async () => {
-        const url = await getUserProfileUrl();
-        if (url) await chrome.tabs.create({url});
-    };
+    $: userProfileUrl = notification && $nodeSearch && getUserProfileUrl()
 </script>
 
 <div on:click={launchNotification}
@@ -55,10 +52,11 @@
   <div class="w-full flex flex-col pl-2 gap-0.5">
 
     <div class="flex justify-between">
-      <img src={notificationAvatar ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
-           bind:this={avatarElement} on:click={launchUserProfile}
-           class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80"
-      >
+      <a href={userProfileUrl} target="_blank" rel="noreferrer">
+        <img src={notificationAvatar ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
+             bind:this={avatarElement}
+             class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
+      </a>
 
       <div class="h-fit text-xs opacity-60 font-medium"
            use:tippy={({
@@ -71,13 +69,15 @@
     </div>
 
     <span class="text-sm text-gray-900 dark:text-gray-300 pt-1">
-      <span class="font-semibold hover:underline" on:click={launchUserProfile} bind:this={handleElement}>
+      <a href={userProfileUrl} target="_blank" rel="noreferrer"
+         bind:this={handleElement}
+         class="!no-underline !text-black dark:!text-white font-semibold hover:!underline">
         {#if notificationDisplayName}
           <span>{truncate(notificationDisplayName, 25)}</span>
         {:else}
           <span>{truncate(getNotificationHandle(notification), 25)}</span>
         {/if}
-      </span>
+      </a>
       <span>
         {getNotificationAction(notification)}
       </span>

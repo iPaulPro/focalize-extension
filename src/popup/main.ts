@@ -1,4 +1,4 @@
-import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
+import './theme.pcss';
 import '@skeletonlabs/skeleton/styles/all.css'
 import "./popup.pcss";
 import App from "./Popup.svelte";

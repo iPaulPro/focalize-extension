@@ -17,6 +17,7 @@
     let loading = true;
 
     $: avatarUrl = profile && getAvatarFromProfile(profile);
+    $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle)
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     onMount(async () => {
@@ -35,7 +36,7 @@
     /**
      * Returns a string describing the mutual follows between the current user and the given profile.
      */
-    const getMutualFollowsText = (mutualFollows: {profiles: Profile[], total:number}): string => {
+    const getMutualFollowsText = (mutualFollows: { profiles: Profile[], total: number }): string => {
         const usernames: string[] = mutualFollows.profiles.slice(0, 3).map(profile => profile.handle.split('.')[0]);
 
         let includedNames = 0;
@@ -58,11 +59,6 @@
             return `Followed by ${nameText}`;
         }
     };
-
-    const launchUserProfile = async () => {
-        const url = getProfileUrl($nodeSearch, profile.handle);
-        if (url) await chrome.tabs.create({url});
-    };
 </script>
 
 <div
@@ -70,9 +66,10 @@
     dark:border-gray-700 shadow-lg">
 
   <div class="flex justify-between items-start pb-2">
+    <a href={userProfileUrl} target="_blank" rel="noreferrer">
       <img src={avatarUrl} alt="Avatar"
-           on:click={launchUserProfile}
            class="w-16 aspect-square rounded-full object-cover bg-gray-300 text-white cursor-pointer hover:opacity-80">
+    </a>
 
     {#if !loading && !isCurrentUserProfile}
       <FollowButton {profile}/>
@@ -80,17 +77,18 @@
   </div>
 
   {#if profile.name}
-    <div on:click={launchUserProfile}
-        class="text-lg font-semibold cursor-pointer hover:underline">
+    <a href={userProfileUrl} target="_blank" rel="noreferrer"
+         class="!no-underline !text-black dark:!text-white text-lg font-semibold hover:!underline">
       {profile.name}
-    </div>
+    </a>
   {/if}
 
   <div class="flex flex-wrap items-center gap-2">
-    <span on:click={launchUserProfile}
-        class="text-base text-orange-600 dark:text-orange-300 hover:text-orange-400 dark:hover:text-orange-400 cursor-pointer">
+    <a href={userProfileUrl} target="_blank" rel="noreferrer"
+          class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
+          dark:hover:!text-orange-400">
       @{profile.handle.split('.')[0]}
-    </span>
+    </a>
 
     {#if profile.isFollowing}
       <span class="badge variant-soft">Follows you</span>
@@ -116,8 +114,11 @@
   </div>
 
   {#if $currentUser}
+
     {#await getMutualFollows(profile.id, $currentUser.profileId, 3) then mutualFollows}
+
       {#if mutualFollows.profiles.length > 0}
+
         <div class="pt-3 flex justify-start gap-2">
 
           <div class="flex flex-shrink-0 overlap">
@@ -132,14 +133,17 @@
           </div>
 
         </div>
+
       {/if}
+
     {/await}
+
   {/if}
 
 </div>
 
 <style>
-  .overlap > *:not(:first-child)  {
+  .overlap > *:not(:first-child) {
     margin-left: -0.75rem;
   }
 </style>

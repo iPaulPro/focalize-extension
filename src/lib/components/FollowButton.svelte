@@ -38,7 +38,7 @@
 
 <button disabled={!isFollowSupported}
         class="btn btn-soft font-semibold text-sm
-        {profile.isFollowedByMe ? (hovering ? 'variant-ghost-error' : 'variant-ringed') : 'variant-filled'}"
+        {profile.isFollowedByMe ? (hovering ? 'variant-ghost-error' : 'variant-ringed') : 'variant-filled-secondary'}"
         on:mouseenter={() => hovering = true}
         on:mouseleave={() => hovering = false}
         on:click={() => {
