@@ -1,3 +1,5 @@
+import followNft from './contracts/abis/lens-follow-nft-contract-abi.json';
+
 const getParamOrExit = (name: string) => {
     const param = import.meta.env[name];
     if (!param) {
@@ -12,6 +14,8 @@ export const APP_ID: string = "Focalize";
 export const LENS_API: string = getParamOrExit('VITE_LENS_API');
 
 export const LENS_HUB_CONTRACT: string = getParamOrExit('VITE_LENS_HUB_CONTRACT');
+
+export const LENS_FOLLOW_NFT_ABI = followNft;
 
 export const CHAIN_ID: string = getParamOrExit('VITE_CHAIN_ID');
 

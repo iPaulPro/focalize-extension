@@ -8,6 +8,7 @@
     import {DateTime} from "luxon";
     import {notificationsScrollTop} from "../lib/stores/cache-store";
     import {onMount} from "svelte";
+    import {Toaster} from 'svelte-french-toast';
 
     let tabSet: number = 0;
 
@@ -166,3 +167,5 @@
   </TabGroup>
 
 </div>
+
+<Toaster/>

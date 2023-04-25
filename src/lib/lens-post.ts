@@ -302,7 +302,7 @@ export const submitPost = async (
 
     publicationState.set(PublicationState.SUCCESS);
 
-    const res = await chrome.runtime.sendMessage({getPublicationId: {txHash, metadata}});
+    const res = await chrome.runtime.sendMessage({type: 'getPublicationId', post: {txHash, metadata}});
     if (res.error) {
         publicationState.set(PublicationState.ERROR);
         throw res.error;

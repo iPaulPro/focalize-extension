@@ -16,6 +16,7 @@
     import NotificationIcon from './NotificationIcon.svelte';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
+    import {getNotificationDisplayName} from '../../lib/lens-notifications.js';
 
     export let notification: Notification;
     export let lastUpdate: DateTime;
@@ -25,6 +26,7 @@
 
     $: notificationContent = notification && getNotificationContent(notification);
     $: notificationAvatar = notification && getAvatarFromNotification(notification);
+    $: notificationDisplayName = notification && getNotificationDisplayName(notification);
     $: isNew = notification && lastUpdate && DateTime.fromISO(notification.createdAt) > lastUpdate;
 
     const getUserProfileUrl = async (): Promise<string | null> => {
@@ -45,7 +47,7 @@
 </script>
 
 <div on:click={launchNotification}
-     class="flex py-4 px-4 gap-1 items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600
+     class="flex py-4 px-4 gap-1 items-start cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
      {isNew ? 'bg-white dark:bg-gray-700/60' : ''}">
 
   <NotificationIcon {notification}/>
@@ -55,7 +57,7 @@
     <div class="flex justify-between">
       <img src={notificationAvatar ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
            bind:this={avatarElement} on:click={launchUserProfile}
-           class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:border-2 hover:border-orange"
+           class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80"
       >
 
       <div class="h-fit text-xs opacity-60 font-medium"
@@ -68,14 +70,21 @@
       </div>
     </div>
 
-    <div class="text-sm text-gray-900 dark:text-gray-300 pt-1">
+    <span class="text-sm text-gray-900 dark:text-gray-300 pt-1">
       <span class="font-semibold hover:underline" on:click={launchUserProfile} bind:this={handleElement}>
-        {truncate(getNotificationHandle(notification), 25)}
-      </span> {getNotificationAction(notification)}
-    </div>
+        {#if notificationDisplayName}
+          <span>{truncate(notificationDisplayName, 25)}</span>
+        {:else}
+          <span>{truncate(getNotificationHandle(notification), 25)}</span>
+        {/if}
+      </span>
+      <span>
+        {getNotificationAction(notification)}
+      </span>
+    </span>
 
     {#if notificationContent}
-      <div class="text-sm text-gray-500">
+      <div class="text-sm text-gray-500 leading-tight">
         {notificationContent}
       </div>
     {/if}

@@ -87,7 +87,7 @@
             uploadedPct = 0;
             $file = null;
 
-            toast.error('upload: Error uploading file');
+            toast.error('upload: Error uploading file', {duration: 5000});
 
             return;
         }
@@ -126,7 +126,7 @@
         const maxSize = isCover ? MAX_FILE_SIZE / 10 : MAX_FILE_SIZE;
 
         if (!file || file.size > maxSize) {
-            toast.error(`File too large. Max ${maxSize}MB`);
+            toast.error(`File too large. Max ${maxSize}MB`, {duration: 5000});
             return;
         }
         console.log('File selected', file);
@@ -182,7 +182,7 @@
             !IMAGE_TYPES.includes(file.type) ||
             file.size > (MAX_FILE_SIZE / 10)
         ) {
-            toast.error('File not supported');
+            toast.error('File not supported', {duration: 5000});
             isFileDragged = false;
             return;
         }

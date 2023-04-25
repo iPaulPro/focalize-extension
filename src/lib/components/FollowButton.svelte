@@ -3,7 +3,8 @@
         Profile,
         ProfileFollowModuleSettings
     } from '../graph/lens-service';
-    import {currentUser} from '../stores/user-store';
+    import {followProfile, unfollowProfile} from '../lens-profile';
+    import toast from 'svelte-french-toast';
 
     export let profile: Profile;
 
@@ -11,21 +12,32 @@
 
     const unfollow = async () => {
         profile.isFollowedByMe = false;
+
+        const unfollowed = await unfollowProfile(profile);
+        if (!unfollowed) {
+            profile.isFollowedByMe = true;
+            toast.error('Unable to unfollow profile', {duration: 5000});
+        }
     };
 
     const follow = async () => {
         profile.isFollowedByMe = true;
+
+        const followed = await followProfile(profile);
+        if (!followed) {
+            profile.isFollowedByMe = false;
+            toast.error('Unable to follow profile', {duration: 5000});
+        }
     };
 
     const isProfileFollowModuleSettings = (obj: any): obj is ProfileFollowModuleSettings =>
         obj.__typename === 'ProfileFollowModuleSettings';
 
-    $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
-    $: isFollowSupported = profile && !isCurrentUserProfile && (!profile.followModule || profile.isFollowedByMe || isProfileFollowModuleSettings(profile.followModule));
+    $: isFollowSupported = profile && (!profile.followModule || profile.isFollowedByMe || isProfileFollowModuleSettings(profile.followModule));
 </script>
 
 <button disabled={!isFollowSupported}
-        class="btn btn-soft font-semibold text-sm {isCurrentUserProfile ? 'hidden' : ''}
+        class="btn btn-soft font-semibold text-sm
         {profile.isFollowedByMe ? (hovering ? 'variant-ghost-error' : 'variant-ringed') : 'variant-filled'}"
         on:mouseenter={() => hovering = true}
         on:mouseleave={() => hovering = false}

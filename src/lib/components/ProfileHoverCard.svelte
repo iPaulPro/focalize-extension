@@ -7,20 +7,34 @@
     import FollowButton from './FollowButton.svelte';
     import ProfileDescription from './ProfileDescription.svelte';
     import {currentUser} from '../stores/user-store';
+    import {getProfileUrl} from '../lens-nodes';
+    import {nodeSearch} from '../stores/preferences-store';
 
     const dispatch = createEventDispatcher();
 
     export let profile: Profile;
 
+    let loading = true;
+
     $: avatarUrl = profile && getAvatarFromProfile(profile);
+    $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     onMount(async () => {
-        const updatedProfile = await getProfileById(profile.id);
-        if (updatedProfile) {
-            profile = updatedProfile;
+        try {
+            const updatedProfile = await getProfileById(profile.id);
+            if (updatedProfile) {
+                profile = updatedProfile;
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            loading = false;
         }
     });
 
+    /**
+     * Returns a string describing the mutual follows between the current user and the given profile.
+     */
     const getMutualFollowsText = (mutualFollows: {profiles: Profile[], total:number}): string => {
         const usernames: string[] = mutualFollows.profiles.slice(0, 3).map(profile => profile.handle.split('.')[0]);
 
@@ -29,6 +43,7 @@
             if (usernames.slice(0, includedNames).join(', ').length > 25) {
                 break;
             }
+            // Only include another name if it won't push us past the 25-character limit
             if (usernames.slice(0, includedNames + 1).join(', ').length <= 25) {
                 includedNames++;
             }
@@ -43,28 +58,38 @@
             return `Followed by ${nameText}`;
         }
     };
+
+    const launchUserProfile = async () => {
+        const url = getProfileUrl($nodeSearch, profile.handle);
+        if (url) await chrome.tabs.create({url});
+    };
 </script>
 
 <div
-    class="w-80 flex flex-col text-base rounded-2xl p-5 bg-white dark:bg-gray-900 border border-gray-300
+    class="w-80 flex flex-col text-base rounded-2xl p-5 bg-white dark:bg-gray-900 border border-gray-200
     dark:border-gray-700 shadow-lg">
 
   <div class="flex justify-between items-start pb-2">
-    <img src={avatarUrl} alt="Avatar"
-         class="w-16 aspect-square rounded-full object-cover bg-gray-300 text-white">
+      <img src={avatarUrl} alt="Avatar"
+           on:click={launchUserProfile}
+           class="w-16 aspect-square rounded-full object-cover bg-gray-300 text-white cursor-pointer hover:opacity-80">
 
-    <FollowButton {profile}/>
+    {#if !loading && !isCurrentUserProfile}
+      <FollowButton {profile}/>
+    {/if}
   </div>
 
   {#if profile.name}
-    <div class="text-lg font-semibold">
+    <div on:click={launchUserProfile}
+        class="text-lg font-semibold cursor-pointer hover:underline">
       {profile.name}
     </div>
   {/if}
 
   <div class="flex flex-wrap items-center gap-2">
-    <span class="text-base text-orange-600 dark:text-orange-300">
-      @{profile.handle}
+    <span on:click={launchUserProfile}
+        class="text-base text-orange-600 dark:text-orange-300 hover:text-orange-400 dark:hover:text-orange-400 cursor-pointer">
+      @{profile.handle.split('.')[0]}
     </span>
 
     {#if profile.isFollowing}
@@ -102,7 +127,7 @@
             {/each}
           </div>
 
-          <div class="text-sm opacity-60">
+          <div class="text-sm opacity-60 leading-tight">
             {getMutualFollowsText(mutualFollows)}
           </div>
 

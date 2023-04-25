@@ -29,7 +29,7 @@
         switch (userError) {
             case UserError.WALLET_NOT_CONNECTED:
                 // TODO show connect wallet button
-                toast.error('Unable to connect to wallet');
+                toast.error('Unable to connect to wallet', {duration: 5000});
                 break;
             case UserError.NO_PROFILE:
                 noProfileDialog?.showModal();
@@ -69,14 +69,14 @@
             console.log('Authenticated user', $currentUser);
         } catch (e) {
             console.error('Error logging in',e);
-            toast.error('Error logging in');
+            toast.error('Error logging in', {duration: 5000});
         }
 
         if ($currentUser) {
             await showPinPromptIfNecessary();
 
             try {
-                await chrome.runtime.sendMessage({setAlarm: true});
+                await chrome.runtime.sendMessage({type: 'setAlarm', enabled: true});
             } catch (e) {
                 console.error('Error setting alarm', e)
             }

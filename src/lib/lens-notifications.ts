@@ -263,7 +263,11 @@ export const getNotificationAction = (notification: Notification): string => {
 };
 
 export const getNotificationHandle = (notification: Notification): string => {
-    return getNotificationProfile(notification)?.handle?.replace('.lens', '') ?? '';
+    return getNotificationProfile(notification)?.handle?.split('.')[0] ?? '';
+};
+
+export const getNotificationDisplayName = (notification: Notification): string => {
+    return getNotificationProfile(notification)?.name ?? '';
 };
 
 export const getNotificationContent = (notification: Notification): string | undefined | null => {

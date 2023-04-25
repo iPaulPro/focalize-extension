@@ -26,7 +26,7 @@
             selectedInterval = $notificationsRefreshInterval;
         }
 
-        chrome.runtime.sendMessage({setAlarm: $notificationsEnabled}).catch(console.error);
+        chrome.runtime.sendMessage({type: 'setAlarm', enabled: $notificationsEnabled}).catch(console.error);
     }
 
     const onIntervalChange = (event) => {

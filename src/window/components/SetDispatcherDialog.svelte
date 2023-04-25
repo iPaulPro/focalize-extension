@@ -30,7 +30,7 @@
             }
         } catch (e) {
             console.error(e);
-            toast.error('Error setting dispatcher');
+            toast.error('Error setting dispatcher', {duration: 5000});
         } finally {
             loading = false;
         }

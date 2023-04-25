@@ -4,7 +4,7 @@
 
     export let text: string = '';
     export let maxLength: number = 150;
-    export let classNames: string = '';
+    export let classNames: string = 'leading-tight';
     export let anchorClass: string = '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
 
     let formattedText: string = '';

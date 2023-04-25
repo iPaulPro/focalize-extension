@@ -260,7 +260,7 @@
             await ensureCorrectChain();
         } catch (e) {
             console.log(`Error ${e.code}: ${e.message}`);
-            toast.error('Error switching chains');
+            toast.error('Error switching chains', {duration: 5000});
         }
 
         try {
@@ -329,7 +329,7 @@
 
     const setAttachment = (f: File) => {
         if (f.type === 'image/heic') {
-            toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.');
+            toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.', {duration: 5000});
             isFileDragged = false;
             return;
         }
@@ -338,7 +338,7 @@
             !SUPPORTED_MIME_TYPES.includes(f.type) ||
             f.size > MAX_FILE_SIZE
         ) {
-            toast.error('File not supported');
+            toast.error('File not supported', {duration: 5000});
             isFileDragged = false;
             return;
         }
