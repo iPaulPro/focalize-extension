@@ -8,6 +8,7 @@
         clearPostState();
         clearUser();
         await logOut();
+        window.close();
     };
 
 </script>

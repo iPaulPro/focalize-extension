@@ -37,7 +37,11 @@
         if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
             try {
                 const url = chrome.runtime.getURL('src/window/index.html');
-                await chrome.tabs.update(tab.id, {url});
+                if (tab.url.startsWith('chrome-extension://' + chrome.runtime.id)) {
+                    await chrome.tabs.create({url});
+                } else {
+                    await chrome.tabs.update(tab.id, {url});
+                }
             } finally {
                 window.close();
             }
@@ -57,12 +61,11 @@
                 return launchComposerWindow(tags);
             } else {
                 console.log('no tags found')
-                return launchComposerWindow({title, url});
             }
         } catch (e) {
             console.error(e);
-            return launchComposerWindow({title, url});
         }
+        return launchComposerWindow({title, url});
     };
 
     const getLastNotificationUpdateDate = async () => {
@@ -80,16 +83,12 @@
         await chrome.storage.local.remove(['notificationItemsCache', 'notificationPageInfoCache']);
     };
 
-    const handleScrollEnd = (node: HTMLElement) => {
-        $notificationsScrollTop = node.scrollTop;
+    const scrollToTop = () => {
+        // @ts-ignore
+        notificationList.scrollToTop();
     };
 
-    const updateNotificationsTimestamp = async () => chrome.storage.sync.set({
-        notificationsTimestamp: DateTime.now().toISO()
-    });
-
     onMount(async () => {
-        await updateNotificationsTimestamp();
         await chrome.action.setBadgeText({text: ''});
         await chrome.action.setTitle({title: 'Share on Lens'});
     });
@@ -115,7 +114,7 @@
       </svg>
     </Tab>
 
-    <div on:click={() => notificationList.scrollToTop()}
+    <div on:click={scrollToTop}
         class="w-full flex justify-end items-center px-2">
       <button type="button" on:click|stopPropagation={onCreatePostClick}  use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -141,9 +140,7 @@
     <svelte:fragment slot="panel">
       {#if tabSet === 0}
         {#await getLastNotificationUpdateDate() then lastUpdate}
-          <div use:scrollEndListener={{ onScrollEnd: handleScrollEnd }} class="h-full overflow-y-auto">
             <NotificationsList {lastUpdate} bind:this={notificationList}/>
-          </div>
         {/await}
       {:else if tabSet === 1}
 

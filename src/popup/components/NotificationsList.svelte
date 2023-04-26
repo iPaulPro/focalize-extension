@@ -1,17 +1,19 @@
 <script lang="ts">
-    import {getNextNotifications} from "../../lib/lens-notifications";
+    import {getNextNotifications} from '../../lib/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import type {Notification} from "../../lib/graph/lens-service";
-    import NotificationItem from "./NotificationItem.svelte";
-    import LoadingSpinner from "../../window/components/LoadingSpinner.svelte";
-    import {DateTime} from "luxon";
+    import type {Notification} from '../../lib/graph/lens-service';
+    import NotificationItem from './NotificationItem.svelte';
+    import LoadingSpinner from '../../window/components/LoadingSpinner.svelte';
+    import {DateTime} from 'luxon';
     import {
         notificationItemsCache,
         notificationPageInfoCache,
         notificationsScrollTop
-    } from "../../lib/stores/cache-store";
-    import {get} from "../../lib/stores/chrome-storage-store";
-    import {tick} from "svelte";
+    } from '../../lib/stores/cache-store';
+    import {get} from '../../lib/stores/chrome-storage-store';
+    import {tick} from 'svelte';
+    import {scrollEndListener} from '../../lib/utils';
+    import {notificationsTimestamp} from '../../lib/stores/preferences-store';
 
     export let lastUpdate: DateTime;
 
@@ -39,13 +41,52 @@
         }
     }
 
+    const updateNotificationsTimestamp = async (isoDate?: string) => {
+        $notificationsTimestamp = isoDate ?? DateTime.now().toISO();
+    };
+
     const restoreScroll = async () => {
-        if ($notificationsScrollTop) {
+        console.log('restoreScroll: $notificationsScrollTop', $notificationsScrollTop);
+        if ($notificationsScrollTop > 0) {
             await tick();
             listElement.parentElement.scrollTop = $notificationsScrollTop;
             $notificationsScrollTop = 0;
+        } else {
+            // Only update the timestamp if we're not restoring the scroll position since new notifications are visible
+            await updateNotificationsTimestamp(notifications[0]?.createdAt);
+            console.log('restoreScroll: updating notifications timestamp', notifications[0].createdAt);
         }
-    }
+    };
+
+    const findFirstVisibleListItem = (): Notification => {
+        const parentTop = listElement.parentElement?.getBoundingClientRect()?.top ?? 0;
+        const listItemElements = listElement.querySelectorAll('li');
+        let firstVisibleListItemIndex = 0;
+
+        for (let i = 0; i < listItemElements.length; i++) {
+            const li = listItemElements[i];
+            const rect = li.getBoundingClientRect();
+            if (rect.top >= parentTop) {
+                firstVisibleListItemIndex = i;
+                break;
+            }
+        }
+
+        return notifications[firstVisibleListItemIndex];
+    };
+
+    const onScrollEnd = async (node: HTMLElement) => {
+        $notificationsScrollTop = node.scrollTop;
+
+        const firstNotification = findFirstVisibleListItem();
+        if (
+            firstNotification && $notificationsTimestamp &&
+            DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(firstNotification.createdAt)
+        ) {
+            await updateNotificationsTimestamp(firstNotification.createdAt);
+            console.log('onScrollEnd: updating notifications timestamp', firstNotification.createdAt);
+        }
+    };
 
     const infiniteHandler = async ({detail: {loaded, complete}}) => {
         try {
@@ -93,14 +134,16 @@
             rounded-full shadow-md
             focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
             text-white text-center text-lg font-semibold dark:disabled:text-gray-400
-            transition ease-in duration-200" >
+            transition ease-in duration-200">
       Retry
     </button>
   </div>
 
 {:else}
 
-    <ul bind:this={listElement} class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+  <div use:scrollEndListener={{onScrollEnd}} class="w-full h-full overflow-y-auto">
+    <ul bind:this={listElement}
+        class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
       {#each notifications as notification}
         <li>
           <NotificationItem {notification} {lastUpdate}/>
@@ -110,12 +153,10 @@
       <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
         <div slot="noMore"></div>
         <div slot="spinner" class="p-6">
-          <LoadingSpinner />
+          <LoadingSpinner/>
         </div>
       </InfiniteLoading>
     </ul>
+  </div>
 
 {/if}
-
-<style>
-</style>

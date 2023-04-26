@@ -83,7 +83,7 @@
     </a>
   {/if}
 
-  <div class="flex flex-wrap items-center gap-2">
+  <div class="flex flex-wrap items-center gap-2 -mt-0.5">
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
           class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
           dark:hover:!text-orange-400">
@@ -119,7 +119,7 @@
 
       {#if mutualFollows.profiles.length > 0}
 
-        <div class="pt-3 flex justify-start gap-2">
+        <div class="pt-3 flex gap-2">
 
           <div class="flex flex-shrink-0 overlap">
             {#each mutualFollows.profiles as mutualFollow}
@@ -128,7 +128,7 @@
             {/each}
           </div>
 
-          <div class="text-sm opacity-60 leading-tight">
+          <div class="text-sm opacity-60 leading-tight min-h-full flex items-center">
             {getMutualFollowsText(mutualFollows)}
           </div>
 
