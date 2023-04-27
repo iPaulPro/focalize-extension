@@ -1,7 +1,7 @@
 import {NotificationTypes, type PaginatedResultInfo, type Profile, type Wallet} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import gqlClient from "./graph/graphql-client";
-import {getAvatarFromProfile, stripMarkdown, truncate} from "./utils";
+import {getAvatarFromAddress, getAvatarFromProfile, stripMarkdown, truncate} from './utils';
 import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from "./lens-nodes";
 
 import type {User} from "./user";
@@ -234,7 +234,7 @@ export const getAvatarFromNotification = (notification: Notification): string | 
 
     const wallet = getNotificationWallet(notification);
     if (wallet) {
-        return `https://cdn.stamp.fyi/avatar/${wallet}?s=96`;
+        return getAvatarFromAddress(wallet.address);
     }
 
     return null;

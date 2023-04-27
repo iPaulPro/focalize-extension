@@ -1,4 +1,4 @@
-import {CHAIN_ID, INFURA_IPFS_PROJECT_ID, INFURA_PROJECT_ID} from '../config';
+import {CHAIN_ID, INFURA_PROJECT_ID} from '../config';
 import {createExternalExtensionProvider} from '@metamask/providers';
 import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';

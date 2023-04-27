@@ -13,7 +13,7 @@
     import {get} from '../../lib/stores/chrome-storage-store';
     import {tick} from 'svelte';
     import {hideOnScroll, scrollEndListener} from '../../lib/utils';
-    import {notificationsTimestamp, notificationsEnabled} from '../../lib/stores/preferences-store';
+    import {notificationsTimestamp} from '../../lib/stores/preferences-store';
 
     export let lastUpdate: DateTime;
 
@@ -24,7 +24,6 @@
     let notifications: Notification[] = [];
     let newNotifications: Notification[] = [];
     let cursor = null;
-    let error = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
@@ -32,7 +31,6 @@
     const reload = () => {
         notifications = [];
         cursor = null;
-        error = null;
         infiniteId++;
     };
 
@@ -63,12 +61,11 @@
         newNotifications = latestNotifications.notifications;
 
         if (scrollElement.scrollTop == 0 && newNotifications.length) {
-            addNewNotifications(latestNotifications.notifications);
+            await addNewNotifications();
         }
     };
 
     const restoreScroll = async () => {
-        console.log('restoreScroll: $notificationsScrollTop', $notificationsScrollTop);
         if ($notificationsScrollTop > 0) {
             await tick();
             scrollElement.scrollTop = $notificationsScrollTop;
@@ -106,7 +103,6 @@
             DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(firstNotification.createdAt)
         ) {
             await updateNotificationsTimestamp(firstNotification.createdAt);
-            console.log('onScrollEnd: updating notifications timestamp', firstNotification.createdAt);
         }
     };
 
@@ -146,7 +142,7 @@
             }
         } catch (e) {
             console.error('infiniteHandler: error', e);
-            error = e;
+            error();
         }
     };
 </script>

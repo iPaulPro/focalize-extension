@@ -12,24 +12,12 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatarFromProfile = (profile: Profile) => {
-    let avatarUrl: string | undefined;
+export const getAvatarFromProfile = (profile: Profile, size: number = 128) => {
+    return `https://cdn.stamp.fyi/avatar/${profile.handle}?s=${size}`;
+};
 
-    if (profile.picture?.__typename === "MediaSet") {
-        avatarUrl = profile.picture?.original?.url;
-    } else if (profile.picture?.__typename === "NftImage") {
-        avatarUrl = profile.picture.uri;
-    }
-
-    if (avatarUrl?.startsWith('ipfs://')) {
-        avatarUrl = ipfsUrlToGatewayUrl(avatarUrl);
-    }
-
-    if (!avatarUrl || avatarUrl.length === 0) {
-        avatarUrl = `https://cdn.stamp.fyi/avatar/${profile.ownedBy}?s=96`
-    }
-
-    return avatarUrl;
+export const getAvatarFromAddress = (address: string, size: number = 128) => {
+    return `https://cdn.stamp.fyi/avatar/${address}?s=${size}`;
 };
 
 export const htmlFromMarkdown = (markdown: string | undefined): string | undefined => {
