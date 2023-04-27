@@ -115,6 +115,42 @@ export const scrollEndListener = (
     };
 };
 
+export const hideOnScroll = (node: HTMLElement, parameters: any) => {
+    let targetElement: HTMLElement = parameters.scrollElement;
+    let lastScrollTop = targetElement?.scrollTop;
+
+    const handleScroll = () => {
+        const direction = targetElement.scrollTop > lastScrollTop ? 'down' : 'up';
+        lastScrollTop = targetElement.scrollTop;
+
+        node.style.transition = 'transform 0.3s, opacity 0.3s';
+
+        if (direction === 'down') {
+            node.style.transform = 'translateY(-50%)';
+            node.style.opacity = '0';
+        } else {
+            node.style.transform = 'translateY(0)';
+            node.style.opacity = '1';
+        }
+    };
+
+    if (targetElement) {
+        targetElement.addEventListener('scroll', handleScroll);
+    }
+
+    return {
+        update(parameters: any) {
+            targetElement?.removeEventListener('scroll', handleScroll);
+            targetElement = parameters.scrollElement;
+            lastScrollTop = targetElement.scrollTop
+            targetElement.addEventListener('scroll', handleScroll);
+        },
+        destroy() {
+            targetElement.removeEventListener('scroll', handleScroll);
+        }
+    };
+};
+
 export interface OpenGraphTags {
     url?: string;
     title?: string | null,

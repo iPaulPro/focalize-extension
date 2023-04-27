@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getNextNotifications} from '../../lib/lens-notifications';
+    import {getLatestNotifications, getNextNotifications} from '../../lib/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import type {Notification} from '../../lib/graph/lens-service';
     import NotificationItem from './NotificationItem.svelte';
@@ -12,20 +12,22 @@
     } from '../../lib/stores/cache-store';
     import {get} from '../../lib/stores/chrome-storage-store';
     import {tick} from 'svelte';
-    import {scrollEndListener} from '../../lib/utils';
-    import {notificationsTimestamp} from '../../lib/stores/preferences-store';
+    import {hideOnScroll, scrollEndListener} from '../../lib/utils';
+    import {notificationsTimestamp, notificationsEnabled} from '../../lib/stores/preferences-store';
 
     export let lastUpdate: DateTime;
 
     export const scrollToTop = () => {
-        listElement.parentElement.scrollTop = 0;
+        scrollElement.scrollTop = 0;
     };
 
     let notifications: Notification[] = [];
+    let newNotifications: Notification[] = [];
     let cursor = null;
     let error = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
+    let scrollElement: HTMLElement;
 
     const reload = () => {
         notifications = [];
@@ -45,11 +47,31 @@
         $notificationsTimestamp = isoDate ?? DateTime.now().toISO();
     };
 
+    const addNewNotifications = async () => {
+        if (newNotifications.length) {
+            notifications = [...newNotifications, ...notifications];
+        }
+
+        newNotifications = [];
+
+        await tick();
+        scrollElement.scrollTop = 0;
+    };
+
+    const checkForNewNotifications = async () => {
+        const latestNotifications = await getLatestNotifications();
+        newNotifications = latestNotifications.notifications;
+
+        if (scrollElement.scrollTop == 0 && newNotifications.length) {
+            addNewNotifications(latestNotifications.notifications);
+        }
+    };
+
     const restoreScroll = async () => {
         console.log('restoreScroll: $notificationsScrollTop', $notificationsScrollTop);
         if ($notificationsScrollTop > 0) {
             await tick();
-            listElement.parentElement.scrollTop = $notificationsScrollTop;
+            scrollElement.scrollTop = $notificationsScrollTop;
             $notificationsScrollTop = 0;
         } else {
             // Only update the timestamp if we're not restoring the scroll position since new notifications are visible
@@ -88,17 +110,24 @@
         }
     };
 
-    const infiniteHandler = async ({detail: {loaded, complete}}) => {
+    const infiniteHandler = async ({detail: {loaded, complete, error}}) => {
         try {
-            const cachedNotifications = await get(notificationItemsCache);
-            if (!cursor && cachedNotifications?.length) {
-                notifications = cachedNotifications;
-                const pageInfo = await get(notificationPageInfoCache);
-                cursor = pageInfo.next;
-                loaded();
-                await restoreScroll();
-                console.log('infiniteHandler: using cache');
-                return;
+            if (!cursor) {
+                const cachedNotifications = await get(notificationItemsCache);
+                if (cachedNotifications?.length) {
+                    notifications = cachedNotifications;
+
+                    const pageInfo = await get(notificationPageInfoCache);
+                    cursor = pageInfo.next;
+
+                    console.log('infiniteHandler: using cache');
+                    loaded();
+
+                    await restoreScroll();
+                    await checkForNewNotifications();
+
+                    return;
+                }
             }
 
             const nextNotifications = await getNextNotifications();
@@ -122,41 +151,45 @@
     };
 </script>
 
-{#if error}
+<div bind:this={scrollElement} use:scrollEndListener={{onScrollEnd}}
+     class="w-full h-full overflow-y-auto">
 
-  <div class="h-full flex flex-col justify-center items-center gap-1">
-    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">Error</div>
-    <div class="text text-gray-600 dark:text-gray-400">There was an error loading notifications.</div>
-    <button type="button" on:click={reload}
-            class="w-auto mt-2 py-1.5 px-8 flex justify-center items-center
-            bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
-            dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600
-            rounded-full shadow-md
-            focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-            text-white text-center text-lg font-semibold dark:disabled:text-gray-400
-            transition ease-in duration-200">
-      Retry
+  <ul bind:this={listElement}
+      class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+
+    {#each notifications as notification}
+      <li>
+        <NotificationItem {notification} {lastUpdate}/>
+      </li>
+    {/each}
+
+    <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
+      <div slot="noMore"></div>
+
+      <div slot="spinner" class="p-6">
+        <LoadingSpinner/>
+      </div>
+
+      <div slot="error">
+        <div class="h-full flex flex-col justify-center items-center gap-1">
+          <div class="text-xl font-bold text-gray-900 dark:text-gray-100">Error</div>
+          <div class="text text-gray-600 dark:text-gray-400">There was an error loading notifications.</div>
+          <button type="button" on:click={reload} class="btn variant-ringed-error">Retry</button>
+        </div>
+      </div>
+
+    </InfiniteLoading>
+
+  </ul>
+
+</div>
+
+{#if newNotifications.length > 0}
+  <div use:hideOnScroll={{scrollElement}}
+       class="absolute top-12 w-full flex justify-center">
+    <button type="button" on:click={addNewNotifications}
+            class="btn btn-sm variant-filled-surface mt-4 shadow-lg">
+      {newNotifications.length} new notification{newNotifications.length > 1 ? 's' : ''}
     </button>
   </div>
-
-{:else}
-
-  <div use:scrollEndListener={{onScrollEnd}} class="w-full h-full overflow-y-auto">
-    <ul bind:this={listElement}
-        class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-      {#each notifications as notification}
-        <li>
-          <NotificationItem {notification} {lastUpdate}/>
-        </li>
-      {/each}
-
-      <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
-        <div slot="noMore"></div>
-        <div slot="spinner" class="p-6">
-          <LoadingSpinner/>
-        </div>
-      </InfiniteLoading>
-    </ul>
-  </div>
-
 {/if}

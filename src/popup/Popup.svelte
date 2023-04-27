@@ -1,13 +1,12 @@
 <script lang="ts">
     //@ts-ignore
-    import tippy from "sveltejs-tippy";
-    import {darkMode} from "../lib/stores/preferences-store";
+    import tippy from 'sveltejs-tippy';
+    import {darkMode} from '../lib/stores/preferences-store';
     import {TabGroup, Tab} from '@skeletonlabs/skeleton';
-    import NotificationsList from "./components/NotificationsList.svelte";
-    import {getOpenGraphTags, launchComposerWindow, scrollEndListener} from "../lib/utils";
-    import {DateTime} from "luxon";
-    import {notificationsScrollTop} from "../lib/stores/cache-store";
-    import {onMount} from "svelte";
+    import NotificationsList from './components/NotificationsList.svelte';
+    import {getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils';
+    import {DateTime} from 'luxon';
+    import {onMount} from 'svelte';
     import {Toaster} from 'svelte-french-toast';
 
     let tabSet: number = 0;
@@ -60,7 +59,7 @@
                 if (!tags.title) tags.title = title;
                 return launchComposerWindow(tags);
             } else {
-                console.log('no tags found')
+                console.log('no tags found');
             }
         } catch (e) {
             console.error(e);
@@ -115,8 +114,9 @@
     </Tab>
 
     <div on:click={scrollToTop}
-        class="w-full flex justify-end items-center px-2">
-      <button type="button" on:click|stopPropagation={onCreatePostClick}  use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
+         class="w-full flex justify-end items-center px-2">
+      <button type="button" on:click|stopPropagation={onCreatePostClick}
+              use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -125,7 +125,8 @@
         </svg>
       </button>
 
-      <button type="button" on:click|stopPropagation={onSettingsClick} use:tippy={{content: 'Settings', placement: 'bottom', delay: 500}}
+      <button type="button" on:click|stopPropagation={onSettingsClick}
+              use:tippy={{content: 'Settings', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -138,10 +139,13 @@
 
     <!-- Tab Panels --->
     <svelte:fragment slot="panel">
+
       {#if tabSet === 0}
+
         {#await getLastNotificationUpdateDate() then lastUpdate}
-            <NotificationsList {lastUpdate} bind:this={notificationList}/>
+          <NotificationsList {lastUpdate} bind:this={notificationList}/>
         {/await}
+
       {:else if tabSet === 1}
 
         <div class="w-full h-full flex flex-col justify-center items-center">

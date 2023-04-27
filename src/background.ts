@@ -122,7 +122,6 @@ const getNotificationCountSinceLastOpened = async (): Promise<number> => {
 }
 
 const updateBadge = async (notificationsTimestamp: string | null) => {
-    // TODO only count notifications that don't create a system notification
     const lastUpdateDate = notificationsTimestamp ? DateTime.fromISO(notificationsTimestamp) : null;
     if (!lastUpdateDate) return;
 
