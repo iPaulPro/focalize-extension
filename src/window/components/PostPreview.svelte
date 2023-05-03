@@ -6,7 +6,7 @@
     import {ipfsUrlToGatewayUrl} from '../../lib/ipfs-service';
     import {htmlFromMarkdown} from "../../lib/utils";
     import {PublicationState} from '../../lib/stores/state-store';
-    import LoadingSpinner from "./LoadingSpinner.svelte";
+    import LoadingSpinner from "../../lib/components/LoadingSpinner.svelte";
 
     import type {PublicationMetadataV2Input} from "../../lib/graph/lens-service";
     import type {User} from "../../lib/user";

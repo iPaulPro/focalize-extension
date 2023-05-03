@@ -1,7 +1,7 @@
 import {NotificationTypes, type PaginatedResultInfo, type Profile, type Wallet} from "./graph/lens-service";
 import {getOrRefreshAccessToken} from "./lens-auth";
 import gqlClient from "./graph/graphql-client";
-import {getAvatarFromAddress, getAvatarFromProfile, stripMarkdown, truncate} from './utils';
+import {getAvatarFromAddress, getAvatarForProfile, stripMarkdown, truncate} from './utils';
 import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from "./lens-nodes";
 
 import type {User} from "./user";
@@ -202,11 +202,11 @@ export const getNotificationProfile = (notification: Notification): Profile | nu
     return null;
 }
 
-export const getNotificationWallet = (notification: Notification): Wallet | undefined | null => {
+export const getNotificationWalletAddress = (notification: Notification): string | undefined | null => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
         case 'NewFollowerNotification':
-            return notification.wallet;
+            return notification.wallet.address;
         case 'NewMentionNotification':
             return notification.mentionPublication.profile.ownedBy;
         case 'NewCommentNotification':
@@ -227,14 +227,14 @@ export const getAvatarFromNotification = (notification: Notification): string | 
     }
     if (profile) {
         if (notification.notificationId === 'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed') {
-            console.log('getAvatarFromNotification: avatar', getAvatarFromProfile(profile));
+            console.log('getAvatarFromNotification: avatar', getAvatarForProfile(profile));
         }
-        return getAvatarFromProfile(profile);
+        return getAvatarForProfile(profile);
     }
 
-    const wallet = getNotificationWallet(notification);
+    const wallet = getNotificationWalletAddress(notification);
     if (wallet) {
-        return getAvatarFromAddress(wallet.address);
+        return getAvatarFromAddress(wallet);
     }
 
     return null;

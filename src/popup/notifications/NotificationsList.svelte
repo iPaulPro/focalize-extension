@@ -3,7 +3,7 @@
     import InfiniteLoading from 'svelte-infinite-loading';
     import type {Notification} from '../../lib/graph/lens-service';
     import NotificationItem from './NotificationItem.svelte';
-    import LoadingSpinner from '../../window/components/LoadingSpinner.svelte';
+    import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {DateTime} from 'luxon';
     import {
         notificationItemsCache,
@@ -56,12 +56,19 @@
         scrollElement.scrollTop = 0;
     };
 
+    const onLatestNotificationSeen = async () => {
+        await updateNotificationsTimestamp(notifications[0]?.createdAt);
+        await chrome.action.setBadgeText({text: ''});
+        await chrome.action.setTitle({title: 'Share on Lens'});
+    }
+
     const checkForNewNotifications = async () => {
         const latestNotifications = await getLatestNotifications();
         newNotifications = latestNotifications.notifications;
 
         if (scrollElement.scrollTop == 0 && newNotifications.length) {
             await addNewNotifications();
+            await onLatestNotificationSeen();
         }
     };
 
@@ -72,7 +79,7 @@
             $notificationsScrollTop = 0;
         } else {
             // Only update the timestamp if we're not restoring the scroll position since new notifications are visible
-            await updateNotificationsTimestamp(notifications[0]?.createdAt);
+            await onLatestNotificationSeen();
             console.log('restoreScroll: updating notifications timestamp', notifications[0].createdAt);
         }
     };
@@ -102,7 +109,7 @@
             firstNotification && $notificationsTimestamp &&
             DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(firstNotification.createdAt)
         ) {
-            await updateNotificationsTimestamp(firstNotification.createdAt);
+            await onLatestNotificationSeen();
         }
     };
 
@@ -162,7 +169,7 @@
     <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
       <div slot="noMore"></div>
 
-      <div slot="spinner" class="p-6">
+      <div slot="spinner" class="p-10">
         <LoadingSpinner/>
       </div>
 

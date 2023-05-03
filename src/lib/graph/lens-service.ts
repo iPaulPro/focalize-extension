@@ -21,6 +21,7 @@ export type Scalars = {
   ContractAddress: any;
   CreateHandle: any;
   Cursor: any;
+  DataAvailabilityId: any;
   DateTime: any;
   EncryptedValueScalar: any;
   Ens: any;
@@ -218,6 +219,8 @@ export type AuthenticationResult = {
   /** The refresh token */
   refreshToken: Scalars['Jwt'];
 };
+
+export type BroadcastDataAvailabilityUnion = CreateDataAvailabilityPublicationResult | RelayError;
 
 export type BroadcastRequest = {
   id: Scalars['BroadcastId'];
@@ -564,6 +567,39 @@ export type CreateCommentEip712TypedDataValue = {
   referenceModule: Scalars['ContractAddress'];
   referenceModuleData: Scalars['ReferenceModuleData'];
   referenceModuleInitData: Scalars['ReferenceModuleData'];
+};
+
+export type CreateDataAvailabilityCommentRequest = {
+  /** Publication your commenting on */
+  commentOn: Scalars['InternalPublicationId'];
+  /** The metadata contentURI resolver */
+  contentURI: Scalars['Url'];
+  /** Profile id */
+  from: Scalars['ProfileId'];
+};
+
+export type CreateDataAvailabilityMirrorRequest = {
+  /** Profile id which will broadcast the mirror */
+  from: Scalars['ProfileId'];
+  /** The publication to mirror */
+  mirror: Scalars['InternalPublicationId'];
+};
+
+export type CreateDataAvailabilityPostRequest = {
+  /** The metadata contentURI resolver */
+  contentURI: Scalars['Url'];
+  /** Profile id */
+  from: Scalars['ProfileId'];
+};
+
+export type CreateDataAvailabilityPublicationResult = {
+  __typename?: 'CreateDataAvailabilityPublicationResult';
+  /** The data availability id */
+  dataAvailabilityId: Scalars['DataAvailabilityId'];
+  /** The id of the post */
+  id: Scalars['InternalPublicationId'];
+  /** The proofs for the DA */
+  proofs: Scalars['String'];
 };
 
 /** The broadcast item */
@@ -994,6 +1030,78 @@ export enum CustomFiltersTypes {
   Gardeners = 'GARDENERS'
 }
 
+export type DataAvailabilityComment = {
+  __typename?: 'DataAvailabilityComment';
+  appId?: Maybe<Scalars['Sources']>;
+  commentedOnProfile: Profile;
+  commentedOnPublicationId: Scalars['InternalPublicationId'];
+  createdAt: Scalars['DateTime'];
+  profile: Profile;
+  publicationId: Scalars['InternalPublicationId'];
+  submitter: Scalars['EthereumAddress'];
+  transactionId: Scalars['String'];
+};
+
+export type DataAvailabilityMirror = {
+  __typename?: 'DataAvailabilityMirror';
+  appId?: Maybe<Scalars['Sources']>;
+  createdAt: Scalars['DateTime'];
+  mirrorOfProfile: Profile;
+  mirrorOfPublicationId: Scalars['InternalPublicationId'];
+  profile: Profile;
+  publicationId: Scalars['InternalPublicationId'];
+  submitter: Scalars['EthereumAddress'];
+  transactionId: Scalars['String'];
+};
+
+export type DataAvailabilityPost = {
+  __typename?: 'DataAvailabilityPost';
+  appId?: Maybe<Scalars['Sources']>;
+  createdAt: Scalars['DateTime'];
+  profile: Profile;
+  publicationId: Scalars['InternalPublicationId'];
+  submitter: Scalars['EthereumAddress'];
+  transactionId: Scalars['String'];
+};
+
+export type DataAvailabilitySubmitterResult = {
+  __typename?: 'DataAvailabilitySubmitterResult';
+  address: Scalars['EthereumAddress'];
+  name: Scalars['String'];
+  totalTransactions: Scalars['Int'];
+};
+
+/** The paginated submitter results */
+export type DataAvailabilitySubmittersResult = {
+  __typename?: 'DataAvailabilitySubmittersResult';
+  items: Array<DataAvailabilitySubmitterResult>;
+  pageInfo: PaginatedResultInfo;
+};
+
+export type DataAvailabilitySummaryResult = {
+  __typename?: 'DataAvailabilitySummaryResult';
+  totalTransactions: Scalars['Int'];
+};
+
+export type DataAvailabilityTransactionRequest = {
+  /** The DA transaction id or internal publiation id */
+  id: Scalars['String'];
+};
+
+export type DataAvailabilityTransactionUnion = DataAvailabilityComment | DataAvailabilityMirror | DataAvailabilityPost;
+
+export type DataAvailabilityTransactionsRequest = {
+  cursor?: InputMaybe<Scalars['Cursor']>;
+  limit?: InputMaybe<Scalars['LimitScalar']>;
+  profileId?: InputMaybe<Scalars['ProfileId']>;
+};
+
+export type DataAvailabilityTransactionsResult = {
+  __typename?: 'DataAvailabilityTransactionsResult';
+  items: Array<DataAvailabilityTransactionUnion>;
+  pageInfo: PaginatedResultInfo;
+};
+
 /** The reason why a profile cannot decrypt a publication */
 export enum DecryptFailReason {
   CanNotDecrypt = 'CAN_NOT_DECRYPT',
@@ -1046,6 +1154,8 @@ export type Dispatcher = {
   address: Scalars['EthereumAddress'];
   /** If the dispatcher can use the relay */
   canUseRelay: Scalars['Boolean'];
+  /** If the dispatcher transactions will be sponsored by lens aka cover the gas costs */
+  sponsor: Scalars['Boolean'];
 };
 
 export type DoesFollow = {
@@ -2026,12 +2136,19 @@ export type Mutation = {
   addReaction?: Maybe<Scalars['Void']>;
   authenticate: AuthenticationResult;
   broadcast: RelayResult;
+  broadcastDataAvailability: BroadcastDataAvailabilityUnion;
   claim: RelayResult;
   createAttachMediaData: PublicMediaResults;
   createBurnProfileTypedData: CreateBurnProfileBroadcastItemResult;
   createCollectTypedData: CreateCollectBroadcastItemResult;
   createCommentTypedData: CreateCommentBroadcastItemResult;
   createCommentViaDispatcher: RelayResult;
+  createDataAvailabilityCommentTypedData: CreateCommentBroadcastItemResult;
+  createDataAvailabilityCommentViaDispatcher: RelayDataAvailabilityResult;
+  createDataAvailabilityMirrorTypedData: CreateMirrorBroadcastItemResult;
+  createDataAvailabilityMirrorViaDispatcher: RelayDataAvailabilityResult;
+  createDataAvailabilityPostTypedData: CreatePostBroadcastItemResult;
+  createDataAvailabilityPostViaDispatcher: RelayDataAvailabilityResult;
   createFollowTypedData: CreateFollowBroadcastItemResult;
   createMirrorTypedData: CreateMirrorBroadcastItemResult;
   createMirrorViaDispatcher: RelayResult;
@@ -2099,6 +2216,11 @@ export type MutationBroadcastArgs = {
 };
 
 
+export type MutationBroadcastDataAvailabilityArgs = {
+  request: BroadcastRequest;
+};
+
+
 export type MutationClaimArgs = {
   request: ClaimHandleRequest;
 };
@@ -2129,6 +2251,36 @@ export type MutationCreateCommentTypedDataArgs = {
 
 export type MutationCreateCommentViaDispatcherArgs = {
   request: CreatePublicCommentRequest;
+};
+
+
+export type MutationCreateDataAvailabilityCommentTypedDataArgs = {
+  request: CreateDataAvailabilityCommentRequest;
+};
+
+
+export type MutationCreateDataAvailabilityCommentViaDispatcherArgs = {
+  request: CreateDataAvailabilityCommentRequest;
+};
+
+
+export type MutationCreateDataAvailabilityMirrorTypedDataArgs = {
+  request: CreateDataAvailabilityMirrorRequest;
+};
+
+
+export type MutationCreateDataAvailabilityMirrorViaDispatcherArgs = {
+  request: CreateDataAvailabilityMirrorRequest;
+};
+
+
+export type MutationCreateDataAvailabilityPostTypedDataArgs = {
+  request: CreateDataAvailabilityPostRequest;
+};
+
+
+export type MutationCreateDataAvailabilityPostViaDispatcherArgs = {
+  request: CreateDataAvailabilityPostRequest;
 };
 
 
@@ -2597,7 +2749,7 @@ export type NotificationRequest = {
   customFilters?: InputMaybe<Array<CustomFiltersTypes>>;
   highSignalFilter?: InputMaybe<Scalars['Boolean']>;
   limit?: InputMaybe<Scalars['LimitScalar']>;
-  /** The profile id */
+  /** The notification types */
   notificationTypes?: InputMaybe<Array<NotificationTypes>>;
   /** The profile id */
   profileId: Scalars['ProfileId'];
@@ -3173,7 +3325,7 @@ export enum PublicationMetadataStatusType {
 
 /** Publication metadata tag filter */
 export type PublicationMetadataTagsFilter = {
-  /** Needs to only match all */
+  /** Needs to match all */
   all?: InputMaybe<Array<Scalars['String']>>;
   /** Needs to only match one of */
   oneOf?: InputMaybe<Array<Scalars['String']>>;
@@ -3300,6 +3452,7 @@ export enum PublicationReportingSensitiveSubreason {
 /** Publication reporting spam subreason */
 export enum PublicationReportingSpamSubreason {
   FakeEngagement = 'FAKE_ENGAGEMENT',
+  LowSignal = 'LOW_SIGNAL',
   ManipulationAlgo = 'MANIPULATION_ALGO',
   Misleading = 'MISLEADING',
   MisuseHashtags = 'MISUSE_HASHTAGS',
@@ -3414,6 +3567,10 @@ export type Query = {
   claimableHandles: ClaimableHandles;
   claimableStatus: ClaimStatus;
   cur: Array<Scalars['String']>;
+  dataAvailabilitySubmitters: DataAvailabilitySubmittersResult;
+  dataAvailabilitySummary: DataAvailabilitySummaryResult;
+  dataAvailabilityTransaction?: Maybe<DataAvailabilityTransactionUnion>;
+  dataAvailabilityTransactions: DataAvailabilityTransactionsResult;
   defaultProfile?: Maybe<Profile>;
   doesFollow: Array<DoesFollowResponse>;
   enabledModuleCurrencies: Array<Erc20>;
@@ -3485,6 +3642,16 @@ export type QueryChallengeArgs = {
 
 export type QueryCurArgs = {
   request: CurRequest;
+};
+
+
+export type QueryDataAvailabilityTransactionArgs = {
+  request: DataAvailabilityTransactionRequest;
+};
+
+
+export type QueryDataAvailabilityTransactionsArgs = {
+  request?: InputMaybe<DataAvailabilityTransactionsRequest>;
 };
 
 
@@ -3770,6 +3937,8 @@ export type RelRequest = {
   secret: Scalars['String'];
 };
 
+export type RelayDataAvailabilityResult = CreateDataAvailabilityPublicationResult | RelayError;
+
 export type RelayError = {
   __typename?: 'RelayError';
   reason: RelayErrorReasons;
@@ -3986,6 +4155,11 @@ export type SingleProfileQueryRequest = {
 export type SpamReasonInputParams = {
   reason: PublicationReportingReason;
   subreason: PublicationReportingSpamSubreason;
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  newDataAvailabilityTransaction: DataAvailabilityTransactionUnion;
 };
 
 export type SybilDotOrgIdentity = {
@@ -4291,10 +4465,11 @@ export type CreateUnfollowTypedDataMutation = { __typename?: 'Mutation', createU
 
 export type DefaultProfileQueryVariables = Exact<{
   request: DefaultProfileRequest;
+  userProfileId?: InputMaybe<Scalars['ProfileId']>;
 }>;
 
 
-export type DefaultProfileQuery = { __typename?: 'Query', defaultProfile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
+export type DefaultProfileQuery = { __typename?: 'Query', defaultProfile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean, sponsor: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
 
 export type EnabledModuleCurrenciesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4314,14 +4489,15 @@ export type GetProfileQueryVariables = Exact<{
 }>;
 
 
-export type GetProfileQuery = { __typename?: 'Query', profile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
+export type GetProfileQuery = { __typename?: 'Query', profile?: { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean, sponsor: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } } | null };
 
 export type ProfilesQueryVariables = Exact<{
   request: ProfileQueryRequest;
+  userProfileId: Scalars['ProfileId'];
 }>;
 
 
-export type ProfilesQuery = { __typename?: 'Query', profiles: { __typename: 'PaginatedProfileResult', items: Array<{ __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
+export type ProfilesQuery = { __typename?: 'Query', profiles: { __typename: 'PaginatedProfileResult', items: Array<{ __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean, sponsor: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
 
 export type NotificationsQueryVariables = Exact<{
   request: NotificationRequest;
@@ -4381,9 +4557,9 @@ export type MutualFollowersProfilesQueryVariables = Exact<{
 }>;
 
 
-export type MutualFollowersProfilesQuery = { __typename?: 'Query', mutualFollowersProfiles: { __typename?: 'PaginatedProfileResult', items: Array<{ __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
+export type MutualFollowersProfilesQuery = { __typename?: 'Query', mutualFollowersProfiles: { __typename?: 'PaginatedProfileResult', items: Array<{ __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean, sponsor: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } }>, pageInfo: { __typename?: 'PaginatedResultInfo', prev?: any | null, next?: any | null, totalCount?: number | null } } };
 
-export type ProfileFieldsFragment = { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } };
+export type ProfileFieldsFragment = { __typename: 'Profile', isFollowedByMe: boolean, isFollowing: boolean, bio?: string | null, followNftAddress?: any | null, handle: any, id: any, interests?: Array<any> | null, isDefault: boolean, metadata?: any | null, name?: string | null, ownedBy: any, onChainIdentity: { __typename?: 'OnChainIdentity', proofOfHumanity: boolean, ens?: { __typename?: 'EnsOnChainIdentity', name?: any | null } | null, sybilDotOrg: { __typename?: 'SybilDotOrgIdentity', verified: boolean, source: { __typename?: 'SybilDotOrgIdentitySource', twitter: { __typename?: 'SybilDotOrgTwitterIdentity', handle?: string | null } } }, worldcoin: { __typename?: 'WorldcoinIdentity', isHuman: boolean } }, followModule?: { __typename: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, contractAddress: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', address: any, decimals: number, name: string, symbol: string } } } | { __typename: 'ProfileFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'RevertFollowModuleSettings', type: FollowModules, contractAddress: any } | { __typename: 'UnknownFollowModuleSettings', type: FollowModules, followModuleReturnData: any, contractAddress: any } | null, attributes?: Array<{ __typename?: 'Attribute', displayType?: string | null, key: string, traitType?: string | null, value: string }> | null, coverPicture?: { __typename: 'MediaSet', medium?: { __typename?: 'Media', altTag?: string | null, width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null } | null, original: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null }, small?: { __typename?: 'Media', altTag?: string | null, cover?: any | null, height?: number | null, mimeType?: any | null, size?: number | null, url: any, width?: number | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, dispatcher?: { __typename?: 'Dispatcher', address: any, canUseRelay: boolean, sponsor: boolean } | null, picture?: { __typename: 'MediaSet', small?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null } | null, original: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, height?: number | null, cover?: any | null, altTag?: string | null }, medium?: { __typename?: 'Media', width?: number | null, url: any, size?: number | null, mimeType?: any | null, cover?: any | null, height?: number | null, altTag?: string | null } | null } | { __typename: 'NftImage', chainId: number, contractAddress: any, tokenId: string, uri: any, verified: boolean } | null, stats: { __typename?: 'ProfileStats', totalPublications: number, totalPosts: number, totalMirrors: number, totalFollowing: number, totalFollowers: number, totalComments: number, totalCollects: number, publicationsTotal: number, postsTotal: number, mirrorsTotal: number, id: any, commentsTotal: number } };
 
 type FollowModuleFields_FeeFollowModuleSettings_Fragment = { __typename?: 'FeeFollowModuleSettings', type: FollowModules, recipient: any, amount: { __typename?: 'ModuleFeeAmount', value: string, asset: { __typename?: 'Erc20', name: string, symbol: string, decimals: number, address: any } } };
 
@@ -4876,6 +5052,7 @@ export const ProfileFieldsFragmentDoc = gql`
   dispatcher {
     address
     canUseRelay
+    sponsor
   }
   followNftAddress
   handle
@@ -5149,11 +5326,11 @@ export const CreateUnfollowTypedDataDocument = gql`
 }
     `;
 export const DefaultProfileDocument = gql`
-    query DefaultProfile($request: DefaultProfileRequest!) {
+    query DefaultProfile($request: DefaultProfileRequest!, $userProfileId: ProfileId) {
   defaultProfile(request: $request) {
     __typename
     isFollowedByMe
-    isFollowing
+    isFollowing(who: $userProfileId)
     onChainIdentity {
       ens {
         name
@@ -5254,6 +5431,7 @@ export const DefaultProfileDocument = gql`
     dispatcher {
       address
       canUseRelay
+      sponsor
     }
     followNftAddress
     handle
@@ -5447,6 +5625,7 @@ export const GetProfileDocument = gql`
     dispatcher {
       address
       canUseRelay
+      sponsor
     }
     followNftAddress
     handle
@@ -5514,13 +5693,13 @@ export const GetProfileDocument = gql`
 }
     `;
 export const ProfilesDocument = gql`
-    query Profiles($request: ProfileQueryRequest!) {
+    query Profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
   profiles(request: $request) {
     __typename
     items {
       __typename
       isFollowedByMe
-      isFollowing
+      isFollowing(who: $userProfileId)
       onChainIdentity {
         ens {
           name
@@ -5621,6 +5800,7 @@ export const ProfilesDocument = gql`
       dispatcher {
         address
         canUseRelay
+        sponsor
       }
       followNftAddress
       handle

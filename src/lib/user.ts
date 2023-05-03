@@ -5,7 +5,7 @@ import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
 import {currentUser} from "./stores/user-store";
 import {get} from "./stores/chrome-storage-store";
-import {getAvatarFromProfile} from "./utils";
+import {getAvatarForProfile} from "./utils";
 
 export type User = {
     address: string,
@@ -24,7 +24,7 @@ export enum UserError {
 }
 
 export const userFromProfile = (profile: Profile): User => {
-    const avatarUrl = getAvatarFromProfile(profile);
+    const avatarUrl = getAvatarForProfile(profile);
 
     return {
         address: profile.ownedBy,
@@ -80,7 +80,7 @@ export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}
 
     if (!profile) {
         try {
-            const allProfiles = await getProfiles(address);
+            const allProfiles = await getProfiles([address]);
             profile = allProfiles[0];
         } catch (e) {
             console.error(`getCurrentUser: No profiles found for address ${address}`, e)

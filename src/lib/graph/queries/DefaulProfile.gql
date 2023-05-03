@@ -1,8 +1,8 @@
-query DefaultProfile($request: DefaultProfileRequest!) {
+query DefaultProfile($request: DefaultProfileRequest!, $userProfileId: ProfileId) {
     defaultProfile(request: $request) {
         __typename
         isFollowedByMe
-        isFollowing
+        isFollowing(who: $userProfileId)
         onChainIdentity {
             ens {
                 name
@@ -103,6 +103,7 @@ query DefaultProfile($request: DefaultProfileRequest!) {
         dispatcher {
             address
             canUseRelay
+            sponsor
         }
         followNftAddress
         handle

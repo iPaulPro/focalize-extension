@@ -1,10 +1,10 @@
-query Profiles($request: ProfileQueryRequest!) {
+query Profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
     profiles(request: $request) {
         __typename
         items {
             __typename
             isFollowedByMe
-            isFollowing
+            isFollowing(who: $userProfileId)
             onChainIdentity {
                 ens {
                     name
@@ -105,6 +105,7 @@ query Profiles($request: ProfileQueryRequest!) {
             dispatcher {
                 address
                 canUseRelay
+                sponsor
             }
             followNftAddress
             handle

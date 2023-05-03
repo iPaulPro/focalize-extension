@@ -1,91 +1,79 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
-    import { DateTime, Interval } from 'luxon';
+    import {onMount, onDestroy} from 'svelte';
+    import {DateTime, Duration, Interval} from 'luxon';
 
     export let timestamp: number;
-    export let relative: boolean = true;
     export let className: string = '';
     export let prefix: string = undefined;
     export let capitalize: string = false;
 
     let formattedTime: string;
-    let intervalID: number;
+    let intervalId: number;
 
-    const isWithinOneHour = (timestamp: number) => {
-        const now = DateTime.now();
-        const time = DateTime.fromMillis(timestamp);
-        const diff = Interval.fromDateTimes(time, now).toDuration('hours');
-        return diff.as('hours') < 1;
+    const isWithinOneHour = (diff: Duration) => diff.as('hours') < 1;
+    const isWithinFifteenMinutes = (diff: Duration) => diff.as('minutes') <= 15;
+    const isWithinOneMinute = (diff: Duration) => diff.as('minutes') < 1;
+    const isWithinTenSeconds = (diff: Duration) => diff.as('seconds') <= 10;
+    const isWithinOneWeek = (diff: Duration) => diff.as('weeks') < 1;
+
+    const isYesterday = (date: DateTime, now: DateTime) => {
+        const startOfToday = now.startOf('day');
+        const startOfYesterday = startOfToday.minus({days: 1});
+        return date >= startOfYesterday && date < startOfToday;
     };
 
-    const isWithinOneMinute = (timestamp: number) => {
-        const now = DateTime.now();
-        const time = DateTime.fromMillis(timestamp);
-        const diff = Interval.fromDateTimes(time, now).toDuration('minutes');
-        return diff.as('minutes') < 1;
+    const isToday = (date: DateTime, now: DateTime): boolean => {
+        const startOfToday = now.startOf('day');
+        const startOfTomorrow = startOfToday.plus({days: 1});
+        return date >= startOfToday && date < startOfTomorrow;
     };
 
-    const isWithinTenSeconds = (timestamp: number) => {
+    const getTimeString = (date: DateTime) => {
         const now = DateTime.now();
-        const time = DateTime.fromMillis(timestamp);
-        const diff = Interval.fromDateTimes(time, now).toDuration('seconds');
-        return diff.as('seconds') < 10;
-    };
+        const diff = Interval.fromDateTimes(date, now).toDuration();
 
-    const sameDay = (a: DateTime, b: DateTime): boolean => {
-        return a.hasSame(b, "day") && a.hasSame(b, "month") && a.hasSame(b, "year");
-    };
-
-    const getTimeString = (timestamp: number, relative: boolean) => {
-        const now = DateTime.now();
-        const time = DateTime.fromMillis(timestamp);
-        const diff = Interval.fromDateTimes(time, now).toDuration(['years', 'months', 'days']).toObject();
-
-        if (diff.years > 0) {
-            // more than 1 year difference, show full date
-            return time.toLocaleString(DateTime.DATE_MED);
-        } else if (diff.months > 0 || diff.days > 1) {
-            // more than 1 day difference, show short date
-            return time.toLocaleString(DateTime.DATETIME_SHORT);
-        } else if (!sameDay(now, time) && diff.days <= 1) {
-            // show yesterday
-            return (capitalize ? 'Yesterday, ' : 'yesterday, ') + time.toLocaleString(DateTime.TIME_SIMPLE);
-        } else if (relative && isWithinOneHour(timestamp)) {
-            if (isWithinTenSeconds(timestamp)) {
-                // show "just now"
-                return capitalize ? 'Just now' : 'just now';
-            } else {
-                // show relative time within one hour
-                return time.toRelative();
-            }
-        } else {
-            // show time
-            return (prefix ? `${prefix} ` : '') + time.toLocaleString(DateTime.TIME_SIMPLE);
+        if (isWithinTenSeconds(diff)) {
+            return capitalize ? 'Just now' : 'just now';
+        } else if (isWithinFifteenMinutes(diff)) {
+            return date.toRelative({style: 'narrow'});
+        } else if (isToday(date, now)) {
+            return date.toLocaleString(DateTime.TIME_SIMPLE);
+        } else if (isYesterday(date, now)) {
+            return capitalize ? 'Yesterday' : 'yesterday';
+        } else if (isWithinOneWeek(diff)) {
+            return date.toLocaleString({weekday: 'long'});
         }
+
+        return date.toLocaleString(DateTime.DATE_SHORT);
     };
 
-    onMount(() => {
-        // Initialize the formatted time
-        formattedTime = getTimeString(timestamp, relative);
+    $: {
+        if (timestamp) {
+            const now = DateTime.now();
+            const date = DateTime.fromMillis(timestamp);
+            const diff = Interval.fromDateTimes(date, now).toDuration('hours');
 
-        // Set up the interval to update the time
-        // Every 10 seconds for the first minute, minute for the first hour
-        if (relative && isWithinOneHour(timestamp)) {
-            if (isWithinOneMinute(timestamp)) {
-                intervalID = setInterval(() => {
-                    formattedTime = getTimeString(timestamp, relative);
-                }, isWithinTenSeconds(timestamp) ? 10 * 1000 : 60 * 1000);
-            } else {
-                intervalID = setInterval(() => {
-                    formattedTime = getTimeString(timestamp, relative);
-                }, 60 * 1000);
+            formattedTime = getTimeString(date);
+
+            // Every 10 seconds for the first minute, every minute thereafter for the first hour
+            if (isWithinOneHour(diff)) {
+                if (intervalId) clearInterval(intervalId);
+                if (isWithinOneMinute(diff)) {
+                    intervalId = setInterval(() => {
+                        formattedTime = getTimeString(date);
+                    }, isWithinTenSeconds(diff) ? 10 * 1000 : 60 * 1000);
+                } else {
+                    intervalId = setInterval(() => {
+                        formattedTime = getTimeString(date);
+                    }, 60 * 1000);
+                }
             }
         }
-    });
+    }
 
     onDestroy(() => {
         // Clean up the interval when the component is destroyed
-        clearInterval(intervalID);
+        clearInterval(intervalId);
     });
 </script>
 

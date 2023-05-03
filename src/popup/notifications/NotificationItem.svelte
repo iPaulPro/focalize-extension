@@ -1,18 +1,21 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import tooltip from 'svelte-ktippy';
     import type {Notification} from '../../lib/graph/lens-service';
     import {
         getAvatarFromNotification,
-        getNotificationAction, getNotificationContent,
-        getNotificationHandle, getNotificationLink, getNotificationProfile
+        getNotificationAction,
+        getNotificationContent,
+        getNotificationHandle,
+        getNotificationLink,
+        getNotificationProfile,
+        getNotificationWalletAddress
     } from '../../lib/lens-notifications';
     import {DateTime} from 'luxon';
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {getProfileUrl} from '../../lib/lens-nodes';
     import {nodeSearch} from '../../lib/stores/preferences-store';
-    import {truncate} from '../../lib/utils';
+    import {truncate, truncateAddress} from '../../lib/utils';
     import NotificationIcon from './NotificationIcon.svelte';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
@@ -27,20 +30,16 @@
     $: notificationContent = notification && getNotificationContent(notification);
     $: notificationAvatar = notification && getAvatarFromNotification(notification);
     $: notificationDisplayName = notification && getNotificationDisplayName(notification);
+    $: notificationHandle = notification && getNotificationHandle(notification);
+    $: notificationWalletAddress = notification && getNotificationWalletAddress(notification);
     $: isNew = notification && lastUpdate && DateTime.fromISO(notification.createdAt) > lastUpdate;
-
-    const getUserProfileUrl = async (): Promise<string | null> => {
-        if (!notification) return null;
-        const handle = getNotificationHandle(notification);
-        return getProfileUrl($nodeSearch, handle);
-    };
+    $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getProfileUrl($nodeSearch, notificationHandle);
+    $: polygonScanUrl = notification && notificationWalletAddress && `https://polygonscan.com/address/${notificationWalletAddress}`;
 
     const launchNotification = async () => {
         const url = await getNotificationLink(notification);
         await chrome.tabs.create({url});
     };
-
-    $: userProfileUrl = notification && $nodeSearch && getUserProfileUrl()
 </script>
 
 <div on:click={launchNotification}
@@ -52,7 +51,7 @@
   <div class="w-full flex flex-col pl-2 gap-0.5">
 
     <div class="flex justify-between">
-      <a href={userProfileUrl} target="_blank" rel="noreferrer">
+      <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer">
         <img src={notificationAvatar ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
              bind:this={avatarElement}
              class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
@@ -69,13 +68,15 @@
     </div>
 
     <span class="text-sm text-gray-900 dark:text-gray-300 pt-1">
-      <a href={userProfileUrl} target="_blank" rel="noreferrer"
+      <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer"
          bind:this={handleElement}
          class="!no-underline !text-black dark:!text-white font-semibold hover:!underline">
         {#if notificationDisplayName}
           <span>{truncate(notificationDisplayName, 25)}</span>
-        {:else}
-          <span>{truncate(getNotificationHandle(notification), 25)}</span>
+        {:else if notificationHandle}
+          <span>{truncate(notificationHandle, 25)}</span>
+        {:else if notificationWalletAddress}
+          <span>{truncateAddress(notificationWalletAddress, 12)}</span>
         {/if}
       </a>
       <span>
@@ -93,7 +94,10 @@
 </div>
 
 {#if avatarElement && handleElement}
-  <FloatingComponent anchors={[avatarElement, handleElement]} showDelay={500} hideDelay={200} interactive={true}>
-    <ProfileHoverCard profile={getNotificationProfile(notification)}/>
-  </FloatingComponent>
+  {@const profile = getNotificationProfile(notification)}
+  {#if profile}
+    <FloatingComponent anchors={[avatarElement, handleElement]} showDelay={500} hideDelay={200} interactive={true}>
+      <ProfileHoverCard {profile}/>
+    </FloatingComponent>
+  {/if}
 {/if}

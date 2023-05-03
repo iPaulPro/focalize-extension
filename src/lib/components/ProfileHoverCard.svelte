@@ -1,6 +1,6 @@
 <script lang="ts">
     import {type Profile} from '../graph/lens-service';
-    import {formatFollowerCount, getAvatarFromProfile, truncate} from '../utils';
+    import {formatFollowerCount, getAvatarForProfile, truncate} from '../utils';
     import {onMount} from 'svelte';
     import {getMutualFollows, getProfileById} from '../lens-profile';
     import {createEventDispatcher} from 'svelte';
@@ -15,9 +15,10 @@
     export let profile: Profile;
 
     let loading = true;
+    let mutualFollows: { profiles: Profile[], total: number } | undefined;
 
-    $: avatarUrl = profile && getAvatarFromProfile(profile);
-    $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle)
+    $: avatarUrl = profile && getAvatarForProfile(profile);
+    $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     onMount(async () => {
@@ -25,6 +26,9 @@
             const updatedProfile = await getProfileById(profile.id);
             if (updatedProfile) {
                 profile = updatedProfile;
+            }
+            if ($currentUser && profile) {
+                mutualFollows = await getMutualFollows(profile.id, $currentUser.profileId, 3);
             }
         } catch (e) {
             console.error(e);
@@ -78,14 +82,14 @@
 
   {#if profile.name}
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
-         class="!no-underline !text-black dark:!text-white text-lg font-semibold hover:!underline">
+       class="!no-underline !text-black dark:!text-white text-lg font-semibold hover:!underline">
       {profile.name}
     </a>
   {/if}
 
   <div class="flex flex-wrap items-center gap-2 -mt-0.5">
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
-          class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
+       class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
           dark:hover:!text-orange-400">
       @{profile.handle.split('.')[0]}
     </a>
@@ -113,30 +117,26 @@
     </div>
   </div>
 
-  {#if $currentUser}
+  {#if mutualFollows && $currentUser && profile}
 
-    {#await getMutualFollows(profile.id, $currentUser.profileId, 3) then mutualFollows}
+    {#if mutualFollows.profiles.length > 0}
 
-      {#if mutualFollows.profiles.length > 0}
+      <div class="pt-3 flex gap-2">
 
-        <div class="pt-3 flex gap-2">
-
-          <div class="flex flex-shrink-0 overlap">
-            {#each mutualFollows.profiles as mutualFollow}
-              <img src={getAvatarFromProfile(mutualFollow)} alt="Avatar"
-                   class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
-            {/each}
-          </div>
-
-          <div class="text-sm opacity-60 leading-tight min-h-full flex items-center">
-            {getMutualFollowsText(mutualFollows)}
-          </div>
-
+        <div class="flex flex-shrink-0 overlap">
+          {#each mutualFollows.profiles as mutualFollow}
+            <img src={getAvatarForProfile(mutualFollow)} alt="Avatar"
+                 class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
+          {/each}
         </div>
 
-      {/if}
+        <div class="text-sm opacity-60 leading-tight min-h-full flex items-center">
+          {getMutualFollowsText(mutualFollows)}
+        </div>
 
-    {/await}
+      </div>
+
+    {/if}
 
   {/if}
 

@@ -30,8 +30,12 @@ export const getDefaultProfile = async (ethereumAddress: string): Promise<Profil
     throw new Error('Unable to get default profile');
 };
 
-export const getProfiles = async (ownedBy: string): Promise<Profile[]> => {
-    const {profiles} = await gqlClient.Profiles({request: {ownedBy: [ownedBy]}});
+export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
+    const storage = await chrome.storage.local.get('currentUser');
+    const userProfileId = storage.currentUser?.profileId;
+    const {profiles} = await gqlClient.Profiles({
+        request: {ownedBy: ownedBy}, userProfileId
+    });
     return profiles.items;
 };
 
@@ -39,6 +43,20 @@ export const getProfileById = async (profileId: string): Promise<Profile> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
     const {profile} = await gqlClient.GetProfile({profileId, userProfileId});
+    if (profile?.__typename === 'Profile') return profile;
+    throw new Error('Unable to get profile');
+}
+
+export const getProfileByAddress = async (ethereumAddress: string): Promise<Profile> => {
+    const storage = await chrome.storage.local.get('currentUser');
+    const userProfileId = storage.currentUser?.profileId;
+    const {profiles} = await gqlClient.Profiles({
+        request: {
+            ownedBy: [ethereumAddress]
+        },
+        userProfileId
+    });
+    const profile = profiles.items[0];
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }

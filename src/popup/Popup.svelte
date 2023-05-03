@@ -2,16 +2,20 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {darkMode} from '../lib/stores/preferences-store';
-    import {TabGroup, Tab} from '@skeletonlabs/skeleton';
-    import NotificationsList from './components/NotificationsList.svelte';
+    import {storePopup, TabGroup, Tab} from '@skeletonlabs/skeleton';
+    import NotificationsList from './notifications/NotificationsList.svelte';
     import {getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils';
     import {DateTime} from 'luxon';
     import {onMount} from 'svelte';
     import {Toaster} from 'svelte-french-toast';
+    import ConversationsList from './messaging/ThreadList.svelte';
+    import {currentUser} from '../lib/stores/user-store';
+    import {getCurrentUser} from '../lib/user';
+    import {selectedMainTab} from '../lib/stores/cache-store';
+    import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 
-    let tabSet: number = 0;
-
-    let notificationList: NotificationsList;
+    let notificationsList: NotificationsList;
+    let conversationsList: ConversationsList;
 
     $: {
         if ($darkMode) {
@@ -78,34 +82,60 @@
     };
 
     const onNotificationsTabClick = async () => {
-        if (tabSet !== 0) return;
+        if ($selectedMainTab !== 0) return;
         await chrome.storage.local.remove(['notificationItemsCache', 'notificationPageInfoCache']);
     };
 
     const scrollToTop = () => {
-        // @ts-ignore
-        notificationList.scrollToTop();
+        if (notificationsList) {
+            // @ts-ignore
+            notificationsList.scrollToTop();
+        } else if (conversationsList) {
+            // @ts-ignore
+            conversationsList.scrollToTop();
+        }
+    };
+
+    const ensureUser = async () => {
+        if ($currentUser) return;
+
+        try {
+            const {user, error} = await getCurrentUser();
+
+            if (error || !user) {
+                chrome.runtime.openOptionsPage();
+                return;
+            }
+
+            $currentUser = user;
+        } catch (e) {
+            chrome.runtime.openOptionsPage();
+        }
     };
 
     onMount(async () => {
-        await chrome.action.setBadgeText({text: ''});
-        await chrome.action.setTitle({title: 'Share on Lens'});
+        await ensureUser();
+
+        storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
     });
 </script>
 
 <div class="w-full h-full flex flex-col">
 
-  <TabGroup regionPanel="w-full flex-grow overflow-y-auto min-h-0 my-0" regionList="flex-shrink-0" padding="px-6 py-3"
-            border="border-b border-gray-200 dark:border-gray-700" class="flex flex-col h-full !space-y-0">
+  <TabGroup regionPanel="w-full flex-grow overflow-y-auto min-h-0 my-0"
+            regionList="flex-shrink-0"
+            padding="px-6 py-3"
+            border="border-b border-gray-200 dark:border-gray-700"
+            class="flex flex-col h-full !space-y-0">
 
-    <Tab bind:group={tabSet} name="tab1" value={0} on:click={onNotificationsTabClick}>
+    <Tab bind:group={$selectedMainTab} name="tab1" value={0} on:click={onNotificationsTabClick}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
       </svg>
     </Tab>
 
-    <Tab bind:group={tabSet} name="tab2" value={1}>
+    <Tab bind:group={$selectedMainTab} name="tab2" value={1}>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
@@ -140,29 +170,18 @@
     <!-- Tab Panels --->
     <svelte:fragment slot="panel">
 
-      {#if tabSet === 0}
+      {#if $selectedMainTab === 0}
 
         {#await getLastNotificationUpdateDate() then lastUpdate}
-          <NotificationsList {lastUpdate} bind:this={notificationList}/>
+          <NotificationsList {lastUpdate} bind:this={notificationsList}/>
         {/await}
 
-      {:else if tabSet === 1}
+      {:else if $selectedMainTab === 1}
 
-        <div class="w-full h-full flex flex-col justify-center items-center">
-          <div class="animate-pulse">
-            <svg class="w-24 opacity-60" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-              <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-          </div>
-
-          <div class="text-base px-16 text-center">
-            Direct messages via <span class="text-[#FC4F37] font-bold">XMTP</span> are coming soon!
-          </div>
-        </div>
+        <ConversationsList bind:this={conversationsList}/>
 
       {/if}
+
     </svelte:fragment>
 
   </TabGroup>

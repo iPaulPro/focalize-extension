@@ -1,7 +1,7 @@
 <script lang="ts">
     import toast from 'svelte-french-toast';
 
-    import LoadingSpinner from './LoadingSpinner.svelte';
+    import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import imageExternal from '../../assets/ic_external.svg';
 
     import {uploadAndPin, unpin, getCidFromIpfsUrl, type Web3File} from "../../lib/ipfs-service";

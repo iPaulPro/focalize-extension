@@ -1,5 +1,4 @@
 import type {Profile} from "./graph/lens-service";
-import {ipfsUrlToGatewayUrl} from "./ipfs-service";
 import showdown from "showdown";
 import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from "rxjs";
@@ -12,7 +11,7 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatarFromProfile = (profile: Profile, size: number = 128) => {
+export const getAvatarForProfile = (profile: Profile, size: number = 128) => {
     return `https://cdn.stamp.fyi/avatar/${profile.handle}?s=${size}`;
 };
 
@@ -42,6 +41,16 @@ export const stripMarkdown = (markdown: string | undefined): string | undefined 
 
 export const truncate = (str: string | null | undefined, limit: number): string | null | undefined => {
     return (!str || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
+};
+
+export const truncateAddress = (address: string, maxLength: number): string => {
+    if (address.length <= maxLength) {
+        return address;
+    }
+    const ellipsis= '…';
+    const startLength = Math.ceil((maxLength - ellipsis.length) / 2);
+    const endLength = Math.floor((maxLength - ellipsis.length) / 2);
+    return address.slice(0, startLength) + ellipsis + address.slice(address.length - endLength);
 };
 
 export const launchComposerWindow = async (
@@ -107,6 +116,8 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
     let targetElement: HTMLElement = parameters.scrollElement;
     let lastScrollTop = targetElement?.scrollTop;
 
+    let reversed = parameters.reversed ?? false;
+
     const handleScroll = () => {
         const direction = targetElement.scrollTop > lastScrollTop ? 'down' : 'up';
         lastScrollTop = targetElement.scrollTop;
@@ -114,10 +125,10 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
         node.style.transition = 'transform 0.3s, opacity 0.3s';
 
         if (direction === 'down') {
-            node.style.transform = 'translateY(-50%)';
+            node.style.transform = reversed ? 'translateY(50%)' : 'translateY(-50%)';
             node.style.opacity = '0';
         } else {
-            node.style.transform = 'translateY(0)';
+            node.style.transform = reversed ? '' : 'translateY(0)';
             node.style.opacity = '1';
         }
     };

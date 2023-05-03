@@ -103,6 +103,7 @@ query GetProfile($profileId: ProfileId!, $userProfileId: ProfileId!) {
         dispatcher {
             address
             canUseRelay
+            sponsor
         }
         followNftAddress
         handle

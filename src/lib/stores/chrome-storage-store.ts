@@ -58,7 +58,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
  * @throws If the `storage` permission is not present in your manifest.
  */
 export function chromeStorageLocal<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
-    return new ChromeStorageStore('local', key)
+    return new ChromeStorageStore('local', key, defaultValue)
 }
 
 /**
@@ -104,7 +104,7 @@ class ChromeStorageStore<T> implements Writable<T> {
         private defaultValue?: T
     ) {
         this.storageArea = chrome.storage[this.area]
-        if (defaultValue) {
+        if (defaultValue !== undefined) {
             this.storageArea.get(this.key, item => {
                 const value = item[this.key];
                 if (value === undefined) {
