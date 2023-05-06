@@ -11,6 +11,7 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 window: 'src/window/index.html',
+                thread: 'src/popup/messaging/thread/index.html',
             },
         },
         commonjsOptions: {

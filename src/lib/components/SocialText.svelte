@@ -3,8 +3,8 @@
     import DOMPurify from 'isomorphic-dompurify';
 
     export let text: string = '';
-    export let maxLength: number = 150;
-    export let classNames: string = 'leading-tight';
+    export let maxLength: number = undefined;
+    export let classNames: string = 'leading-tight whitespace-pre-wrap break-keep ![overflow-wrap:anywhere]';
     export let anchorClass: string = '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
 
     let formattedText: string = '';
@@ -20,10 +20,10 @@
         });
 
         // Then, replace the links with anchors
-        let formatted = truncatedText.replace(/(?<!\w)(https?:\/\/)?(www\.)?([^\s\W]+(\.[^\s\W]+)+)(?!\w)/gi, (_, __, ___, domain) => {
-            let cleanDomain = domain.replace(/[\.,;!?]+$/, '');
-            let punctuation = domain.slice(cleanDomain.length);
-            return `<a href="https://${cleanDomain}" class="${anchorClass}" target="_blank">${cleanDomain}</a>${punctuation}`;
+        let formatted = truncatedText.replace(/(?<!\w)(https?:\/\/)?(www\.)?((?:[^\s\W]+(\.[^\s\W]+)+)+[^\s]*)(?!\w)/gi, (_, __, ___, url) => {
+            let cleanUrl = url.replace(/[\.,;!?]+$/, '');
+            let punctuation = url.slice(cleanUrl.length);
+            return `<a href="https://${cleanUrl}" class="${anchorClass}" target="_blank">${cleanUrl}</a>${punctuation}`;
         });
 
         // Replace @mentions with anchors

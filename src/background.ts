@@ -24,9 +24,16 @@ import {
     getNotificationAction,
     getNotificationContent,
     getNotificationHandle,
+    getNotificationLink,
     NOTIFICATIONS_QUERY_LIMIT
 } from './lib/lens-notifications';
-import {KEY_PENDING_PROXY_ACTIONS, type PendingProxyActionMap} from './lib/stores/cache-store';
+import {
+    KEY_NOTIFICATION_ITEMS_CACHE,
+    KEY_PENDING_PROXY_ACTIONS,
+    KEY_WINDOW_TOPIC_MAP,
+    type MessageTimestampMap,
+    type PendingProxyActionMap,
+} from './lib/stores/cache-store';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
@@ -63,6 +70,15 @@ const createNotificationMessage = (
     return `@${currentUser.handle}`;
 };
 
+const shouldNotificationRequireInteraction = (notification: Notification): boolean => {
+    switch (notification.__typename) {
+        case 'NewCommentNotification':
+        case 'NewMentionNotification':
+            return true;
+    }
+    return false;
+};
+
 const createIndividualNotification = (notification: Notification, currentUser: User) => {
     const handle = getNotificationHandle(notification);
     const avatar = getAvatarFromNotification(notification);
@@ -80,6 +96,7 @@ const createIndividualNotification = (notification: Notification, currentUser: U
             message,
             contextMessage: 'Focalize',
             iconUrl: avatar ?? chrome.runtime.getURL('images/icon-128.png'),
+            requireInteraction: shouldNotificationRequireInteraction(notification),
         }
     );
 }
@@ -146,8 +163,22 @@ chrome.notifications.onClicked.addListener(async notificationId => {
         return;
     }
 
+    if (notificationId === NOTIFICATION_ID) {
+        await launchNotifications();
+        return;
+    }
+
+    const storage = await chrome.storage.local.get([KEY_NOTIFICATION_ITEMS_CACHE]);
+    const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
+    const notification = notifications.find((n: Notification) => n.notificationId === notificationId);
+    if (notification) {
+        const url = await getNotificationLink(notification);
+        await chrome.tabs.create({url});
+    } else {
+        await launchNotifications();
+    }
+
     chrome.notifications.clear(notificationId);
-    await launchNotifications();
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -372,6 +403,17 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
     });
 
     suggest(suggestions);
+});
+
+chrome.windows.onRemoved.addListener( async (windowId: number) => {
+    const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
+    const windowTopicMap: MessageTimestampMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
+
+    const entry = Object.entries(windowTopicMap).find(([topic, id]) => windowId === id);
+    if (entry) {
+        delete windowTopicMap[entry[0]];
+        await chrome.storage.local.set({[KEY_WINDOW_TOPIC_MAP]: windowTopicMap});
+    }
 });
 
 export {}

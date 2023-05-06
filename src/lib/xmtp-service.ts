@@ -5,14 +5,13 @@ import type {Profile, ProfilesQuery} from './graph/lens-service';
 import gqlClient from './graph/graphql-client';
 import {KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES, type MessageTimestampMap} from './stores/cache-store';
 
-const MESSAGE_LIMIT = 25;
 const XMTP_PREFIX = 'lens.dev/dm';
 
 let client: Client;
 
 export interface Thread {
     conversation: Conversation;
-    unread: boolean;
+    unread?: boolean;
     peerProfile?: Profile;
     latestMessage?: DecodedMessage;
 }
@@ -183,6 +182,16 @@ const extractProfileId = (conversationId: string, userProfileId: string): string
     return profileIdA === userProfileId ? profileIdB : profileIdA;
 };
 
+const getMessages = async (
+    conversation: Conversation,
+    limit: number = 1,
+): Promise<DecodedMessage[]> => {
+    return conversation.messages({
+        direction: SortDirection.SORT_DIRECTION_DESCENDING,
+        limit,
+    });
+};
+
 export const getAllThreads = async (): Promise<Thread[]> => {
     const userProfileId = await getUserProfileId();
     const client = await getXmtpClient();
@@ -208,7 +217,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     const readTimestamps = await getReadTimestamps() ?? {};
 
     const messagePromises = conversations.map(async (conversation) => {
-        const messages = await getMessages(conversation, 1);
+        const messages = await getMessages(conversation);
         const latestMessage: DecodedMessage = messages[0];
         const unread = await isUnread(latestMessage, readTimestamps);
         return {latestMessage, unread};
@@ -229,17 +238,16 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     return threads.filter(thread => thread.latestMessage).sort(sortByLatestMessage);
 };
 
+const getPeerProfile = async (conversation: Conversation): Promise<Profile | undefined> => {
+    const userProfileId = await getUserProfileId();
+    const {profiles}: ProfilesQuery = await gqlClient.Profiles({
+        request: {ownedBy: [conversation.peerAddress]}, userProfileId
+    });
+    return profiles.items?.[0];
+};
 
 export const getThreadStream = (): Observable<Thread> => new Observable((observer) => {
     let isObserverClosed = false;
-
-    const getPeerProfile = async (conversation: Conversation): Promise<Profile | undefined> => {
-        const userProfileId = await getUserProfileId();
-        const {profiles}: ProfilesQuery = await gqlClient.Profiles({
-            request: {ownedBy: [conversation.peerAddress]}, userProfileId
-        });
-        return profiles.items?.[0];
-    };
 
     getXmtpClient().then((xmtp) => {
         xmtp.conversations.stream().then((stream) => {
@@ -251,7 +259,7 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
                     }
 
                     const peerProfile = await getPeerProfile(conversation);
-                    const messages = await getMessages(conversation, 1);
+                    const messages = await getMessages(conversation);
                     const unread = messages[0] ? await isUnread(messages[0]) : false;
                     observer.next({conversation, peerProfile, unread} satisfies Thread);
                 }
@@ -268,23 +276,26 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
     };
 });
 
+export const getThread = async (conversationId: string): Promise<Thread | undefined> => {
+    const client = await getXmtpClient();
+
+    const conversations: Conversation[] = await client.conversations.list();
+    console.log('getThread', conversationId, conversations);
+    const conversation: Conversation | undefined = conversations.find(
+        (conversation) => conversation.topic === conversationId
+    );
+    if (!conversation) return undefined;
+
+    const peerProfile = await getPeerProfile(conversation);
+
+    return {conversation, peerProfile} satisfies Thread;
+};
+
 export const newThread = async (profile: Profile): Promise<Thread> => {
     const address = profile.ownedBy;
     const client = await getXmtpClient();
     const conversation = await client.conversations.newConversation(address);
     return {conversation, peerProfile: profile, unread: false} satisfies Thread;
-};
-
-export const getMessages = async (
-    conversation: Conversation,
-    limit: number = MESSAGE_LIMIT,
-    endTime: Date = new Date(),
-): Promise<DecodedMessage[]> => {
-    return conversation.messages({
-        direction: SortDirection.SORT_DIRECTION_DESCENDING,
-        limit,
-        endTime,
-    });
 };
 
 export const getMessagesStream = (conversation: Conversation): Observable<DecodedMessage> => new Observable((observer) => {
@@ -298,8 +309,6 @@ export const getMessagesStream = (conversation: Conversation): Observable<Decode
                         await stream.return();
                         return;
                     }
-
-                    if (message.senderAddress === xmtp.address) continue;
 
                     observer.next(message);
                 }

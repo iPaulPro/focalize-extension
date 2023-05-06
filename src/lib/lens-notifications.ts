@@ -1,14 +1,14 @@
-import {NotificationTypes, type PaginatedResultInfo, type Profile, type Wallet} from "./graph/lens-service";
-import {getOrRefreshAccessToken} from "./lens-auth";
-import gqlClient from "./graph/graphql-client";
-import {getAvatarFromAddress, getAvatarForProfile, stripMarkdown, truncate} from './utils';
-import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from "./lens-nodes";
+import type {Notification, PaginatedNotificationResult} from './graph/lens-service';
+import {NotificationTypes, type PaginatedResultInfo, type Profile} from './graph/lens-service';
+import {getOrRefreshAccessToken} from './lens-auth';
+import gqlClient from './graph/graphql-client';
+import {getAvatarForProfile, getAvatarFromAddress, stripMarkdown, truncate} from './utils';
+import type {LensNode} from './lens-nodes';
+import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from './lens-nodes';
 
-import type {User} from "./user";
-import type {Notification, PaginatedNotificationResult} from "./graph/lens-service";
-import type {LensNode} from "./lens-nodes";
+import type {User} from './user';
 
-import {KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE} from "./stores/cache-store";
+import {KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE} from './stores/cache-store';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
@@ -315,6 +315,7 @@ export const getNodeForNotification = async (notification: Notification): Promis
 
 export const getNotificationLink = async (notification: Notification): Promise<string> => {
     const node = await getNodeForNotification(notification);
+
     switch (notification.__typename) {
         case 'NewCollectNotification':
             return getPublicationUrlFromNode(node, notification.collectedPublication.id);
@@ -328,5 +329,7 @@ export const getNotificationLink = async (notification: Notification): Promise<s
         case 'NewMirrorNotification':
             return getPublicationUrlFromNode(node, notification.publication.id);
     }
-    return '';
-}
+
+    const syncStorage = await chrome.storage.sync.get('nodeNotifications');
+    return syncStorage.nodeNotifications.baseUrl + syncStorage.nodeNotifications.notifications;
+};

@@ -1,8 +1,9 @@
-import type {Profile} from "./graph/lens-service";
-import showdown from "showdown";
+import type {Profile} from './graph/lens-service';
+import showdown from 'showdown';
 import * as cheerio from 'cheerio';
-import {fromEvent, Subject, takeUntil} from "rxjs";
-import {debounceTime} from "rxjs/operators";
+import {fromEvent, Subject, takeUntil} from 'rxjs';
+import {debounceTime} from 'rxjs/operators';
+import {DateTime} from 'luxon';
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -39,11 +40,11 @@ export const stripMarkdown = (markdown: string | undefined): string | undefined 
     return extractTextFromHtml(htmlFromMarkdown(markdown));
 };
 
-export const truncate = (str: string | null | undefined, limit: number): string | null | undefined => {
-    return (!str || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
+export const truncate = (str: string | null | undefined, limit: number | undefined): string | null | undefined => {
+    return (!str || !limit || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
 };
 
-export const truncateAddress = (address: string, maxLength: number): string => {
+export const truncateAddress = (address: string, maxLength: number = 5): string => {
     if (address.length <= maxLength) {
         return address;
     }
@@ -171,4 +172,25 @@ export const formatFollowerCount = (count: number): string => {
         return (count / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
     }
     return count.toString();
+};
+
+/**
+ * Parse search params from a URL.
+ * @param search The search string to parse.
+ * @returns A record of key-value pairs.
+ */
+export const getSearchParamsMap = (search: string): Record<string, string> => {
+    const params: URLSearchParams = new URLSearchParams(search);
+    const entries: IterableIterator<[string, string]> = params.entries();
+    const result: Record<string, string> = {};
+    for (const [key, value] of entries) {
+        result[key] = value;
+    }
+    return result;
+};
+
+export const isToday = (date: DateTime, now: DateTime = DateTime.now()): boolean => {
+    const startOfToday = now.startOf('day');
+    const startOfTomorrow = startOfToday.plus({days: 1});
+    return date >= startOfToday && date < startOfTomorrow;
 };

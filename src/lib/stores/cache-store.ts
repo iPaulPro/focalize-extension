@@ -35,14 +35,24 @@ export interface MessageTimestampMap {
 }
 
 export const KEY_MESSAGE_TIMESTAMPS = 'messageTimestamps';
-export const messageTimestamps: Writable<MessageTimestampMap> = chromeStorageLocal(KEY_MESSAGE_TIMESTAMPS);
+export const messageTimestamps: Writable<MessageTimestampMap> = chromeStorageLocal(KEY_MESSAGE_TIMESTAMPS, {});
 
 export const KEY_SELECTED_MAIN_TAB = 'selectedMainTab';
-export const KEY_SELECTED_MESSAGES_TAB = 'selectedMessagesTab';
-
 export const selectedMainTab: Writable<number> = chromeStorageLocal(KEY_SELECTED_MAIN_TAB, 0);
+
+export const KEY_SELECTED_MESSAGES_TAB = 'selectedMessagesTab';
 export const selectedMessagesTab: Writable<number | undefined> = chromeStorageLocal(KEY_SELECTED_MESSAGES_TAB, 0);
 
+
+/**
+ * Map of conversation topic to window id
+ */
+export interface WindowTopicMap {
+    [id: string]: string;
+}
+
+export const KEY_WINDOW_TOPIC_MAP = 'windowTopicMap';
+export const windowTopicMap: Writable<WindowTopicMap> = chromeStorageLocal(KEY_WINDOW_TOPIC_MAP, {});
 
 
 export interface ProfileMap {
@@ -50,5 +60,4 @@ export interface ProfileMap {
 }
 
 export const KEY_PROFILES = 'cachedProfiles';
-
 export const profiles: Writable<Map<string, Profile>> = chromeStorageLocal(KEY_PROFILES);

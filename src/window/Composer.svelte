@@ -71,6 +71,7 @@
     import DialogOuter from "../lib/components/DialogOuter.svelte";
     import {throttle} from "throttle-debounce";
     import {DateTime} from "luxon";
+    import {getSearchParamsMap} from '../lib/utils';
 
     /**
      * Bound to the tag component
@@ -109,33 +110,29 @@
 
     const parseSearchParams = () => {
         const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
+        const urlParams = getSearchParamsMap(queryString);
 
-        if (urlParams.has('text')) {
-            const plainText = urlParams.get('text');
-            content.set(plainText);
+        if (urlParams.text) {
+            content.set(urlParams.text);
             return;
         }
 
-        if (urlParams.has('draft')) {
-            $draftId = urlParams.get('draft');
+        if (urlParams.draft) {
+            $draftId = urlParams.draft;
         }
 
         let md = '';
 
-        if (urlParams.has('title')) {
-            const title = urlParams.get('title');
-            md += `**${title}**`;
+        if (urlParams.title) {
+            md += `**${urlParams.title}**`;
         }
 
-        if (urlParams.has('desc')) {
-            const desc: String = urlParams.get('desc');
-            md += `\n  > ${desc.replace('\n', '\n> ')}`;
+        if (urlParams.desc) {
+            md += `\n  > ${urlParams.desc.replace('\n', '\n> ')}`;
         }
 
-        if (urlParams.has('url')) {
-            const url = urlParams.get('url');
-            md += `\n\n${url}`;
+        if (urlParams.url) {
+            md += `\n\n${urlParams.url}`;
         }
 
         if (md.length > 0) {
@@ -656,7 +653,7 @@
                     class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
               {#if postDraft}
                 <span use:tippy={({delay: 500, content: DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.DATETIME_MED)})}>
-                  Draft saved <AutoRelativeTimeView prefix="at" timestamp={postDraft.timestamp} className="transition-none" />
+                  Draft saved <AutoRelativeTimeView timestamp={postDraft.timestamp} className="transition-none" />
                 </span>
               {:else if $postDrafts.size > 0}
                 View all drafts ({[...$postDrafts.values()].length})

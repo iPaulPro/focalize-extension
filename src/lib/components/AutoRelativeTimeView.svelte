@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {onMount, onDestroy} from 'svelte';
+    import {onDestroy} from 'svelte';
     import {DateTime, Duration, Interval} from 'luxon';
+    import {isToday} from '../utils';
 
     export let timestamp: number;
     export let className: string = '';
-    export let prefix: string = undefined;
     export let capitalize: string = false;
 
     let formattedTime: string;
@@ -20,12 +20,6 @@
         const startOfToday = now.startOf('day');
         const startOfYesterday = startOfToday.minus({days: 1});
         return date >= startOfYesterday && date < startOfToday;
-    };
-
-    const isToday = (date: DateTime, now: DateTime): boolean => {
-        const startOfToday = now.startOf('day');
-        const startOfTomorrow = startOfToday.plus({days: 1});
-        return date >= startOfToday && date < startOfTomorrow;
     };
 
     const getTimeString = (date: DateTime) => {

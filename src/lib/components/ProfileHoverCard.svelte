@@ -5,7 +5,7 @@
     import {getMutualFollows, getProfileById} from '../lens-profile';
     import {createEventDispatcher} from 'svelte';
     import FollowButton from './FollowButton.svelte';
-    import ProfileDescription from './ProfileDescription.svelte';
+    import SocialText from './SocialText.svelte';
     import {currentUser} from '../stores/user-store';
     import {getProfileUrl} from '../lens-nodes';
     import {nodeSearch} from '../stores/preferences-store';
@@ -101,7 +101,7 @@
 
   {#if profile.bio}
     <div class="pt-3 text-base">
-      <ProfileDescription text={profile.bio}/>
+      <SocialText text={profile.bio} maxLength={150}/>
     </div>
   {/if}
 

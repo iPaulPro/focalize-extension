@@ -15,7 +15,7 @@
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
-    import {selectedMessagesTab} from '../../lib/stores/cache-store';
+    import {selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
 
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
@@ -38,9 +38,8 @@
     };
 
     const init = async () => {
-        console.time('getAllThreads')
         unfilteredThreads = await getAllThreads();
-        console.timeEnd('getAllThreads')
+
         conversationsSubscription = getThreadStream().subscribe((thread) => {
             console.log('getThreadStream: thread', thread);
             unfilteredThreads = [unfilteredThreads, ...unfilteredThreads];
@@ -52,7 +51,7 @@
 
             if (thread) {
                 thread.latestMessage = message;
-                thread.unread = await isUnread(message)
+                thread.unread = await isUnread(message);
             }
 
             threads = threads;
@@ -63,17 +62,47 @@
         switch ($selectedMessagesTab) {
             case 0:
                 threads = unfilteredThreads
-                    .filter(thread => thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'))
+                    .filter(thread => thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'));
                 break;
             case 1:
                 threads = unfilteredThreads
-                    .filter(thread => !thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'))
+                    .filter(thread => !thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'));
                 break;
         }
     };
 
     const onMarkAllAsReadClick = async () => {
         threads = await markAllAsRead(threads);
+    };
+
+    const onThreadSelected = async (event: CustomEvent) => {
+        const thread: Thread = event.detail.thread;
+        console.log('onThreadSelected: thread', thread);
+
+        const existingWindow = $windowTopicMap[thread.conversation.topic];
+        if (existingWindow) {
+            try {
+                await chrome.windows.update(existingWindow, {focused: true});
+                window.close();
+                return;
+            } catch (e) {
+                delete $windowTopicMap[thread.conversation.topic];
+            }
+        }
+
+        const topic = encodeURIComponent(thread.conversation.topic);
+        const url = chrome.runtime.getURL('src/popup/messaging/thread/index.html?topic=' + topic);
+        const newWindow: chrome.windows.Window = await chrome.windows.create({
+            url,
+            focused: true,
+            type: 'popup',
+            width: 400,
+            height: 600,
+        }).catch(console.error);
+
+        $windowTopicMap[thread.conversation.topic] = newWindow.id;
+
+        window.close();
     };
 
     $: {
@@ -106,8 +135,8 @@
          dark:border-gray-700">
       <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
                   background="bg-none" border="border-none">
-        <RadioItem bind:group={$selectedMessagesTab} value={0} class="text-sm">Lens</RadioItem>
-        <RadioItem bind:group={$selectedMessagesTab} value={1} class="text-sm">Wallet to wallet</RadioItem>
+        <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">Lens</RadioItem>
+        <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Wallet to wallet</RadioItem>
       </RadioGroup>
 
       <button type="button"
@@ -131,7 +160,7 @@
         class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
 
       {#each threads as thread}
-        <ThreadItem {thread}/>
+        <ThreadItem {thread} on:select={onThreadSelected}/>
       {/each}
 
     </ul>
