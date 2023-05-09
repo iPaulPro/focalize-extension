@@ -4,6 +4,7 @@ import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {DateTime} from 'luxon';
+import type {DecodedMessage} from '@xmtp/xmtp-js';
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -44,13 +45,13 @@ export const truncate = (str: string | null | undefined, limit: number | undefin
     return (!str || !limit || str.length <= limit) ? str : str.slice(0, limit - 1) + '…';
 };
 
-export const truncateAddress = (address: string, maxLength: number = 5): string => {
+export const truncateAddress = (address: string, maxLength: number = 8): string => {
     if (address.length <= maxLength) {
         return address;
     }
     const ellipsis= '…';
-    const startLength = Math.ceil((maxLength - ellipsis.length) / 2);
-    const endLength = Math.floor((maxLength - ellipsis.length) / 2);
+    const startLength = Math.ceil((maxLength + ellipsis.length) / 2);
+    const endLength = Math.floor((maxLength + ellipsis.length) / 2);
     return address.slice(0, startLength) + ellipsis + address.slice(address.length - endLength);
 };
 
@@ -194,3 +195,7 @@ export const isToday = (date: DateTime, now: DateTime = DateTime.now()): boolean
     const startOfTomorrow = startOfToday.plus({days: 1});
     return date >= startOfToday && date < startOfTomorrow;
 };
+
+export const isPeerMessage = (message: DecodedMessage): boolean => {
+    return message.senderAddress === message.conversation.peerAddress;
+}

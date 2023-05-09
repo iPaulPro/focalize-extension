@@ -31,7 +31,7 @@ import {
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_PENDING_PROXY_ACTIONS,
     KEY_WINDOW_TOPIC_MAP,
-    type MessageTimestampMap,
+    type WindowTopicMap,
     type PendingProxyActionMap,
 } from './lib/stores/cache-store';
 
@@ -407,7 +407,7 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
 
 chrome.windows.onRemoved.addListener( async (windowId: number) => {
     const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
-    const windowTopicMap: MessageTimestampMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
+    const windowTopicMap: WindowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
 
     const entry = Object.entries(windowTopicMap).find(([topic, id]) => windowId === id);
     if (entry) {

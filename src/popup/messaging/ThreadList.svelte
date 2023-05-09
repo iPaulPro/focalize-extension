@@ -1,11 +1,8 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
     import {
-        canMessage,
         type Thread,
-        getAllThreads,
-        getAllMessagesStream,
-        getThreadStream, isUnread, markAllAsRead
+        canMessage, getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead, isLensThread
     } from '../../lib/xmtp-service';
     import type {Subscription} from 'rxjs';
     import ThreadItem from './ThreadItem.svelte';
@@ -39,6 +36,7 @@
 
     const init = async () => {
         unfilteredThreads = await getAllThreads();
+        console.log('init: unfilteredThreads', unfilteredThreads);
 
         conversationsSubscription = getThreadStream().subscribe((thread) => {
             console.log('getThreadStream: thread', thread);
@@ -61,12 +59,13 @@
     const onMessageTabSwitch = () => {
         switch ($selectedMessagesTab) {
             case 0:
-                threads = unfilteredThreads
-                    .filter(thread => thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'));
+                threads = unfilteredThreads;
                 break;
             case 1:
-                threads = unfilteredThreads
-                    .filter(thread => !thread.conversation.context?.conversationId.startsWith('lens.dev/dm/'));
+                threads = unfilteredThreads.filter(thread => isLensThread(thread));
+                break;
+            case 2:
+                threads = unfilteredThreads.filter(thread => !isLensThread(thread));
                 break;
         }
     };
@@ -135,8 +134,9 @@
          dark:border-gray-700">
       <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
                   background="bg-none" border="border-none">
-        <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">Lens</RadioItem>
-        <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Wallet to wallet</RadioItem>
+        <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
+        <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Lens</RadioItem>
+        <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Wallet to wallet</RadioItem>
       </RadioGroup>
 
       <button type="button"

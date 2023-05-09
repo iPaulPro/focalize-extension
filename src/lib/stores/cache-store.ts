@@ -48,7 +48,7 @@ export const selectedMessagesTab: Writable<number | undefined> = chromeStorageLo
  * Map of conversation topic to window id
  */
 export interface WindowTopicMap {
-    [id: string]: string;
+    [id: string]: number;
 }
 
 export const KEY_WINDOW_TOPIC_MAP = 'windowTopicMap';
@@ -60,4 +60,4 @@ export interface ProfileMap {
 }
 
 export const KEY_PROFILES = 'cachedProfiles';
-export const profiles: Writable<Map<string, Profile>> = chromeStorageLocal(KEY_PROFILES);
+export const profiles: Writable<ProfileMap> = chromeStorageLocal(KEY_PROFILES);

@@ -1,6 +1,8 @@
 <script lang="ts">
     import {onMount, createEventDispatcher, onDestroy} from 'svelte';
     import {debounce} from 'throttle-debounce';
+    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../../lib/lens-search';
+    import Tribute from 'tributejs';
 
     export let text: string = '';
     export let className: string = '';
@@ -51,6 +53,24 @@
         focusTextArea();
     };
 
+    const tribute = async (node) => {
+        const t = new Tribute({
+            values: (text, cb) => searchHandles(text, 4, cb),
+            menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
+            loadingItemTemplate: buildLoadingItemTemplate(),
+            fillAttr: 'handle',
+            lookup: 'handle',
+        })
+
+        t.attach(node);
+
+        return {
+            destroy() {
+                t.detach(node);
+            }
+        }
+    };
+
     $: {
         if (text === '') {
             resizeTextarea();
@@ -79,6 +99,7 @@
     bind:value="{text}"
     on:input="{handleInput}"
     on:keydown="{handleKeydown}"
+    use:tribute
 ></textarea>
 
 <style>

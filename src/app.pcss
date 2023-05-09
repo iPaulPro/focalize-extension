@@ -1,6 +1,7 @@
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons';
 @import 'https://fonts.googleapis.com/icon?family=Material+Icons+Outlined';
 @import 'https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap';
+@import './lib/styles/tribute.pcss';
 
 @tailwind base;
 @tailwind components;
@@ -126,43 +127,6 @@ img, img:active, img:focus {
 .menu-selector {
 	width: auto !important;
 	min-width: 8rem;
-}
-
-.tribute-container {
-	filter: drop-shadow(0 0 0.25rem rgba(0, 0, 0, 0.25));
-	margin-top: 0.75rem;
-}
-
-.tribute-container ul {
-	padding: 0 !important;
-	background: white !important;
-	border-radius: 0.75rem !important;
-	min-width: 14rem !important;
-	max-width: 20rem !important;
-	overflow: hidden;
-}
-
-.tribute-container li {
-	padding: 0.75rem;
-	font-size: 1.2em;
-}
-
-.tribute-container li:not(:last-child) {
-	border-bottom: 1px solid #CCC !important;
-}
-
-.tribute-container li.highlight {
-	background: #CCC !important;
-}
-
-.tribute-container li:first-child.highlight {
-	border-top-left-radius: 0.75rem;
-	border-top-right-radius: 0.75rem;
-}
-
-.tribute-container li:last-child.highlight {
-	border-bottom-left-radius: 0.75rem;
-	border-bottom-right-radius: 0.75rem;
 }
 
 /* The switch - the box around the slider */

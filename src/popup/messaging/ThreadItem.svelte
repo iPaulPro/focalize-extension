@@ -2,8 +2,8 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getAvatarForProfile, truncate} from '../../lib/utils';
-    import {type Thread} from '../../lib/xmtp-service';
+    import {getAvatarForProfile, getAvatarFromAddress, truncate, truncateAddress} from '../../lib/utils';
+    import {getPeerName, type Thread} from '../../lib/xmtp-service';
     import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
@@ -16,14 +16,16 @@
 
     let avatarElement: HTMLImageElement;
 
-    $: conversation = thread && thread.conversation;
-    $: peerProfile = thread && thread.peerProfile;
-    $: latestMessage = thread && thread.latestMessage;
-    $: isUnread = thread && thread.unread;
-    $: avatarUrl = peerProfile && getAvatarForProfile(peerProfile);
+    $: peerProfile = thread?.peer?.profile;
+    $: peerAddress = thread?.conversation?.peerAddress;
+    $: latestMessage = thread?.latestMessage;
+    $: isUnread = thread?.unread;
+    $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress);
+    $: peerName = thread && getPeerName(thread);
+    $: peerHandle = peerProfile?.handle?.split('.')[0] ?? thread?.peer?.ens ? truncateAddress(peerAddress) : undefined;
 </script>
 
-{#if peerProfile && conversation}
+{#if thread?.conversation}
   <div on:click={() => dispatch('select', {thread})}
        class="flex p-4 gap-2 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
        {isUnread ? 'bg-white dark:bg-gray-700/60' : ''}">
@@ -37,7 +39,7 @@
       <div class="flex gap-1 text-[0.925rem] items-center">
 
         <div class="flex-shrink-0 w-fit truncate {isUnread ? 'font-semibold' : 'font-normal'}">
-          {peerProfile.name ?? peerProfile.handle.split('.')[0]}
+          {peerName ?? peerHandle}
         </div>
 
         {#if latestMessage}
