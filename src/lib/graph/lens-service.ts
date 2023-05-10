@@ -1040,6 +1040,7 @@ export type DataAvailabilityComment = {
   publicationId: Scalars['InternalPublicationId'];
   submitter: Scalars['EthereumAddress'];
   transactionId: Scalars['String'];
+  verificationStatus: DataAvailabilityVerificationStatusUnion;
 };
 
 export type DataAvailabilityMirror = {
@@ -1052,6 +1053,7 @@ export type DataAvailabilityMirror = {
   publicationId: Scalars['InternalPublicationId'];
   submitter: Scalars['EthereumAddress'];
   transactionId: Scalars['String'];
+  verificationStatus: DataAvailabilityVerificationStatusUnion;
 };
 
 export type DataAvailabilityPost = {
@@ -1062,6 +1064,7 @@ export type DataAvailabilityPost = {
   publicationId: Scalars['InternalPublicationId'];
   submitter: Scalars['EthereumAddress'];
   transactionId: Scalars['String'];
+  verificationStatus: DataAvailabilityVerificationStatusUnion;
 };
 
 export type DataAvailabilitySubmitterResult = {
@@ -1101,6 +1104,18 @@ export type DataAvailabilityTransactionsResult = {
   items: Array<DataAvailabilityTransactionUnion>;
   pageInfo: PaginatedResultInfo;
 };
+
+export type DataAvailabilityVerificationStatusFailure = {
+  __typename?: 'DataAvailabilityVerificationStatusFailure';
+  status?: Maybe<MomokaValidatorError>;
+};
+
+export type DataAvailabilityVerificationStatusSuccess = {
+  __typename?: 'DataAvailabilityVerificationStatusSuccess';
+  verified: Scalars['Boolean'];
+};
+
+export type DataAvailabilityVerificationStatusUnion = DataAvailabilityVerificationStatusFailure | DataAvailabilityVerificationStatusSuccess;
 
 /** The reason why a profile cannot decrypt a publication */
 export enum DecryptFailReason {
@@ -2093,6 +2108,38 @@ export type ModuleInfo = {
   name: Scalars['String'];
   type: Scalars['String'];
 };
+
+/** The momka validator error */
+export enum MomokaValidatorError {
+  BlockCantBeReadFromNode = 'BLOCK_CANT_BE_READ_FROM_NODE',
+  BlockTooFar = 'BLOCK_TOO_FAR',
+  CanNotConnectToBundlr = 'CAN_NOT_CONNECT_TO_BUNDLR',
+  ChainSignatureAlreadyUsed = 'CHAIN_SIGNATURE_ALREADY_USED',
+  DataCantBeReadFromNode = 'DATA_CANT_BE_READ_FROM_NODE',
+  EventMismatch = 'EVENT_MISMATCH',
+  GeneratedPublicationIdMismatch = 'GENERATED_PUBLICATION_ID_MISMATCH',
+  InvalidEventTimestamp = 'INVALID_EVENT_TIMESTAMP',
+  InvalidFormattedTypedData = 'INVALID_FORMATTED_TYPED_DATA',
+  InvalidPointerSetNotNeeded = 'INVALID_POINTER_SET_NOT_NEEDED',
+  InvalidSignatureSubmitter = 'INVALID_SIGNATURE_SUBMITTER',
+  InvalidTxId = 'INVALID_TX_ID',
+  InvalidTypedDataDeadlineTimestamp = 'INVALID_TYPED_DATA_DEADLINE_TIMESTAMP',
+  NotClosestBlock = 'NOT_CLOSEST_BLOCK',
+  NoSignatureSubmitter = 'NO_SIGNATURE_SUBMITTER',
+  PointerFailedVerification = 'POINTER_FAILED_VERIFICATION',
+  PotentialReorg = 'POTENTIAL_REORG',
+  PublicationNonceInvalid = 'PUBLICATION_NONCE_INVALID',
+  PublicationNoneDa = 'PUBLICATION_NONE_DA',
+  PublicationNoPointer = 'PUBLICATION_NO_POINTER',
+  PublicationSignerNotAllowed = 'PUBLICATION_SIGNER_NOT_ALLOWED',
+  SimulationFailed = 'SIMULATION_FAILED',
+  SimulationNodeCouldNotRun = 'SIMULATION_NODE_COULD_NOT_RUN',
+  TimestampProofInvalidDaId = 'TIMESTAMP_PROOF_INVALID_DA_ID',
+  TimestampProofInvalidSignature = 'TIMESTAMP_PROOF_INVALID_SIGNATURE',
+  TimestampProofInvalidType = 'TIMESTAMP_PROOF_INVALID_TYPE',
+  TimestampProofNotSubmitter = 'TIMESTAMP_PROOF_NOT_SUBMITTER',
+  Unknown = 'UNKNOWN'
+}
 
 export type MultirecipientFeeCollectModuleParams = {
   /** The collecting cost associated with this publication. 0 for free collect. */
@@ -4484,7 +4531,7 @@ export type GenerateModuleCurrencyApprovalDataQueryVariables = Exact<{
 export type GenerateModuleCurrencyApprovalDataQuery = { __typename?: 'Query', generateModuleCurrencyApprovalData: { __typename: 'GenerateModuleCurrencyApproval', to: any, from: any, data: any } };
 
 export type GetProfileQueryVariables = Exact<{
-  profileId: Scalars['ProfileId'];
+  request: SingleProfileQueryRequest;
   userProfileId: Scalars['ProfileId'];
 }>;
 
@@ -5520,8 +5567,8 @@ export const GenerateModuleCurrencyApprovalDataDocument = gql`
 }
     `;
 export const GetProfileDocument = gql`
-    query GetProfile($profileId: ProfileId!, $userProfileId: ProfileId!) {
-  profile(request: {profileId: $profileId}) {
+    query GetProfile($request: SingleProfileQueryRequest!, $userProfileId: ProfileId!) {
+  profile(request: $request) {
     __typename
     isFollowedByMe
     isFollowing(who: $userProfileId)

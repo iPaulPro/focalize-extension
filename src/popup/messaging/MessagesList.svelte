@@ -38,7 +38,7 @@
         let prevMessages: DecodedMessage[] = [];
         try {
             prevMessages = await thread.conversation.messages({endTime});
-            console.log('infiniteHandler: loaded messages', prevMessages);
+            console.log('infiniteHandler: loaded', prevMessages?.length, 'messages');
         } catch (e) {
             console.error('infiniteHandler: Error loading messages', e);
             error();

@@ -42,7 +42,15 @@ export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
 export const getProfileById = async (profileId: string): Promise<Profile> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const {profile} = await gqlClient.GetProfile({profileId, userProfileId});
+    const {profile} = await gqlClient.GetProfile({request: {profileId}, userProfileId});
+    if (profile?.__typename === 'Profile') return profile;
+    throw new Error('Unable to get profile');
+}
+
+export const getProfileByHandle = async (handle: string): Promise<Profile> => {
+    const storage = await chrome.storage.local.get('currentUser');
+    const userProfileId = storage.currentUser?.profileId;
+    const {profile} = await gqlClient.GetProfile({request: {handle}, userProfileId});
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }

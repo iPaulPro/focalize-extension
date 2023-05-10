@@ -1,5 +1,5 @@
-query GetProfile($profileId: ProfileId!, $userProfileId: ProfileId!) {
-    profile(request: {profileId: $profileId}) {
+query GetProfile($request: SingleProfileQueryRequest!, $userProfileId: ProfileId!) {
+    profile(request: $request) {
         __typename
         isFollowedByMe
         isFollowing(who: $userProfileId)

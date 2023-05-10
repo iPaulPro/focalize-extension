@@ -1,10 +1,11 @@
 import {Client, type Conversation, DecodedMessage, SortDirection, Stream} from '@xmtp/xmtp-js';
-import {getDefaultProvider, getSigner} from './ethers-service';
+import {getEnsFromAddress, getSigner} from './ethers-service';
 import {Observable} from 'rxjs';
 import type {Profile, ProfilesQuery} from './graph/lens-service';
 import gqlClient from './graph/graphql-client';
 import {KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES, type MessageTimestampMap} from './stores/cache-store';
 import {truncateAddress} from './utils';
+import type {InvitationContext} from '@xmtp/xmtp-js/dist/types/src/Invitation';
 
 const LENS_PREFIX = 'lens.dev/dm';
 
@@ -12,7 +13,10 @@ let client: Client;
 
 export interface Peer {
     profile?: Profile;
-    ens?: string | null;
+    wallet?: {
+        address: string;
+        ens?: string | null;
+    }
 }
 
 export interface Thread {
@@ -207,11 +211,6 @@ export const getLensThreads = (threads: Thread[], userProfileId: string): Thread
     );
 };
 
-export const getEns = async (address: string): Promise<string | null> => {
-    const provider = await getDefaultProvider();
-    return provider.lookupAddress(address);
-};
-
 export const getAllThreads = async (): Promise<Thread[]> => {
     const userProfileId = await getUserProfileId();
     const client = await getXmtpClient();
@@ -244,7 +243,10 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         const peerProfile = profilesMap.get(conversation.peerAddress);
         const peer: Peer = {
             profile: peerProfile,
-            ens: !peerProfile ? await getEns(conversation.peerAddress) : undefined,
+            wallet: !peerProfile ? {
+              address: conversation.peerAddress,
+              ens: await getEnsFromAddress(conversation.peerAddress),
+            } : undefined,
         }
         return {conversation, peer, latestMessage, unread} satisfies Thread;
     }));
@@ -271,10 +273,20 @@ export const getPeerName = (thread: Thread): string | null => {
 
     const peerProfile = thread.peer.profile;
     if (!peerProfile) {
-        return thread.peer.ens ?? truncateAddress(thread.conversation.peerAddress)
+        return thread.peer.wallet?.ens ?? truncateAddress(thread.conversation.peerAddress)
     }
 
     return peerProfile.name ?? peerProfile.handle ?? truncateAddress(thread.conversation.peerAddress);
+};
+
+const buildPeer = async (conversation: Conversation) => {
+    const profile: Profile | undefined = await getPeerProfile(conversation);
+    const wallet = {
+        address: conversation.peerAddress,
+        ens: await getEnsFromAddress(conversation.peerAddress),
+    };
+    const peer: Peer = {profile, wallet};
+    return peer;
 };
 
 export const getThreadStream = (): Observable<Thread> => new Observable((observer) => {
@@ -294,7 +306,10 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
                     const unread = messages[0] ? await isUnread(messages[0]) : false;
                     const peer: Peer = {
                         profile: peerProfile,
-                        ens: !peerProfile ? await getEns(conversation.peerAddress) : undefined,
+                        wallet: !peerProfile ? {
+                            address: conversation.peerAddress,
+                            ens: await getEnsFromAddress(conversation.peerAddress),
+                        } : undefined,
                     }
                     observer.next({conversation, peer, unread} satisfies Thread);
                 }
@@ -305,7 +320,6 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
 
     });
 
-    // Cleanup when the Observable is unsubscribed
     return () => {
         isObserverClosed = true;
     };
@@ -315,28 +329,55 @@ export const getThread = async (conversationId: string): Promise<Thread | undefi
     const client = await getXmtpClient();
 
     const conversations: Conversation[] = await client.conversations.list();
-    console.log('getThread', conversationId, conversations);
     const conversation: Conversation | undefined = conversations.find(
         (conversation) => conversation.topic === conversationId
     );
     if (!conversation) return undefined;
 
-    const profile: Profile | undefined = await getPeerProfile(conversation);
-    const ens: string | null = await getEns(conversation.peerAddress);
-    const peer: Peer = {profile, ens};
+    const peer: Peer = await buildPeer(conversation);
     return {conversation, peer} satisfies Thread;
 };
 
-// export const newThread = async (profile: Profile): Promise<Thread> => {
-//     const address = profile.ownedBy;
-//     const client = await getXmtpClient();
-//     const conversation = await client.conversations.newConversation(address);
-//     const peer: Peer = {
-//         profile: peerProfile,
-//         ethUser: !peerProfile ? await getEthUser(conversation.peerAddress) : undefined,
-//     }
-//     return {conversation, peerProfile: profile, unread: false} satisfies Thread;
-// };
+export const findThread = async (peerAddress: string): Promise<Thread | undefined> => {
+    if (!peerAddress) return undefined;
+
+    const client = await getXmtpClient();
+
+    const conversations: Conversation[] = await client.conversations.list();
+    const conversation: Conversation | undefined = conversations.find(
+        (conversation) => conversation.peerAddress === peerAddress
+    );
+    if (!conversation) return undefined;
+
+    const peer = await buildPeer(conversation);
+    return {conversation, peer} satisfies Thread;
+};
+
+const buildConversationId = (profileIdA: string, profileIdB: string) => {
+    const profileIdAParsed = parseInt(profileIdA, 16)
+    const profileIdBParsed = parseInt(profileIdB, 16)
+    return profileIdAParsed < profileIdBParsed
+        ? `${LENS_PREFIX}/${profileIdA}-${profileIdB}`
+        : `${LENS_PREFIX}/${profileIdB}-${profileIdA}`
+};
+
+export const newThread = async (peer: Peer): Promise<Thread> => {
+    const address = peer.wallet?.address || peer.profile?.ownedBy;
+    if (!address) throw new Error('Cannot create thread without peer address');
+
+    let context: InvitationContext | undefined;
+    if (peer.profile) {
+        context = {
+            conversationId: buildConversationId(await getUserProfileId(), peer.profile.id),
+            metadata: {},
+        }
+    }
+
+    const client = await getXmtpClient();
+    const conversation = await client.conversations.newConversation(address, context);
+
+    return {conversation, peer, unread: false} satisfies Thread;
+};
 
 export const getMessagesStream = (conversation: Conversation): Observable<DecodedMessage> => new Observable((observer) => {
     let isObserverClosed = false;

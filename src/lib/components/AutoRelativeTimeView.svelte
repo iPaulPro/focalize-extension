@@ -22,6 +22,19 @@
         return date >= startOfYesterday && date < startOfToday;
     };
 
+    const toShortRelative = (dateTime) => {
+        const now = DateTime.local();
+        const diff = now.diff(dateTime, ['years', 'months', 'days', 'hours', 'minutes', 'seconds']).toObject();
+
+        if (diff.years >= 1) return `${Math.floor(diff.years)}y`;
+        if (diff.months >= 1) return `${Math.floor(diff.months)}mo`;
+        if (diff.days >= 1) return `${Math.floor(diff.days)}d`;
+        if (diff.hours >= 1) return `${Math.floor(diff.hours)}h`;
+        if (diff.minutes >= 1) return `${Math.floor(diff.minutes)}m`;
+
+        return `${Math.floor(diff.seconds)}s`;
+    };
+
     const getTimeString = (date: DateTime) => {
         const now = DateTime.now();
         const diff = Interval.fromDateTimes(date, now).toDuration();
@@ -29,7 +42,7 @@
         if (isWithinTenSeconds(diff)) {
             return capitalize ? 'Just now' : 'just now';
         } else if (isWithinFifteenMinutes(diff)) {
-            return date.toRelative({style: 'narrow'});
+            return toShortRelative(date);
         } else if (isToday(date, now)) {
             return date.toLocaleString(DateTime.TIME_SIMPLE);
         } else if (isYesterday(date, now)) {

@@ -22,7 +22,7 @@
     $: isUnread = thread?.unread;
     $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress);
     $: peerName = thread && getPeerName(thread);
-    $: peerHandle = peerProfile?.handle?.split('.')[0] ?? thread?.peer?.ens ? truncateAddress(peerAddress) : undefined;
+    $: peerHandle = peerProfile?.handle?.split('.')[0] ?? thread?.peer?.wallet?.ens ? truncateAddress(peerAddress) : undefined;
 </script>
 
 {#if thread?.conversation}

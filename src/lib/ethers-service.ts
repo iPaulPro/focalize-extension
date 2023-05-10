@@ -4,13 +4,13 @@ import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
 import type {JsonRpcSigner} from '@ethersproject/providers';
 import {type Provider, Web3Provider} from '@ethersproject/providers';
-import {type TypedDataDomain, type TypedDataField, ethers} from 'ethers';
-import Web3Modal from "web3modal";
-import WalletConnectProvider from "@walletconnect/web3-provider";
+import {ethers, type TypedDataDomain, type TypedDataField} from 'ethers';
+import Web3Modal from 'web3modal';
+import WalletConnectProvider from '@walletconnect/web3-provider';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import MetaMaskLogo from '../assets/metamask.svg';
-import MetaMaskInPageProvider from "./providers/connectors";
-import ethProvider from "eth-provider";
+import MetaMaskInPageProvider from './providers/connectors';
+import ethProvider from 'eth-provider';
 
 let provider: Web3Provider;
 
@@ -79,7 +79,7 @@ const getSignerProvider = async (): Promise<Web3Provider> => {
     return new Web3Provider(instance, "any");
 };
 
-export const getDefaultProvider = (): Provider =>
+const getDefaultProvider = (): Provider =>
     new ethers.providers.InfuraProvider('mainnet', INFURA_PROJECT_ID);
 
 function normalizeChainId(chainId: string | number | bigint) {
@@ -172,3 +172,13 @@ export const signTypedData = (
 export const clearProvider = () => {
     web3Modal.clearCachedProvider();
 }
+
+export const getEnsFromAddress = async (address: string): Promise<string | null> => {
+    const provider = await getDefaultProvider();
+    return provider.lookupAddress(address);
+};
+
+export const getAddressFromEns = async (ens: string): Promise<string | null> => {
+    const provider = await getDefaultProvider();
+    return provider.resolveName(ens);
+};

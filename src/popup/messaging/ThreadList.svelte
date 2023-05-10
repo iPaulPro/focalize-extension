@@ -74,6 +74,23 @@
         threads = await markAllAsRead(threads);
     };
 
+    const launchThreadWindow = async (topic?: string) => {
+        let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
+        if (topic) {
+            url += '?topic=' + encodeURIComponent(topic);
+        }
+
+        await chrome.windows.create({
+            url,
+            focused: true,
+            type: 'popup',
+            width: 400,
+            height: 600,
+        }).catch(console.error);
+
+        window.close();
+    }
+
     const onThreadSelected = async (event: CustomEvent) => {
         const thread: Thread = event.detail.thread;
         console.log('onThreadSelected: thread', thread);
@@ -89,19 +106,7 @@
             }
         }
 
-        const topic = encodeURIComponent(thread.conversation.topic);
-        const url = chrome.runtime.getURL('src/popup/messaging/thread/index.html?topic=' + topic);
-        const newWindow: chrome.windows.Window = await chrome.windows.create({
-            url,
-            focused: true,
-            type: 'popup',
-            width: 400,
-            height: 600,
-        }).catch(console.error);
-
-        $windowTopicMap[thread.conversation.topic] = newWindow.id;
-
-        window.close();
+        await launchThreadWindow(thread.conversation.topic);
     };
 
     $: {
@@ -167,7 +172,7 @@
 
   </div>
 
-  <FloatingActionButton {scrollElement}>
+  <FloatingActionButton {scrollElement} on:click={() => launchThreadWindow()}>
     <svg fill="currentColor" class="w-6 h-6">
       <path
           d="M18 11.25c.647 0 1.18.492 1.244 1.122l.006.128v3.25h3.25a1.25 1.25 0 0 1 .128 2.494l-.128.006h-3.25v3.25a1.25 1.25 0 0 1-2.494.128l-.006-.128v-3.25H13.5a1.25 1.25 0 0 1-.128-2.494l.128-.006h3.25V12.5c0-.69.56-1.25 1.25-1.25Z"
