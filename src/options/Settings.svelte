@@ -76,7 +76,7 @@
             await showPinPromptIfNecessary();
 
             try {
-                await chrome.runtime.sendMessage({type: 'setAlarm', enabled: true});
+                await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
             } catch (e) {
                 console.error('Error setting alarm', e)
             }

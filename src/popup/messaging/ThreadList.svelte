@@ -13,6 +13,8 @@
     import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
     import {selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
+    import {notificationsEnabled} from '../../lib/stores/preferences-store';
+    import {launchThreadWindow} from '../../lib/utils';
 
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
@@ -74,23 +76,6 @@
         threads = await markAllAsRead(threads);
     };
 
-    const launchThreadWindow = async (topic?: string) => {
-        let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
-        if (topic) {
-            url += '?topic=' + encodeURIComponent(topic);
-        }
-
-        await chrome.windows.create({
-            url,
-            focused: true,
-            type: 'popup',
-            width: 400,
-            height: 600,
-        }).catch(console.error);
-
-        window.close();
-    }
-
     const onThreadSelected = async (event: CustomEvent) => {
         const thread: Thread = event.detail.thread;
         console.log('onThreadSelected: thread', thread);
@@ -122,6 +107,9 @@
     onMount(async () => {
         messagesEnabled = await isXmtpEnabled();
         console.log('onMount: messagesEnabled', messagesEnabled);
+
+        // TODO remove
+        chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true}).catch(console.error);
     });
 
     onDestroy(() => {

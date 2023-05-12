@@ -5,6 +5,9 @@ import {fromEvent, Subject, takeUntil} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {DateTime} from 'luxon';
 import type {DecodedMessage} from '@xmtp/xmtp-js';
+import type {Provider} from '@ethersproject/providers';
+import {ethers} from 'ethers';
+import {INFURA_PROJECT_ID} from '../config';
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -87,6 +90,24 @@ export const launchComposerWindow = async (
 
     window.close();
 };
+
+
+export const launchThreadWindow = async (topic?: string) => {
+    let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
+    if (topic) {
+        url += '?topic=' + encodeURIComponent(topic);
+    }
+
+    await chrome.windows.create({
+        url,
+        focused: true,
+        type: 'popup',
+        width: 400,
+        height: 600,
+    }).catch(console.error);
+
+    window.close();
+}
 
 interface ScrollEndListenerOptions {
     delay?: number;
@@ -198,4 +219,28 @@ export const isToday = (date: DateTime, now: DateTime = DateTime.now()): boolean
 
 export const isPeerMessage = (message: DecodedMessage): boolean => {
     return message.senderAddress === message.conversation.peerAddress;
-}
+};
+
+const getDefaultProvider = (): Provider =>
+    new ethers.providers.InfuraProvider('mainnet', INFURA_PROJECT_ID);
+
+export const getEnsFromAddress = async (address: string): Promise<string | null> => {
+    const provider = await getDefaultProvider();
+    return provider.lookupAddress(address);
+};
+
+export const getAddressFromEns = async (ens: string): Promise<string | null> => {
+    const provider = await getDefaultProvider();
+    return provider.resolveName(ens);
+};
+
+export const buildXmtpStorageKey = (address: string): string => {
+    return `xmtp-${address}`;
+};
+
+export const getXmtpKeys = async (address: string): Promise<Uint8Array | null> => {
+    const storageKey = buildXmtpStorageKey(address);
+    const storage = await chrome.storage.local.get(storageKey);
+    const savedKeys = storage[storageKey];
+    return savedKeys ? Buffer.from(savedKeys, 'binary') : null;
+};

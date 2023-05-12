@@ -3,8 +3,8 @@ import {createExternalExtensionProvider} from '@metamask/providers';
 import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
 import type {JsonRpcSigner} from '@ethersproject/providers';
-import {type Provider, Web3Provider} from '@ethersproject/providers';
-import {ethers, type TypedDataDomain, type TypedDataField} from 'ethers';
+import {Web3Provider} from '@ethersproject/providers';
+import type {TypedDataDomain, TypedDataField} from 'ethers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
@@ -78,9 +78,6 @@ const getSignerProvider = async (): Promise<Web3Provider> => {
     const instance = await web3Modal.connect();
     return new Web3Provider(instance, "any");
 };
-
-const getDefaultProvider = (): Provider =>
-    new ethers.providers.InfuraProvider('mainnet', INFURA_PROJECT_ID);
 
 function normalizeChainId(chainId: string | number | bigint) {
     if (typeof chainId === 'string')
@@ -172,13 +169,3 @@ export const signTypedData = (
 export const clearProvider = () => {
     web3Modal.clearCachedProvider();
 }
-
-export const getEnsFromAddress = async (address: string): Promise<string | null> => {
-    const provider = await getDefaultProvider();
-    return provider.lookupAddress(address);
-};
-
-export const getAddressFromEns = async (ens: string): Promise<string | null> => {
-    const provider = await getDefaultProvider();
-    return provider.resolveName(ens);
-};

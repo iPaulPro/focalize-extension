@@ -11,9 +11,10 @@
     import {debounceTime} from 'rxjs/operators';
     import {createEventDispatcher} from 'svelte';
     import type {Peer} from '../../../../lib/xmtp-service';
-    import {getAddressFromEns, getEnsFromAddress} from '../../../../lib/ethers-service';
+    import {getAddressFromEns, getEnsFromAddress} from '../../../../lib/utils';
     import {getProfileByHandle} from '../../../../lib/lens-profile';
     import {canMessage} from '../../../../lib/xmtp-service';
+    import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
 
     const dispatch = createEventDispatcher();
 
@@ -31,6 +32,7 @@
     let recipient: string;
     let validRecipient: boolean;
     let error: string;
+    let validating: boolean;
 
     const tribute = async (node) => {
         const plainTextTribute = new Tribute({
@@ -67,6 +69,7 @@
         });
 
         const handleInput = (event: Event) => {
+            validating = true;
             const input = event.target as HTMLInputElement;
             subject.next(input.value);
         };
@@ -85,47 +88,51 @@
         let peer: Peer = {};
         recipient = recipient.trim();
 
-        if (!valid) {
-            dispatch('peerSelected', null);
-        }
-
-        if (valid) {
-            error = undefined;
-
-            if (recipient.startsWith('0x')) {
-                peer.wallet = {
-                    address: recipient,
-                    ens: await getEnsFromAddress(recipient),
-                };
-            } else if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
-                peer.profile = await getProfileByHandle(recipient);
-            } else if (recipient.endsWith('.eth')) {
-                const address = await getAddressFromEns(recipient);
-                if (!address) {
-                    error = 'No address found for this ENS name';
-                    validRecipient = false;
-                    return;
-                }
-                peer.wallet = {
-                    ens: recipient,
-                    address: address,
-                };
-            }
-
-            const address = peer.wallet?.address ?? peer.profile?.ownedBy;
-            console.log('onValidate: checking if ', address, ' is available');
-            const available = await canMessage(address);
-            if (!available) {
-                error = 'This user has not registered with XMTP';
-                validRecipient = false;
-                dispatch('peerSelected', null);
-                return;
-            }
-
+        const dispatchPeer = (peer: Peer, valid: boolean) => {
+            validating = false;
+            validRecipient = valid;
             dispatch('peerSelected', peer);
         }
 
-        validRecipient = valid;
+        if (!valid) {
+            validating = false;
+            validRecipient = valid;
+            dispatchPeer(null, valid);
+            return;
+        }
+
+        error = undefined;
+
+        if (recipient.startsWith('0x')) {
+            peer.wallet = {
+                address: recipient,
+                ens: await getEnsFromAddress(recipient),
+            };
+        } else if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
+            peer.profile = await getProfileByHandle(recipient);
+        } else if (recipient.endsWith('.eth')) {
+            const address = await getAddressFromEns(recipient);
+            if (!address) {
+                error = 'No address found for this ENS name';
+                dispatchPeer(null, false);
+                return;
+            }
+            peer.wallet = {
+                ens: recipient,
+                address: address,
+            };
+        }
+
+        const address = peer.wallet?.address ?? peer.profile?.ownedBy;
+        console.log('onValidate: checking if ', address, ' is available');
+        const available = await canMessage(address);
+        if (!available) {
+            error = 'This user has not registered with XMTP';
+            dispatchPeer(null, false);
+            return;
+        }
+
+        dispatchPeer(peer, valid);
     };
 
     const onBlur = () => {
@@ -159,7 +166,13 @@
            use:tribute use:validateInput={{onValidate}}
            class="input rounded-none p-2 text-[0.925rem] {error ? 'input-error' : ''}"/>
 
-    {#if validRecipient && !error}
+    {#if validating}
+
+      <div>
+        <LoadingSpinner size="w-4 h-4" />
+      </div>
+
+    {:else if validRecipient && !error}
 
       <div>
         <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4 text-green-600 dark:text-green-400"

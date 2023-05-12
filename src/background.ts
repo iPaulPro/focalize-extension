@@ -15,7 +15,15 @@ import type {
 } from './lib/graph/lens-service';
 import {ProxyActionStatusTypes, SearchRequestTypes} from './lib/graph/lens-service';
 import type {User} from './lib/user';
-import {stripMarkdown, truncate} from './lib/utils';
+import {
+    getAvatarForProfile,
+    getAvatarFromAddress,
+    getXmtpKeys,
+    launchThreadWindow,
+    stripMarkdown,
+    truncate,
+    truncateAddress
+} from './lib/utils';
 import type {PublicationState} from './lib/stores/state-store';
 import {getPublicationUrl, type LensNode} from './lib/lens-nodes';
 import {
@@ -28,25 +36,32 @@ import {
     NOTIFICATIONS_QUERY_LIMIT
 } from './lib/lens-notifications';
 import {
+    KEY_MESSAGE_TIMESTAMPS,
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_PENDING_PROXY_ACTIONS,
     KEY_WINDOW_TOPIC_MAP,
     type WindowTopicMap,
     type PendingProxyActionMap,
+    type MessageTimestampMap,
 } from './lib/stores/cache-store';
+import {KEY_MESSAGES_REFRESH_INTERVAL} from './lib/stores/preferences-store';
+import {getPeerName, getUnreadThreads, type Thread} from './lib/xmtp-service';
+import type {DecodedMessage} from '@xmtp/xmtp-js';
+import {Client} from '@xmtp/xmtp-js';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
+const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
 
-const clearAlarm = () => chrome.alarms.clear(ALARM_ID_NOTIFICATIONS);
+const XMTP_TOPIC_PREFIX = '/xmtp/';
 
-const setAlarm = async () => {
-    const storage = await chrome.storage.sync.get('notificationsRefreshInterval');
-    const alarmPeriodInSeconds = storage.notificationsRefreshInterval;
-    console.log(`setlAlarm: alarmPeriodInSeconds`, alarmPeriodInSeconds)
-    await clearAlarm()
-    await chrome.alarms.create(ALARM_ID_NOTIFICATIONS, {
-        periodInMinutes: alarmPeriodInSeconds.value,
+const clearAlarm = (name: string) => chrome.alarms.clear(name);
+
+const setAlarm = async (name: string, periodInMinutes: number) => {
+    console.log(`setlAlarm:`, name,  periodInMinutes)
+    await clearAlarm(ALARM_ID_NOTIFICATIONS)
+    await chrome.alarms.create(name, {
+        periodInMinutes,
         delayInMinutes: 0
     })
 };
@@ -156,15 +171,35 @@ const launchNotifications = async () => {
     await chrome.tabs.create({url});
 };
 
+// Cannot use the Client built with the web3modal Signer because it uses window object
+const getXmtpClient = async (): Promise<Client> => {
+    const user = await getUser();
+    if (!user) throw new Error('getXmtpClient: no user found');
+
+    let keys = await getXmtpKeys(user.address);
+    if (!keys) throw new Error('getXmtpClient: no xmtp keys found');
+
+    return await Client.create(null, {
+        env: import.meta.env.MODE === 'development' ? 'dev' : 'production',
+        privateKeyOverride: keys,
+    })
+};
+
 chrome.notifications.onClicked.addListener(async notificationId => {
+    chrome.notifications.clear(notificationId);
+
     if (notificationId.startsWith('http')) {
-        chrome.notifications.clear(notificationId);
         await chrome.tabs.create({url: notificationId});
         return;
     }
 
     if (notificationId === NOTIFICATION_ID) {
         await launchNotifications();
+        return;
+    }
+
+    if (notificationId.startsWith(XMTP_TOPIC_PREFIX)) {
+        await launchThreadWindow(notificationId);
         return;
     }
 
@@ -177,8 +212,15 @@ chrome.notifications.onClicked.addListener(async notificationId => {
     } else {
         await launchNotifications();
     }
+});
 
-    chrome.notifications.clear(notificationId);
+chrome.notifications.onClosed.addListener(async (notificationId: string, byUser: boolean) => {
+    if (byUser && notificationId.startsWith(XMTP_TOPIC_PREFIX)) {
+        const localStorage = await chrome.storage.local.get(KEY_MESSAGE_TIMESTAMPS);
+        const timestamps = localStorage[KEY_MESSAGE_TIMESTAMPS] as MessageTimestampMap;
+        timestamps[notificationId] = DateTime.now().toMillis();
+        await chrome.storage.local.set({[KEY_MESSAGE_TIMESTAMPS]: timestamps});
+    }
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -208,9 +250,14 @@ const notifyOfPublishedPost = async (metadata: PublicationMetadataV2Input, publi
     );
 };
 
-const onNotificationsAlarm = async () => {
+const getUser = async () => {
     const localStorage = await chrome.storage.local.get('currentUser');
     const currentUser: User = localStorage.currentUser;
+    return currentUser;
+};
+
+const onNotificationsAlarm = async () => {
+    const currentUser = await getUser();
     if (!currentUser) return;
 
     const latestNotifications = await getLatestNotifications(true);
@@ -247,11 +294,13 @@ const onMessageError = (error: any, res: (response?: any) => void) => {
     res({error});
 }
 
-const onSetAlarmMessage = async (req: any, res: (response?: any) => void) => {
+const onSetNotificationsAlarmMessage = async (req: any, res: (response?: any) => void) => {
     if (req.enabled) {
-        setAlarm().then(() => res()).catch(e => onMessageError(e, res));
+        const storage = await chrome.storage.sync.get('notificationsRefreshInterval');
+        const alarmPeriodInMinutes = storage.notificationsRefreshInterval.value;
+        setAlarm(ALARM_ID_NOTIFICATIONS, alarmPeriodInMinutes).then(() => res()).catch(e => onMessageError(e, res));
     } else {
-        clearAlarm().then(() => res()).catch(e => onMessageError(e, res));
+        clearAlarm(ALARM_ID_NOTIFICATIONS).then(() => res()).catch(e => onMessageError(e, res));
     }
 }
 
@@ -324,12 +373,53 @@ const checkProxyActionStatus = async (proxyActionId: string, handle: string) => 
     }
 }
 
+const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
+    if (req.enabled) {
+        const storage = await chrome.storage.sync.get(KEY_MESSAGES_REFRESH_INTERVAL);
+        const alarmPeriodInMinutes = storage[KEY_MESSAGES_REFRESH_INTERVAL].value;
+        setAlarm(ALARM_ID_MESSAGES, alarmPeriodInMinutes).then(() => res()).catch(e => onMessageError(e, res));
+    } else {
+        clearAlarm(ALARM_ID_MESSAGES).then(() => res()).catch(e => onMessageError(e, res));
+    }
+};
+
+const onMessagesAlarm = async () => {
+    const client = await getXmtpClient();
+    const threads: Map<Thread, DecodedMessage[]> = await getUnreadThreads(client);
+    console.log('onMessagesAlarm: unread threads', threads);
+    if (threads.size === 0) {
+        return;
+    }
+
+    for (const [thread, messages] of threads.entries()) {
+        if (!thread.conversation.topic || !thread.peer) continue;
+
+        const peerProfile = thread.peer?.profile;
+        const peerAddress = thread.conversation.peerAddress;
+
+        chrome.notifications.create(
+            thread.conversation.topic,
+            {
+                type: 'basic',
+                requireInteraction: true,
+                title: getPeerName(thread) ?? truncateAddress(peerAddress),
+                message: '✉️ ' + (messages.length > 1 ? `${messages.length} new messages` : messages[0].content),
+                contextMessage: 'Focalize',
+                iconUrl: peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress),
+            }
+        )
+    }
+};
+
 const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {
     console.log(`onAlarmTriggered called: alarm`, alarm);
 
     switch (alarm.name) {
         case ALARM_ID_NOTIFICATIONS:
             await onNotificationsAlarm();
+            break;
+        case ALARM_ID_MESSAGES:
+            await onMessagesAlarm();
             break;
         default:
             const pendingProxyActions: PendingProxyActionMap = await getPendingProxyActions();
@@ -356,13 +446,16 @@ chrome.runtime.onMessage.addListener(
             case 'getPublicationId':
                 onGetPublicationIdMessage(sender, req, res).catch(console.error)
                 return true;
-            case 'setAlarm':
-                onSetAlarmMessage(req, res).catch(console.error);
+            case 'setNotificationsAlarm':
+                onSetNotificationsAlarmMessage(req, res).catch(console.error);
                 return true;
             case 'proxyAction':
                 checkProxyActionStatus(req.proxyActionId, req.profile.handle)
                     .then(() => res())
                     .catch(console.error);
+                return true;
+            case 'setMessagesAlarm':
+                onSetMessagesAlarm(req, res).catch(console.error);
                 return true;
         }
     }

@@ -116,25 +116,6 @@
         <div class="w-full flex">
           <div class="pt-1">
             <label class="switch">
-              <input type="checkbox" bind:checked={$compactMode}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
-
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Compact popups
-            </div>
-            <div class="text-base text-neutral-400">
-              Smaller fonts in popup window and condense white space
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full flex">
-          <div class="pt-1">
-            <label class="switch">
               <input type="checkbox" bind:checked={$showLocales}>
               <span class="slider round flex justify-between items-center px-2
                   shadow-none"></span>

@@ -177,6 +177,7 @@
             return;
         }
 
+        chrome.notifications.clear(topic);
         loading = false;
     });
 

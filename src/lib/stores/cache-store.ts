@@ -28,7 +28,7 @@ export const pendingProxyActions: Writable<PendingProxyActionMap> = chromeStorag
 
 
 /**
- * Map of conversation topic to last read message timestamp
+ * Map of conversation topic to last read message timestamp in milliseconds
  */
 export interface MessageTimestampMap {
     [id: string]: number;

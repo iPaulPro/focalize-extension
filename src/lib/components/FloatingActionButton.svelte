@@ -8,7 +8,7 @@
 </script>
 
 <div use:hideOnScroll={{scrollElement, reversed: true}}
-     class="absolute bottom-4 right-6">
+     class="absolute bottom-4 right-5">
 
   <button on:click={() => dispatch('click')}
           class="btn btn-icon rounded-full w-14 h-14 variant-filled-secondary !shadow-xl">
