@@ -169,7 +169,7 @@
     {#if validating}
 
       <div>
-        <LoadingSpinner size="w-4 h-4" />
+        <LoadingSpinner size="w-4 h-4" fitContent={true} />
       </div>
 
     {:else if validRecipient && !error}

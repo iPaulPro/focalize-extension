@@ -5,7 +5,7 @@
     import toast, {Toaster} from 'svelte-french-toast';
 
     import {authenticateUser, logOut} from "../lib/lens-auth";
-    import {getCurrentUser, UserError, userFromProfile} from "../lib/user";
+    import {getAuthenticatedUser, UserError, userFromProfile} from "../lib/user";
     import {currentUser} from "../lib/stores/user-store";
     import {ensureCorrectChain} from "../lib/ethers-service";
     import {darkMode, pinPromptShown, welcomeShown} from "../lib/stores/preferences-store";
@@ -45,7 +45,7 @@
     const ensureUser = async () => {
         if ($currentUser) return;
 
-        const {user, error} = await getCurrentUser()
+        const {user, error} = await getAuthenticatedUser()
 
         if (error !== undefined) {
             await onUserError(error);

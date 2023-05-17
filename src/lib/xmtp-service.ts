@@ -5,7 +5,7 @@ import gqlClient from './graph/graphql-client';
 import {KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES, type MessageTimestampMap} from './stores/cache-store';
 import {buildXmtpStorageKey, getEnsFromAddress, getXmtpKeys, truncateAddress} from './utils';
 import type {InvitationContext} from '@xmtp/xmtp-js/dist/types/src/Invitation';
-import type {User} from './user';
+import {getUser} from './stores/user-store';
 
 const LENS_PREFIX = 'lens.dev/dm';
 
@@ -64,14 +64,9 @@ export const canMessage = async (address: string): Promise<boolean> => Client.ca
     env: import.meta.env.MODE === 'development' ? 'dev' : 'production',
 });
 
-const getUser = async (): Promise<User | undefined> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    return storage.currentUser;
-};
-
 const getUserProfileId = async (): Promise<string | undefined> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    return storage.currentUser?.profileId;
+    const user = await getUser();
+    return user?.profileId;
 };
 
 const fetchAllProfiles = async (profileIds: string[], userProfileId?: string): Promise<Array<Profile>> => {
@@ -208,13 +203,13 @@ export const getLensThreads = (threads: Thread[], userProfileId: string): Thread
     );
 };
 
-export const getUnreadThreads = async (client: Client): Promise<Map<Thread, DecodedMessage[]>> => {
+export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, DecodedMessage[]>> => {
     const userProfileId = await getUserProfileId();
     const readTimestamps = await getReadTimestamps() ?? {};
 
     const conversationMap: Map<Conversation, DecodedMessage[]> = new Map();
 
-    const conversations: Conversation[] = await client.conversations.list();
+    const conversations: Conversation[] = await xmtpClient.conversations.list();
     for (const conversation of conversations) {
         const startTime = readTimestamps[conversation.topic] ? new Date(readTimestamps[conversation.topic]) : undefined;
         const messages = await getMessages(conversation, 10, startTime);
@@ -261,9 +256,9 @@ export const getUnreadThreads = async (client: Client): Promise<Map<Thread, Deco
 
 export const getAllThreads = async (): Promise<Thread[]> => {
     const userProfileId = await getUserProfileId();
-    const client = await getXmtpClient();
+    const xmtpClient = await getXmtpClient();
 
-    const conversations: Conversation[] = await client.conversations.list();
+    const conversations: Conversation[] = await xmtpClient.conversations.list();
 
     const lensConversations = conversations.filter((conversation) =>
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
@@ -374,17 +369,17 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
     };
 });
 
-export const getConversation = async (conversationId: string, client?: Client): Promise<Conversation | undefined> => {
-    if (!client) {
-        client = await getXmtpClient();
+export const getConversation = async (conversationId: string, xmtpClient?: Client): Promise<Conversation | undefined> => {
+    if (!xmtpClient) {
+        xmtpClient = await getXmtpClient();
     }
 
-    const conversations: Conversation[] = await client.conversations.list();
+    const conversations: Conversation[] = await xmtpClient.conversations.list();
     return conversations.find((conversation) => conversation.topic === conversationId);
 }
 
-export const getThread = async (conversationId: string, client?: Client): Promise<Thread | undefined> => {
-    const conversation: Conversation | undefined = await getConversation(conversationId, client);
+export const getThread = async (conversationId: string, xmtpClient?: Client): Promise<Thread | undefined> => {
+    const conversation: Conversation | undefined = await getConversation(conversationId, xmtpClient);
     if (!conversation) return undefined;
 
     const peer: Peer = await buildPeer(conversation);
@@ -394,11 +389,11 @@ export const getThread = async (conversationId: string, client?: Client): Promis
 export const findThread = async (peerAddress: string): Promise<Thread | undefined> => {
     if (!peerAddress) return undefined;
 
-    const client = await getXmtpClient();
+    const xmtpClient = await getXmtpClient();
 
-    const conversations: Conversation[] = await client.conversations.list();
+    const conversations: Conversation[] = await xmtpClient.conversations.list();
     const conversation: Conversation | undefined = conversations.find(
-        (conversation) => conversation.peerAddress === peerAddress
+        (c) => c.peerAddress === peerAddress
     );
     if (!conversation) return undefined;
 
@@ -429,8 +424,8 @@ export const newThread = async (peer: Peer): Promise<Thread> => {
         }
     }
 
-    const client = await getXmtpClient();
-    const conversation = await client.conversations.newConversation(address, context);
+    const xmtpClient = await getXmtpClient();
+    const conversation = await xmtpClient.conversations.newConversation(address, context);
 
     return {conversation, peer, unread: false} satisfies Thread;
 };

@@ -34,7 +34,7 @@ export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
     const {profiles} = await gqlClient.Profiles({
-        request: {ownedBy: ownedBy}, userProfileId
+        request: {ownedBy}, userProfileId
     });
     return profiles.items;
 };

@@ -176,7 +176,7 @@ const getXmtpClient = async (): Promise<Client> => {
     const user = await getUser();
     if (!user) throw new Error('getXmtpClient: no user found');
 
-    let keys = await getXmtpKeys(user.address);
+    const keys = await getXmtpKeys(user.address);
     if (!keys) throw new Error('getXmtpClient: no xmtp keys found');
 
     return await Client.create(null, {
@@ -273,7 +273,7 @@ const onNotificationsAlarm = async () => {
         console.error('onAlarmTriggered: error updating badge', e);
     }
 
-    let notifications: Notification[] | undefined = latestNotifications.notifications;
+    const notifications: Notification[] | undefined = latestNotifications.notifications;
     console.log(`onAlarmTriggered: ${notifications?.length ?? 0} new notifications since last query`);
     if (!notifications || notifications.length === 0) {
         return;
@@ -384,8 +384,15 @@ const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
 };
 
 const onMessagesAlarm = async () => {
-    const client = await getXmtpClient();
-    const threads: Map<Thread, DecodedMessage[]> = await getUnreadThreads(client);
+    let threads: Map<Thread, DecodedMessage[]> = new Map();
+
+    try {
+        const client = await getXmtpClient();
+        threads = await getUnreadThreads(client);
+    } catch (e) {
+        console.error('onMessagesAlarm: error getting unread threads', e);
+    }
+
     console.log('onMessagesAlarm: unread threads', threads);
     if (threads.size === 0) {
         return;
@@ -502,7 +509,7 @@ chrome.windows.onRemoved.addListener( async (windowId: number) => {
     const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
     const windowTopicMap: WindowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
 
-    const entry = Object.entries(windowTopicMap).find(([topic, id]) => windowId === id);
+    const entry = Object.entries(windowTopicMap).find(([_, id]) => windowId === id);
     if (entry) {
         delete windowTopicMap[entry[0]];
         await chrome.storage.local.set({[KEY_WINDOW_TOPIC_MAP]: windowTopicMap});

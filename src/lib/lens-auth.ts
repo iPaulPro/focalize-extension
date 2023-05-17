@@ -2,6 +2,8 @@ import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
 import gqlClient from "./graph/graphql-client";
+import {clearXmtpKeys} from './xmtp-service';
+import {getUser} from './stores/user-store';
 
 export const authenticateUser = async () => {
     const {getSigner, getAccounts, clearProvider} = await import('./ethers-service');
@@ -143,5 +145,9 @@ export const isValidSession = async (accessToken: string | undefined) => {
 };
 
 export const logOut = async () => {
+    const user = await getUser();
+    if (user?.address) {
+        await clearXmtpKeys(user.address);
+    }
     await chrome.storage.local.clear();
 };

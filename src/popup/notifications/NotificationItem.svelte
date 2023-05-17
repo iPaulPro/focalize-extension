@@ -52,7 +52,7 @@
 
     <div class="flex justify-between">
       <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer">
-        <img src={notificationAvatar ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
+        <img loading="lazy" decoding="async" src={notificationAvatar ?? ImageAvatar} alt="avatar"
              bind:this={avatarElement}
              class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
       </a>

@@ -59,7 +59,7 @@
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import {getCurrentUser} from "../lib/user";
+    import {getAuthenticatedUser} from "../lib/user";
     import {getDraft, postDrafts, saveDraft} from "../lib/stores/draft-store";
     import type {PostDraft} from "../lib/stores/draft-store";
 
@@ -445,7 +445,7 @@
         if ($currentUser) return;
 
         try {
-            const {user, error} = await getCurrentUser();
+            const {user, error} = await getAuthenticatedUser();
 
             if (error || !user) {
                 chrome.runtime.openOptionsPage();

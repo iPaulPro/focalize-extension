@@ -3,8 +3,7 @@ import {getDefaultProfile, getProfiles} from "./lens-profile";
 
 import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
-import {currentUser} from "./stores/user-store";
-import {get} from "./stores/chrome-storage-store";
+import {getUser} from './stores/user-store';
 import {getAvatarForProfile} from "./utils";
 
 export type User = {
@@ -36,7 +35,7 @@ export const userFromProfile = (profile: Profile): User => {
     }
 }
 
-export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}> => {
+export const getAuthenticatedUser = async (): Promise<{user?: User, error?: UserError}> => {
     let address: string;
     let accessToken: string;
     let profile: Profile | undefined;
@@ -67,7 +66,7 @@ export const getCurrentUser = async (): Promise<{user?: User, error?: UserError}
         return { error: UserError.NOT_AUTHENTICATED };
     }
 
-    const savedUser = await get(currentUser);
+    const savedUser = await getUser();
     if (savedUser) {
         return {user: savedUser};
     }

@@ -30,7 +30,7 @@
        class="flex p-4 gap-2 w-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700
        {isUnread ? 'bg-white dark:bg-gray-700/60' : ''}">
 
-    <img src={avatarUrl ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
+    <img loading="lazy" decoding="async" src={avatarUrl ?? ImageAvatar} alt="avatar"
          bind:this={avatarElement}
          class="w-10 h-10 shrink-0 rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
 

@@ -3,7 +3,7 @@
     import {getAvatarForProfile, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
     import {currentUser} from '../../../lib/stores/user-store';
-    import {getCurrentUser} from '../../../lib/user';
+    import {getAuthenticatedUser} from '../../../lib/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
     import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {darkMode, nodeSearch} from '../../../lib/stores/preferences-store';
@@ -35,7 +35,7 @@
         if ($currentUser) return;
 
         try {
-            const {user, error} = await getCurrentUser();
+            const {user, error} = await getAuthenticatedUser();
 
             if (error || !user) {
                 chrome.runtime.openOptionsPage();
@@ -204,7 +204,7 @@
     <div class="flex h-14 px-2 py-3 border-b border-surface-200-700-token items-center flex-none">
 
       <a href={getPeerUrl()} target="_blank" rel="noreferrer">
-        <img src={avatarUrl ?? ImageAvatar} alt="avatar" loading="lazy" decoding="async"
+        <img loading="lazy" decoding="async" src={avatarUrl ?? ImageAvatar} alt="avatar"
              bind:this={avatarElement}
              class="w-10 h-10 none rounded-full object-cover bg-gray-300 text-white hover:opacity-80 cursor-pointer">
       </a>

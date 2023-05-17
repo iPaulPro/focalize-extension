@@ -10,7 +10,7 @@
     import {Toaster} from 'svelte-french-toast';
     import ConversationsList from './messaging/ThreadList.svelte';
     import {currentUser} from '../lib/stores/user-store';
-    import {getCurrentUser} from '../lib/user';
+    import {getAuthenticatedUser} from '../lib/user';
     import {selectedMainTab} from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 
@@ -100,7 +100,7 @@
         if ($currentUser) return;
 
         try {
-            const {user, error} = await getCurrentUser();
+            const {user, error} = await getAuthenticatedUser();
 
             if (error || !user) {
                 chrome.runtime.openOptionsPage();

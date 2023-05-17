@@ -1,7 +1,12 @@
 <script lang="ts">
     import Select from 'svelte-select';
 
-    import {darkMode, notificationsEnabled, notificationsRefreshInterval,} from "../../lib/stores/preferences-store";
+    import {
+        darkMode,
+        messagesRefreshEnabled,
+        notificationsEnabled,
+        notificationsRefreshInterval,
+    } from '../../lib/stores/preferences-store';
     import type {RefreshInterval} from '../../lib/stores/preferences-store'
     import {nodeNotifications, notificationsForFollows, notificationsGrouped} from "../../lib/stores/preferences-store";
 
@@ -21,12 +26,16 @@
 
     let selectedInterval;
 
-    $: {
-        if (!selectedInterval && $notificationsRefreshInterval) {
-            selectedInterval = $notificationsRefreshInterval;
-        }
+    $: if (!selectedInterval && $notificationsRefreshInterval) {
+        selectedInterval = $notificationsRefreshInterval;
+    }
 
+    $: if ($notificationsEnabled !== undefined) {
         chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: $notificationsEnabled}).catch(console.error);
+    }
+
+    $: if ($messagesRefreshEnabled !== undefined) {
+        chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: $messagesRefreshEnabled}).catch(console.error);
     }
 
     const onIntervalChange = (event) => {
@@ -41,7 +50,7 @@
   </h1>
 
   <h2 class="text-neutral-400 text-lg pt-2">
-    Control which desktop notifications are enabled, and how often to check for new ones.
+    Control how and when you'll see system notifications
   </h2>
 
   <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 py-3 md:py-6"></div>
@@ -56,7 +65,7 @@
             Desktop notifications
           </div>
           <div class="text-base text-neutral-400">
-            Focalize can create system notifications for every notification you receive on Lens
+            Focalize can create system notifications for every notification and direct message you receive on Lens
           </div>
         </div>
       </div>
@@ -88,7 +97,7 @@
               Refresh interval
             </div>
             <div class="text-base text-neutral-400">
-              How often to check for new notifications
+              How often to check for new Lens notifications
             </div>
           </div>
           <div class="pt-1 pl-2 flex flex-grow justify-end">
@@ -119,7 +128,7 @@
               Group notifications
             </div>
             <div class="text-base text-neutral-400">
-              Show one system notification for all unread
+              Only show one notification with my unseen Lens activity count
             </div>
           </div>
         </div>
@@ -131,7 +140,7 @@
               App to launch
             </div>
             <div class="text-base text-neutral-400">
-              When you click on a grouped notification
+              When I click on a grouped notification
             </div>
           </div>
           <LensNodeSelect preference={nodeNotifications} disabled={!$notificationsEnabled || !$notificationsGrouped}
@@ -152,7 +161,7 @@
             Customize
           </div>
           <div class="text-base text-neutral-400">
-            Specify which kinds of notifications you'll see and receive system notifications for
+            Specify which kinds of events you'll receive system notifications for
           </div>
         </div>
       </div>
@@ -171,9 +180,29 @@
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
               Filter notifications
+              <span class="py-0.5 px-2 rounded-full bg-gray-200 dark:bg-gray-700 text-xs font-normal">Beta</span>
             </div>
             <div class="text-base text-neutral-400">
-              Only show me high-signal notifications
+              Only show me relevant notifications, filtered using AI
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$messagesRefreshEnabled}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Direct messages
+            </div>
+            <div class="text-base text-neutral-400">
+              Notify when someone sends me a direct message
             </div>
           </div>
         </div>

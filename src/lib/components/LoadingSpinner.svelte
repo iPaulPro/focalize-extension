@@ -1,11 +1,12 @@
 <script lang="ts">
   export let message: string = undefined;
   export let size: string = 'w-8 h-8';
+  export let fitContent: boolean = false;
 </script>
 
-<div class="flex flex-col w-fit !p-0 gap-2 justify-center items-center">
+<div class="flex flex-col {fitContent && 'w-fit !p-0'} gap-2 justify-center items-center">
 
-  <div role="status" class="!p-0">
+  <div role="status" class="{fitContent && '!p-0 '}">
     <svg aria-hidden="true" class="{size} text-gray-200 animate-spin dark:text-gray-600 fill-orange"
          viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
