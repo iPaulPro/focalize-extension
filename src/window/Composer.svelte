@@ -1,4 +1,6 @@
 <script lang="ts">
+    //@ts-ignore
+    import tippy from "sveltejs-tippy";
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
 
@@ -52,14 +54,12 @@
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
     import tooltip from "svelte-ktippy"
-    //@ts-ignore
-    import tippy from "sveltejs-tippy";
     import {onDestroy, onMount, tick} from 'svelte';
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte'
-    import {getAuthenticatedUser} from "../lib/user";
+    import {ensureUser, type User} from '../lib/user';
     import {getDraft, postDrafts, saveDraft} from "../lib/stores/draft-store";
     import type {PostDraft} from "../lib/stores/draft-store";
 
@@ -441,27 +441,6 @@
             console.log('debouncedDraftUpdate: saved draft', postDraft);
         });
 
-    const ensureUser = async () => {
-        if ($currentUser) return;
-
-        try {
-            const {user, error} = await getAuthenticatedUser();
-
-            if (error || !user) {
-                chrome.runtime.openOptionsPage();
-                return;
-            }
-
-            $currentUser = user;
-
-            if (!user.canUseRelay && !$dispatcherDialogShown && !enableDispatcherDialog?.open) {
-                enableDispatcherDialog.showModal();
-            }
-        } catch (e) {
-            chrome.runtime.openOptionsPage();
-        }
-    };
-
     const openDraft = async () => {
         postDraft = await getDraft($draftId);
         console.log('openDraft: postDraft', postDraft);
@@ -488,7 +467,12 @@
     }
 
     onMount(async () => {
-        await ensureUser();
+        await ensureUser((user: User) => {
+            if (!user.canUseRelay && !$dispatcherDialogShown && !enableDispatcherDialog?.open) {
+                enableDispatcherDialog.showModal();
+            }
+        });
+
         $welcomeShown = true;
         parseSearchParams();
         if ($draftId) await openDraft();

@@ -5,8 +5,8 @@
     import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {DateTime} from 'luxon';
 
-    import {isPeerMessage, isToday} from '../../lib/utils';
-    import SocialText from '../../lib/components/SocialText.svelte';
+    import {isPeerMessage, isToday} from '../../../../lib/utils';
+    import SocialText from '../../../../lib/components/SocialText.svelte';
 
     export let message: DecodedMessage;
     export let previousMessage: DecodedMessage;

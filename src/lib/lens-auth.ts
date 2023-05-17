@@ -6,16 +6,15 @@ import {clearXmtpKeys} from './xmtp-service';
 import {getUser} from './stores/user-store';
 
 export const authenticateUser = async () => {
-    const {getSigner, getAccounts, clearProvider} = await import('./ethers-service');
+    const {initEthers, getSigner, getAccounts, clearProvider} = await import('./ethers-service');
     const {getDefaultProfile} = await import('./lens-profile');
-
-    const signer = getSigner();
 
     let address: string | undefined;
     try {
-        address = await signer.getAddress();
+        const accounts = await initEthers();
+        address = accounts[0];
     } catch (e) {
-        console.warn(e);
+        console.warn('authenticateUser: Unable to get address from cached provider', e);
     }
 
     if (!address) {
@@ -35,6 +34,7 @@ export const authenticateUser = async () => {
     const {challenge} = await gqlClient.Challenge({request: {address}});
     console.log('authenticate: Lens challenge response', challenge);
 
+    const signer = getSigner();
     const signature = await signer.signMessage(challenge.text);
     console.log('authenticate: Signed Lens challenge', signature);
 
@@ -150,4 +150,5 @@ export const logOut = async () => {
         await clearXmtpKeys(user.address);
     }
     await chrome.storage.local.clear();
+    await chrome.runtime.sendMessage({type: 'loggedOut'});
 };

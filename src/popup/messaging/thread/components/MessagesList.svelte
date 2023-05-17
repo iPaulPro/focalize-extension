@@ -1,15 +1,15 @@
 <script lang="ts">
     import {DateTime} from 'luxon';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
+    import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
     import {type DecodedMessage} from '@xmtp/xmtp-js';
-    import {getMessagesStream, type Thread} from '../../lib/xmtp-service';
-    import {messageTimestamps} from '../../lib/stores/cache-store';
+    import {getMessagesStream, type Thread} from '../../../../lib/xmtp-service';
+    import {messageTimestamps} from '../../../../lib/stores/cache-store';
     import {createEventDispatcher, onDestroy, onMount, tick} from 'svelte';
     import {Subscription} from 'rxjs';
-    import {get} from '../../lib/stores/chrome-storage-store';
+    import {get} from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
-    import {isPeerMessage} from '../../lib/utils';
+    import {isPeerMessage} from '../../../../lib/utils';
 
     const dispatch = createEventDispatcher();
 

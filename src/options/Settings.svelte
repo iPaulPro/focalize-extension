@@ -46,6 +46,7 @@
         if ($currentUser) return;
 
         const {user, error} = await getAuthenticatedUser()
+        console.log('ensureUser: user', user, 'error', error);
 
         if (error !== undefined) {
             await onUserError(error);
@@ -56,10 +57,6 @@
     };
 
     const onSignInClick = async () => {
-        if (!$currentUser) {
-            await ensureUser();
-        }
-
         try {
             await ensureCorrectChain();
 
@@ -84,8 +81,10 @@
     };
 
     const showPinPromptIfNecessary = async () => {
+        if (!$currentUser) return;
+
         const onToolbar = await isOnToolbar();
-        if ($currentUser && !onToolbar && !$pinPromptShown) {
+        if (!onToolbar && !$pinPromptShown) {
             showPinPromptDialog = true;
             await tick();
             pinPromptDialog?.showModal();
@@ -103,11 +102,16 @@
     onMount(async () => {
         try {
             await ensureUser();
+        } catch (e) {
+            console.error('Error ensuring user', e);
         } finally {
+            console.log('Done loading');
             loading = false;
         }
 
-        await showPinPromptIfNecessary();
+        console.log('onMount: $currentUser', $currentUser);
+
+        // await showPinPromptIfNecessary();
     });
 </script>
 

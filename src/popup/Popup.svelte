@@ -8,14 +8,13 @@
     import {DateTime} from 'luxon';
     import {onMount} from 'svelte';
     import {Toaster} from 'svelte-french-toast';
-    import ConversationsList from './messaging/ThreadList.svelte';
-    import {currentUser} from '../lib/stores/user-store';
-    import {getAuthenticatedUser} from '../lib/user';
+    import ThreadList from './messaging/ThreadList.svelte';
+    import {ensureUser} from '../lib/user';
     import {selectedMainTab} from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 
     let notificationsList: NotificationsList;
-    let conversationsList: ConversationsList;
+    let conversationsList: ThreadList;
 
     $: {
         if ($darkMode) {
@@ -96,22 +95,11 @@
         }
     };
 
-    const ensureUser = async () => {
-        if ($currentUser) return;
+    $: {
+       if ($selectedMainTab === 1) {
 
-        try {
-            const {user, error} = await getAuthenticatedUser();
-
-            if (error || !user) {
-                chrome.runtime.openOptionsPage();
-                return;
-            }
-
-            $currentUser = user;
-        } catch (e) {
-            chrome.runtime.openOptionsPage();
-        }
-    };
+       }
+    }
 
     onMount(async () => {
         await ensureUser();
@@ -178,7 +166,7 @@
 
       {:else if $selectedMainTab === 1}
 
-        <ConversationsList bind:this={conversationsList}/>
+        <ThreadList bind:this={conversationsList} on:messagesDisabled={() => $selectedMainTab = 0} />
 
       {/if}
 

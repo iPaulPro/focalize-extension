@@ -22,7 +22,7 @@
     };
 </script>
 
-<nav class="w-full bg-white dark:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700">
+<nav class="w-full bg-white dark:bg-gray-800 border-b border-b-gray-200 dark:border-b-gray-700 flex-none">
 
   <div class="px-4 md:px-8">
 
@@ -52,8 +52,8 @@
         <div class="ml-4 flex items-center md:ml-6">
 
           <a href="/src/window/index.html"
-             class="p-3 rounded-full text-gray-700 dark:text-gray-50 hover:bg-gray-100 dark:hover:bg-gray-500
-             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+             class="!p-3 !rounded-full !text-gray-700 dark:!text-gray-50 hover:!bg-gray-200 dark:hover:!bg-gray-500
+             focus:!outline-none focus:!ring-2 focus:!ring-offset-2 focus:!ring-offset-gray-800 focus:!ring-white">
 
             <span class="sr-only">
                 New post
@@ -109,7 +109,7 @@
   </div>
 </nav>
 
-<dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+<dialog id="logoutDialog" class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
   <DialogOuter title="Log out">
     <ConfirmLogoutDialog/>
   </DialogOuter>

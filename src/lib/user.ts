@@ -3,7 +3,7 @@ import {getDefaultProfile, getProfiles} from "./lens-profile";
 
 import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
-import {getUser} from './stores/user-store';
+import {currentUser, getUser} from './stores/user-store';
 import {getAvatarForProfile} from "./utils";
 
 export type User = {
@@ -95,5 +95,30 @@ export const getAuthenticatedUser = async (): Promise<{user?: User, error?: User
         return {user};
     } catch (e) {
         return {error: UserError.UNKNOWN};
+    }
+};
+
+/**
+ * Ensures that the user is logged in, otherwise opens the options page
+ */
+export const ensureUser = async (onUserAuthenticated?: (user: User) => void) => {
+    await initEthers();
+
+    if (await getUser()) return;
+
+    try {
+        const {user, error} = await getAuthenticatedUser();
+
+        if (error || !user) {
+            chrome.runtime.openOptionsPage();
+            window?.close();
+            return;
+        }
+
+        currentUser.set(user);
+        onUserAuthenticated?.(user);
+    } catch (e) {
+        chrome.runtime.openOptionsPage();
+        window?.close();
     }
 };

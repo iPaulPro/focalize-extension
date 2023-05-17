@@ -3,14 +3,14 @@
     import {getAvatarForProfile, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
     import {currentUser} from '../../../lib/stores/user-store';
-    import {getAuthenticatedUser} from '../../../lib/user';
+    import {ensureUser, getAuthenticatedUser} from '../../../lib/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
     import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {darkMode, nodeSearch} from '../../../lib/stores/preferences-store';
     import MessengerTextarea from './components/MessengerTextarea.svelte';
     import FloatingComponent from '../../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../../lib/components/ProfileHoverCard.svelte';
-    import MessagesList from '../MessagesList.svelte';
+    import MessagesList from './components/MessagesList.svelte';
     import WindowBlinker from '../../../lib/WindowBlinker';
     import {getProfileUrl} from '../../../lib/lens-nodes';
     import {Toast, toastStore, storePopup} from '@skeletonlabs/skeleton';
@@ -30,23 +30,6 @@
     let avatarElement: HTMLImageElement;
 
     const windowBlinker = new WindowBlinker();
-
-    const ensureUser = async () => {
-        if ($currentUser) return;
-
-        try {
-            const {user, error} = await getAuthenticatedUser();
-
-            if (error || !user) {
-                chrome.runtime.openOptionsPage();
-                return;
-            }
-
-            $currentUser = user;
-        } catch (e) {
-            chrome.runtime.openOptionsPage();
-        }
-    };
 
     const onTextChange = (event: CustomEvent) => {
         text = event.detail.text;

@@ -2,19 +2,18 @@
     import {onDestroy, onMount} from 'svelte';
     import {
         type Thread,
-        canMessage, getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead, isLensThread
+        getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead, isLensThread, isXmtpEnabled
     } from '../../lib/xmtp-service';
     import type {Subscription} from 'rxjs';
     import ThreadItem from './ThreadItem.svelte';
-    import {currentUser} from '../../lib/stores/user-store';
-    import {get} from '../../lib/stores/chrome-storage-store';
-    import type {User} from '../../lib/user';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
     import {selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
-    import {notificationsEnabled} from '../../lib/stores/preferences-store';
     import {launchThreadWindow} from '../../lib/utils';
+    import {createEventDispatcher} from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
@@ -27,13 +26,6 @@
 
     export const scrollToTop = () => {
         scrollElement.scrollTop = 0;
-    };
-
-    const isXmtpEnabled = async () => {
-        const user: User = await get(currentUser);
-        const address = user?.address;
-        console.log('isXmtpEnabled: address', address);
-        return address && await canMessage(address);
     };
 
     const init = async () => {
@@ -94,22 +86,23 @@
         await launchThreadWindow(thread.conversation.topic);
     };
 
-    $: {
-        if (messagesEnabled && !unfilteredThreads) {
-            init().catch(console.error);
-        }
+    $: if (messagesEnabled && !unfilteredThreads) {
+        init().catch(console.error);
+    }
 
-        if ($selectedMessagesTab !== undefined && unfilteredThreads) {
-            onMessageTabSwitch();
-        }
+    $: if ($selectedMessagesTab !== undefined && unfilteredThreads) {
+        onMessageTabSwitch();
     }
 
     onMount(async () => {
         messagesEnabled = await isXmtpEnabled();
         console.log('onMount: messagesEnabled', messagesEnabled);
 
-        // TODO remove
-        chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true}).catch(console.error);
+        if (!messagesEnabled) {
+            dispatch('messagesDisabled');
+            const url = chrome.runtime.getURL('src/popup/messaging/login/index.html');
+            await chrome.tabs.create({url});
+        }
     });
 
     onDestroy(() => {

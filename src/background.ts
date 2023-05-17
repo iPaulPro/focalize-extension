@@ -66,6 +66,14 @@ const setAlarm = async (name: string, periodInMinutes: number) => {
     })
 };
 
+const clearAllNotifications = () => {
+    chrome.notifications.getAll(notifications => {
+        Object.keys(notifications).forEach(notificationId => {
+            chrome.notifications.clear(notificationId);
+        })
+    });
+}
+
 const createNotificationMessage = (
     notification: Notification,
     contentStripped: string | null | undefined,
@@ -441,6 +449,12 @@ const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {
 
 chrome.alarms.onAlarm.addListener(onAlarmTriggered);
 
+const onLogoutMessage = async (res: (response?: any) => void) => chrome.alarms.clearAll()
+    .then(() => {
+        clearAllNotifications();
+        res();
+    });
+
 chrome.runtime.onMessage.addListener(
     (req, sender, res) => {
         console.log(`Got a message`, req, sender);
@@ -450,8 +464,11 @@ chrome.runtime.onMessage.addListener(
         }
 
         switch (req.type) {
+            case 'loggedOut':
+                onLogoutMessage(res).catch(console.error);;
+                return true;
             case 'getPublicationId':
-                onGetPublicationIdMessage(sender, req, res).catch(console.error)
+                onGetPublicationIdMessage(sender, req, res).catch(console.error);
                 return true;
             case 'setNotificationsAlarm':
                 onSetNotificationsAlarmMessage(req, res).catch(console.error);

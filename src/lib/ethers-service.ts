@@ -120,6 +120,10 @@ export const switchChains = async (chainId: number) => {
 }
 
 export const ensureCorrectChain = async () => {
+    if (!provider) {
+        provider = await getSignerProvider();
+    }
+
     const currentChainId = await getChainId();
     if (currentChainId !== chainId) {
         await switchChains(chainId);

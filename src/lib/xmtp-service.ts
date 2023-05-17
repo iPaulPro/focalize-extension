@@ -6,6 +6,7 @@ import {KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES, type MessageTimestampMap} from './
 import {buildXmtpStorageKey, getEnsFromAddress, getXmtpKeys, truncateAddress} from './utils';
 import type {InvitationContext} from '@xmtp/xmtp-js/dist/types/src/Invitation';
 import {getUser} from './stores/user-store';
+import type {User} from './user';
 
 const LENS_PREFIX = 'lens.dev/dm';
 
@@ -26,9 +27,11 @@ export interface Thread {
     latestMessage?: DecodedMessage;
 }
 
-const storeKeys = async (address: string, keys: Uint8Array) => {
-    const storageKey = buildXmtpStorageKey(address);
-    await chrome.storage.local.set({[storageKey]: Buffer.from(keys).toString('binary')});
+export const isXmtpEnabled = async (): Promise<boolean> => {
+    const user: User | undefined = await getUser();
+    const address = user?.address;
+    if (!address) return false;
+    return await getXmtpKeys(address) !== null;
 };
 
 export const clearXmtpKeys = async (address: string) => {
@@ -36,13 +39,18 @@ export const clearXmtpKeys = async (address: string) => {
     await chrome.storage.local.remove(storageKey);
 };
 
-const getXmtpClient = async (): Promise<Client> => {
+const storeKeys = async (address: string, keys: Uint8Array) => {
+    const storageKey = buildXmtpStorageKey(address);
+    await chrome.storage.local.set({[storageKey]: Buffer.from(keys).toString('binary')});
+};
+
+export const getXmtpClient = async (): Promise<Client> => {
     if (client) return client;
 
     const {getSigner} = await import('./ethers-service');
 
     const signer = getSigner();
-    if (!signer) throw new Error('Unable to get signer');
+    if (!signer) throw new Error('Unable to find wallet for signing.');
 
     const address = await signer?.getAddress();
     let keys = await getXmtpKeys(address);
@@ -91,7 +99,6 @@ const fetchAllProfiles = async (profileIds: string[], userProfileId?: string): P
 
     return profiles;
 };
-
 
 const getProfiles = async (
     profileIds: string[],
