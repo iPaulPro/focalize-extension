@@ -211,16 +211,25 @@ export const getLensThreads = (threads: Thread[], userProfileId: string): Thread
 };
 
 export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, DecodedMessage[]>> => {
-    const userProfileId = await getUserProfileId();
+    const user = await getUser();
+    if (!user) throw new Error('User is not logged in');
+
     const readTimestamps = await getReadTimestamps() ?? {};
 
     const conversationMap: Map<Conversation, DecodedMessage[]> = new Map();
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
     for (const conversation of conversations) {
-        const startTime = readTimestamps[conversation.topic] ? new Date(readTimestamps[conversation.topic]) : undefined;
+        if (!readTimestamps[conversation.topic]) {
+            readTimestamps[conversation.topic] = new Date().getTime();
+            await chrome.storage.local.set({[KEY_MESSAGE_TIMESTAMPS]: readTimestamps});
+        }
+
+        const startTime = new Date(readTimestamps[conversation.topic]);
         const messages = await getMessages(conversation, 10, startTime);
-        const peerMessages = messages.filter((message) => message.senderAddress !== userProfileId);
+        const peerMessages = messages.filter(
+            (message) => message.senderAddress !== user.address
+        );
         if (peerMessages.length > 0) {
             conversationMap.set(conversation, peerMessages);
         }
@@ -231,7 +240,7 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
     const profileIds = lensConversations.map((conversation) =>
-        extractProfileId(conversation.context!!.conversationId, userProfileId)
+        extractProfileId(conversation.context!!.conversationId, user.profileId)
     );
 
     const profiles: Profile[] = await getProfiles(profileIds);

@@ -112,7 +112,7 @@
       </div>
 
       <button type="button" on:click={login}
-              class="btn btn-lg variant-ringed-primary flex gap-2 mt-6 font-medium rounded-br-none shadow">
+              class="btn btn-lg variant-ringed-primary hover:variant-ghost-primary flex gap-1.5 mt-6 font-medium rounded-br-none shadow">
         Connect with
         <svg viewBox="0 0 1058 248" fill="none" class="h-4 w-auto">
           <path
