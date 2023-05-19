@@ -109,32 +109,31 @@
         return truncateAddress(thread.conversation.peerAddress);
     };
 
+    const onFocus = () => {
+        windowBlinker.stop();
+    };
+
     $: peerProfile = thread?.peer?.profile;
     $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(thread?.conversation?.peerAddress);
     $: peerName = thread && getPeerName(thread);
     $: peerHandle = thread && getPeerHandle();
 
-    $: {
-        console.log('peerProfile', peerProfile, 'peerName', peerName, 'peerHandle', peerHandle);
-        if ($darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        if (peerName) {
-            pageTitle = `Chat with ${peerName} | Focalize`;
-        }
+    $: if ($darkMode) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
     }
 
-    const onFocus = () => {
-        windowBlinker.stop();
-    };
+    $: if (peerName) {
+        pageTitle = `Chat with ${peerName} | Focalize`;
+    }
 
-    $: {
-        if (thread?.conversation?.topic) {
-            saveWindowId();
-        }
+    $: if (thread?.conversation?.topic) {
+        saveWindowId();
+    }
+
+    $: if (!$currentUser) {
+        window.close();
     }
 
     onMount(async () => {

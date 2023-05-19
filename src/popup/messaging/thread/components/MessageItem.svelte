@@ -29,9 +29,9 @@
   {/if}
 
   {#if showNewMessagesLabel}
-    <div class="flex justify-center text-xs opacity-50 py-2" out:fade>
-      <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded-full">
-        New Messages
+    <div class="flex justify-center text-xs py-2" out:fade>
+      <span class="px-2 py-1 variant-soft-primary rounded-full">
+        New messages
       </span>
     </div>
   {/if}
@@ -48,7 +48,7 @@
                   : '!text-orange-100 hover:!text-orange-300'}"
       />
 
-      <div class="flex justify-end text-xs pt-0.5">
+      <div class="flex {isPeer ? 'justify-start' : 'justify-end'} text-xs pt-0.5">
         <span class="opacity-50 cursor-help"
               use:tippy={({
                 delay: 500,

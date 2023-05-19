@@ -1,10 +1,10 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import {darkMode} from '../lib/stores/preferences-store';
+    import {darkMode, messagesUnreadCount, unreadNotificationsCount} from '../lib/stores/preferences-store';
     import {storePopup, TabGroup, Tab} from '@skeletonlabs/skeleton';
     import NotificationsList from './notifications/NotificationsList.svelte';
-    import {getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils';
+    import {clearBadge, getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils';
     import {DateTime} from 'luxon';
     import {onMount} from 'svelte';
     import {Toaster} from 'svelte-french-toast';
@@ -95,15 +95,9 @@
         }
     };
 
-    $: {
-       if ($selectedMainTab === 1) {
-
-       }
-    }
-
     onMount(async () => {
         await ensureUser();
-
+        await clearBadge();
         storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
     });
 </script>
@@ -117,18 +111,28 @@
             class="flex flex-col h-full !space-y-0">
 
     <Tab bind:group={$selectedMainTab} name="tab1" value={0} on:click={onNotificationsTabClick}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
-      </svg>
+      <div class="relative inline-block w-full h-full">
+        {#if $selectedMainTab !== 0 && $unreadNotificationsCount > 0}
+          <span class="w-2 h-2 variant-filled-primary absolute -top-1.5 -right-1.5 z-10 rounded-full"></span>
+        {/if}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
     </Tab>
 
     <Tab bind:group={$selectedMainTab} name="tab2" value={1}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-        <polyline points="22,6 12,13 2,6"></polyline>
-      </svg>
+      <div class="relative inline-block w-full h-full">
+        {#if $selectedMainTab !== 1 && $messagesUnreadCount > 0}
+          <span class="w-2 h-2 variant-filled-primary absolute -top-1.5 -right-1.5 z-10 rounded-full"></span>
+        {/if}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-6 h-6"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+      </div>
     </Tab>
 
     <div on:click={scrollToTop}

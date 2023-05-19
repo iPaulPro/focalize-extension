@@ -34,11 +34,6 @@ export const isXmtpEnabled = async (): Promise<boolean> => {
     return await getXmtpKeys(address) !== null;
 };
 
-export const clearXmtpKeys = async (address: string) => {
-    const storageKey = buildXmtpStorageKey(address);
-    await chrome.storage.local.remove(storageKey);
-};
-
 const storeKeys = async (address: string, keys: Uint8Array) => {
     const storageKey = buildXmtpStorageKey(address);
     await chrome.storage.local.set({[storageKey]: Buffer.from(keys).toString('binary')});
@@ -191,15 +186,29 @@ const extractProfileId = (conversationId: string, userProfileId?: string): strin
     return profileIdA === userProfileId ? profileIdB : profileIdA;
 };
 
+let lastMessagesRequestTime: number | undefined;
+const messagesRequestThrottleMs = 100;
+
 const getMessages = async (
     conversation: Conversation,
     limit: number = 1,
     startTime?: Date,
-): Promise<DecodedMessage[]> => conversation.messages({
-    direction: SortDirection.SORT_DIRECTION_DESCENDING,
-    limit,
-    startTime
-});
+): Promise<DecodedMessage[]> => {
+    const now = Date.now();
+    const timeSinceLastRequest = now - (lastMessagesRequestTime ?? now - messagesRequestThrottleMs);
+
+    if (timeSinceLastRequest < messagesRequestThrottleMs) {
+        await new Promise(resolve => setTimeout(resolve, messagesRequestThrottleMs - timeSinceLastRequest));
+    }
+
+    lastMessagesRequestTime = Date.now();
+
+    return conversation.messages({
+        direction: SortDirection.SORT_DIRECTION_DESCENDING,
+        limit,
+        startTime
+    });
+};
 
 export const isLensThread = (thread: Thread): boolean =>
     thread.conversation.context?.conversationId.startsWith(LENS_PREFIX) ?? false;
@@ -290,10 +299,16 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 
     const readTimestamps = await getReadTimestamps() ?? {};
 
-    const messagePromises = conversations.map(async (conversation) => {
+    const messagesMap = new Map<Conversation, DecodedMessage[]>();
+    for (const conversation of conversations) {
         const messages = await getMessages(conversation, 1);
-        const latestMessage: DecodedMessage = messages[0];
-        const unread = await isUnread(latestMessage, readTimestamps);
+        messagesMap.set(conversation, messages);
+    }
+
+    const messagePromises = conversations.map(async (conversation) => {
+        const messages = messagesMap.get(conversation);
+        const latestMessage: DecodedMessage | undefined= messages?.[0];
+        const unread = latestMessage ? await isUnread(latestMessage, readTimestamps) : false;
         return {latestMessage, unread};
     });
 

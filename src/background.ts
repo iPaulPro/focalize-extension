@@ -22,7 +22,7 @@ import {
     launchThreadWindow,
     stripMarkdown,
     truncate,
-    truncateAddress
+    truncateAddress, updateBadge
 } from './lib/utils';
 import type {PublicationState} from './lib/stores/state-store';
 import {getPublicationUrl, type LensNode} from './lib/lens-nodes';
@@ -36,15 +36,12 @@ import {
     NOTIFICATIONS_QUERY_LIMIT
 } from './lib/lens-notifications';
 import {
-    KEY_MESSAGE_TIMESTAMPS,
-    KEY_NOTIFICATION_ITEMS_CACHE,
-    KEY_PENDING_PROXY_ACTIONS,
-    KEY_WINDOW_TOPIC_MAP,
-    type WindowTopicMap,
-    type PendingProxyActionMap,
-    type MessageTimestampMap,
+    KEY_MESSAGE_TIMESTAMPS, KEY_NOTIFICATION_ITEMS_CACHE, KEY_PENDING_PROXY_ACTIONS, KEY_WINDOW_TOPIC_MAP,
+    type WindowTopicMap, type PendingProxyActionMap, type MessageTimestampMap,
 } from './lib/stores/cache-store';
-import {KEY_MESSAGES_REFRESH_INTERVAL} from './lib/stores/preferences-store';
+import {
+    KEY_MESSAGES_REFRESH_INTERVAL, KEY_MESSAGES_UNREAD_TOPICS, KEY_NOTIFICATIONS_GROUPED,
+} from './lib/stores/preferences-store';
 import {getPeerName, getUnreadThreads, type Thread} from './lib/xmtp-service';
 import type {DecodedMessage} from '@xmtp/xmtp-js';
 import {Client} from '@xmtp/xmtp-js';
@@ -139,38 +136,6 @@ const createGroupNotification = (newNotifications: Notification[], currentUser: 
             iconUrl: currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`
         }
     );
-};
-
-const getNotificationCountSinceLastOpened = async (): Promise<number> => {
-    const storage = await chrome.storage.local.get(['notificationItemsCache'])
-    const syncStorage = await chrome.storage.sync.get(['notificationsTimestamp']);
-    const lastUpdateDate = syncStorage.notificationsTimestamp ? DateTime.fromISO(syncStorage.notificationsTimestamp) : null;
-
-    if (!lastUpdateDate) return 0;
-
-    const notifications = storage.notificationItemsCache;
-    if (!notifications || notifications.length === 0) {
-        return 0;
-    }
-
-    const newNotifications = notifications.filter((n: Notification) => {
-        return DateTime.fromISO(n.createdAt) > lastUpdateDate
-    });
-    console.log(`getNotificationCountSinceLastOpened: ${newNotifications.length} new notifications since last opened at ${lastUpdateDate.toLocaleString(DateTime.TIME_SIMPLE)}`);
-
-    return newNotifications.length;
-}
-
-const updateBadge = async (notificationsTimestamp: string | null) => {
-    const lastUpdateDate = notificationsTimestamp ? DateTime.fromISO(notificationsTimestamp) : null;
-    if (!lastUpdateDate) return;
-
-    const newNotifications = await getNotificationCountSinceLastOpened();
-    const notificationsSize: string = newNotifications > 99 ? '99+' : `${newNotifications}`;
-
-    await chrome.action.setBadgeBackgroundColor({color: '#6B2300'});
-    await chrome.action.setBadgeText({text: newNotifications > 0 ? notificationsSize : ''});
-    await chrome.action.setTitle({title: `${notificationsSize} new notifications`});
 };
 
 const launchNotifications = async () => {
@@ -271,12 +236,8 @@ const onNotificationsAlarm = async () => {
     const latestNotifications = await getLatestNotifications(true);
     console.log('onAlarmTriggered: notifications', latestNotifications);
 
-    const syncStorage = await chrome.storage.sync.get(
-        ['notificationsTimestamp', 'notificationsGrouped', 'nodeNotifications']
-    );
-
     try {
-        await updateBadge(syncStorage.notificationsTimestamp);
+        await updateBadge();
     } catch (e) {
         console.error('onAlarmTriggered: error updating badge', e);
     }
@@ -287,7 +248,8 @@ const onNotificationsAlarm = async () => {
         return;
     }
 
-    if (syncStorage.notificationsGrouped) {
+    const syncStorage = await chrome.storage.sync.get([KEY_NOTIFICATIONS_GROUPED]);
+    if (syncStorage[KEY_NOTIFICATIONS_GROUPED]) {
         createGroupNotification(notifications, currentUser);
         return;
     }
@@ -399,6 +361,14 @@ const onMessagesAlarm = async () => {
         threads = await getUnreadThreads(client);
     } catch (e) {
         console.error('onMessagesAlarm: error getting unread threads', e);
+    }
+
+    try {
+        const topics = Array.from(threads.keys()).map(thread => thread.conversation.topic);
+        await chrome.storage.sync.set({[KEY_MESSAGES_UNREAD_TOPICS]: topics});
+        await updateBadge();
+    } catch (e) {
+        console.error('onMessagesAlarm: error updating badge', e);
     }
 
     console.log('onMessagesAlarm: unread threads', threads);

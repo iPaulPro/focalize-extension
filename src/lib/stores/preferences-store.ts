@@ -1,8 +1,9 @@
 import {chromeStorageSync} from "./chrome-storage-store";
-import type {Writable} from "svelte/store";
+import {derived, type Readable, type Writable} from 'svelte/store';
 import type {LensNode} from "../lens-nodes";
 
 import nodes from './/nodes.json';
+import {getNotificationCountSinceLastOpened} from '../utils';
 
 const defaultNode = nodes[0];
 
@@ -40,6 +41,7 @@ export const KEY_NOTIFICATIONS_FOR_MENTIONS = 'notificationsForMentions';
 export const KEY_NOTIFICATIONS_FOR_REACTIONS = 'notificationsForReactions';
 export const KEY_MESSAGES_REFRESH_ENABLED = 'messagesRefreshEnabled';
 export const KEY_MESSAGES_REFRESH_INTERVAL = 'messagesRefreshInterval';
+export const KEY_MESSAGES_UNREAD_TOPICS = 'messagesUnreadTopics';
 
 export const compactMode: Writable<boolean> = chromeStorageSync(KEY_COMPACT_MODE, true);
 export const darkMode: Writable<boolean> = chromeStorageSync(KEY_DARK_MODE, false);
@@ -70,3 +72,18 @@ export const notificationsForMentions: Writable<boolean> = chromeStorageSync(KEY
 export const notificationsForReactions: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_REACTIONS, true);
 export const messagesRefreshEnabled: Writable<boolean | undefined> = chromeStorageSync(KEY_MESSAGES_REFRESH_ENABLED, true);
 export const messagesRefreshInterval: Writable<RefreshInterval> = chromeStorageSync(KEY_MESSAGES_REFRESH_INTERVAL, {value: 1, label: '1 min'});
+export const messagesUnreadTopics: Writable<string[]> = chromeStorageSync(KEY_MESSAGES_UNREAD_TOPICS, []);
+
+export const messagesUnreadCount: Readable<number> = derived(
+    messagesUnreadTopics,
+    ($messagesUnreadTopics, set) => {
+        set($messagesUnreadTopics?.length || 0);
+    }
+);
+
+export const unreadNotificationsCount: Readable<number> = derived(
+    notificationsTimestamp,
+    ($notificationsTimestamp, set) => {
+        getNotificationCountSinceLastOpened($notificationsTimestamp).then(count => set(count));
+    }
+);

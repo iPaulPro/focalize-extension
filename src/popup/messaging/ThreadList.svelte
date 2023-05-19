@@ -122,7 +122,7 @@
                   background="bg-none" border="border-none">
         <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
         <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Lens</RadioItem>
-        <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Wallet to wallet</RadioItem>
+        <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
       </RadioGroup>
 
       <button type="button"

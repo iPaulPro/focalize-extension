@@ -10,6 +10,7 @@
     import {get} from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
     import {isPeerMessage} from '../../../../lib/utils';
+    import {messagesUnreadTopics} from '../../../../lib/stores/preferences-store';
 
     const dispatch = createEventDispatcher();
 
@@ -25,6 +26,11 @@
 
     const updateTimestamp = (timestamp: number = DateTime.now().toMillis()) => {
         $messageTimestamps[thread.conversation.topic] = timestamp;
+        $messagesUnreadTopics = $messagesUnreadTopics.filter(t => t !== thread.conversation.topic);
+    };
+
+    const clearNotification = () => {
+        chrome.notifications.clear(thread.conversation.topic);
     };
 
     const infiniteHandler = async ({detail: {loaded, complete, error}}) => {
@@ -65,13 +71,17 @@
         newMessagesTimestamp = undefined;
     };
 
+    const onFocus = () => {
+        clearNotification();
+    };
+
     const init = async () => {
         const timestamps = await get(messageTimestamps);
         newMessagesTimestamp = timestamps[thread.conversation.topic] ?? undefined;
 
         messageStream = getMessagesStream(thread.conversation).subscribe(async (message: DecodedMessage) => {
             if (document.hasFocus() && isFullyScrolled()) {
-                updateTimestamp(message.sent.getTime());
+                updateTimestamp();
             } else if (!document.hasFocus()) {
                 // If the document doesn't have focus, show the new messages indicator
                 newMessagesTimestamp = $messageTimestamps[thread.conversation.topic];
@@ -87,6 +97,7 @@
         });
 
         updateTimestamp();
+        clearNotification();
     };
 
     $: {
@@ -94,6 +105,7 @@
     }
 
     onMount(async () => {
+        window.addEventListener('focus', onFocus);
         window.addEventListener('blur', onBlur);
 
         await init();

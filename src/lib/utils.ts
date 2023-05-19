@@ -8,6 +8,9 @@ import type {DecodedMessage} from '@xmtp/xmtp-js';
 import type {Provider} from '@ethersproject/providers';
 import {ethers} from 'ethers';
 import {INFURA_PROJECT_ID} from '../config';
+import {KEY_MESSAGES_UNREAD_TOPICS, KEY_NOTIFICATIONS_TIMESTAMP,} from './stores/preferences-store';
+import type {Notification} from './graph/lens-service';
+import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -98,6 +101,25 @@ export const launchThreadWindow = async (topic?: string) => {
         url += '?topic=' + encodeURIComponent(topic);
     }
 
+    const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
+    const windowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
+
+    if (topic) {
+        const existingWindow = windowTopicMap[topic];
+        if (existingWindow) {
+            try {
+                await chrome.windows.update(existingWindow, {focused: true});
+                if (typeof window !== 'undefined') {
+                    window.close();
+                }
+                return;
+            } catch (e) {
+                delete windowTopicMap[topic];
+                await chrome.storage.local.set({[KEY_WINDOW_TOPIC_MAP]: windowTopicMap});
+            }
+        }
+    }
+
     await chrome.windows.create({
         url,
         focused: true,
@@ -106,7 +128,9 @@ export const launchThreadWindow = async (topic?: string) => {
         height: 600,
     }).catch(console.error);
 
-    window.close();
+    if (typeof window !== 'undefined') {
+        window.close();
+    }
 }
 
 interface ScrollEndListenerOptions {
@@ -243,4 +267,45 @@ export const getXmtpKeys = async (address: string): Promise<Uint8Array | null> =
     const storage = await chrome.storage.local.get(storageKey);
     const savedKeys = storage[storageKey];
     return savedKeys ? Buffer.from(savedKeys, 'binary') : null;
+};
+
+export const getNotificationCountSinceLastOpened = async (timestamp?: string): Promise<number> => {
+    if (!timestamp) {
+        const syncStorage = await chrome.storage.sync.get([KEY_NOTIFICATIONS_TIMESTAMP]);
+        timestamp = syncStorage[KEY_NOTIFICATIONS_TIMESTAMP];
+    }
+    const lastUpdateDate = timestamp ? DateTime.fromISO(timestamp) : null;
+
+    if (!lastUpdateDate) return 0;
+
+    const storage = await chrome.storage.local.get(['notificationItemsCache'])
+    const notifications = storage.notificationItemsCache;
+    if (!notifications || notifications.length === 0) {
+        return 0;
+    }
+
+    const newNotifications = notifications.filter((n: Notification) => {
+        return DateTime.fromISO(n.createdAt) > lastUpdateDate
+    });
+
+    return newNotifications.length;
+}
+
+export const updateBadge = async () => {
+    const storage = await chrome.storage.sync.get([KEY_MESSAGES_UNREAD_TOPICS]);
+    const newNotifications: number = await getNotificationCountSinceLastOpened();
+    const newMessages: number = storage[KEY_MESSAGES_UNREAD_TOPICS]?.length ?? 0;
+
+    const count = newNotifications + newMessages;
+    const countString: string = count > 99 ? '99+' : `${count}`;
+    const title = count > 0 ? `${countString} new notifications and unread messages` : 'Focalize';
+
+    await chrome.action.setBadgeBackgroundColor({color: '#6B2300'});
+    await chrome.action.setBadgeText({text: count > 0 ? countString : ''});
+    await chrome.action.setTitle({title});
+};
+
+export const clearBadge = async () => {
+    await chrome.action.setBadgeText({text: ''});
+    await chrome.action.setTitle({title: 'Focalize'});
 };

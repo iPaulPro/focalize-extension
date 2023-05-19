@@ -58,9 +58,7 @@
 
     const onLatestNotificationSeen = async () => {
         await updateNotificationsTimestamp(notifications[0]?.createdAt);
-        await chrome.action.setBadgeText({text: ''});
-        await chrome.action.setTitle({title: 'Share on Lens'});
-    }
+    };
 
     const checkForNewNotifications = async () => {
         const latestNotifications = await getLatestNotifications();
