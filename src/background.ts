@@ -56,7 +56,7 @@ const clearAlarm = (name: string) => chrome.alarms.clear(name);
 
 const setAlarm = async (name: string, periodInMinutes: number) => {
     console.log(`setlAlarm:`, name,  periodInMinutes)
-    await clearAlarm(ALARM_ID_NOTIFICATIONS)
+    await clearAlarm(name)
     await chrome.alarms.create(name, {
         periodInMinutes,
         delayInMinutes: 0

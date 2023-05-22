@@ -1,7 +1,23 @@
 import {chromeStorageLocal} from "./chrome-storage-store";
-import type {Writable} from "svelte/store";
+import type {Readable, Writable} from 'svelte/store';
 
 import type {Notification, PaginatedResultInfo, Profile} from '../graph/lens-service';
+import type {CompactMessage} from '../xmtp-service';
+import {derived} from 'svelte/store';
+
+/**
+ * Cached data is saved to the `local` chrome storage area.
+ * @param key The key used to store in the `local` chrome storage area.
+ */
+export const getCached = async <T>(key: string): Promise<T | undefined> => {
+    const storage = await chrome.storage.local.get(key);
+    if (storage[key]) {
+        return storage[key] as T;
+    }
+    return undefined;
+};
+
+export const saveToCache = async (key: string, value: any): Promise<void> => chrome.storage.local.set({[key]: value});
 
 export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache';
 export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache';
@@ -55,9 +71,26 @@ export const KEY_WINDOW_TOPIC_MAP = 'windowTopicMap';
 export const windowTopicMap: Writable<WindowTopicMap> = chromeStorageLocal(KEY_WINDOW_TOPIC_MAP, {});
 
 
+/**
+ * Map of Lens profile id to profile
+ */
 export interface ProfileMap {
     [id: string]: Profile;
 }
 
 export const KEY_PROFILES = 'cachedProfiles';
 export const profiles: Writable<ProfileMap> = chromeStorageLocal(KEY_PROFILES);
+
+
+/**
+ * Map of conversation topic to the latest decoded message
+ */
+export interface LatestMessageMap {
+    [id: string]: CompactMessage;
+}
+
+export const KEY_LATEST_MESSAGE_MAP = 'latestMessageMap';
+export const latestMessageMap: Writable<LatestMessageMap> = chromeStorageLocal(KEY_LATEST_MESSAGE_MAP, {});
+
+export const getLatestMessage = (topic: string): Readable<CompactMessage | undefined> =>
+    derived(latestMessageMap, ($latestMessageMap) => $latestMessageMap?.[topic]);

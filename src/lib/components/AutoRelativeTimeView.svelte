@@ -6,12 +6,13 @@
     export let timestamp: number;
     export let className: string = '';
     export let capitalize: string = false;
+    export let shortRelativeCutoff = 15;
 
     let formattedTime: string;
     let intervalId: number;
 
     const isWithinOneHour = (diff: Duration) => diff.as('hours') < 1;
-    const isWithinFifteenMinutes = (diff: Duration) => diff.as('minutes') <= 15;
+    const isWithinShortRelativeCutoff = (diff: Duration) => diff.as('minutes') <= shortRelativeCutoff;
     const isWithinOneMinute = (diff: Duration) => diff.as('minutes') < 1;
     const isWithinTenSeconds = (diff: Duration) => diff.as('seconds') <= 10;
     const isWithinOneWeek = (diff: Duration) => diff.as('weeks') < 1;
@@ -41,7 +42,7 @@
 
         if (isWithinTenSeconds(diff)) {
             return capitalize ? 'Just now' : 'just now';
-        } else if (isWithinFifteenMinutes(diff)) {
+        } else if (isWithinShortRelativeCutoff(diff)) {
             return toShortRelative(date);
         } else if (isToday(date, now)) {
             return date.toLocaleString(DateTime.TIME_SIMPLE);

@@ -2,7 +2,8 @@
     import {onDestroy, onMount} from 'svelte';
     import {
         type Thread,
-        getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead, isLensThread, isXmtpEnabled
+        getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead,
+        isLensThread, isXmtpEnabled, toCompactMessage, updateLatestMessageCache
     } from '../../lib/xmtp-service';
     import type {Subscription} from 'rxjs';
     import ThreadItem from './ThreadItem.svelte';
@@ -42,12 +43,14 @@
             const thread = threads.find((thread) => thread.conversation.topic === message.conversation.topic);
 
             if (thread) {
-                thread.latestMessage = message;
+                thread.latestMessage = toCompactMessage(message);
                 thread.unread = await isUnread(message);
             }
 
             threads = threads;
         });
+
+        await updateLatestMessageCache();
     };
 
     const onMessageTabSwitch = () => {

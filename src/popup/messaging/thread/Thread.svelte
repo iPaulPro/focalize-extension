@@ -132,10 +132,6 @@
         saveWindowId();
     }
 
-    $: if (!$currentUser) {
-        window.close();
-    }
-
     onMount(async () => {
         storePopup.set({computePosition, autoUpdate, flip, shift, offset, arrow});
 

@@ -5,6 +5,20 @@ import type {LensNode} from "../lens-nodes";
 import nodes from './/nodes.json';
 import {getNotificationCountSinceLastOpened} from '../utils';
 
+/**
+ * Preferences are saved to the `sync` chrome storage area.
+ * @param key The key used to store in the `sync` chrome storage area.
+ */
+export const getPreference = async <T>(key: string): Promise<T | undefined> => {
+    const storage = await chrome.storage.sync.get(key);
+    if (storage[key]) {
+        return storage[key] as T;
+    }
+    return undefined;
+};
+
+export const savePreference = async (key: string, value: any): Promise<void> => chrome.storage.sync.set({[key]: value});
+
 const defaultNode = nodes[0];
 
 export type RefreshInterval = {

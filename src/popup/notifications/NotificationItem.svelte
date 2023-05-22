@@ -20,6 +20,7 @@
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
     import {getNotificationDisplayName} from '../../lib/lens-notifications.js';
+    import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
 
     export let notification: Notification;
     export let lastUpdate: DateTime;
@@ -63,7 +64,9 @@
              placement: 'bottom',
              content: DateTime.fromISO(notification.createdAt).toLocaleString(DateTime.DATETIME_MED)
            })}>
-        {DateTime.fromISO(notification.createdAt).toRelative()}
+        <AutoRelativeTimeView timestamp={DateTime.fromISO(notification.createdAt).toMillis()} capitalize={true}
+                              shortRelativeCutoff={120}
+                              className="text-xs {isNew ? 'opacity-100 font-medium' : 'opacity-70'}" />
       </div>
     </div>
 
