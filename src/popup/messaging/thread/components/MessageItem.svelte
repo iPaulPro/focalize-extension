@@ -39,7 +39,7 @@
   <div class="flex {isPeer ? 'justify-start' : 'justify-end'}
              {sameSenderAsPrevious && !showDate ? 'pt-0' : showDate ? 'pt-2' : 'pt-3' }">
 
-    <div class="flex flex-col w-4/5 sm:w-3/5 md:w-3/5 lg:w-2/5 xl:w-1/3 px-2.5 pt-2 pb-1 text-[0.925rem]
+    <div class="flex flex-col w-fit max-w-[80%] md:max-w-[60%] lg:max-w-[40%] px-3 pt-2 pb-1 text-[0.95rem]
                {isPeer ? 'peer-message' : 'self-message'}">
 
       <SocialText text={message.content}

@@ -72,6 +72,7 @@
     };
 
     const onFocus = () => {
+        updateTimestamp();
         clearNotification();
     };
 

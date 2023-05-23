@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount, createEventDispatcher, onDestroy} from 'svelte';
+    import {onMount, createEventDispatcher, onDestroy, tick} from 'svelte';
     import {debounce} from 'throttle-debounce';
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../../../lib/lens-search';
     import Tribute from 'tributejs';
@@ -11,8 +11,10 @@
     const dispatch = createEventDispatcher();
     let textarea: HTMLTextAreaElement | undefined;
 
-    const resizeTextarea = () => {
+    const resizeTextarea = async () => {
         if (!textarea) return;
+
+        await tick();
 
         textarea.style.height = 'auto';
         const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
@@ -37,8 +39,8 @@
         dispatch('textChanged', {text});
     });
 
-    const handleInput = () => {
-        resizeTextarea();
+    const handleInput = async () => {
+        await resizeTextarea();
         dispatchTextChanged();
     };
 
@@ -71,16 +73,14 @@
         }
     };
 
-    $: {
-        if (text === '') {
-            resizeTextarea();
-        }
+    $: if (text === '') {
+        resizeTextarea().catch(() => {});
     }
 
-    onMount(() => {
+    onMount(async () => {
         window.addEventListener('focus', focusHandler);
 
-        resizeTextarea();
+        await resizeTextarea();
         focusTextArea();
     });
 
@@ -92,13 +92,13 @@
 <textarea
     bind:this={textarea}
     class="w-full overflow-hidden resize-none bg-transparent text-[0.925rem] leading-tight py-3 px-4
-    border-surface-200-700-token focus:border-primary-400-500-token focus:ring-0
+    border-surface-200-700-token focus:border-primary-400-500-token focus:ring-0 !rounded-3xl
     {className}"
-    placeholder="{placeholder}"
+    placeholder={placeholder}
     rows="1"
-    bind:value="{text}"
-    on:input="{handleInput}"
-    on:keydown="{handleKeydown}"
+    bind:value={text}
+    on:input={handleInput}
+    on:keydown={handleKeydown}
     use:tribute
 ></textarea>
 
