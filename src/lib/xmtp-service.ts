@@ -21,7 +21,7 @@ export interface Peer {
     wallet?: {
         address: string;
         ens?: string | null;
-    }
+    };
 }
 
 export interface CompactMessage {
@@ -103,8 +103,8 @@ const fetchAllProfiles = async (profileIds: string[], userProfileId?: string): P
         const currentIds = profileIds.slice(0, chunkSize);
         profileIds = profileIds.slice(chunkSize);
 
-        const { profiles: currentProfilesResult }: ProfilesQuery = await gqlClient.Profiles({
-            request: { profileIds: currentIds, limit: chunkSize, cursor },
+        const {profiles: currentProfilesResult}: ProfilesQuery = await gqlClient.Profiles({
+            request: {profileIds: currentIds, limit: chunkSize, cursor},
             userProfileId,
         });
 
@@ -194,7 +194,7 @@ export const markAllAsRead = async (threads: Thread[]): Promise<Thread[]> => {
     return threads;
 };
 
-export const getReadTimestamps = async ():Promise<MessageTimestampMap> => {
+export const getReadTimestamps = async (): Promise<MessageTimestampMap> => {
     const localStorage = await chrome.storage.local.get(KEY_MESSAGE_TIMESTAMPS);
     return localStorage[KEY_MESSAGE_TIMESTAMPS] as MessageTimestampMap;
 };
@@ -230,13 +230,9 @@ const getMessages = async (
     });
 };
 
-export const updateLatestMessageCache = async (): Promise<void> => {
-    const xmtpClient = await getXmtpClient();
-    const conversations: Conversation[] = await xmtpClient.conversations.list();
-
-    const latestMessages: LatestMessageMap = {};
-    for (const conversation of conversations) {
-        const messages = await getMessages(conversation, 1);
+const cacheLatestMessages = async (conversationMessages: Map<Conversation, DecodedMessage[]>): Promise<LatestMessageMap> => {
+    const latestMessages: LatestMessageMap = await getCached(KEY_LATEST_MESSAGE_MAP) ?? {};
+    for (const [conversation, messages] of conversationMessages) {
         if (messages.length > 0) {
             latestMessages[conversation.topic] = toCompactMessage(messages[0]);
         }
@@ -244,13 +240,19 @@ export const updateLatestMessageCache = async (): Promise<void> => {
 
     await saveToCache(KEY_LATEST_MESSAGE_MAP, latestMessages);
     console.log('updateLatestMessageCache: saved latest messages to cache');
-};
 
-const cacheLatestMessage = async (message: DecodedMessage): Promise<void> => {
-    const latestMessageMap: LatestMessageMap = await getCached(KEY_LATEST_MESSAGE_MAP) ?? {};
-    latestMessageMap[message.contentTopic] = toCompactMessage(message);
+    return latestMessages;
+}
 
-    await saveToCache(KEY_LATEST_MESSAGE_MAP, latestMessageMap);
+export const updateLatestMessageCache = async (): Promise<LatestMessageMap> => {
+    const user = await getUser();
+    if (!user) throw new Error('User is not logged in');
+
+    const xmtpClient = await getXmtpClient();
+
+    const conversationMessages: Map<Conversation, DecodedMessage[]> =
+        await getMessagesBatch(xmtpClient, user.address, 1, true);
+    return cacheLatestMessages(conversationMessages);
 };
 
 export const isLensThread = (thread: Thread): boolean =>
@@ -262,37 +264,71 @@ export const getLensThreads = (threads: Thread[], userProfileId: string): Thread
     );
 };
 
-export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, DecodedMessage[]>> => {
-    const user = await getUser();
-    if (!user) throw new Error('User is not logged in');
-
+const getMessagesBatch = async (
+    xmtpClient: Client,
+    address: string,
+    pageSize: number,
+    unreadOnly: boolean = false,
+    conversations?: Conversation[],
+): Promise<Map<Conversation, DecodedMessage[]>> => {
     const readTimestamps = await getReadTimestamps() ?? {};
 
-    const conversationMap: Map<Conversation, DecodedMessage[]> = new Map();
+    if (!conversations) {
+        conversations = await xmtpClient.conversations.list();
+    }
 
-    const conversations: Conversation[] = await xmtpClient.conversations.list();
-    for (const conversation of conversations) {
+    const getReadTimestamp = async (conversation: Conversation): Promise<Date | undefined> => {
         if (!readTimestamps[conversation.topic]) {
             readTimestamps[conversation.topic] = new Date().getTime();
             await chrome.storage.local.set({[KEY_MESSAGE_TIMESTAMPS]: readTimestamps});
         }
 
-        const startTime = new Date(readTimestamps[conversation.topic]);
-        const messages = await getMessages(conversation, 10, startTime);
+        return new Date(readTimestamps[conversation.topic]);
+    };
 
-        if (messages.length === 0) continue;
+    const queryPromises = conversations.map(async (conversation) => ({
+        contentTopic: conversation.topic,
+        startTime: unreadOnly ? await getReadTimestamp(conversation) : undefined,
+        direction: SortDirection.SORT_DIRECTION_DESCENDING,
+        pageSize,
+    }));
+    const queries = await Promise.all(queryPromises);
+    const queryResults = await xmtpClient.apiClient.batchQuery(queries);
 
-        await cacheLatestMessage(messages[messages.length - 1]);
+    const conversationMap: Map<Conversation, DecodedMessage[]> = new Map();
+
+    for (let i = 0; i < queryResults.length; i++) {
+        const queryResult = queryResults[i];
+        if (queryResult.length === 0) continue;
+        const conversation = conversations[i];
+
+        const messagesPromises: Promise<DecodedMessage>[] = queryResult
+            .filter((envelope) => envelope.message)
+            .map((envelope) => conversation.decodeMessage(envelope));
+        const messages: DecodedMessage[] = await Promise.all(messagesPromises);
 
         const peerMessages = messages.filter(
-            (message) => message.senderAddress !== user.address
+            (message) => message.senderAddress !== address
         );
+
         if (peerMessages.length > 0) {
             conversationMap.set(conversation, peerMessages);
         }
     }
 
-    const unreadConversations = [...conversationMap.keys()];
+    return conversationMap;
+};
+
+export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, DecodedMessage[]>> => {
+    const user = await getUser();
+    if (!user) throw new Error('User is not logged in');
+
+    const conversationMessages: Map<Conversation, DecodedMessage[]> =
+        await getMessagesBatch(xmtpClient, user.address, 10, true);
+
+    await cacheLatestMessages(conversationMessages);
+
+    const unreadConversations = [...conversationMessages.keys()];
     const lensConversations = unreadConversations.filter((conversation) =>
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
@@ -307,7 +343,7 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
 
     const result: Map<Thread, DecodedMessage[]> = new Map();
     for (const conversation of unreadConversations) {
-        const messages = conversationMap.get(conversation)
+        const messages = conversationMessages.get(conversation)
             ?.filter(c => c.senderAddress !== '') ?? [];
         const profile = profilesMap.get(conversation.peerAddress);
         const peer: Peer = {
@@ -316,7 +352,7 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
                 address: conversation.peerAddress,
                 ens: await getEnsFromAddress(conversation.peerAddress),
             } : undefined,
-        }
+        };
         const thread: Thread = {
             conversation,
             peer,
@@ -327,8 +363,10 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
     return result;
 };
 
-export const getAllThreads = async (forceRefresh: boolean = false): Promise<Thread[]> => {
-    const userProfileId = await getUserProfileId();
+export const getAllThreads = async (): Promise<Thread[]> => {
+    const user = await getUser();
+    if (!user) throw new Error('User is not logged in');
+
     const xmtpClient = await getXmtpClient();
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
@@ -337,7 +375,7 @@ export const getAllThreads = async (forceRefresh: boolean = false): Promise<Thre
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
     const profileIds = lensConversations.map((conversation) =>
-        extractProfileId(conversation.context!!.conversationId, userProfileId)
+        extractProfileId(conversation.context!!.conversationId, user.profileId)
     );
 
     const profiles: Profile[] = await getProfiles(profileIds);
@@ -345,23 +383,16 @@ export const getAllThreads = async (forceRefresh: boolean = false): Promise<Thre
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
 
-    const readTimestamps = await getReadTimestamps() ?? {};
-
-    let latestMessageMap: LatestMessageMap | undefined = forceRefresh
-        ? undefined
-        : await getCached(KEY_LATEST_MESSAGE_MAP);
-
+    let latestMessageMap: LatestMessageMap | undefined = await getCached(KEY_LATEST_MESSAGE_MAP);
     console.log('getAllThreads: found cached latest messages', latestMessageMap);
 
     if (!latestMessageMap || Object.keys(latestMessageMap).length === 0) {
-        latestMessageMap = {};
-        for (const conversation of conversations) {
-            const messages = await getMessages(conversation, 1);
-            const latestMessage = messages?.[0];
-            if (latestMessage) latestMessageMap[conversation.topic] = toCompactMessage(latestMessage);
-        }
-        await saveToCache(KEY_LATEST_MESSAGE_MAP, latestMessageMap);
+        const conversationMessages: Map<Conversation, DecodedMessage[]> =
+            await getMessagesBatch(xmtpClient, user.address, 1, false, conversations);
+        latestMessageMap = await cacheLatestMessages(conversationMessages);
     }
+
+    const readTimestamps = await getReadTimestamps() ?? {};
 
     const threads: Thread[] = [];
     for (const conversation of conversations) {
@@ -374,7 +405,7 @@ export const getAllThreads = async (forceRefresh: boolean = false): Promise<Thre
                 address: conversation.peerAddress,
                 // ENS will be fetched on mount
             } : undefined,
-        }
+        };
         const thread: Thread = {conversation, peer, latestMessage, unread};
         threads.push(thread);
     }
@@ -401,7 +432,7 @@ export const getPeerName = (thread: Thread): string | null => {
 
     const peerProfile = thread.peer.profile;
     if (!peerProfile) {
-        return thread.peer.wallet?.ens ?? truncateAddress(thread.conversation.peerAddress)
+        return thread.peer.wallet?.ens ?? truncateAddress(thread.conversation.peerAddress);
     }
 
     return peerProfile.name ?? peerProfile.handle ?? truncateAddress(thread.conversation.peerAddress);
@@ -438,7 +469,7 @@ export const getThreadStream = (): Observable<Thread> => new Observable((observe
                             address: conversation.peerAddress,
                             ens: await getEnsFromAddress(conversation.peerAddress),
                         } : undefined,
-                    }
+                    };
                     observer.next({conversation, peer, unread} satisfies Thread);
                 }
             };
@@ -460,7 +491,7 @@ export const getConversation = async (conversationId: string, xmtpClient?: Clien
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
     return conversations.find((conversation) => conversation.topic === conversationId);
-}
+};
 
 export const getThread = async (conversationId: string, xmtpClient?: Client): Promise<Thread | undefined> => {
     const conversation: Conversation | undefined = await getConversation(conversationId, xmtpClient);
@@ -486,11 +517,11 @@ export const findThread = async (peerAddress: string): Promise<Thread | undefine
 };
 
 const buildConversationId = (profileIdA: string, profileIdB: string) => {
-    const profileIdAParsed = parseInt(profileIdA, 16)
-    const profileIdBParsed = parseInt(profileIdB, 16)
+    const profileIdAParsed = parseInt(profileIdA, 16);
+    const profileIdBParsed = parseInt(profileIdB, 16);
     return profileIdAParsed < profileIdBParsed
         ? `${LENS_PREFIX}/${profileIdA}-${profileIdB}`
-        : `${LENS_PREFIX}/${profileIdB}-${profileIdA}`
+        : `${LENS_PREFIX}/${profileIdB}-${profileIdA}`;
 };
 
 export const newThread = async (peer: Peer): Promise<Thread> => {
@@ -505,7 +536,7 @@ export const newThread = async (peer: Peer): Promise<Thread> => {
         context = {
             conversationId: buildConversationId(userProfileId, peer.profile.id),
             metadata: {},
-        }
+        };
     }
 
     const xmtpClient = await getXmtpClient();
@@ -568,6 +599,6 @@ export const getAllMessagesStream = (): Observable<DecodedMessage> => new Observ
 });
 
 export const toCompactMessage = (decodedMessage: DecodedMessage): CompactMessage => {
-    const { sent, contentTopic, content } = decodedMessage;
-    return { timestamp: sent.getTime(), contentTopic, content };
+    const {sent, contentTopic, content} = decodedMessage;
+    return {timestamp: sent.getTime(), contentTopic, content};
 };
