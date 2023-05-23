@@ -99,6 +99,8 @@ const shouldNotificationRequireInteraction = (notification: Notification): boole
     return false;
 };
 
+const getAppIconUrl = () => chrome.runtime.getURL('images/icon-128.png');
+
 const createIndividualNotification = (notification: Notification, currentUser: User) => {
     const handle = getNotificationHandle(notification);
     const avatar = getAvatarFromNotification(notification);
@@ -115,7 +117,7 @@ const createIndividualNotification = (notification: Notification, currentUser: U
             title: handle + ' ' + action,
             message,
             contextMessage: 'Focalize',
-            iconUrl: avatar ?? chrome.runtime.getURL('images/icon-128.png'),
+            iconUrl: avatar ?? getAppIconUrl(),
             requireInteraction: shouldNotificationRequireInteraction(notification),
         }
     );
@@ -312,7 +314,7 @@ const checkProxyActionStatus = async (proxyActionId: string, handle: string) => 
                 title: `Error following @${handle}`,
                 message: 'Please try again',
                 contextMessage: 'Focalize',
-                iconUrl: chrome.runtime.getURL('images/icon-128.png'),
+                iconUrl: getAppIconUrl(),
             }
         );
     }
@@ -382,17 +384,23 @@ const onMessagesAlarm = async () => {
         const peerProfile = thread.peer?.profile;
         const peerAddress = thread.conversation.peerAddress;
 
-        chrome.notifications.create(
-            thread.conversation.topic,
-            {
-                type: 'basic',
-                requireInteraction: true,
-                title: getPeerName(thread) ?? truncateAddress(peerAddress),
-                message: '✉️ ' + (messages.length > 1 ? `${messages.length} new messages` : messages[0].content),
-                contextMessage: 'Focalize',
-                iconUrl: peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress),
+        const options: chrome.notifications.NotificationOptions<true> = {
+            type: 'basic',
+            requireInteraction: true,
+            title: getPeerName(thread) ?? truncateAddress(peerAddress),
+            message: '✉️ ' + (messages.length > 1 ? `${messages.length} new messages` : messages[0].content),
+            contextMessage: 'Focalize',
+            iconUrl: peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
+            silent: false,
+        };
+
+        chrome.notifications.getAll((notifications: any) => {
+            if (notifications[thread.conversation.topic]) {
+                chrome.notifications.update(thread.conversation.topic, options);
+            } else {
+                chrome.notifications.create(thread.conversation.topic, options)
             }
-        )
+        });
     }
 };
 
@@ -425,6 +433,32 @@ const onLogoutMessage = async (res: (response?: any) => void) => chrome.alarms.c
         res();
     });
 
+const onMessage = (req: any, sender: chrome.runtime.MessageSender, res: (response?: any) => void): boolean => {
+    switch (req.type) {
+        case 'loggedOut':
+            onLogoutMessage(res).catch(console.error);;
+            return true;
+        case 'getPublicationId':
+            onGetPublicationIdMessage(sender, req, res).catch(console.error);
+            return true;
+        case 'setNotificationsAlarm':
+            onSetNotificationsAlarmMessage(req, res).catch(console.error);
+            return true;
+        case 'proxyAction':
+            checkProxyActionStatus(req.proxyActionId, req.profile.handle)
+                .then(() => res())
+                .catch(console.error);
+            return true;
+        case 'setMessagesAlarm':
+            onSetMessagesAlarm(req, res).catch(console.error);
+            return true;
+        case 'checkForUnreadMessages':
+            onMessagesAlarm().catch(console.error);
+            return true;
+    }
+    return false;
+};
+
 chrome.runtime.onMessage.addListener(
     (req, sender, res) => {
         console.log(`Got a message`, req, sender);
@@ -433,25 +467,7 @@ chrome.runtime.onMessage.addListener(
             return false;
         }
 
-        switch (req.type) {
-            case 'loggedOut':
-                onLogoutMessage(res).catch(console.error);;
-                return true;
-            case 'getPublicationId':
-                onGetPublicationIdMessage(sender, req, res).catch(console.error);
-                return true;
-            case 'setNotificationsAlarm':
-                onSetNotificationsAlarmMessage(req, res).catch(console.error);
-                return true;
-            case 'proxyAction':
-                checkProxyActionStatus(req.proxyActionId, req.profile.handle)
-                    .then(() => res())
-                    .catch(console.error);
-                return true;
-            case 'setMessagesAlarm':
-                onSetMessagesAlarm(req, res).catch(console.error);
-                return true;
-        }
+        return onMessage(req, sender, res);
     }
 );
 

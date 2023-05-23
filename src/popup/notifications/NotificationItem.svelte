@@ -58,7 +58,7 @@
              class="w-9 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
       </a>
 
-      <div class="h-fit text-xs opacity-60 font-medium"
+      <div class="h-fit"
            use:tippy={({
              delay: 500,
              placement: 'bottom',

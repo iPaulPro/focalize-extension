@@ -67,10 +67,10 @@
 
 <style>
   .peer-message {
-    @apply bg-gray-200 dark:bg-gray-700 rounded-tr-2xl rounded-b-2xl;
+    @apply bg-gray-200 dark:bg-gray-700 rounded-tr-2xl rounded-b-2xl rounded-tl-sm;
   }
 
   .self-message {
-    @apply bg-secondary-500 dark:bg-secondary-600 rounded-t-2xl rounded-bl-2xl text-white;
+    @apply bg-secondary-500 dark:bg-secondary-600 rounded-t-2xl rounded-bl-2xl rounded-br-sm text-white;
   }
 </style>

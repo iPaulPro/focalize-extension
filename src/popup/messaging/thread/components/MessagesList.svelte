@@ -83,9 +83,10 @@
             if (document.hasFocus() && isFullyScrolled()) {
                 updateTimestamp();
             } else if (!document.hasFocus()) {
-                // If the document doesn't have focus, show the new messages indicator
+                // If the document doesn't have focus, show the new messages indicator and trigger a notification
                 newMessagesTimestamp = $messageTimestamps[thread.conversation.topic];
                 dispatch('newMessage');
+                await chrome.runtime.sendMessage({type: 'checkForUnreadMessages'});
             }
 
             messages = [...messages, message];

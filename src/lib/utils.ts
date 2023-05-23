@@ -19,11 +19,11 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatarForProfile = (profile: Profile, size: number = 128) => {
+export const getAvatarForProfile = (profile: Profile, size: number = 128): string => {
     return `https://cdn.stamp.fyi/avatar/${profile.handle}?s=${size}`;
 };
 
-export const getAvatarFromAddress = (address: string, size: number = 128) => {
+export const getAvatarFromAddress = (address: string, size: number = 128): string => {
     return `https://cdn.stamp.fyi/avatar/${address}?s=${size}`;
 };
 
