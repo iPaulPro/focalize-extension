@@ -387,7 +387,7 @@ const onMessagesAlarm = async () => {
         const options: chrome.notifications.NotificationOptions<true> = {
             type: 'basic',
             requireInteraction: true,
-            title: getPeerName(thread) ?? truncateAddress(peerAddress),
+            title: getPeerName(thread.peer) ?? truncateAddress(peerAddress),
             message: '✉️ ' + (messages.length > 1 ? `${messages.length} new messages` : messages[0].content),
             contextMessage: 'Focalize',
             iconUrl: peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),

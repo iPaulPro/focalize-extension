@@ -2,8 +2,7 @@
     import {onDestroy, onMount} from 'svelte';
     import {getAvatarForProfile, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
-    import {currentUser} from '../../../lib/stores/user-store';
-    import {ensureUser, getAuthenticatedUser} from '../../../lib/user';
+    import {ensureUser} from '../../../lib/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
     import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {darkMode, nodeSearch} from '../../../lib/stores/preferences-store';
@@ -115,7 +114,7 @@
 
     $: peerProfile = thread?.peer?.profile;
     $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(thread?.conversation?.peerAddress);
-    $: peerName = thread && getPeerName(thread);
+    $: peerName = thread && getPeerName(thread.peer);
     $: peerHandle = thread && getPeerHandle();
 
     $: if ($darkMode) {

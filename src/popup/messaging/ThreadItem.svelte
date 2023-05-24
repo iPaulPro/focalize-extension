@@ -2,15 +2,9 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {
-        getAvatarForProfile,
-        getAvatarFromAddress,
-        getEnsFromAddress,
-        truncate,
-        truncateAddress
-    } from '../../lib/utils';
+    import {getAvatarForProfile, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils';
     import {getPeerName, isUnread, type Thread} from '../../lib/xmtp-service';
-    import {createEventDispatcher, onMount} from 'svelte';
+    import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
@@ -23,12 +17,13 @@
 
     let avatarElement: HTMLImageElement;
 
+    let ens: string = thread?.peer?.wallet?.ens;
+
     $: peerProfile = thread?.peer?.profile;
-    $: peerAddress = thread?.conversation?.peerAddress;
+    $: peerAddress = thread?.peer?.profile?.ownedBy ?? thread?.peer?.wallet?.address;
     $: unread = thread?.unread;
     $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress);
-    $: peerName = thread && getPeerName(thread);
-    $: peerHandle = peerProfile?.handle?.split('.')[0] ?? thread?.peer?.wallet?.ens ? truncateAddress(peerAddress) : undefined;
+    $: peerName = thread && getPeerName(thread.peer, ens);
 
     const latestMessage = getLatestMessage(thread?.conversation?.topic);
 
@@ -38,15 +33,11 @@
 
     $: $latestMessage && checkIfUnread($latestMessage);
 
-    onMount(() => {
-        if (!peerProfile?.handle && !thread?.peer?.wallet?.ens) {
-            getEnsFromAddress(peerAddress).then(ens => {
-                if (ens && thread.peer?.wallet) {
-                    thread.peer.wallet.ens = ens;
-                }
-            });
-        }
-    })
+    $: if (!peerProfile?.handle && !ens) {
+        getEnsFromAddress(peerAddress).then(result => {
+            ens = result;
+        });
+    }
 </script>
 
 {#if thread?.conversation}
@@ -63,7 +54,7 @@
       <div class="flex gap-1 text-[0.925rem] items-center">
 
         <div class="flex-shrink-0 w-fit truncate {unread ? 'font-semibold' : 'font-normal'}">
-          {peerName ?? peerHandle}
+          {peerName}
         </div>
 
         {#if $latestMessage}

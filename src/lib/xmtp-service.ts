@@ -251,7 +251,7 @@ export const updateLatestMessageCache = async (): Promise<LatestMessageMap> => {
     const xmtpClient = await getXmtpClient();
 
     const conversationMessages: Map<Conversation, DecodedMessage[]> =
-        await getMessagesBatch(xmtpClient, user.address, 1, true);
+        await getMessagesBatch(xmtpClient, user.address, 1, false, false);
     return cacheLatestMessages(conversationMessages);
 };
 
@@ -269,6 +269,7 @@ const getMessagesBatch = async (
     address: string,
     pageSize: number,
     unreadOnly: boolean = false,
+    peerOnly: boolean = false,
     conversations?: Conversation[],
 ): Promise<Map<Conversation, DecodedMessage[]>> => {
     const readTimestamps = await getReadTimestamps() ?? {};
@@ -307,13 +308,17 @@ const getMessagesBatch = async (
             .map((envelope) => conversation.decodeMessage(envelope));
         const messages: DecodedMessage[] = await Promise.all(messagesPromises);
 
-        const peerMessages = messages.filter(
-            (message) => message.senderAddress !== address
-        );
-
-        if (peerMessages.length > 0) {
-            conversationMap.set(conversation, peerMessages);
+        if (peerOnly) {
+            const peerMessages = messages.filter(
+                (message) => message.senderAddress !== address
+            );
+            if (peerMessages.length > 0) {
+                conversationMap.set(conversation, peerMessages);
+            }
+            continue;
         }
+
+        conversationMap.set(conversation, messages);
     }
 
     return conversationMap;
@@ -324,7 +329,7 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
     if (!user) throw new Error('User is not logged in');
 
     const conversationMessages: Map<Conversation, DecodedMessage[]> =
-        await getMessagesBatch(xmtpClient, user.address, 10, true);
+        await getMessagesBatch(xmtpClient, user.address, 10, true, true);
 
     await cacheLatestMessages(conversationMessages);
 
@@ -388,7 +393,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 
     if (!latestMessageMap || Object.keys(latestMessageMap).length === 0) {
         const conversationMessages: Map<Conversation, DecodedMessage[]> =
-            await getMessagesBatch(xmtpClient, user.address, 1, false, conversations);
+            await getMessagesBatch(xmtpClient, user.address, 1, false, false, conversations);
         latestMessageMap = await cacheLatestMessages(conversationMessages);
     }
 
@@ -427,15 +432,15 @@ const getPeerProfile = async (conversation: Conversation): Promise<Profile | und
     return profiles.items?.[0];
 };
 
-export const getPeerName = (thread: Thread): string | null => {
-    if (!thread?.peer) return null;
+export const getPeerName = (peer: Peer, ens?: string): string | undefined => {
+    if (!peer) return undefined;
 
-    const peerProfile = thread.peer.profile;
+    const peerProfile = peer.profile;
     if (!peerProfile) {
-        return thread.peer.wallet?.ens ?? truncateAddress(thread.conversation.peerAddress);
+        return ens ?? peer.wallet?.ens ?? (peer.wallet?.address && truncateAddress(peer.wallet?.address));
     }
 
-    return peerProfile.name ?? peerProfile.handle ?? truncateAddress(thread.conversation.peerAddress);
+    return peerProfile.name ?? peerProfile.handle ?? truncateAddress(peerProfile.ownedBy);
 };
 
 const buildPeer = async (conversation: Conversation) => {

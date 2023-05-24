@@ -10,7 +10,7 @@
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
-    import {selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
+    import {latestMessageMap, selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
     import {launchThreadWindow} from '../../lib/utils';
     import {createEventDispatcher} from 'svelte';
 
@@ -29,17 +29,23 @@
         scrollElement.scrollTop = 0;
     };
 
+    const listenForCacheChanges = () => {
+        latestMessageMap.subscribe(async () => {
+            unfilteredThreads = await getAllThreads();
+        });
+    };
+
     const init = async () => {
         unfilteredThreads = await getAllThreads();
         console.log('init: unfilteredThreads', unfilteredThreads);
 
         conversationsSubscription = getThreadStream().subscribe((thread) => {
-            console.log('getThreadStream: thread', thread);
-            unfilteredThreads = [unfilteredThreads, ...unfilteredThreads];
+            console.log('getThreadStream: new thread', thread);
+            unfilteredThreads = [thread, ...unfilteredThreads];
         });
 
         messagesSubscription = getAllMessagesStream().subscribe(async (message) => {
-            console.log('getAllMessagesStream: message', message);
+            console.log('getAllMessagesStream: new message', message);
             const thread = threads.find((thread) => thread.conversation.topic === message.conversation.topic);
 
             if (thread) {
@@ -51,6 +57,8 @@
         });
 
         await updateLatestMessageCache();
+
+        listenForCacheChanges();
     };
 
     const onMessageTabSwitch = () => {
