@@ -37,6 +37,7 @@
     let inputSelection: Selection, selectionRange: Range;
     let avatarError;
     let logoutDialog: HTMLDialogElement;
+    let contentHeight: number;
 
     const dispatch = createEventDispatcher();
 
@@ -136,9 +137,9 @@
         logoutDialog.showModal();
     };
 
-    onMount(() => {
-
-    })
+    $: if (contentHeight) {
+        dispatch('heightChanged');
+    }
 
     onDestroy(() => {
         editor?.destroy();
@@ -169,18 +170,18 @@
 
   </div>
 
-  <div class="flex flex-col w-full pr-2 pl-1.5 shrink">
+  <div class="flex flex-col w-full pr-2 pl-1.5 shrink" bind:offsetHeight={contentHeight}>
 
     <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
     {#if isCompact}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
-           use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
+           use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
            class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[8rem] focus:outline-none
            break-keep ![overflow-wrap:anywhere]">
       </div>
     {:else}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
-           use:makeEditor use:tribute bind:this={textInput} on:blur={() => saveSelection()}
+           use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
            class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[8rem] focus:outline-none
            break-keep ![overflow-wrap:anywhere]">
       </div>

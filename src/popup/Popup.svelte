@@ -26,7 +26,7 @@
 
     const onCreatePostClick = async () => {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-
+        console.log('tab', tab);
         if (!tab.id || !tab.url) {
             await launchComposerWindow();
             return;
@@ -56,14 +56,13 @@
                 func: getOpenGraphTags
             });
 
-            const tags = injected[0]?.result;
-            if (tags) {
-                tags.url = url; // og:url is often misused
-                if (!tags.title) tags.title = title;
-                return launchComposerWindow(tags);
-            } else {
-                console.log('no tags found');
-            }
+            const tags = injected[0]?.result ?? {};
+
+            if (!tags?.title) tags.title = title;
+            tags.icon = tab.favIconUrl;
+            tags.url = url;
+
+            return launchComposerWindow(tags);
         } catch (e) {
             console.error(e);
         }

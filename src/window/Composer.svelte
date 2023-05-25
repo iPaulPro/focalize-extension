@@ -29,7 +29,7 @@
     } from '../lib/stores/state-store';
     import {currentUser} from "../lib/stores/user-store";
     import {
-        compactMode, darkMode, dispatcherDialogShown, showLocales, useDispatcher, useRelay, welcomeShown
+        darkMode, dispatcherDialogShown, showLocales, useDispatcher, useRelay, welcomeShown
     } from "../lib/stores/preferences-store";
 
     import type {
@@ -54,7 +54,8 @@
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
     import tooltip from "svelte-ktippy"
-    import {onDestroy, onMount, tick} from 'svelte';
+    import {beforeUpdate, onDestroy, onMount, tick} from 'svelte';
+    import {fade} from 'svelte/transition';
 
     import tags from "language-tags";
     import GifSelectionDialog from './components/GifSelectionDialog.svelte'
@@ -71,7 +72,7 @@
     import DialogOuter from "../lib/components/DialogOuter.svelte";
     import {throttle} from "throttle-debounce";
     import {DateTime} from "luxon";
-    import {getSearchParamsMap} from '../lib/utils';
+    import {getSearchParamsMap, POPUP_MIN_HEIGHT} from '../lib/utils';
 
     /**
      * Bound to the tag component
@@ -102,11 +103,38 @@
     const draftSubject: Subject<PostDraft> = new Subject();
     let postDraft: PostDraft;
     let postMetaData: PublicationMetadataV2Input;
+    let currentTabData: {
+        title: string,
+        desc: string,
+        url: string,
+        icon: string,
+    } | undefined;
 
     $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
-
     $: isMediaPostType = $attachments && $attachments.length > 0;
+
+    const getCurrentTabData = (): {
+        title: string,
+        desc: string,
+        url: string,
+        icon: string,
+    } | undefined => {
+        const queryString = window.location.search;
+        const urlParams = getSearchParamsMap(queryString);
+
+        const title = urlParams.title;
+        const desc = urlParams.desc;
+        const url = urlParams.url;
+        const icon = urlParams.icon;
+
+        return title || desc ? {
+            title,
+            desc,
+            url,
+            icon
+        } : undefined;
+    }
 
     const parseSearchParams = () => {
         const queryString = window.location.search;
@@ -121,23 +149,7 @@
             $draftId = urlParams.draft;
         }
 
-        let md = '';
-
-        if (urlParams.title) {
-            md += `**${urlParams.title}**`;
-        }
-
-        if (urlParams.desc) {
-            md += `\n  > ${urlParams.desc.replace('\n', '\n> ')}`;
-        }
-
-        if (urlParams.url) {
-            md += `\n\n${urlParams.url}`;
-        }
-
-        if (md.length > 0) {
-            $content = md;
-        }
+        currentTabData = getCurrentTabData();
     };
 
     const showCollectFeesDialog = async () => {
@@ -382,56 +394,46 @@
         }
     };
 
-    $: {
-        if ($darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+    $: if ($darkMode) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
 
-        if ($currentUser === null) {
-            chrome.runtime.openOptionsPage();
-        }
+    $: if ($currentUser === null) {
+        chrome.runtime.openOptionsPage();
+    }
 
-        if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
-            $useDispatcher = false;
-        }
+    $: if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
+        $useDispatcher = false;
     }
 
     const updateWindowHeight = async () => {
         await tick();
-        if (!contentDiv) return;
-        const x = $compactMode ? 672 : 768;
-        const y = contentDiv.offsetHeight + (window.outerHeight - window.innerHeight);
-        window.resizeTo(x, Math.max(396, y));
+        if (!isPopupWindow || !contentDiv) return;
+        const height = contentDiv.offsetHeight + (window.outerHeight - window.innerHeight);
+        window.resizeTo(window.outerWidth, Math.max(POPUP_MIN_HEIGHT, height));
     };
 
-    const adjustBasedOnWindowType = () => {
-        chrome.windows.getCurrent(async (window: Window) => {
-            console.log('adjustDisplay');
-            if (window['type'] === 'popup') {
-                isPopupWindow = true;
-                await updateWindowHeight();
-            }
-        });
-    };
-
-    $: isCompact = isPopupWindow && $compactMode;
-    $: $compactMode, updateWindowHeight().catch();
-
-    $: {
-        if ($title || $content || $description || $attachments || $author) {
-            const draft: PostDraft = {
-                id: $draftId,
-                title: $title,
-                content: $content,
-                description: $description,
-                attachments: $attachments,
-                author: $author,
-                collectFee: $collectFee
-            };
-            draftSubject.next(draft);
+    const setWindowType = async () => {
+        const window = await chrome.windows.getCurrent();
+        console.log('adjustDisplay');
+        if (window['type'] === 'popup') {
+            isPopupWindow = true;
         }
+    };
+
+    $: if ($title || $content || $description || $attachments || $author) {
+        const draft: PostDraft = {
+            id: $draftId,
+            title: $title,
+            content: $content,
+            description: $description,
+            attachments: $attachments,
+            author: $author,
+            collectFee: $collectFee
+        };
+        draftSubject.next(draft);
     }
 
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(2000))
@@ -460,11 +462,35 @@
         isFileDragged = isDragged;
     });
 
-    $: {
-        if ($draftId !== postDraft?.id) {
-            openDraft();
-        }
+    const clearCurrentTabData = () => {
+        currentTabData = null;
+    };
+
+    const onCurrentTabDataClicked = () => {
+        if (!currentTabData) return;
+        let md = '';
+
+        if (currentTabData.title) md += `**${currentTabData.title}**`;
+        if (currentTabData.desc) md += `\n  > ${currentTabData.desc.replace('\n', '\n> ')}`;
+        if (currentTabData.url) md += `\n\n${currentTabData.url}`;
+        if (md.length > 0) $content = $content ? $content + '\n' + md : md;
+    };
+
+    $: if ($draftId !== postDraft?.id) {
+        openDraft();
     }
+
+    $: if (isMediaPostType) {
+        clearCurrentTabData();
+    }
+
+    $: if ($content?.length > 0) {
+        clearCurrentTabData();
+    }
+
+    beforeUpdate(async () => {
+        await setWindowType();
+    });
 
     onMount(async () => {
         await ensureUser((user: User) => {
@@ -474,9 +500,12 @@
         });
 
         $welcomeShown = true;
+
         parseSearchParams();
+
         if ($draftId) await openDraft();
-        adjustBasedOnWindowType();
+
+        await updateWindowHeight();
     });
 
     onDestroy(() => {
@@ -484,7 +513,7 @@
     });
 </script>
 
-<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isCompact ? 'compact' : ''}"
+<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
       on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
@@ -499,14 +528,68 @@
     <div class="w-full min-h-screen">
 
       <div id="content" bind:this={contentDiv}
-           class="min-h-full container max-w-screen-md mx-auto {isCompact ? 'pt-2' : 'pt-6'}">
+           class="min-h-full container max-w-screen-md mx-auto {isPopupWindow ? '' : 'pt-6'}">
 
-        <div class="min-h-[12rem] mx-2 rounded-2xl {isCompact ? 'p-2 shadow-md' : 'p-4 shadow-lg'} bg-white dark:bg-gray-800
-             {isSubmittingPost ? 'opacity-60' : ''}">
+        <div class="min-h-[12rem] bg-white dark:bg-gray-800  {isSubmittingPost ? 'opacity-60' : ''}
+             {isPopupWindow ? 'shadow p-2 rounded-b-2xl' : 'mx-2 rounded-2xl p-4 shadow-lg'}">
 
-          <PlainTextEditor disabled={isSubmittingPost} {isCompact}
+          <PlainTextEditor disabled={isSubmittingPost} isCompact={isPopupWindow}
+                           on:heightChanged={updateWindowHeight}
                            on:fileSelected={(e) => setAttachment(e.detail)}
-                           on:selectGif={(e) => showGifSelectionDialog()} />
+                           on:selectGif={(e) => showGifSelectionDialog()}/>
+
+          {#if currentTabData}
+
+            <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}} on:outroend={updateWindowHeight}
+                 class="flex w-fit max-w-[70%] ml-[5.5rem] pt-1 pb-2 pr-2 truncate
+                        cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900
+                        rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
+
+              <div class="flex justify-center items-center px-4">
+                <svg class="w-5 h-5 text-orange-600 dark:text-orange-200" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 10l6-6 6 6"/>
+                  <path d="M4 20h7a4 4 0 0 0 4-4V5"/>
+                </svg>
+              </div>
+
+              <div class="flex flex-col truncate">
+                <div class="flex justify-between items-end gap-24">
+                  <div class="flex gap-0.5 text-orange-600 dark:text-orange-200 transition-none font-semibold items-center">
+                    <span>Share current tab</span>
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                         stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </div>
+
+                  <button type="button" on:click={clearCurrentTabData}
+                          class="p-1 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="flex text-sm font-medium pt-0.5 pr-4 truncate transition-none items-center gap-1">
+                  {#if currentTabData.icon}
+                    <img src={currentTabData.icon} alt="Favicon" class="h-4">
+                  {/if}
+                  <span class="truncate">{currentTabData.title}</span>
+                </div>
+
+                {#if currentTabData.desc}
+                  <div class="opacity-60 transition-none pr-4 truncate">
+                    {currentTabData.desc}
+                  </div>
+                {/if}
+              </div>
+
+            </div>
+
+          {/if}
 
           {#if isMediaPostType || $file}
             <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
@@ -514,8 +597,8 @@
           {/if}
 
           <div class="flex flex-wrap gap-4 ml-[4.5rem]
-               {isCompact ? 'pt-2' : 'pt-3'}
-               {isMediaPostType ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}">
+               {isPopupWindow ? 'pt-2' : 'pt-3'}
+               {isMediaPostType || currentTabData ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}">
 
             <Select items={REFERENCE_ITEMS} bind:value={referenceItem}
                     clearable={false} searchable={false} listAutoWidth={false} showChevron={true} listOffset={-48}
@@ -563,7 +646,7 @@
 
         </div>
 
-        <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isCompact ? 'py-2' : 'py-4'} px-2 gap-4
+        <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isPopupWindow ? 'py-2' : 'py-4'} px-2 gap-4
              {isSubmittingPost ? 'opacity-60' : ''}">
 
           {#if $showLocales && locales.length > 0}
@@ -571,7 +654,7 @@
                     clearable={false} searchable={false} showChevron={true} listAutoWidth={false}
                     --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
                     --font-size="0.875rem" --list-border-radius="0.75rem" --list-z-index={20}
-                    --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
+                    --selected-item-padding="{isPopupWindow ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                     --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
                     class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
                   !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
@@ -591,7 +674,7 @@
                   bind:value={postContentWarning}
                   --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'} --list-z-index={20}
                   --font-size="0.875rem" --background="transparent" --list-background={$darkMode ? '#374354' : 'white'}
-                  --selected-item-padding="{isCompact ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
+                  --selected-item-padding="{isPopupWindow ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                   --list-border-radius="0.75rem"
                   class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
                   !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
@@ -644,15 +727,15 @@
               {/if}
             </button>
 
-            <div class="flex items-stretch {isCompact ? 'py-2' : 'py-4'}">
+            <div class="flex items-stretch {isPopupWindow ? 'py-2' : 'py-4'}">
 
-            <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
-                    class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center rounded-l-full w-auto
-                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
+              <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
+                    class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
+                    rounded-l-xl w-auto bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                    text-white text-center {isCompact ? 'text-base' : 'text-lg'}
-                    transition ease-in duration-200 font-semibold shadow-md">
+                    text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
+                    transition ease-in duration-200 font-semibold shadow-md disabled:shadow-none">
 
                 {#if isSubmittingPost}
                   <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
@@ -687,13 +770,13 @@
               </button>
 
             <button type="button" disabled={!submitEnabled}
-                    class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
+                    class="pl-3 pr-4 flex justify-center items-center rounded-r-xl tooltip
                     border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center text-lg dark:disabled:text-gray-400
-                    transition ease-in duration-200 shadow-md"
+                    transition ease-in duration-200 shadow-md disabled:shadow-none"
                       use:tooltip={{
                       component: PostMethodChooser,
                       props: {},
@@ -736,7 +819,7 @@
 {#if showFeeCollectDialog}
   <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
           class="w-2/3 max-w-sm rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-    <DialogOuter title="Sell as an NFT" {isCompact}>
+    <DialogOuter title="Sell as an NFT" isCompact={isPopupWindow}>
       <FeeCollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
     </DialogOuter>
   </dialog>
@@ -746,22 +829,23 @@
         class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0
         border border-gray-200 dark:border-gray-600"
         on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
-  <DialogOuter title="Attach a GIF" {isCompact}>
-    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown {isCompact}/>
+  <DialogOuter title="Attach a GIF" isCompact={isPopupWindow}>
+    <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown isCompact={isPopupWindow}/>
   </DialogOuter>
 </dialog>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-  <DialogOuter title="Enable Dispatcher" {isCompact}>
+  <DialogOuter title="Enable Dispatcher" isCompact={isPopupWindow}>
     <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
   </DialogOuter>
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}
-        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
+        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
+        dark:border-gray-600 overflow-hidden"
         on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
-  <DialogOuter title="Post drafts" {isCompact}>
+  <DialogOuter title="Post drafts" isCompact={isPopupWindow}>
     <PostDraftsList on:dismiss={() => postDraftsDialog.close()}/>
   </DialogOuter>
 </dialog>

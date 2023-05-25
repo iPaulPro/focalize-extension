@@ -12,6 +12,8 @@ import {KEY_MESSAGES_UNREAD_TOPICS, KEY_NOTIFICATIONS_TIMESTAMP,} from './stores
 import type {Notification} from './graph/lens-service';
 import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
 
+export const POPUP_MIN_HEIGHT = 358;
+
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const isOnToolbar = async (): Promise<boolean> => {
@@ -62,7 +64,7 @@ export const truncateAddress = (address: string, maxLength: number = 8): string 
 };
 
 export const launchComposerWindow = async (
-    tags?: { url?: string, title?: string, description?: string }
+    tags?: { url?: string, title?: string, description?: string, icon?: string }
 ) => {
     console.log('launchComposerWindow', tags);
     const path = chrome.runtime.getURL('src/window/index.html');
@@ -80,15 +82,16 @@ export const launchComposerWindow = async (
         url.searchParams.append('desc', truncate(tags.description, 160) ?? '');
     }
 
-    const storage = await chrome.storage.sync.get('compactMode');
-    const compactMode = storage.compactMode;
+    if (tags?.icon) {
+        url.searchParams.append('icon', tags.icon);
+    }
 
     chrome.windows.create({
         url: url.toString(),
         focused: true,
         type: 'popup',
-        width: compactMode ? 672 : 768,
-        height: compactMode ? 396 : 600
+        width: 672,
+        height: POPUP_MIN_HEIGHT
     }).catch(console.error);
 
     window.close();
@@ -200,7 +203,8 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
 export interface OpenGraphTags {
     url?: string;
     title?: string | null,
-    description?: string | null
+    description?: string | null,
+    icon?: string | null,
 }
 
 export const getOpenGraphTags = (): OpenGraphTags => ({
@@ -208,7 +212,7 @@ export const getOpenGraphTags = (): OpenGraphTags => ({
         document.head.querySelector("meta[name='twitter:title']")?.getAttribute("content"),
     description: document.head.querySelector("meta[property='og:description']")?.getAttribute("content") ??
         document.head.querySelector("meta[name='description']")?.getAttribute("content") ??
-        document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content")
+        document.head.querySelector("meta[name='twitter:description']")?.getAttribute("content"),
 });
 
 export const formatFollowerCount = (count: number): string => {
