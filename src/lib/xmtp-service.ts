@@ -28,6 +28,7 @@ export interface CompactMessage {
     timestamp: number,
     contentTopic: string,
     content: string,
+    senderAddress: string,
 }
 
 export interface Thread {
@@ -158,6 +159,9 @@ const getProfiles = async (
 
 export const isUnread = async (message: CompactMessage, readTimestamps?: MessageTimestampMap): Promise<boolean> => {
     if (!message) return false;
+
+    const user = await getUser();
+    if (!user || message.senderAddress === user.address) return false;
 
     if (!readTimestamps) {
         readTimestamps = await getReadTimestamps() ?? {};
@@ -604,6 +608,6 @@ export const getAllMessagesStream = (): Observable<DecodedMessage> => new Observ
 });
 
 export const toCompactMessage = (decodedMessage: DecodedMessage): CompactMessage => {
-    const {sent, contentTopic, content} = decodedMessage;
-    return {timestamp: sent.getTime(), contentTopic, content};
+    const {sent, contentTopic, content, senderAddress} = decodedMessage;
+    return {timestamp: sent.getTime(), contentTopic, content, senderAddress};
 };
