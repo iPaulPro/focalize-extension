@@ -21,7 +21,7 @@
 
 <div class="flex flex-col">
 
-  <div class="relative p-2 pt-3 flex-shrink-0 dark:bg-gray-800">
+  <div class="relative p-2 pt-3 flex-none dark:bg-gray-800">
     <input type="text" name="search" id="gifSearch" placeholder="Search gifs..." autocomplete="off"
            class="w-full rounded-xl {isCompact ? 'text-base py-1' : 'text-lg py-2'} px-4 placeholder-gray-400
            dark:bg-gray-600 dark:text-gray-200 dark:border-transparent
@@ -44,7 +44,7 @@
     {/if}
   </div>
 
-  <div class="p-2 flex-grow max-h-52 xl:max-h-96 overflow-y-scroll dark:bg-gray-800">
+  <div class="p-2 grow dark:bg-gray-800">
     <GiphyGrid {searchQuery} on:gifSelected={onGifSelected} />
   </div>
 

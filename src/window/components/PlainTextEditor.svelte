@@ -155,7 +155,7 @@
            props: {},
            trigger: 'click',
            interactive: true,
-           placement: 'bottom-start'
+           placement: 'auto'
          }}
        on:logout={showLogoutDialog}>
 
@@ -176,13 +176,13 @@
     {#if isCompact}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
-           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[8rem] focus:outline-none
+           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[10rem] focus:outline-none
            break-keep ![overflow-wrap:anywhere]">
       </div>
     {:else}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
-           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[8rem] focus:outline-none
+           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[10rem] focus:outline-none
            break-keep ![overflow-wrap:anywhere]">
       </div>
     {/if}

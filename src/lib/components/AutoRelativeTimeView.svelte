@@ -7,6 +7,7 @@
     export let className: string = '';
     export let capitalize: string = false;
     export let shortRelativeCutoff = 15;
+    export let suffix = false;
 
     let formattedTime: string;
     let intervalId: number;
@@ -43,7 +44,7 @@
         if (isWithinTenSeconds(diff)) {
             return capitalize ? 'Just now' : 'just now';
         } else if (isWithinShortRelativeCutoff(diff)) {
-            return toShortRelative(date);
+            return toShortRelative(date) + (suffix ? ' ago' : '');
         } else if (isToday(date, now)) {
             return date.toLocaleString(DateTime.TIME_SIMPLE);
         } else if (isYesterday(date, now)) {

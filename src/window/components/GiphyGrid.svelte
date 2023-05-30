@@ -68,4 +68,4 @@
     };
 </script>
 
-<div use:giphy={searchQuery}></div>
+<div class="overflow-y-auto overflow-x-hidden max-h-48 md:max-h-96" use:giphy={searchQuery}></div>

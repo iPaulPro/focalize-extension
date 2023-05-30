@@ -6,6 +6,8 @@
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user';
     import {getAvatarForProfile} from "../utils";
+    import DarkModeSwitch from './DarkModeSwitch.svelte';
+    import {darkMode} from '../stores/preferences-store';
 
     export let anchorNode;
     export let showSettings = true;
@@ -76,6 +78,14 @@
 
         {/each}
 
+      </div>
+
+      <div on:click={() => {$darkMode = !$darkMode}}
+           class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-600">
+        <span class="text-black dark:text-white">
+          Dark mode
+        </span>
+        <DarkModeSwitch/>
       </div>
 
       <div class="p-1 border-t border-gray-200 dark:border-gray-600">

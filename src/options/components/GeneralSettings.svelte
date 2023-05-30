@@ -1,7 +1,15 @@
 <script lang="ts">
     import {
-        compactMode, darkMode, showLocales, useDispatcher, useRelay,
-        nodePost, nodeArticle, nodeAudio, nodeImage, nodeVideo, nodeSearch
+        darkMode,
+        useDispatcher,
+        useRelay,
+        nodePost,
+        nodeArticle,
+        nodeAudio,
+        nodeImage,
+        nodeVideo,
+        nodeSearch,
+        usePopupComposer
     } from '../../lib/stores/preferences-store';
     import LensNodeSelect from "./LensNodeSelect.svelte";
 </script>
@@ -116,7 +124,7 @@
         <div class="w-full flex">
           <div class="pt-1">
             <label class="switch">
-              <input type="checkbox" bind:checked={$showLocales}>
+              <input type="checkbox" bind:checked={$usePopupComposer}>
               <span class="slider round flex justify-between items-center px-2
                   shadow-none"></span>
             </label>
@@ -124,10 +132,10 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Show locales
+              Use popup composer
             </div>
             <div class="text-base text-neutral-400">
-              Allow manual locale selection
+              Launches a popup window when creating a new post
             </div>
           </div>
         </div>

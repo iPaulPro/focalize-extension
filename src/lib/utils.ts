@@ -1,4 +1,4 @@
-import type {Profile} from './graph/lens-service';
+import type {Notification, Profile} from './graph/lens-service';
 import showdown from 'showdown';
 import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
@@ -8,11 +8,15 @@ import type {DecodedMessage} from '@xmtp/xmtp-js';
 import type {Provider} from '@ethersproject/providers';
 import {ethers} from 'ethers';
 import {INFURA_PROJECT_ID} from '../config';
-import {KEY_MESSAGES_UNREAD_TOPICS, KEY_NOTIFICATIONS_TIMESTAMP,} from './stores/preferences-store';
-import type {Notification} from './graph/lens-service';
+import {
+    getPreference,
+    KEY_MESSAGES_UNREAD_TOPICS,
+    KEY_NOTIFICATIONS_TIMESTAMP,
+    KEY_USE_POPUP_COMPOSER,
+} from './stores/preferences-store';
 import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
 
-export const POPUP_MIN_HEIGHT = 358;
+export const POPUP_MIN_HEIGHT = 330;
 
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -64,39 +68,61 @@ export const truncateAddress = (address: string, maxLength: number = 8): string 
 };
 
 export const launchComposerWindow = async (
-    tags?: { url?: string, title?: string, description?: string, icon?: string }
+    tags?: { url?: string, title?: string, description?: string, icon?: string },
+    draftId?: string,
 ) => {
     console.log('launchComposerWindow', tags);
     const path = chrome.runtime.getURL('src/window/index.html');
     const url = new URL(path);
 
-    if (tags?.url) {
-        url.searchParams.append('url', tags.url);
+    if (tags) {
+        if (tags.url) url.searchParams.append('url', tags.url);
+        if (tags.title) url.searchParams.append('title', truncate(tags.title, 160) ?? '');
+        if (tags.description) url.searchParams.append('desc', truncate(tags.description, 160) ?? '');
+        if (tags.icon) url.searchParams.append('icon', tags.icon);
+    } else {
+        const searchParams: Record<string, string> = getSearchParams();
+        for (const [key, value] of Object.entries(searchParams)) {
+            url.searchParams.append(key, value);
+        }
+        if (draftId) {
+            url.searchParams.set('draft', draftId);
+        }
     }
 
-    if (tags?.title) {
-        url.searchParams.append('title', truncate(tags.title, 160) ?? '');
-    }
+    const usePopups = await getPreference<boolean>(KEY_USE_POPUP_COMPOSER);
 
-    if (tags?.description) {
-        url.searchParams.append('desc', truncate(tags.description, 160) ?? '');
+    if (usePopups) {
+        chrome.windows.create({
+            url: url.toString(),
+            focused: true,
+            type: 'popup',
+            width: 672,
+            height: POPUP_MIN_HEIGHT
+        }).catch(console.error);
+    } else {
+        await chrome.tabs.create({url: url.toString()});
     }
-
-    if (tags?.icon) {
-        url.searchParams.append('icon', tags.icon);
-    }
-
-    chrome.windows.create({
-        url: url.toString(),
-        focused: true,
-        type: 'popup',
-        width: 672,
-        height: POPUP_MIN_HEIGHT
-    }).catch(console.error);
 
     window.close();
 };
 
+export const launchComposerTab = async (draftId?: string) => {
+    const path = chrome.runtime.getURL('src/window/index.html');
+    const url = new URL(path);
+    const searchParams: Record<string, string> = getSearchParams();
+
+    for (const [key, value] of Object.entries(searchParams)) {
+        url.searchParams.append(key, value);
+    }
+
+    if (draftId) {
+        url.searchParams.set('draft', draftId);
+    }
+
+    await chrome.tabs.create({url: url.toString()});
+    window.close();
+};
 
 export const launchThreadWindow = async (topic?: string) => {
     let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
@@ -312,4 +338,10 @@ export const updateBadge = async () => {
 export const clearBadge = async () => {
     await chrome.action.setBadgeText({text: ''});
     await chrome.action.setTitle({title: 'Focalize'});
+};
+
+export const getSearchParams = () => {
+    const queryString = window.location.search;
+    const urlParams = getSearchParamsMap(queryString);
+    return urlParams;
 };
