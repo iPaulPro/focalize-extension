@@ -116,7 +116,9 @@
     let postDraftsDialog: HTMLDialogElement;
     let isPopupWindow: boolean | undefined = undefined;
     let contentDiv: HTMLElement;
+    let contentDivHeight: number;
     let showAdvanced = false;
+    let mainDiv: HTMLElement;
 
     const draftSubject: Subject<PostDraft> = new Subject();
     let postDraft: PostDraft;
@@ -432,6 +434,10 @@
         window.resizeTo(window.outerWidth, Math.max(POPUP_MIN_HEIGHT, height));
     };
 
+    $: if (contentDivHeight) {
+        updateWindowHeight().catch(console.error);
+    }
+
     const setWindowType = async () => {
         const window = await chrome.windows.getCurrent();
         isPopupWindow = window['type'] === 'popup'
@@ -524,8 +530,6 @@
         clearCurrentTabData();
     }
 
-    $: showAdvanced, updateWindowHeight().catch(console.error);
-
     beforeUpdate(async () => {
         await setWindowType();
     });
@@ -542,8 +546,6 @@
         parseSearchParams();
 
         if ($draftId) await openDraft();
-
-        await updateWindowHeight();
     });
 
     onDestroy(() => {
@@ -551,7 +553,7 @@
     });
 </script>
 
-<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
+<main bind:this={mainDiv} class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
       on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
@@ -559,20 +561,21 @@
 
   {#if (postMetaData && $publicationState && $publicationState !== PublicationState.ERROR) || postId}
 
-    <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId} />
+    <div bind:this={contentDiv} bind:offsetHeight={contentDivHeight}>
+      <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId} />
+    </div>
 
   {:else}
 
     <div class="w-full min-h-screen">
 
-      <div id="content" bind:this={contentDiv}
+      <div id="content" bind:this={contentDiv} bind:offsetHeight={contentDivHeight}
            class="min-h-full container max-w-screen-md mx-auto {isPopupWindow ? '' : 'pt-6'}">
 
         <div class="min-h-[12rem] bg-white dark:bg-gray-800  {isSubmittingPost ? 'opacity-60' : ''}
              {isPopupWindow ? 'shadow p-2 rounded-b-2xl' : 'mx-2 rounded-2xl p-4 shadow-lg'}">
 
           <PlainTextEditor disabled={isSubmittingPost} isCompact={isPopupWindow}
-                           on:heightChanged={updateWindowHeight}
                            on:fileSelected={(e) => setAttachment(e.detail)}
                            on:selectGif={(e) => showGifSelectionDialog()}/>
 
@@ -587,7 +590,7 @@
             </button>
           {:else if isPopupWindow === false}
             <button type="button" on:click={openInPopupWindow} use:tippy={({delay: 400, content: 'Open in a popup window'})}
-                    class="absolute right-4 top-4 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
+                    class="absolute right-6 top-10 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
               <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
                 <path
@@ -598,7 +601,7 @@
 
           {#if currentTabData}
 
-            <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}} on:outroend={updateWindowHeight}
+            <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
                  class="flex w-fit max-w-[70%] ml-[5.5rem] pt-1 pb-2 pr-2 truncate
                         cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
@@ -650,8 +653,7 @@
           {/if}
 
           {#if isMediaPostType || $file}
-            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}
-                           on:attachmentLoaded={updateWindowHeight} on:attachmentRemoved={updateWindowHeight} />
+            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}/>
           {/if}
 
           <div class="flex flex-wrap gap-4 ml-[4.5rem]
@@ -664,7 +666,7 @@
                     searchable={false}
                     listAutoWidth={false}
                     showChevron={true}
-                    listOffset={-48}
+                    listOffset={-96}
                     containerStyles="cursor: pointer;"
                     disabled={isSubmittingPost}
                     --item-height="auto"

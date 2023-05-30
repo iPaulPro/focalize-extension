@@ -37,7 +37,6 @@
     let inputSelection: Selection, selectionRange: Range;
     let avatarError;
     let logoutDialog: HTMLDialogElement;
-    let contentHeight: number;
 
     const dispatch = createEventDispatcher();
 
@@ -137,10 +136,6 @@
         logoutDialog.showModal();
     };
 
-    $: if (contentHeight) {
-        dispatch('heightChanged');
-    }
-
     onDestroy(() => {
         editor?.destroy();
         emojiPicker?.destroyPicker();
@@ -170,7 +165,7 @@
 
   </div>
 
-  <div class="flex flex-col w-full pr-2 pl-1.5 shrink" bind:offsetHeight={contentHeight}>
+  <div class="flex flex-col w-full pr-2 pl-1.5 shrink">
 
     <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
     {#if isCompact}

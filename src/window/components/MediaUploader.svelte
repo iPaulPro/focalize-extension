@@ -10,7 +10,6 @@
 
     import * as id3 from "id3js";
     import InlineSVG from "svelte-inline-svg";
-    import {createEventDispatcher} from "svelte";
     import {INFURA_GATEWAY_URL} from "../../config";
 
     export let disabled: boolean = false;
@@ -35,8 +34,6 @@
     let uploadedPct = 0;
     let useContentAsDescription = true;
     let isFileDragged = false;
-
-    const dispatch = createEventDispatcher();
 
     const processId3Tags = async (file: File) => {
         const tags = await id3.fromFile(file);
@@ -163,8 +160,6 @@
 
         $attachments = null;
         loading = false;
-
-        if (notify) dispatch('attachmentRemoved');
     }
 
     const onDeleteMedia = async (notify: boolean = false) => {
@@ -196,7 +191,6 @@
 
     const onAttachmentLoaded = () => {
         loading = false
-        dispatch('attachmentLoaded')
     };
 
     $: {
