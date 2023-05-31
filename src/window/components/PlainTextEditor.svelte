@@ -1,20 +1,13 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from "sveltejs-tippy";
-    import tooltip from "svelte-ktippy"
     import Tribute from "tributejs";
     import {EmojiButton} from "@joeattardi/emoji-button";
-    import InlineSVG from "svelte-inline-svg";
-    import ImageAvatar from '../../assets/ic_avatar.svg';
-
-    import AccountChooser from "../../lib/components/AccountChooser.svelte";
-    import ConfirmLogoutDialog from '../../lib/components/ConfirmLogoutDialog.svelte'
 
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
 
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {content} from "../../lib/stores/state-store";
-    import {currentUser} from "../../lib/stores/user-store";
     import {darkMode} from "../../lib/stores/preferences-store";
     import {supportedMimeTypesJoined} from '../../lib/file-utils'
 
@@ -26,6 +19,7 @@
     import 'medium-editor/dist/css/themes/tim.css';
     import {htmlFromMarkdown} from "../../lib/utils";
     import DialogOuter from "../../lib/components/DialogOuter.svelte";
+    import CurrentUserAvatar from '../../lib/components/CurrentUserAvatar.svelte';
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
@@ -35,8 +29,6 @@
     let textInput: HTMLElement;
     let emojiPickerTrigger;
     let inputSelection: Selection, selectionRange: Range;
-    let avatarError;
-    let logoutDialog: HTMLDialogElement;
 
     const dispatch = createEventDispatcher();
 
@@ -132,10 +124,6 @@
         }
     };
 
-    const showLogoutDialog = () => {
-        logoutDialog.showModal();
-    };
-
     onDestroy(() => {
         editor?.destroy();
         emojiPicker?.destroyPicker();
@@ -144,28 +132,13 @@
 
 <div class="flex w-full {isCompact ? 'pb-2' : 'pb-4'}">
 
-  <div class="w-20 h-20 px-3 pt-3 cursor-pointer tooltip shrink-0"
-       use:tooltip={{
-           component: AccountChooser,
-           props: {},
-           trigger: 'click',
-           interactive: true,
-           placement: 'auto'
-         }}
-       on:logout={showLogoutDialog}>
-
-      {#if avatarError || !$currentUser?.avatarUrl}
-        <InlineSVG src={ImageAvatar}
-                   class="w-full aspect-square rounded-full bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300" />
-      {:else if $currentUser}
-        <img src={$currentUser.avatarUrl} alt="Profile avatar"
-             class="w-full aspect-square object-contain rounded-full border-2 border-transparent hover:border-orange"
-             on:error={() => {avatarError = true}}>
-      {/if}
-
+  <div class="px-3 pt-3">
+    <div class="w-14 h-14">
+      <CurrentUserAvatar/>
+    </div>
   </div>
 
-  <div class="flex flex-col w-full pr-2 pl-1.5 shrink">
+  <div class="flex flex-col w-full pr-2 shrink">
 
     <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
     {#if isCompact}
@@ -227,14 +200,6 @@
   </div>
 
 </div>
-
-<dialog id="logoutDialog" bind:this={logoutDialog}
-        on:click={(event) => {if (event.target.id === 'logoutDialog') logoutDialog?.close()}}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-  <DialogOuter title="Log out" {isCompact}>
-    <ConfirmLogoutDialog />
-  </DialogOuter>
-</dialog>
 
 <style global>
   .emoji-picker {

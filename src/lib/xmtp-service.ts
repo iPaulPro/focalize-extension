@@ -11,6 +11,7 @@ import {buildXmtpStorageKey, getEnsFromAddress, getXmtpKeys, truncateAddress} fr
 import type {InvitationContext} from '@xmtp/xmtp-js/dist/types/src/Invitation';
 import {getUser} from './stores/user-store';
 import type {User} from './user';
+import {getProfiles} from './lens-profile';
 
 const LENS_PREFIX = 'lens.dev/dm';
 
@@ -117,7 +118,7 @@ const fetchAllProfiles = async (profileIds: string[], userProfileId?: string): P
     return profiles;
 };
 
-const getProfiles = async (
+const getProfilesBatch = async (
     profileIds: string[],
 ): Promise<Profile[]> => {
     const userProfileId = await getUserProfileId();
@@ -203,10 +204,16 @@ export const getReadTimestamps = async (): Promise<MessageTimestampMap> => {
     return localStorage[KEY_MESSAGE_TIMESTAMPS] as MessageTimestampMap;
 };
 
-const extractProfileId = (conversationId: string, userProfileId?: string): string => {
-    if (!userProfileId) throw new Error('User profile id is required');
-    const idsWithoutPrefix = conversationId.substring(LENS_PREFIX.length + 1);
+const getProfilesFromConversationTopic = (topic: string): { profileIdB: string; profileIdA: string } => {
+    const idsWithoutPrefix = topic.substring(LENS_PREFIX.length + 1);
     const [profileIdA, profileIdB] = idsWithoutPrefix.split('-');
+    return {profileIdA, profileIdB};
+};
+
+const extractProfileId = (conversationId: string, userProfileIds?: string[]): string => {
+    if (!userProfileIds || userProfileIds.length === 0) throw new Error('User profile id is required');
+    const {profileIdA, profileIdB} = getProfilesFromConversationTopic(conversationId);
+    const userProfileId = userProfileIds.find((id) => id === profileIdA || id === profileIdB);
     return profileIdA === userProfileId ? profileIdB : profileIdA;
 };
 
@@ -262,10 +269,9 @@ export const updateLatestMessageCache = async (): Promise<LatestMessageMap> => {
 export const isLensThread = (thread: Thread): boolean =>
     thread.conversation.context?.conversationId.startsWith(LENS_PREFIX) ?? false;
 
-export const getLensThreads = (threads: Thread[], userProfileId: string): Thread[] => {
-    return threads.filter((thread) =>
-        isLensThread(thread) && thread.conversation.context?.conversationId.includes(userProfileId)
-    );
+export const isProfileThread = (thread: Thread, userProfileId: string): boolean => {
+    const conversationId = thread.conversation.context?.conversationId;
+    return conversationId?.includes(userProfileId) ?? false;
 };
 
 const getMessagesBatch = async (
@@ -341,11 +347,14 @@ export const getUnreadThreads = async (xmtpClient: Client): Promise<Map<Thread, 
     const lensConversations = unreadConversations.filter((conversation) =>
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
+
+    const profilesOwnedByAddress = await getProfiles([user.address]);
+    const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
     const profileIds = lensConversations.map((conversation) =>
-        extractProfileId(conversation.context!!.conversationId, user.profileId)
+        extractProfileId(conversation.context!!.conversationId, userProfileIds)
     );
 
-    const profiles: Profile[] = await getProfiles(profileIds);
+    const profiles: Profile[] = await getProfilesBatch(profileIds);
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
@@ -383,11 +392,14 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     const lensConversations = conversations.filter((conversation) =>
         conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
+
+    const profilesOwnedByAddress = await getProfiles([user.address]);
+    const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
     const profileIds = lensConversations.map((conversation) =>
-        extractProfileId(conversation.context!!.conversationId, user.profileId)
+        extractProfileId(conversation.context!!.conversationId, userProfileIds)
     );
 
-    const profiles: Profile[] = await getProfiles(profileIds);
+    const profiles: Profile[] = await getProfilesBatch(profileIds);
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
@@ -586,12 +598,20 @@ export const getAllMessagesStream = (): Observable<DecodedMessage> => new Observ
     getXmtpClient().then((xmtp) => {
         xmtp.conversations.streamAllMessages().then((stream: AsyncGenerator<DecodedMessage>) => {
             const onMessage = async () => {
+                const user = await getUser();
+
                 for await (const message of stream) {
                     if (isObserverClosed) {
                         break;
                     }
 
                     if (message.senderAddress === xmtp.address) continue;
+
+                    const topic = message.conversation.topic;
+                    if (topic?.includes(LENS_PREFIX)) {
+                        const {profileIdA, profileIdB} = getProfilesFromConversationTopic(topic);
+                        if (profileIdA !== user?.profileId && profileIdB !== user?.profileId) continue;
+                    }
 
                     observer.next(message);
                 }

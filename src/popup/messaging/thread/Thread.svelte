@@ -189,7 +189,7 @@
       <div class="flex flex-grow justify-center">
         <div bind:this={userInfoElement} class="flex flex-col justify-center text-center">
           <a href={getPeerUrl()} target="_blank" rel="noreferrer"
-             class="flex flex-col !no-underline !text-black dark:!text-white hover:!text-orange-400 dark:hover:!text-orange-400">
+             class="flex flex-col !no-underline !text-black dark:!text-white hover:!text-orange-700 dark:hover:!text-orange-400">
             <span class="text-sm font-medium">{peerName}</span>
             {#if peerHandle}
               <span class="text-xs opacity-50">{peerHandle}</span>

@@ -88,7 +88,7 @@
     import DialogOuter from '../lib/components/DialogOuter.svelte';
     import {throttle} from 'throttle-debounce';
     import {DateTime} from 'luxon';
-    import {getSearchParams, getSearchParamsMap, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
+    import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
     import {launchComposerWindow} from '../lib/utils.js';
 
     /**
@@ -439,8 +439,7 @@
     }
 
     const setWindowType = async () => {
-        const window = await chrome.windows.getCurrent();
-        isPopupWindow = window['type'] === 'popup'
+        isPopupWindow = await isPopup();
     };
 
     const buildDraft = (): PostDraft => ({
@@ -932,7 +931,7 @@
 {#if showFeeCollectDialog}
   <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
           class="w-2/3 max-w-sm rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-    <DialogOuter title="Sell as an NFT" isCompact={isPopupWindow}>
+    <DialogOuter title="Sell as an NFT">
       <FeeCollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
     </DialogOuter>
   </dialog>
@@ -942,14 +941,14 @@
         class="w-2/3 max-w-md min-h-[18rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0 overflow-hidden
         border border-gray-200 dark:border-gray-600"
         on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
-  <DialogOuter title="Attach a GIF" isCompact={isPopupWindow}>
+  <DialogOuter title="Attach a GIF">
     <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown isCompact={isPopupWindow}/>
   </DialogOuter>
 </dialog>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-  <DialogOuter title="Enable Dispatcher" isCompact={isPopupWindow}>
+  <DialogOuter title="Enable Dispatcher">
     <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
   </DialogOuter>
 </dialog>
@@ -958,7 +957,7 @@
         class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
         dark:border-gray-600 overflow-hidden"
         on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
-  <DialogOuter title="Post drafts" isCompact={isPopupWindow}>
+  <DialogOuter title="Post drafts" >
     <PostDraftsList on:dismiss={() => postDraftsDialog.close()}/>
   </DialogOuter>
 </dialog>

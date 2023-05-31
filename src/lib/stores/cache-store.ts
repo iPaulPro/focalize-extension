@@ -27,6 +27,11 @@ export const notificationItemsCache: Writable<Notification[]> = chromeStorageLoc
 export const notificationPageInfoCache: Writable<PaginatedResultInfo> = chromeStorageLocal(KEY_NOTIFICATION_PAGE_INFO_CACHE);
 export const notificationsScrollTop: Writable<number> = chromeStorageLocal(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
 
+export const clearNotificationCache = async () => {
+    await chrome.storage.local.remove(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
+    await chrome.storage.local.remove(KEY_NOTIFICATION_PAGE_INFO_CACHE);
+    await chrome.storage.local.remove(KEY_NOTIFICATION_ITEMS_CACHE);
+}
 
 /**
  * A pending proxy action map from proxy action id to profile handle

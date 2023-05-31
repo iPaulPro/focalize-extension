@@ -345,3 +345,8 @@ export const getSearchParams = () => {
     const urlParams = getSearchParamsMap(queryString);
     return urlParams;
 };
+
+export const isPopup = async (): Promise<boolean> => {
+    const window = await chrome.windows.getCurrent();
+    return window.type === 'popup'
+};

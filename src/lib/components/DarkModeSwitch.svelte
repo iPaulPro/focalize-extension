@@ -20,3 +20,76 @@
     </svg>
   </span>
 </label>
+
+<style>
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 3.5rem;
+    height: 1.75rem;
+  }
+
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-transition: .4s;
+    transition: .4s;
+    background-color: #E5E7EB;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 1.25rem;
+    width: 1.25rem;
+    left: 0.25rem;
+    bottom: 0.25rem;
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .dark .slider {
+    background-color: rgb(55 65 81);
+  }
+
+  .dark .slider:before {
+    background-color: #91A3B8;
+  }
+
+  input:checked + .slider {
+    background-color: var(--clr-accent);
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #202B39;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(1.75rem);
+    background-color: white;
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 1.75rem;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+</style>

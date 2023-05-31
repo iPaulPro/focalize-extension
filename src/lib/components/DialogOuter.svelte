@@ -1,6 +1,13 @@
 <script lang="ts">
+    import {onMount} from 'svelte';
+    import {isPopup} from '../utils';
+
     export let title: string;
-    export let isCompact: boolean = false;
+    let isCompact: boolean = false;
+
+    onMount(async () => {
+        isCompact = await isPopup();
+    });
 </script>
 
 <div class="flex flex-col">

@@ -68,13 +68,14 @@ const web3ModalProviderOptions = {
     }
 };
 
-const web3Modal = new Web3Modal({
-    cacheProvider: true,
-    providerOptions: web3ModalProviderOptions,
-    disableInjectedProvider: false,
-});
+let web3Modal: Web3Modal;
 
 const getSignerProvider = async (): Promise<Web3Provider> => {
+    web3Modal = new Web3Modal({
+        cacheProvider: true,
+        providerOptions: web3ModalProviderOptions,
+        disableInjectedProvider: false,
+    });
     const instance = await web3Modal.connect();
     return new Web3Provider(instance, "any");
 };
@@ -171,5 +172,5 @@ export const signTypedData = (
 }
 
 export const clearProvider = () => {
-    web3Modal.clearCachedProvider();
+    web3Modal?.clearCachedProvider();
 }

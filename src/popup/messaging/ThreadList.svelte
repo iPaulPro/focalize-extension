@@ -3,7 +3,7 @@
     import {
         type Thread,
         getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead,
-        isLensThread, isXmtpEnabled, toCompactMessage, updateLatestMessageCache
+        isLensThread, isXmtpEnabled, toCompactMessage, updateLatestMessageCache, isProfileThread
     } from '../../lib/xmtp-service';
     import type {Subscription} from 'rxjs';
     import ThreadItem from './ThreadItem.svelte';
@@ -13,6 +13,7 @@
     import {latestMessageMap, selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
     import {launchThreadWindow} from '../../lib/utils';
     import {createEventDispatcher} from 'svelte';
+    import {currentUser} from '../../lib/stores/user-store';
 
     const dispatch = createEventDispatcher();
 
@@ -29,16 +30,14 @@
         scrollElement.scrollTop = 0;
     };
 
-    const listenForCacheChanges = () => {
-        latestMessageMap.subscribe(async () => {
-            unfilteredThreads = await getAllThreads();
-        });
-    };
+    const reloadThreads = async () => {
+        unfilteredThreads = await getAllThreads();
+        console.log('reloadThreads', unfilteredThreads);
+    }
+
+    const listenForCacheChanges = () => latestMessageMap.subscribe(reloadThreads);
 
     const init = async () => {
-        unfilteredThreads = await getAllThreads();
-        console.log('init: unfilteredThreads', unfilteredThreads);
-
         conversationsSubscription = getThreadStream().subscribe((thread) => {
             console.log('getThreadStream: new thread', thread);
             unfilteredThreads = [thread, ...unfilteredThreads];
@@ -67,7 +66,9 @@
                 threads = unfilteredThreads;
                 break;
             case 1:
-                threads = unfilteredThreads.filter(thread => isLensThread(thread));
+                threads = unfilteredThreads.filter(thread =>
+                    isLensThread(thread) && isProfileThread(thread, $currentUser?.profileId)
+                );
                 break;
             case 2:
                 threads = unfilteredThreads.filter(thread => !isLensThread(thread));
@@ -103,6 +104,10 @@
 
     $: if ($selectedMessagesTab !== undefined && unfilteredThreads) {
         onMessageTabSwitch();
+    }
+
+    $: if ($currentUser) {
+        reloadThreads().catch(console.error);
     }
 
     onMount(async () => {

@@ -12,6 +12,7 @@
     import {ensureUser} from '../lib/user';
     import {selectedMainTab} from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
+    import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
 
     let notificationsList: NotificationsList;
     let conversationsList: ThreadList;
@@ -127,7 +128,7 @@
     </Tab>
 
     <div on:click={scrollToTop}
-         class="w-full flex justify-end items-center px-2">
+         class="w-full flex justify-end items-center px-4 gap-2">
       <button type="button" on:click|stopPropagation={onCreatePostClick}
               use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -138,16 +139,9 @@
         </svg>
       </button>
 
-      <button type="button" on:click|stopPropagation={onSettingsClick}
-              use:tippy={{content: 'Settings', placement: 'bottom', delay: 500}}
-              class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-      </button>
+      <div class="w-10 h-10">
+        <CurrentUserAvatar/>
+      </div>
     </div>
 
     <!-- Tab Panels --->

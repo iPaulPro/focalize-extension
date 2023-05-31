@@ -8,6 +8,8 @@
     import {getAvatarForProfile} from "../utils";
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
+    import type {Profile} from '../graph/lens-service';
+    import {clearNotificationCache} from '../stores/cache-store';
 
     export let anchorNode;
     export let showSettings = true;
@@ -22,6 +24,11 @@
         const event = new CustomEvent('logout');
         anchorNode.dispatchEvent(event);
     };
+
+    const switchProfiles = async (profile: Profile) => {
+        await clearNotificationCache();
+        $currentUser = userFromProfile(profile);
+    }
 </script>
 
 <div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
@@ -55,7 +62,7 @@
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={() => $currentUser = userFromProfile(p)} on:keydown={() => this.click()}>
+               on:click={() => switchProfiles(p)} on:keydown={() => this.click()}>
 
             {#if !p.picture?.original || avatarError[index]}
               <InlineSVG src={ImageAvatar}
