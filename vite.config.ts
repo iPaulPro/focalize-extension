@@ -1,10 +1,36 @@
-import {defineConfig} from 'vite'
-import {svelte} from '@sveltejs/vite-plugin-svelte'
-import {crx} from '@crxjs/vite-plugin'
-import manifest from './manifest.config'
-import nodePolyfills from 'vite-plugin-node-stdlib-browser'
-import removeConsole from "vite-plugin-remove-console";
-import inject from '@rollup/plugin-inject'
+import {defineConfig} from 'vite';
+import {svelte} from '@sveltejs/vite-plugin-svelte';
+import {crx} from '@crxjs/vite-plugin';
+import nodePolyfills from 'vite-plugin-node-stdlib-browser';
+import removeConsole from 'vite-plugin-remove-console';
+import resolve from '@rollup/plugin-node-resolve';
+import inject from '@rollup/plugin-inject';
+import manifest from './manifest.config';
+
+const commonPlugins = [
+    resolve({
+        browser: true,
+    }),
+    nodePolyfills(),
+    svelte({
+        onwarn: (warning, handler) => {
+            if (warning.code === 'a11y-click-events-have-key-events' ||
+                warning.code === 'a11y-media-has-caption') {
+                return;
+            }
+            handler(warning);
+        },
+    }),
+    crx({manifest}),
+    removeConsole({includes: ['log', 'warn', 'info']}),
+];
+
+// vite-plugin-node-stdlib-browser only adds buffer to the global scope during optimization
+if (process.env.NODE_ENV !== 'production') {
+    commonPlugins.push(inject({
+        modules: {Buffer: ['buffer', 'Buffer']},
+    }));
+}
 
 export default defineConfig({
     build: {
@@ -16,24 +42,8 @@ export default defineConfig({
             },
         },
         commonjsOptions: {
-            transformMixedEsModules: true
+            transformMixedEsModules: true,
         },
     },
-    plugins: [
-        inject({
-            modules: { Buffer: ['buffer', 'Buffer'] }
-        }),
-        nodePolyfills(),
-        svelte({
-            onwarn: (warning, handler) => {
-                if (warning.code === 'a11y-click-events-have-key-events' ||
-                    warning.code === 'a11y-media-has-caption') {
-                    return;
-                }
-                handler(warning);
-            }
-        }),
-        crx({manifest}),
-        removeConsole({includes: ['log', 'warn', 'info']})
-    ],
-})
+    plugins: commonPlugins
+});

@@ -50,12 +50,6 @@
             error();
         }
 
-        // end time is inclusive, so we need to ignore the first message
-        if (prevMessages.length <= 1) {
-            complete();
-            return;
-        }
-
         prevMessages = prevMessages.filter(m => m.id !== messages[0]?.id);
 
         if (messages.length == 0 && document.hasFocus()) {
@@ -65,6 +59,12 @@
         messages = [...prevMessages, ...messages];
 
         loaded();
+
+        // end time is inclusive, so we need to ignore the first message
+        if (prevMessages.length <= 1) {
+            complete();
+            return;
+        }
     };
 
     const onBlur = () => {
