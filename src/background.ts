@@ -453,7 +453,9 @@ const onMessage = (req: any, sender: chrome.runtime.MessageSender, res: (respons
             onSetMessagesAlarm(req, res).catch(console.error);
             return true;
         case 'checkForUnreadMessages':
-            onMessagesAlarm().catch(console.error);
+            onMessagesAlarm()
+                .then(() => res())
+                .catch(console.error);
             return true;
     }
     return false;

@@ -44,13 +44,7 @@
         title,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
-    import {
-        darkMode,
-        dispatcherDialogShown,
-        useDispatcher,
-        useRelay,
-        welcomeShown
-    } from '../lib/stores/preferences-store';
+    import {darkMode, dispatcherDialogShown, useDispatcher, useRelay,} from '../lib/stores/preferences-store';
 
     import type {
         MetadataAttributeInput,
@@ -539,8 +533,6 @@
                 enableDispatcherDialog.showModal();
             }
         });
-
-        $welcomeShown = true;
 
         parseSearchParams();
 
