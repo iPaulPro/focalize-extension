@@ -92,7 +92,7 @@
 <textarea
     bind:this={textarea}
     class="w-full overflow-hidden resize-none bg-transparent text-[0.925rem] leading-tight py-3 px-4
-    border-surface-200-700-token focus:border-primary-400-500-token focus:ring-0 !rounded-3xl
+    border-surface-200-700-token focus:border-primary-400-500-token focus:ring-0 !rounded-2xl
     {className}"
     placeholder={placeholder}
     rows="1"

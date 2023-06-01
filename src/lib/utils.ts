@@ -218,10 +218,10 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
             targetElement?.removeEventListener('scroll', handleScroll);
             targetElement = parameters.scrollElement;
             lastScrollTop = targetElement.scrollTop
-            targetElement.addEventListener('scroll', handleScroll);
+            targetElement?.addEventListener('scroll', handleScroll);
         },
         destroy() {
-            targetElement.removeEventListener('scroll', handleScroll);
+            targetElement?.removeEventListener('scroll', handleScroll);
         }
     };
 };

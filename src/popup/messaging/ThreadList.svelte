@@ -130,12 +130,12 @@
 {#if threads}
 
   <div bind:this={scrollElement}
-       class="w-full h-full overflow-y-auto overflow-x-hidden">
+       class="w-full h-full overflow-y-auto overflow-x-hidden flex flex-col">
 
     <div class="flex p-2 justify-between items-center bg-white dark:bg-gray-900 border-b border-gray-200
-         dark:border-gray-700">
+       dark:border-gray-700">
       <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
-                  background="bg-none" border="border-none">
+                  background="bg-none" border="border-none" class="gap-1">
         <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
         <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Lens</RadioItem>
         <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
@@ -144,11 +144,11 @@
       <button type="button"
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
               use:popup={{
-                event: 'click',
-                closeQuery: '.btn',
-                placement: 'bottom-end',
-                target: 'examplePopup',
-              }}>
+              event: 'click',
+              closeQuery: '.btn',
+              placement: 'bottom-end',
+              target: 'examplePopup',
+            }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
              stroke-linejoin="round" class="w-5">
           <circle cx="12" cy="12" r="1"></circle>
@@ -158,14 +158,25 @@
       </button>
     </div>
 
-    <ul bind:this={listElement}
-        class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-
-      {#each threads as thread}
-        <ThreadItem {thread} on:select={onThreadSelected}/>
-      {/each}
-
-    </ul>
+    {#if threads.length > 0}
+      <ul bind:this={listElement}
+          class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+        {#each threads as thread}
+          <ThreadItem {thread} on:select={onThreadSelected}/>
+        {/each}
+      </ul>
+    {:else}
+      <div class="w-full grow flex flex-col justify-center items-center gap-2">
+        <svg class="w-12 h-12 opacity-40" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/>
+          <path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 002-2v-6l-3.4-6.9A2 2 0 0016.8 4H7.2a2 2 0 00-1.8 1.1z"/>
+        </svg>
+        <div class="opacity-80 text-sm">
+          No messages
+        </div>
+      </div>
+    {/if}
 
   </div>
 

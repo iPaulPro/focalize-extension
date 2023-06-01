@@ -11,6 +11,7 @@ import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import MetaMaskLogo from '../assets/metamask.svg';
 import MetaMaskInPageProvider from './providers/connectors';
 import ethProvider from 'eth-provider';
+import {getPreference, KEY_DARK_MODE} from './stores/preferences-store';
 
 let provider: Web3Provider;
 
@@ -71,10 +72,12 @@ const web3ModalProviderOptions = {
 let web3Modal: Web3Modal;
 
 const getSignerProvider = async (): Promise<Web3Provider> => {
+    const darkMode = await getPreference<boolean>(KEY_DARK_MODE);
     web3Modal = new Web3Modal({
         cacheProvider: true,
         providerOptions: web3ModalProviderOptions,
         disableInjectedProvider: false,
+        theme: darkMode ? 'dark' : 'light',
     });
     const instance = await web3Modal.connect();
     return new Web3Provider(instance, "any");

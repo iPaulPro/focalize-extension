@@ -8,6 +8,7 @@
     import Sidebar from "./Sidebar.svelte";
     import NotificationSettings from "./NotificationSettings.svelte";
     import {writable} from "svelte/store";
+    import DialogOuter from '../../lib/components/DialogOuter.svelte';
 
     let enableDispatcherDialog: HTMLDialogElement;
 
@@ -22,15 +23,13 @@
         }
     };
 
-    $: {
-        if ($currentUser) {
-            if ($useDispatcher && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
-                enableDispatcherDialog?.showModal();
-            }
+    $: if ($currentUser) {
+        if ($useDispatcher && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
+            enableDispatcherDialog?.showModal();
+        }
 
-            if ($dispatcherDialogShown && $currentUser.canUseRelay === false) {
-                $useDispatcher = false;
-            }
+        if ($dispatcherDialogShown && $currentUser.canUseRelay === false) {
+            $useDispatcher = false;
         }
     }
 </script>
@@ -64,8 +63,10 @@
 </div>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-  <SetDispatcherDialog on:success={enableDispatcherDialog?.close()}/>
+        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+  <DialogOuter title="Enable Dispatcher">
+    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+  </DialogOuter>
 </dialog>
 
 <style>
