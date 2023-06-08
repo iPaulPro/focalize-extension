@@ -4,8 +4,8 @@ import type {Erc20, PublicationMetadataMediaInput} from "../graph/lens-service";
 import type {PostDraft} from "./draft-store";
 import type {Web3File} from "../ipfs-service";
 
-
-export interface CollectFee {
+export interface CollectSettings {
+    isCollectible?: boolean;
     price?: number;
     token?: Erc20;
     limit?: number;
@@ -39,65 +39,65 @@ export enum PublicationState {
 /**
  * The post unique id, used for drafts
  */
-export const draftId: any | Writable<string> = writable();
+export const draftId: Writable<string | undefined> = writable();
 
 /**
  * The post title, used as the NFT name
  */
-export const title: any | Writable<string> = writable();
+export const title: Writable<string | undefined> = writable();
 
 /**
  * The post content
  */
-export const content: any | Writable<string> = writable();
+export const content: Writable<string | undefined> = writable();
 
 /**
  * The NFT description
  */
-export const description: any | Writable<string> = writable();
+export const description: Writable<string | undefined> = writable();
 
 /**
  * A file ready for uploading and transformation into an attachment
  */
-export const file: any | Writable<Web3File> = writable();
+export const file: Writable<Web3File | undefined> = writable();
 
 /**
  * The main post attachment. Can represent an image, audio, or video file.
  */
-export const attachments: any | Writable<PublicationMetadataMediaInput[]> = writable();
+export const attachments: Writable<PublicationMetadataMediaInput[] | undefined> = writable();
 
 /**
  * The cover image for audio and video attachments
  */
-export const cover: any | Writable<Web3File> = writable();
+export const cover: Writable<Web3File | undefined> = writable();
 
 /**
  * The author attribute in audio NFT metadata
  */
-export const author: any | Writable<string> = writable();
+export const author: Writable<string | undefined> = writable();
 
 /**
  * The collect module settings when set to one of the fee types
  */
-export const collectFee: any | Writable<CollectFee> = writable();
+export const collectSettings: Writable<CollectSettings> = writable({});
 
 /**
  * Used for optimistic display while waiting to be indexed
  */
-export const publicationState: Writable<PublicationState> = writable();
+export const publicationState: Writable<PublicationState | undefined> = writable();
 
 /**
  * Clears all post-related stores
  */
 export const clearPostState = () => {
-    draftId.set(null);
-    title.set(null);
-    content.set(null);
-    description.set(null);
-    attachments.set(null);
-    cover.set(null);
-    author.set(null);
-    collectFee.set(null)
+    draftId.set(undefined);
+    title.set(undefined);
+    content.set(undefined);
+    description.set(undefined);
+    attachments.set(undefined);
+    cover.set(undefined);
+    author.set(undefined);
+    collectSettings.set({})
 }
 
 export const loadFromDraft = (postDraft: PostDraft) => {
@@ -108,5 +108,5 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     description.set(postDraft.description);
     attachments.set(postDraft.attachments);
     author.set(postDraft.author);
-    collectFee.set(postDraft.collectFee);
+    collectSettings.set(postDraft.collectFee ?? {});
 }

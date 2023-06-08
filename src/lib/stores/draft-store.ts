@@ -2,7 +2,7 @@ import {v4 as uuid} from 'uuid';
 import {DateTime} from 'luxon';
 
 import {readable} from "svelte/store";
-import type {CollectFee} from './state-store';
+import type {CollectSettings} from './state-store';
 import type {PublicationMetadataMediaInput} from '../graph/lens-service';
 
 export type PostDraft = {
@@ -12,7 +12,7 @@ export type PostDraft = {
     description?: string,
     attachments?: PublicationMetadataMediaInput[],
     author?: string,
-    collectFee?: CollectFee,
+    collectFee?: CollectSettings,
     timestamp?: number,
 };
 

@@ -24,6 +24,11 @@
 
     const isFullyScrolled = () => scrollElement.scrollTop === scrollElement.scrollHeight - scrollElement.clientHeight;
 
+    const scrollToBottom = async () => {
+        await tick();
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+    };
+
     const updateTimestamp = (timestamp: number = DateTime.now().toMillis()) => {
         $messageTimestamps[thread.conversation.topic] = timestamp;
         $messagesUnreadTopics = $messagesUnreadTopics.filter(t => t !== thread.conversation.topic);
@@ -40,7 +45,7 @@
             return;
         }
 
-        const endTime = messages.length > 0 ? messages[0].sent : undefined;
+        const endTime = messages.length > 0 ? messages[0].sent - 1 : undefined;
         let prevMessages: DecodedMessage[] = [];
         try {
             prevMessages = await thread.conversation.messages({endTime});
@@ -50,21 +55,18 @@
             error();
         }
 
-        prevMessages = prevMessages.filter(m => m.id !== messages[0]?.id);
-
         if (messages.length == 0 && document.hasFocus()) {
             updateTimestamp();
         }
 
-        messages = [...prevMessages, ...messages];
-
-        loaded();
-
-        // end time is inclusive, so we need to ignore the first message
-        if (prevMessages.length <= 1) {
+        if (prevMessages.length == 0) {
             complete();
             return;
         }
+
+        prevMessages = prevMessages.filter(m => m.id !== messages[0]?.id);
+        messages = [...prevMessages, ...messages];
+        loaded();
     };
 
     const onBlur = () => {
@@ -93,8 +95,7 @@
             messages = [...messages, message];
 
             if (!isPeerMessage(message) || isFullyScrolled()) {
-                await tick();
-                scrollElement.scrollTop = scrollElement.scrollHeight;
+                await scrollToBottom();
             }
         });
 

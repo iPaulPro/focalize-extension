@@ -4,18 +4,8 @@
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
 
-    import type {CollectModuleItem, PaidCollectModule, SelectItem} from '../lib/lens-modules';
-    import {
-        COLLECT_ITEMS,
-        collectFeeToCollectModule,
-        CONTENT_WARNING_ITEMS,
-        FEE_COLLECT_ITEM,
-        FREE_COLLECT_FOLLOWERS_ITEM,
-        FREE_COLLECT_ITEM,
-        getCollectModuleParams,
-        REFERENCE_ITEMS,
-        REVERT_COLLECT_ITEM,
-    } from '../lib/lens-modules';
+    import type {SelectItem} from '../lib/lens-modules';
+    import {collectSettingsToModuleParams, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,} from '../lib/lens-modules';
 
     import {
         createAudioAttributes,
@@ -32,7 +22,8 @@
         attachments,
         author,
         clearPostState,
-        collectFee,
+        type CollectSettings,
+        collectSettings,
         content,
         cover,
         description,
@@ -46,12 +37,8 @@
     import {currentUser} from '../lib/stores/user-store';
     import {darkMode, dispatcherDialogShown, useDispatcher, useRelay,} from '../lib/stores/preferences-store';
 
-    import type {
-        MetadataAttributeInput,
-        MultirecipientFeeCollectModuleSettings,
-        PublicationMetadataV2Input,
-    } from '../lib/graph/lens-service';
-    import {CollectModules, PublicationMainFocus, ReferenceModules} from '../lib/graph/lens-service';
+    import type {MetadataAttributeInput, PublicationMetadataV2Input,} from '../lib/graph/lens-service';
+    import {PublicationMainFocus, ReferenceModules} from '../lib/graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte';
@@ -96,9 +83,6 @@
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
     let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
-    let collectItem: SelectItem<CollectModuleItem> = COLLECT_ITEMS[0];
-
-    let feeCollectModule: PaidCollectModule;
 
     let postId: string;
     let isSubmittingPost = false;
@@ -124,7 +108,6 @@
         icon: string,
     } | undefined;
 
-    $: collectModuleParams = getCollectModuleParams(collectItem, feeCollectModule);
     $: referenceModuleParams = referenceItem.value;
     $: isMediaPostType = $attachments && $attachments.length > 0;
 
@@ -171,24 +154,7 @@
         feeCollectDialog?.showModal();
     };
 
-    const onCollectFeeDialogClose = () => {
-        if (!feeCollectModule) {
-            collectItem = COLLECT_ITEMS[0];
-        }
-    };
-
-    const onCollectModuleChange = (e) => {
-        if (e.detail.value.type === CollectModules.FeeCollectModule) {
-            showCollectFeesDialog();
-        } else {
-            feeCollectModule = null;
-        }
-    };
-
     const onFeeCollectModuleUpdated = (e) => {
-        feeCollectModule = e.detail;
-        console.log('onFeeCollectModuleUpdated', feeCollectModule);
-        collectItem = FEE_COLLECT_ITEM;
         feeCollectDialog?.close();
         showFeeCollectDialog = false;
     };
@@ -289,6 +255,9 @@
             postMetaData = buildMetadata();
             postMetaData.locale = locale.value ?? navigator.languages[0];
 
+            const collectModuleParams = collectSettingsToModuleParams($currentUser.address, $collectSettings);
+
+            console.log('onSubmitClick: collectModuleParams', collectModuleParams);
             const publicationId = await submitPost(
                 $currentUser,
                 $draftId,
@@ -311,43 +280,38 @@
         }
     };
 
-    const getCollectPrice = (module: PaidCollectModule) => {
-        if (!module) return null;
-        return module.amount.value + ' $' + module.amount.asset.symbol;
+    const getCollectPrice = (settings: CollectSettings): string | undefined => {
+        if (!settings?.price) return 'Free collect';
+        return settings.price + ' $' + settings.token?.symbol;
     };
 
-    const getCollectFeeString = (module: MultirecipientFeeCollectModuleSettings): string => {
-        if (!module) return null;
+    const getCollectString = (settings: CollectSettings): string | undefined => {
+        if (!settings || !settings.isCollectible) return null;
 
         let subtext: string, edition: string;
 
-        if (module.collectLimit) {
-            edition = module.collectLimit === "1" ? 'Edition' : 'Editions';
-            subtext = `${module.collectLimit} ${edition}` + (module.endTimestamp ? ', 24 hours' : '');
-        } else if (module.endTimestamp) {
+        let text = getCollectPrice(settings);
+        console.log('getCollectString', settings, text);
+
+        if (settings.limit) {
+            edition = settings.limit === 1 ? 'Edition' : 'Editions';
+            subtext = `${settings.limit} ${edition}` + (settings.timed ? ', 24 hours' : '');
+        } else
+            if (settings.timed) {
             subtext = '24 hours'
         }
 
-        let text = getCollectPrice(module);
-        if (subtext) {
+        if (!text) {
+            text = subtext;
+        } else if (subtext) {
             text += ', ' + subtext;
         }
         return text;
     }
 
-    $: collectFeeString = getCollectFeeString(feeCollectModule);
+    $: collectFeeString = getCollectString($collectSettings);
 
-    $: collectPrice = getCollectPrice(feeCollectModule);
-
-    const feeSelectSelectionItem = () => (
-        {label: collectFeeString, icon: 'collect_paid'}
-    );
-
-    const isFeeCollectItem = (selection): boolean => collectFeeString && selection.value.type === CollectModules.FeeCollectModule;
-
-    const feeSelectChoiceItem = (item) => (
-        {label: item.label, summary: collectFeeString, icon: 'collect_paid', btn: showCollectFeesDialog}
-    );
+    $: collectPrice = getCollectPrice($collectSettings);
 
     const setAttachment = (f: File) => {
         if (f.type === 'image/heic') {
@@ -443,10 +407,10 @@
         description: $description,
         attachments: $attachments,
         author: $author,
-        collectFee: $collectFee
+        collectFee: $collectSettings
     });
 
-    $: if ($title || $content || $description || $attachments || $author || $collectFee) {
+    $: if ($title || $content || $description || $attachments || $author || $collectSettings.isCollectible !== undefined) {
         const draft = buildDraft();
         draftSubject.next(draft);
     }
@@ -463,13 +427,6 @@
         console.log('openDraft: postDraft', postDraft);
         if (postDraft) {
             loadFromDraft(postDraft);
-        }
-        if ($collectFee) {
-            collectItem = $collectFee.price ? FEE_COLLECT_ITEM :
-                ($collectFee.followerOnly ? FREE_COLLECT_FOLLOWERS_ITEM : FREE_COLLECT_ITEM);
-            feeCollectModule = collectFeeToCollectModule($currentUser?.address, $collectFee);
-        } else {
-            collectItem = REVERT_COLLECT_ITEM
         }
     };
 
@@ -644,7 +601,7 @@
           {/if}
 
           {#if isMediaPostType || $file}
-            <MediaUploader isCollectable={!collectModuleParams.revertCollectModule} {collectPrice}/>
+            <MediaUploader isCollectable={$collectSettings.isCollectible} {collectPrice}/>
           {/if}
 
           <div class="flex flex-wrap gap-4 ml-[4.5rem]
@@ -672,7 +629,7 @@
                     --list-border-radius="0.75rem"
                     --chevron-color={$darkMode ? '#FFB38E' : '#A33500'}
                     --selected-item-padding="0"
-                    class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-xl !border-none !ring-0
+                    class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-full !border-none !ring-0
                     focus:!outline-none !focus:ring-0 focus:!border-none !bg-none">
 
               <div slot="item" let:item let:index>
@@ -683,42 +640,33 @@
                 <ModuleSelectionItem {selection} />
               </div>
 
-            </Select>
-
-            <Select bind:value={collectItem}
-                    on:change={onCollectModuleChange}
-                    items={COLLECT_ITEMS}
-                    clearable={false}
-                    searchable={false}
-                    listAutoWidth={false}
-                    showChevron={true}
-                    listOffset={-48}
-                    containerStyles="cursor: pointer;"
-                    disabled={isSubmittingPost}
-                    --item-height="auto"
-                    --item-is-active-bg="#DB4700"
-                    --item-hover-bg="transparent"
-                    --list-max-height="auto"
-                    --background="transparent"
-                    --list-z-index={20}
-                    --list-background={$darkMode ? '#374354' : 'white'}
-                    --item-padding="0"
-                    --disabled-background="transparent"
-                    --list-border-radius="0.75rem"
-                    --chevron-color={$darkMode ? '#FFB38E' : '#A33500'}
-                    --selected-item-padding="0"
-                    class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-xl !border-none !ring-0
-                    focus:!outline-none focus:!ring-0 focus:!border-none !bg-none">
-
-              <div slot="item" let:item let:index>
-                <ModuleChoiceItem item={collectFeeString && item === FEE_COLLECT_ITEM ? feeSelectChoiceItem(item) : item} />
-              </div>
-
-              <div slot="selection" let:selection let:index class="flex">
-                <ModuleSelectionItem selection={isFeeCollectItem(selection) ? feeSelectSelectionItem() : selection} />
+              <div slot="chevron-icon">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
               </div>
 
             </Select>
+
+            <button type="button" on:click={showCollectFeesDialog}
+                    class="py-3 px-4 text-orange-700 flex items-center gap-2
+                    dark:text-orange-200 font-semibold sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
+
+              <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V6l-3-4H6zM3.8 6h16.4M16 10a4 4 0 1 1-8 0"/>
+              </svg>
+
+              <span class="pl-1">
+                {$collectSettings.isCollectible ? collectFeeString : 'Create a digital collectible'}
+              </span>
+
+              <svg class="w-4 h-4 inline" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
 
           </div>
 
@@ -726,7 +674,7 @@
 
         {#if showAdvanced || !isPopupWindow}
 
-          <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isPopupWindow ? 'py-2' : 'py-4'} px-2 gap-4
+          <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isPopupWindow ? 'py-2' : 'py-3'} px-2 gap-4
                {isSubmittingPost ? 'opacity-60' : ''}">
 
             {#if locales.length > 0}
@@ -755,6 +703,12 @@
                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                     <line x1="4" y1="22" x2="4" y2="15"/>
+                  </svg>
+                </div>
+                <div slot="chevron-icon">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9l6 6 6-6"/>
                   </svg>
                 </div>
               </Select>
@@ -787,6 +741,12 @@
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/>
                   <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div slot="chevron-icon">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9l6 6 6-6"/>
                 </svg>
               </div>
             </Select>
@@ -835,7 +795,7 @@
 
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
                     class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
-                    rounded-l-xl w-auto bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
+                    rounded-l-full w-auto bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
@@ -874,7 +834,7 @@
               </button>
 
             <button type="button" disabled={!submitEnabled}
-                    class="pl-3 pr-4 flex justify-center items-center rounded-r-xl tooltip
+                    class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
                     border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
@@ -921,10 +881,10 @@
 </main>
 
 {#if showFeeCollectDialog}
-  <dialog id="collectFees" bind:this={feeCollectDialog} on:close={onCollectFeeDialogClose}
-          class="w-2/3 max-w-sm rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-    <DialogOuter title="Sell as an NFT">
-      <FeeCollectModuleDialog on:moduleUpdated={onFeeCollectModuleUpdated}/>
+  <dialog id="collectFees" bind:this={feeCollectDialog}
+          class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+    <DialogOuter title="Create a digital collectible">
+      <FeeCollectModuleDialog on:done={onFeeCollectModuleUpdated}/>
     </DialogOuter>
   </dialog>
 {/if}

@@ -24,6 +24,8 @@
   <div class="grow flex flex-col divider overflow-y-auto max-h-96">
 
     {#each items as item}
+      {@const hasTopLine = item.title || item.content}
+
       <div class="flex shrink-0 h-24 pl-4 pr-1 items-center border-b border-gray-200 dark:border-gray-700
          hover:bg-gray-50 dark:hover:bg-gray-900">
 
@@ -33,14 +35,14 @@
 
             <div class="flex flex-col truncate gap-0.5">
 
-              {#if item.title}
-                <div class="text-base font-medium dark:text-white">{item.title}</div>
-                <AutoRelativeTimeView className="dark:text-white opacity-60"
-                                      timestamp={item.timestamp} capitalize={true} />
-              {:else}
-                <AutoRelativeTimeView className="text-base font-medium dark:text-white"
-                                      timestamp={item.timestamp} capitalize={true} />
-              {/if}
+              <div class="text-base dark:text-white truncate"
+                   class:font-medium={hasTopLine}
+                   class:opacity-80={!hasTopLine}>
+                {item.title ?? item.content ?? '(no content)'}
+              </div>
+
+              <AutoRelativeTimeView className="dark:text-white opacity-60"
+                                    timestamp={item.timestamp} capitalize={true} />
 
               <div class="w-full truncate dark:text-white opacity-70">
                 {#if item.attachments?.length > 0}
@@ -50,7 +52,7 @@
                         d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                   </svg>
                 {/if}
-                {#if item.content}
+                {#if item.title && item.content}
                   {item.content}
                 {/if}
               </div>

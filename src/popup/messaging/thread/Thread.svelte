@@ -210,8 +210,7 @@
 
       <div class="flex-grow flex items-center gap-2">
 
-        <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit}
-                           className="!rounded-full" placeholder="Message"/>
+        <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit} placeholder="Message"/>
 
         <button disabled={!text} on:click={onSubmit}
                 class="btn btn-icon variant-filled-primary">
