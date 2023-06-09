@@ -55,6 +55,7 @@ export const KEY_MESSAGES_REFRESH_ENABLED = 'messagesRefreshEnabled';
 export const KEY_MESSAGES_REFRESH_INTERVAL = 'messagesRefreshInterval';
 export const KEY_MESSAGES_UNREAD_TOPICS = 'messagesUnreadTopics';
 export const KEY_USE_POPUP_COMPOSER = 'usePopupComposer';
+export const KEY_RICH_TEXT = 'richTextComposer';
 
 export const compactMode: Writable<boolean> = chromeStorageSync(KEY_COMPACT_MODE, true);
 export const darkMode: Writable<boolean | undefined> = chromeStorageSync(KEY_DARK_MODE);
@@ -85,6 +86,7 @@ export const notificationsForReactions: Writable<boolean> = chromeStorageSync(KE
 export const messagesRefreshEnabled: Writable<boolean | undefined> = chromeStorageSync(KEY_MESSAGES_REFRESH_ENABLED, true);
 export const messagesRefreshInterval: Writable<RefreshInterval> = chromeStorageSync(KEY_MESSAGES_REFRESH_INTERVAL, {value: 1, label: '1 min'});
 export const messagesUnreadTopics: Writable<string[]> = chromeStorageSync(KEY_MESSAGES_UNREAD_TOPICS, []);
+export const richTextComposer: Writable<boolean> = chromeStorageSync(KEY_RICH_TEXT, true);
 
 export const messagesUnreadCount: Readable<number> = derived(
     messagesUnreadTopics,

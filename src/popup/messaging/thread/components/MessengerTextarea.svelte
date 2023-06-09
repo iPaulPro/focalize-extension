@@ -3,6 +3,7 @@
     import {debounce} from 'throttle-debounce';
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../../../lib/lens-search';
     import Tribute from 'tributejs';
+    import {resizeTextarea} from '../../../../lib/utils';
 
     export let text: string = '';
     export let className: string = '';
@@ -10,26 +11,6 @@
 
     const dispatch = createEventDispatcher();
     let textarea: HTMLTextAreaElement | undefined;
-
-    const resizeTextarea = async () => {
-        if (!textarea) return;
-
-        await tick();
-
-        textarea.style.height = 'auto';
-        const lineHeight = parseInt(getComputedStyle(textarea).lineHeight);
-        const padding = parseInt(getComputedStyle(textarea).paddingTop);
-        const maxHeight = lineHeight * 10;
-        const scrollHeight = textarea.scrollHeight;
-
-        if (scrollHeight > maxHeight) {
-            textarea.style.overflowY = 'scroll';
-            textarea.style.height = `${maxHeight + padding * 2}px`;
-        } else {
-            textarea.style.overflowY = 'hidden';
-            textarea.style.height = `${scrollHeight}px`;
-        }
-    };
 
     const focusTextArea = () => {
         textarea?.focus();
@@ -40,7 +21,7 @@
     });
 
     const handleInput = async () => {
-        await resizeTextarea();
+        await resizeTextarea(textarea);
         dispatchTextChanged();
     };
 

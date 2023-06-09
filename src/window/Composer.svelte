@@ -35,7 +35,13 @@
         title,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
-    import {darkMode, dispatcherDialogShown, useDispatcher, useRelay,} from '../lib/stores/preferences-store';
+    import {
+        darkMode,
+        dispatcherDialogShown,
+        richTextComposer,
+        useDispatcher,
+        useRelay,
+    } from '../lib/stores/preferences-store';
 
     import type {MetadataAttributeInput, PublicationMetadataV2Input,} from '../lib/graph/lens-service';
     import {PublicationMainFocus, ReferenceModules} from '../lib/graph/lens-service';
@@ -440,6 +446,12 @@
 
     const onCurrentTabDataClicked = () => {
         if (!currentTabData) return;
+
+        if (!$richTextComposer) {
+            $content = `${currentTabData.title}\n\n"${currentTabData.desc}"\n\n${currentTabData.url}`;
+            return;
+        }
+
         let md = '';
 
         if (currentTabData.title) md += `**${currentTabData.title}**`;

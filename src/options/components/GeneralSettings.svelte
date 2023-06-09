@@ -9,7 +9,8 @@
         nodeImage,
         nodeVideo,
         nodeSearch,
-        usePopupComposer
+        usePopupComposer,
+        richTextComposer
     } from '../../lib/stores/preferences-store';
     import LensNodeSelect from "./LensNodeSelect.svelte";
 </script>
@@ -117,6 +118,46 @@
             </div>
             <div class="text-base text-neutral-400">
               Use a dark theme
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
+
+    <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
+
+      <div class="w-full md:w-1/3 grow-0 shrink-0">
+        <div class="flex flex-col pb-6 pr-6">
+          <div class="text-lg font-medium text-neutral-800 dark:text-white">
+            Composer
+          </div>
+          <div class="text-base text-neutral-400">
+            Customize the publication composer.
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full md:w-2/3 flex flex-col gap-6">
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$richTextComposer}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Rich text formatting
+            </div>
+            <div class="text-base text-neutral-400">
+              Allows you to use rich text formatting in your posts, saved as Markdown
             </div>
           </div>
         </div>

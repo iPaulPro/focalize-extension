@@ -1,6 +1,5 @@
 import type {Notification, Profile} from './graph/lens-service';
 import showdown from 'showdown';
-import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {DateTime} from 'luxon';
@@ -15,6 +14,7 @@ import {
     KEY_USE_POPUP_COMPOSER,
 } from './stores/preferences-store';
 import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
+import {tick} from 'svelte';
 
 export const POPUP_MIN_HEIGHT = 330;
 
@@ -35,6 +35,7 @@ export const getAvatarFromAddress = (address: string, size: number = 128): strin
 
 export const htmlFromMarkdown = (markdown: string | undefined): string | undefined => {
     if (!markdown) return undefined;
+    // showdown.setFlavor('github');
     const converter = new showdown.Converter({
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
@@ -44,13 +45,17 @@ export const htmlFromMarkdown = (markdown: string | undefined): string | undefin
 
 export const extractTextFromHtml = (html: string | undefined): string | undefined => {
     if (!html) return undefined;
-    const $ = cheerio.load(html);
-    return $.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    return doc.body.textContent || '';
 };
 
 export const stripMarkdown = (markdown: string | undefined): string | undefined => {
+    console.log('stripMarkdown', markdown);
     if (!markdown) return undefined;
-    return extractTextFromHtml(htmlFromMarkdown(markdown));
+    const html = htmlFromMarkdown(markdown);
+    console.log('stripMarkdown', html);
+    return extractTextFromHtml(html);
 };
 
 export const truncate = (str: string | null | undefined, limit: number | undefined): string | null | undefined => {
@@ -349,4 +354,25 @@ export const getSearchParams = () => {
 export const isPopup = async (): Promise<boolean> => {
     const window = await chrome.windows.getCurrent();
     return window.type === 'popup'
+};
+
+export const resizeTextarea = async (textarea: HTMLTextAreaElement) => {
+    if (!textarea) return;
+
+    await tick();
+
+    textarea.style.height = 'auto';
+    const computedStyle = getComputedStyle(textarea);
+    const lineHeight = parseInt(computedStyle.lineHeight, 10);
+    const padding = parseInt(computedStyle.paddingTop, 10);
+    const maxHeight = lineHeight * 10;
+    const scrollHeight = textarea.scrollHeight;
+
+    if (scrollHeight > maxHeight) {
+        textarea.style.overflowY = 'scroll';
+        textarea.style.height = `${maxHeight + padding * 2}px`;
+    } else {
+        textarea.style.overflowY = 'hidden';
+        textarea.style.height = `${scrollHeight}px`;
+    }
 };

@@ -8,7 +8,7 @@
 
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
     import {content} from "../../lib/stores/state-store";
-    import {darkMode} from "../../lib/stores/preferences-store";
+    import {darkMode, richTextComposer} from '../../lib/stores/preferences-store';
     import {supportedMimeTypesJoined} from '../../lib/file-utils'
 
     import MediumEditor from 'medium-editor';
@@ -17,18 +17,21 @@
     import 'font-awesome/css/font-awesome.css';
     import 'medium-editor/dist/css/medium-editor.css';
     import 'medium-editor/dist/css/themes/tim.css';
-    import {htmlFromMarkdown} from "../../lib/utils";
-    import DialogOuter from "../../lib/components/DialogOuter.svelte";
+    import {htmlFromMarkdown, resizeTextarea, stripMarkdown} from '../../lib/utils';
     import CurrentUserAvatar from '../../lib/components/CurrentUserAvatar.svelte';
+    import {get} from '../../lib/stores/chrome-storage-store';
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
 
     let editor: MediumEditor;
     let fileInput;
-    let textInput: HTMLElement;
+    let textInput: HTMLTextAreaElement | HTMLDivElement;
     let emojiPickerTrigger;
     let inputSelection: Selection, selectionRange: Range;
+    // let inputSelection: Selection;
+    let selectionStart: number | undefined;
+    let selectionEnd: number | undefined;
 
     const dispatch = createEventDispatcher();
 
@@ -47,44 +50,70 @@
 
         emojiPicker.on('emoji', (selection) => {
             insertTextAtCaret(selection.emoji);
-            // editor.selectElement(textInput);
-            // textInput.focus();
         });
 
         emojiPicker?.setTheme($darkMode ? 'dark' : 'light');
     }
 
     const saveSelection = () => {
-        inputSelection = window.getSelection();
-        if (inputSelection.getRangeAt && inputSelection.rangeCount) {
-            selectionRange = inputSelection.getRangeAt(0);
+        if (textInput instanceof HTMLTextAreaElement) {
+            selectionStart = textInput.selectionStart;
+            selectionEnd = textInput.selectionEnd;
+        } else {
+            inputSelection = window.getSelection();
+            if (inputSelection.getRangeAt && inputSelection.rangeCount) {
+                selectionRange = inputSelection.getRangeAt(0);
+            }
         }
+        console.log('saveSelection', textInput instanceof HTMLTextAreaElement, inputSelection, selectionStart, selectionEnd);
     };
 
-    const insertTextAtCaret = text => {
-        if (selectionRange) {
+    const insertTextAtCaret = (text) => {
+        textInput.focus();
+
+        if (textInput instanceof HTMLTextAreaElement && selectionStart !== undefined && selectionEnd !== undefined) {
+            const originalText = textInput.value;
+            const before = originalText.substring(0, selectionStart);
+            const after = originalText.substring(selectionEnd, originalText.length);
+            textInput.value = before + text + after;
+            const newCaretPosition = before.length + text.length;
+            textInput.selectionStart = newCaretPosition;
+            textInput.selectionEnd = newCaretPosition;
+        } else if (selectionRange) {
             selectionRange.deleteContents();
             const node = document.createTextNode(text);
             selectionRange.insertNode(node);
             selectionRange.setStartAfter(node)
             inputSelection.removeAllRanges();
             inputSelection.addRange(selectionRange)
+            console.log('insertTextAtCaret', inputSelection, selectionRange, node);
         }
         inputSelection = null;
-        selectionRange = null;
+        selectionStart = null;
+        selectionEnd = null;
     };
 
-    $: {
-        if ($content && editor && textInput) {
-            const existing = fromHtml.turndown(textInput.innerHTML)
-            if (existing !== $content) {
-                const html = htmlFromMarkdown($content);
-                editor.setContent(html);
-            }
+    $: if ($richTextComposer && $content && editor && textInput) {
+        const existing = fromHtml.turndown(textInput.innerHTML)
+        if (existing !== $content) {
+            const html = htmlFromMarkdown($content);
+            editor.setContent(html);
         }
     }
 
+    $: inputScrollHeight = textInput && textInput instanceof HTMLTextAreaElement && textInput.scrollHeight;
+
+    $: if ($content && textInput && textInput instanceof HTMLTextAreaElement && textInput.value !== $content) {
+        // If content is set before the textarea is mounted, queue up a resize
+        resizeTextarea(textInput).catch(console.error);
+    }
+
     const makeEditor = async (element) => {
+        const isRichText = await get(richTextComposer);
+        if (!isRichText) {
+            return;
+        }
+
         editor = new MediumEditor(element, {
             toolbar: {
                 buttons: ['bold', 'italic', 'anchor', 'quote', 'pre']
@@ -140,18 +169,25 @@
 
   <div class="flex flex-col w-full pr-2 shrink">
 
-    <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
-    {#if isCompact}
+    {#if !$richTextComposer}
+      <textarea name="content" placeholder="What's happening?"
+                on:blur={saveSelection}
+                on:input={(e) => resizeTextarea(e.target)}
+                bind:this={textInput}
+                bind:value={$content}
+                use:tribute
+                class="text-editor" class:text-xl={!isCompact}
+                {disabled}></textarea>
+    {:else if isCompact}
+      <!-- Medium Editor gets messed up with there are reactive style declarations, so we do it this way -->
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
-           class="w-full text-lg pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[10rem] focus:outline-none
-           break-keep ![overflow-wrap:anywhere]">
+           class="text-editor text-lg">
       </div>
     {:else}
       <div contenteditable="plaintext-only" tabindex="0" data-disable-editing={disabled} role="textbox"
            use:makeEditor use:tribute bind:this={textInput} on:blur={saveSelection}
-           class="w-full text-xl pt-4 pr-3 pl-2 text-black dark:text-gray-100 !min-h-[10rem] focus:outline-none
-           break-keep ![overflow-wrap:anywhere]">
+           class="text-editor text-xl">
       </div>
     {/if}
 
@@ -273,7 +309,7 @@
     border-radius: 9999px;
   }
 
-  .medium-editor-placeholder:after {
+  .medium-editor-placeholder:after, .text-editor::placeholder {
     margin: 0;
     font-style: normal !important;
     font-size: 1.5rem;
@@ -282,12 +318,12 @@
     color: rgb(107 114 128);
   }
 
-  .compact .medium-editor-placeholder:after {
+  .compact .medium-editor-placeholder:after, .compact .text-editor::placeholder {
     font-size: 1.25rem;
     line-height: 1.5rem;
   }
 
-  .dark .medium-editor-placeholder:after {
+  .dark .medium-editor-placeholder:after, .dark .text-editor::placeholder {
     color: rgb(156 163 175);
   }
 
@@ -316,5 +352,14 @@
   .medium-editor-element blockquote {
     font-size: 1.125rem; /* 18px */
     line-height: 1.5rem; /* 28px */
+  }
+
+  .text-editor {
+    @apply w-full bg-transparent border-none resize-none pt-4 pr-3 pl-2 text-black min-h-[10rem] overflow-hidden
+           focus:outline-none focus:ring-0 focus:border-none break-keep [overflow-wrap:anywhere]
+  }
+
+  .dark .text-editor {
+    @apply text-gray-100
   }
 </style>
