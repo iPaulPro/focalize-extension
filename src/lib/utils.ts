@@ -98,13 +98,17 @@ export const launchComposerWindow = async (
     const usePopups = await getPreference<boolean>(KEY_USE_POPUP_COMPOSER);
 
     if (usePopups) {
-        chrome.windows.create({
+        const currentWindow = await chrome.windows.getCurrent();
+        const windowRight = currentWindow.left && currentWindow.width ? currentWindow.left + currentWindow.width : 0;
+        await chrome.windows.create({
             url: url.toString(),
             focused: true,
             type: 'popup',
             width: 672,
-            height: POPUP_MIN_HEIGHT
-        }).catch(console.error);
+            height: POPUP_MIN_HEIGHT,
+            top: currentWindow.top,
+            left: windowRight - 672,
+        });
     } else {
         await chrome.tabs.create({url: url.toString()});
     }
@@ -154,13 +158,17 @@ export const launchThreadWindow = async (topic?: string) => {
         }
     }
 
+    const currentWindow = await chrome.windows.getCurrent();
+    const windowRight = currentWindow.left && currentWindow.width ? currentWindow.left + currentWindow.width : 0;
     await chrome.windows.create({
         url,
         focused: true,
         type: 'popup',
         width: 400,
         height: 600,
-    }).catch(console.error);
+        top: currentWindow.top,
+        left: windowRight - 400,
+    });
 
     if (typeof window !== 'undefined') {
         window.close();
