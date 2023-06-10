@@ -231,12 +231,7 @@ fragment ProfileMediaFields on ProfileMedia {
         original {
             ...MediaFields
         }
-
-        small {
-            ...MediaFields
-        }
-
-        medium {
+        onChain {
             ...MediaFields
         }
     }
@@ -276,10 +271,7 @@ fragment CompactProfile on Profile {
             original {
                 ...MediaFields
             }
-            small {
-                ...MediaFields
-            }
-            medium {
+            onChain {
                 ...MediaFields
             }
         }
@@ -295,10 +287,7 @@ fragment CompactProfile on Profile {
             original {
                 ...MediaFields
             }
-            small {
-                ...MediaFields
-            }
-            medium {
+            onChain {
                 ...MediaFields
             }
         }

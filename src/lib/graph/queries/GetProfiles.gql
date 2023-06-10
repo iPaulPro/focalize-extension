@@ -73,32 +73,17 @@ query Profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
                 }
                 ... on MediaSet {
                     __typename
-                    medium {
-                        altTag
-                        width
-                        url
-                        size
-                        mimeType
-                        height
-                        cover
-                    }
                     original {
                         altTag
                         cover
-                        height
                         mimeType
-                        size
                         url
-                        width
                     }
-                    small {
+                    onChain {
                         altTag
                         cover
-                        height
                         mimeType
-                        size
                         url
-                        width
                     }
                 }
             }
@@ -126,31 +111,16 @@ query Profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
                 }
                 ... on MediaSet {
                     __typename
-                    small {
-                        width
-                        url
-                        size
-                        mimeType
-                        height
-                        cover
-                        altTag
-                    }
                     original {
-                        width
                         url
-                        size
                         mimeType
-                        height
                         cover
                         altTag
                     }
-                    medium {
-                        width
+                    onChain {
                         url
-                        size
                         mimeType
                         cover
-                        height
                         altTag
                     }
                 }
