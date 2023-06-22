@@ -436,7 +436,7 @@ const onLogoutMessage = async (res: (response?: any) => void) => chrome.alarms.c
 const onMessage = (req: any, sender: chrome.runtime.MessageSender, res: (response?: any) => void): boolean => {
     switch (req.type) {
         case 'loggedOut':
-            onLogoutMessage(res).catch(console.error);;
+            onLogoutMessage(res).catch(console.error);
             return true;
         case 'getPublicationId':
             onGetPublicationIdMessage(sender, req, res).catch(console.error);

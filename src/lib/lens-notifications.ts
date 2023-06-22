@@ -203,7 +203,7 @@ export const getNotificationProfile = (notification: Notification): Profile | nu
     return null;
 }
 
-export const getNotificationWalletAddress = (notification: Notification): string | undefined | null => {
+export const getNotificationWalletAddress = (notification: Notification): string => {
     switch (notification.__typename) {
         case 'NewCollectNotification':
         case 'NewFollowerNotification':
@@ -215,7 +215,7 @@ export const getNotificationWalletAddress = (notification: Notification): string
         case 'NewMirrorNotification':
             return notification.profile.ownedBy;
     }
-    return null;
+    throw new Error('Unknown notification type');
 }
 
 export const getAvatarFromNotification = (notification: Notification): string | null => {
@@ -234,11 +234,7 @@ export const getAvatarFromNotification = (notification: Notification): string | 
     }
 
     const wallet = getNotificationWalletAddress(notification);
-    if (wallet) {
-        return getAvatarFromAddress(wallet);
-    }
-
-    return null;
+    return getAvatarFromAddress(wallet);
 };
 
 /**
@@ -264,7 +260,7 @@ export const getNotificationAction = (notification: Notification): string => {
 };
 
 export const getNotificationHandle = (notification: Notification): string => {
-    return getNotificationProfile(notification)?.handle?.split('.')[0] ?? '';
+    return getNotificationProfile(notification)?.handle?.split('.')?.[0] ?? getNotificationWalletAddress(notification);
 };
 
 export const getNotificationDisplayName = (notification: Notification): string => {
