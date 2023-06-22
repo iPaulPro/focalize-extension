@@ -9,7 +9,7 @@
     };
 </script>
 
-<div class="flex flex-col gap-4 p-4">
+<div class="flex flex-col gap-4 p-5">
 
   <div class="pt-2 text-lg text-black dark:text-white">
     Are you sure you want to log out?

@@ -4,7 +4,7 @@ import type {
     ReferenceModuleParams,
     SimpleCollectModuleParams,
     MultirecipientFeeCollectModuleParams,
-    ModuleFeeAmountParams,
+    ModuleFeeAmountParams, RecipientDataInput,
 } from './graph/lens-service';
 
 import {PublicationContentWarning} from "./graph/lens-service";
@@ -131,18 +131,37 @@ export const collectSettingsToModuleParams = (
             value: collectSettings.price.toString()
         };
 
+        const recipients: RecipientDataInput[] = [
+            {
+                recipient: "0x10E1DEB36F41b4Fad35d10d0aB870a4dc52Dbb2c", // focalize.eth
+                split: 2
+            }
+        ];
+
+        if (collectSettings.recipients?.length) {
+            collectSettings.recipients.forEach((recipient) => {
+                recipients.push( {
+                    recipient: recipient.address,
+                    split: recipient.split
+                } as RecipientDataInput)
+            });
+        } else {
+            recipients.push({
+                recipient: address,
+                split: 98
+            })
+        }
+
+        const totalSplit: number = recipients.reduce(
+            (acc: number, recipient: RecipientDataInput) => acc + recipient.split, 0
+        );
+        if (totalSplit !== 100) {
+            throw new Error('Total revenue split must equal 100%');
+        }
+
         const multirecipientFeeCollectModule: MultirecipientFeeCollectModuleParams = {
             amount,
-            recipients: [
-                {
-                    recipient: address,
-                    split: 98
-                },
-                {
-                    recipient: "0x10E1DEB36F41b4Fad35d10d0aB870a4dc52Dbb2c", // focalize.eth
-                    split: 2
-                },
-            ],
+            recipients,
             followerOnly: collectSettings.followerOnly ?? false,
         };
 

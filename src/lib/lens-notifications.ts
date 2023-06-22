@@ -2,7 +2,7 @@ import type {Notification, PaginatedNotificationResult} from './graph/lens-servi
 import {NotificationTypes, type PaginatedResultInfo, type Profile} from './graph/lens-service';
 import {getOrRefreshAccessToken} from './lens-auth';
 import gqlClient from './graph/graphql-client';
-import {getAvatarForProfile, getAvatarFromAddress, stripMarkdown, truncate} from './utils';
+import {getAvatarForLensHandle, getAvatarFromAddress, stripMarkdown, truncate} from './utils';
 import type {LensNode} from './lens-nodes';
 import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from './lens-nodes';
 
@@ -70,6 +70,7 @@ const getPaginatedNotificationResult = async (
     cursor?: any,
     limit: number = NOTIFICATIONS_QUERY_LIMIT,
 ): Promise<PaginatedNotificationResult | null> => {
+    console.log('getPaginatedNotificationResult: cursor', cursor, 'limit', limit);
     let accessToken;
     try {
         accessToken = await getOrRefreshAccessToken();
@@ -227,9 +228,9 @@ export const getAvatarFromNotification = (notification: Notification): string | 
     }
     if (profile) {
         if (notification.notificationId === 'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed') {
-            console.log('getAvatarFromNotification: avatar', getAvatarForProfile(profile));
+            console.log('getAvatarFromNotification: avatar', getAvatarForLensHandle(profile.handle));
         }
-        return getAvatarForProfile(profile);
+        return getAvatarForLensHandle(profile.handle);
     }
 
     const wallet = getNotificationWalletAddress(notification);

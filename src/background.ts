@@ -16,7 +16,7 @@ import type {
 import {ProxyActionStatusTypes, SearchRequestTypes} from './lib/graph/lens-service';
 import type {User} from './lib/user';
 import {
-    getAvatarForProfile,
+    getAvatarForLensHandle,
     getAvatarFromAddress,
     getXmtpKeys,
     launchThreadWindow,
@@ -390,7 +390,7 @@ const onMessagesAlarm = async () => {
             title: getPeerName(thread.peer) ?? truncateAddress(peerAddress),
             message: '✉️ ' + (messages.length > 1 ? `${messages.length} new messages` : messages[0].content),
             contextMessage: 'Focalize',
-            iconUrl: peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
+            iconUrl: peerProfile ? getAvatarForLensHandle(peerProfile.handle) : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
             silent: false,
         };
 

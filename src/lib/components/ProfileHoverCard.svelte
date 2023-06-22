@@ -1,6 +1,6 @@
 <script lang="ts">
     import {type Profile} from '../graph/lens-service';
-    import {formatFollowerCount, getAvatarForProfile, truncate} from '../utils';
+    import {formatFollowerCount, getAvatarForLensHandle, truncate} from '../utils';
     import {onMount} from 'svelte';
     import {getMutualFollows, getProfileById} from '../lens-profile';
     import {createEventDispatcher} from 'svelte';
@@ -17,7 +17,7 @@
     let loading = true;
     let mutualFollows: { profiles: Profile[], total: number } | undefined;
 
-    $: avatarUrl = profile && getAvatarForProfile(profile);
+    $: avatarUrl = profile && getAvatarForLensHandle(profile.handle);
     $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
@@ -125,7 +125,7 @@
 
         <div class="flex flex-shrink-0 overlap">
           {#each mutualFollows.profiles as mutualFollow}
-            <img src={getAvatarForProfile(mutualFollow)} alt="Avatar"
+            <img src={getAvatarForLensHandle(mutualFollow.handle)} alt="Avatar"
                  class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
           {/each}
         </div>

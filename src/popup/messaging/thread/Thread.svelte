@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
-    import {getAvatarForProfile, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
+    import {getAvatarForLensHandle, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
     import {ensureUser} from '../../../lib/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
@@ -113,7 +113,7 @@
     };
 
     $: peerProfile = thread?.peer?.profile;
-    $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(thread?.conversation?.peerAddress);
+    $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
     $: peerName = thread && getPeerName(thread.peer);
     $: peerHandle = thread && getPeerHandle();
 

@@ -98,12 +98,12 @@
 
   <TabGroup regionPanel="w-full flex-grow overflow-y-auto min-h-0 my-0"
             regionList="flex-shrink-0"
-            padding="px-6 py-3"
+            padding="px-6 py-2"
             border="border-b border-gray-200 dark:border-gray-700"
             class="flex flex-col h-full !space-y-0">
 
     <Tab bind:group={$selectedMainTab} name="tab1" value={0} on:click={onNotificationsTabClick}>
-      <div class="relative inline-block w-full h-full">
+      <div class="relative inline-block w-full h-full mt-2">
         {#if $selectedMainTab !== 0 && $unreadNotificationsCount > 0}
           <span class="w-2 h-2 variant-filled-primary absolute -top-1.5 -right-1.5 z-10 rounded-full"></span>
         {/if}
@@ -115,7 +115,7 @@
     </Tab>
 
     <Tab bind:group={$selectedMainTab} name="tab2" value={1}>
-      <div class="relative inline-block w-full h-full">
+      <div class="relative inline-block w-full h-full mt-2">
         {#if $selectedMainTab !== 1 && $messagesUnreadCount > 0}
           <span class="w-2 h-2 variant-filled-primary absolute -top-1.5 -right-1.5 z-10 rounded-full"></span>
         {/if}

@@ -53,6 +53,7 @@
     "axios": "^1.4.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
+    "cheerio": "^1.0.0-rc.12",
     "eth-provider": "^0.13.6",
     "ethers": "^5.7.2",
     "font-awesome": "^4.7.0",

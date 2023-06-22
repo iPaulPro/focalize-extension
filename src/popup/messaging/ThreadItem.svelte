@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getAvatarForProfile, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils';
+    import {getAvatarForLensHandle, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils';
     import {getPeerName, isUnread, type Thread} from '../../lib/xmtp-service';
     import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';
@@ -22,7 +22,7 @@
     $: peerProfile = thread?.peer?.profile;
     $: peerAddress = thread?.peer?.profile?.ownedBy ?? thread?.peer?.wallet?.address;
     $: unread = thread?.unread;
-    $: avatarUrl = peerProfile ? getAvatarForProfile(peerProfile) : getAvatarFromAddress(peerAddress);
+    $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(peerAddress);
     $: peerName = thread && getPeerName(thread.peer, ens);
 
     const latestMessage = getLatestMessage(thread?.conversation?.topic);

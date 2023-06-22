@@ -43,14 +43,18 @@
         useRelay,
     } from '../lib/stores/preferences-store';
 
-    import type {MetadataAttributeInput, PublicationMetadataV2Input,} from '../lib/graph/lens-service';
+    import type {
+        CollectModuleParams,
+        MetadataAttributeInput,
+        PublicationMetadataV2Input,
+    } from '../lib/graph/lens-service';
     import {PublicationMainFocus, ReferenceModules} from '../lib/graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte';
     import PlainTextEditor from './components/PlainTextEditor.svelte';
     import PostTags from './components/PostTags.svelte';
-    import FeeCollectModuleDialog from './components/FeeCollectModuleDialog.svelte';
+    import CollectSettingsDialog from './components/CollectSettingsDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
     import PostMethodChooser from './components/PostMethodChooser.svelte';
 
@@ -93,7 +97,7 @@
     let postId: string;
     let isSubmittingPost = false;
     let isFileDragged = false;
-    let feeCollectDialog: HTMLDialogElement;
+    let collectSettingsDialog: HTMLDialogElement;
     let showFeeCollectDialog = false;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
@@ -157,11 +161,11 @@
     const showCollectFeesDialog = async () => {
         showFeeCollectDialog = true;
         await tick();
-        feeCollectDialog?.showModal();
+        collectSettingsDialog?.showModal();
     };
 
-    const onFeeCollectModuleUpdated = (e) => {
-        feeCollectDialog?.close();
+    const onCollectSettingsDialogDone = (e) => {
+        collectSettingsDialog?.close();
         showFeeCollectDialog = false;
     };
 
@@ -201,9 +205,11 @@
 
         mainFocus = getMainFocusFromMimeType($attachments[0].type);
 
+        let metadata: PublicationMetadataV2Input;
+
         switch (mainFocus) {
             case PublicationMainFocus.Image:
-                return generateImagePostMetadata(
+                metadata = generateImagePostMetadata(
                     $currentUser.handle,
                     $attachments,
                     $title,
@@ -212,9 +218,10 @@
                     postContentWarning.value,
                     $description,
                 );
+                break;
             case PublicationMainFocus.Video:
                 attributes = createVideoAttributes();
-                return generateVideoPostMetadata(
+                metadata = generateVideoPostMetadata(
                     $currentUser.handle,
                     $attachments,
                     $title,
@@ -226,9 +233,10 @@
                     postContentWarning.value,
                     $description,
                 );
+                break;
             case PublicationMainFocus.Audio:
                 if ($author) attributes = createAudioAttributes($author);
-                return generateAudioPostMetadata(
+                metadata = generateAudioPostMetadata(
                     $currentUser.handle,
                     $attachments,
                     $title,
@@ -240,6 +248,12 @@
                     postContentWarning.value,
                     $description,
                 );
+                break;
+        }
+
+        if (metadata) {
+            metadata.locale = locale?.value ?? navigator.languages[0];
+            return metadata;
         }
 
         throw new Error('Unrecognized attachment');
@@ -255,15 +269,23 @@
         } catch (e) {
             console.log(`Error ${e.code}: ${e.message}`);
             toast.error('Error switching chains', {duration: 5000});
+            return;
+        }
+
+        let collectModuleParams: CollectModuleParams;
+        try {
+            collectModuleParams = collectSettingsToModuleParams($currentUser.address, $collectSettings);
+        } catch (e) {
+            console.error(e);
+            toast.error(e.message, {duration: 5000});
+            return;
         }
 
         try {
             postMetaData = buildMetadata();
-            postMetaData.locale = locale.value ?? navigator.languages[0];
 
-            const collectModuleParams = collectSettingsToModuleParams($currentUser.address, $collectSettings);
+            console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
 
-            console.log('onSubmitClick: collectModuleParams', collectModuleParams);
             const publicationId = await submitPost(
                 $currentUser,
                 $draftId,
@@ -277,7 +299,7 @@
             postId = `${$currentUser.profileId}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
 
-            clearPostState()
+            clearPostState();
         } catch (e) {
             console.error(e);
             toast.error('Error creating post', {duration: 5000});
@@ -416,17 +438,18 @@
         collectFee: $collectSettings
     });
 
-    $: if ($title || $content || $description || $attachments || $author || $collectSettings.isCollectible !== undefined) {
+    const onDraftChanged = async (draft: PostDraft) => {
+        postDraft = await saveDraft(draft);
+        $draftId = postDraft.id;
+        console.log('onDraftChanged: saved draft', postDraft);
+    };
+
+    const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
+
+    $: if ($content || $title || $description || $attachments || $author || $collectSettings.isCollectible !== undefined) {
         const draft = buildDraft();
         draftSubject.next(draft);
     }
-
-    const debouncedDraftUpdate = draftSubject.pipe(debounceTime(2000))
-        .subscribe(async (draft) => {
-            postDraft = await saveDraft(draft);
-            $draftId = postDraft.id;
-            console.log('debouncedDraftUpdate: saved draft', postDraft);
-        });
 
     const openDraft = async () => {
         postDraft = await getDraft($draftId);
@@ -602,7 +625,7 @@
                 </div>
 
                 {#if currentTabData.desc}
-                  <div class="opacity-60 transition-none pr-4 truncate">
+                  <div class="opacity-60 transition-none pr-4 truncate whitespace-pre-wrap">
                     {currentTabData.desc}
                   </div>
                 {/if}
@@ -618,7 +641,7 @@
 
           <div class="flex flex-wrap gap-4 ml-[4.5rem]
                {isPopupWindow ? 'pt-2' : 'pt-3'}
-               {isMediaPostType || currentTabData ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700 px-2'}">
+               {isMediaPostType || currentTabData ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700'}">
 
             <Select bind:value={referenceItem}
                     items={REFERENCE_ITEMS}
@@ -893,10 +916,11 @@
 </main>
 
 {#if showFeeCollectDialog}
-  <dialog id="collectFees" bind:this={feeCollectDialog}
-          class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
-    <DialogOuter title="Create a digital collectible">
-      <FeeCollectModuleDialog on:done={onFeeCollectModuleUpdated}/>
+  <dialog id="collectFees" bind:this={collectSettingsDialog}
+          class="w-2/3 max-w-lg rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600
+          p-0 overflow-hidden max-h-screen">
+    <DialogOuter title="Digital collectible settings">
+      <CollectSettingsDialog on:done={onCollectSettingsDialogDone} isCompact={isPopupWindow}/>
     </DialogOuter>
   </dialog>
 {/if}

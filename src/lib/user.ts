@@ -4,7 +4,7 @@ import {getDefaultProfile, getProfiles} from "./lens-profile";
 import type {Profile} from "./graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
 import {currentUser, getUser} from './stores/user-store';
-import {getAvatarForProfile} from "./utils";
+import {getAvatarForLensHandle} from "./utils";
 
 export type User = {
     address: string,
@@ -23,7 +23,7 @@ export enum UserError {
 }
 
 export const userFromProfile = (profile: Profile): User => {
-    const avatarUrl = getAvatarForProfile(profile);
+    const avatarUrl = getAvatarForLensHandle(profile.handle);
 
     return {
         address: profile.ownedBy,

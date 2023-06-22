@@ -4,6 +4,15 @@ import type {Erc20, PublicationMetadataMediaInput} from "../graph/lens-service";
 import type {PostDraft} from "./draft-store";
 import type {Web3File} from "../ipfs-service";
 
+export interface Recipient {
+    address: string;
+    split: number;
+    identity?: {
+        lens?: string;
+        ens?: string;
+    }
+}
+
 export interface CollectSettings {
     isCollectible?: boolean;
     price?: number;
@@ -12,6 +21,7 @@ export interface CollectSettings {
     referralFee?: number;
     followerOnly?: boolean;
     timed?: boolean;
+    recipients?: Recipient[];
 }
 
 export enum PublicationState {

@@ -6,31 +6,18 @@
         searchHandles
     } from '../../../../lib/lens-search';
     import {onMount} from 'svelte';
-    import {z} from 'zod';
-    import {Subject} from 'rxjs';
-    import {debounceTime} from 'rxjs/operators';
     import {createEventDispatcher} from 'svelte';
     import type {Peer} from '../../../../lib/xmtp-service';
-    import {getAddressFromEns, getEnsFromAddress} from '../../../../lib/utils';
+    import {validateRecipient, getAddressFromEns, getEnsFromAddress, isEthereumAddress} from '../../../../lib/utils';
     import {getProfileByHandle} from '../../../../lib/lens-profile';
     import {canMessage} from '../../../../lib/xmtp-service';
     import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
 
     const dispatch = createEventDispatcher();
 
-    const ethereumAddress = z.string().refine(value => /^0x[a-fA-F0-9]{40}$/.test(value), {
-        message: 'Invalid Ethereum address',
-    });
-
-    const domainName = z.string().refine(value => /\.(lens|eth|test)$/.test(value), {
-        message: 'Invalid username',
-    });
-
-    const inputSchema = z.union([ethereumAddress, domainName]);
-
     let input: HTMLInputElement;
     let recipient: string;
-    let validRecipient: boolean;
+    let validRecipient: boolean | undefined;
     let error: string;
     let validating: boolean;
 
@@ -57,34 +44,7 @@
         };
     };
 
-    const validateInput = (node: HTMLElement, parameters: any) => {
-        const callback: (valid: boolean) => void = parameters.onValidate;
-        const subject = new Subject<string>();
-
-        subject.pipe(
-            debounceTime(500),
-        ).subscribe(value => {
-            const result = inputSchema.safeParse(value);
-            callback(result.success);
-        });
-
-        const handleInput = (event: Event) => {
-            validating = true;
-            const input = event.target as HTMLInputElement;
-            subject.next(input.value);
-        };
-
-        node.addEventListener('input', handleInput);
-
-        return {
-            destroy() {
-                node.removeEventListener('input', handleInput);
-                subject.unsubscribe();
-            }
-        };
-    };
-
-    const onValidate = async (valid: boolean) => {
+    const onValidated = async (valid: boolean) => {
         let peer: Peer = {};
         recipient = recipient.trim();
 
@@ -103,12 +63,7 @@
 
         error = undefined;
 
-        if (recipient.startsWith('0x')) {
-            peer.wallet = {
-                address: recipient,
-                ens: await getEnsFromAddress(recipient),
-            };
-        } else if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
+        if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
             peer.profile = await getProfileByHandle(recipient);
         } else if (recipient.endsWith('.eth')) {
             const address = await getAddressFromEns(recipient);
@@ -121,10 +76,14 @@
                 ens: recipient,
                 address: address,
             };
+        } else if (isEthereumAddress(recipient)) {
+            peer.wallet = {
+                address: recipient,
+                ens: await getEnsFromAddress(recipient),
+            };
         }
 
         const address = peer.wallet?.address ?? peer.profile?.ownedBy;
-        console.log('onValidate: checking if ', address, ' is available');
         const available = await canMessage(address);
         if (!available) {
             error = 'This user has not registered with XMTP';
@@ -136,7 +95,7 @@
     };
 
     const onBlur = () => {
-        if (!validRecipient && recipient?.length > 0) {
+        if (validRecipient === false && recipient?.length > 0) {
             error = 'Must be a .lens, .eth, or 0x address';
         }
     };
@@ -144,7 +103,7 @@
     const onClearText = () => {
         recipient = '';
         error = undefined;
-        validRecipient = false;
+        validRecipient = undefined;
         dispatch('peerSelected', null);
         input?.focus();
     };
@@ -163,7 +122,7 @@
 
     <input type="text" placeholder="Enter a .lens, .eth, or 0x address" spellcheck="false"
            bind:this={input} bind:value={recipient} on:blur={onBlur}
-           use:tribute use:validateInput={{onValidate}}
+           use:tribute use:validateRecipient={{onValidated, onValidate: () => validating = true}}
            class="input rounded-none p-2 text-[0.925rem] {error ? 'input-error' : ''}"/>
 
     {#if validating}

@@ -157,7 +157,7 @@
               Rich text formatting
             </div>
             <div class="text-base text-neutral-400">
-              Allows you to use rich text formatting in your posts, saved as Markdown
+              Use rich text formatting in your posts, saved as Markdown
             </div>
           </div>
         </div>

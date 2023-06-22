@@ -69,24 +69,24 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     if (!accessToken) {
         throw new Error('No saved tokens found');
     }
-    console.log('getOrRefreshAccessToken: found saved access token');
+    // console.log('getOrRefreshAccessToken: found saved access token');
 
     const now = Date.now();
 
     const accessTokenExpiration = (decodeJwt(accessToken).exp ?? 0) * 1000; // convert to ms
     if (accessTokenExpiration > now) {
         const duration = Duration.fromMillis(accessTokenExpiration - now).shiftTo('minutes');
-        console.log(`getOrRefreshAccessToken: saved access token expires in ${duration.toHuman()}`);
+        // console.log(`getOrRefreshAccessToken: saved access token expires in ${duration.toHuman()}`);
         return accessToken;
     }
 
-    console.log('getOrRefreshAccessToken: Access token is expired.');
+    // console.log('getOrRefreshAccessToken: Access token is expired.');
 
     const savedRefreshToken = await getSavedRefreshToken();
     if (!savedRefreshToken) {
         throw new Error('No saved refresh token found');
     }
-    console.log('getOrRefreshAccessToken: found saved refresh token')
+    // console.log('getOrRefreshAccessToken: found saved refresh token')
 
     const refreshTokenExpiration = (decodeJwt(savedRefreshToken).exp ?? 0) * 1000; // convert to ms
     if (refreshTokenExpiration > now) {
@@ -112,7 +112,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
         refreshToken = await getSavedRefreshToken();
     }
 
-    console.log('refreshAccessToken: Refreshing access token with refresh token...');
+    // console.log('refreshAccessToken: Refreshing access token with refresh token...');
 
     const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
 
@@ -127,7 +127,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
                     return reject(chrome.runtime.lastError);
                 }
                 const accessToken = await getSavedAccessToken();
-                console.log('Saved new auth token to local storage');
+                // console.log('Saved new access token to local storage');
                 resolve(accessToken);
             }
         );

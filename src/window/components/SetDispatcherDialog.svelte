@@ -37,7 +37,7 @@
     };
 </script>
 
-<div class="flex flex-col p-4">
+<div class="flex flex-col p-5">
 
   <div class="text-black dark:text-white py-2 text-base">
     Create posts without needing to sign transactions or pay gas fees.

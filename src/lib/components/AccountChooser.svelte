@@ -5,7 +5,7 @@
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user';
-    import {getAvatarForProfile} from "../utils";
+    import {getAvatarForLensHandle} from "../utils";
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
     import type {Profile} from '../graph/lens-service';
@@ -68,7 +68,7 @@
               <InlineSVG src={ImageAvatar}
                          class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
             {:else}
-              <img src={getAvatarForProfile(p)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
+              <img src={getAvatarForLensHandle(p.handle)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
                    on:error={() => {avatarError.push(index)}}>
             {/if}
 

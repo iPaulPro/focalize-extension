@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {onMount, createEventDispatcher, onDestroy, tick} from 'svelte';
+    import {onMount, createEventDispatcher, onDestroy} from 'svelte';
     import {debounce} from 'throttle-debounce';
     import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../../../lib/lens-search';
     import Tribute from 'tributejs';

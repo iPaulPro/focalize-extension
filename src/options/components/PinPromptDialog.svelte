@@ -29,7 +29,7 @@
 
 <div class="flex flex-col">
 
-  <div class="w-full px-4 pt-4">
+  <div class="w-full px-5 pt-5">
     <video src={video} class="w-full border" autoplay loop preload="auto"></video>
   </div>
 

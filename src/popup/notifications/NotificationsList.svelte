@@ -63,6 +63,7 @@
     const checkForNewNotifications = async () => {
         const latestNotifications = await getLatestNotifications();
         newNotifications = latestNotifications.notifications;
+        console.log('checkForNewNotifications: newNotifications', newNotifications);
 
         if (scrollElement.scrollTop == 0 && newNotifications.length) {
             await addNewNotifications();

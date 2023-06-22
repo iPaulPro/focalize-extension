@@ -1,5 +1,6 @@
 import type {Notification, Profile} from './graph/lens-service';
 import showdown from 'showdown';
+import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {DateTime} from 'luxon';
@@ -15,6 +16,7 @@ import {
 } from './stores/preferences-store';
 import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
 import {tick} from 'svelte';
+import {z, ZodType} from 'zod';
 
 export const POPUP_MIN_HEIGHT = 330;
 
@@ -25,8 +27,8 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatarForProfile = (profile: Profile, size: number = 128): string => {
-    return `https://cdn.stamp.fyi/avatar/${profile.handle}?s=${size}`;
+export const getAvatarForLensHandle = (handle: string, size: number = 128): string => {
+    return `https://cdn.stamp.fyi/avatar/${handle}?s=${size}`;
 };
 
 export const getAvatarFromAddress = (address: string, size: number = 128): string => {
@@ -45,16 +47,13 @@ export const htmlFromMarkdown = (markdown: string | undefined): string | undefin
 
 export const extractTextFromHtml = (html: string | undefined): string | undefined => {
     if (!html) return undefined;
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-    return doc.body.textContent || '';
+    const $ = cheerio.load(html);
+    return $.text();
 };
 
 export const stripMarkdown = (markdown: string | undefined): string | undefined => {
-    console.log('stripMarkdown', markdown);
     if (!markdown) return undefined;
     const html = htmlFromMarkdown(markdown);
-    console.log('stripMarkdown', html);
     return extractTextFromHtml(html);
 };
 
@@ -99,7 +98,11 @@ export const launchComposerWindow = async (
 
     if (usePopups) {
         const currentWindow = await chrome.windows.getCurrent();
-        const windowRight = currentWindow.left && currentWindow.width ? currentWindow.left + currentWindow.width : 0;
+        console.log('currentWindow', currentWindow);
+        const windowRight =
+            currentWindow.left !== undefined && currentWindow.width !== undefined
+                ? currentWindow.left + currentWindow.width
+                : 0;
         await chrome.windows.create({
             url: url.toString(),
             focused: true,
@@ -383,4 +386,49 @@ export const resizeTextarea = async (textarea: HTMLTextAreaElement) => {
         textarea.style.overflowY = 'hidden';
         textarea.style.height = `${scrollHeight}px`;
     }
+};
+
+const ethereumAddressTest = z.string().refine(value => /^0x[a-fA-F0-9]{40}$/.test(value), {
+    message: 'Invalid Ethereum address',
+});
+
+const domainNameTest = z.string().refine(value => /\.(lens|eth|test)$/.test(value), {
+    message: 'Invalid username',
+});
+
+const inputSchema: ZodType = z.union([ethereumAddressTest, domainNameTest]);
+
+export const validateRecipient = (node: HTMLElement, parameters: any) => {
+    const onValidate: () => void = parameters.onValidate;
+    const onValidated: (valid: boolean) => void = parameters.onValidated;
+    const subject = new Subject<string>();
+
+    subject.pipe(
+        debounceTime(500),
+    ).subscribe(value => {
+        const result = inputSchema.safeParse(value);
+        onValidated(result.success);
+    });
+
+    const handleInput = (event: Event) => {
+        onValidate?.();
+        const input = event.target as HTMLInputElement;
+        subject.next(input.value);
+    };
+
+    node.addEventListener('input', handleInput);
+
+    return {
+        destroy() {
+            node.removeEventListener('input', handleInput);
+            subject.unsubscribe();
+        }
+    };
+};
+
+export const isEthereumAddress = (address: string): boolean => /^0x[a-fA-F0-9]{40}$/.test(address);
+
+export const formatCryptoValue = (num: number): number => {
+    const formattedNum = num.toFixed(8);
+    return parseFloat(formattedNum);
 };

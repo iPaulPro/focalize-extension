@@ -10,9 +10,10 @@
     });
 </script>
 
-<div class="flex flex-col text-black dark:text-white">
+<div class="flex flex-col text-black dark:text-white max-h-screen">
 
-  <div class="flex justify-between items-center {isCompact ? 'py-2 px-4' : 'p-4'} pr-2 border-b border-gray-200 dark:border-gray-600">
+  <div class="flex-none flex justify-between items-center {isCompact ? 'py-2 px-4' : 'py-4 px-5'} pr-3 border-b
+       border-gray-200 dark:border-gray-600">
     <div class="text-lg font-semibold">
       {title}
     </div>
