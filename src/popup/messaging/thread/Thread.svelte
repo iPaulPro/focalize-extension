@@ -206,22 +206,20 @@
 
     <MessagesList {thread} on:newMessage={() => windowBlinker.start(`New message from ${peerName}`, pageTitle)}/>
 
-    <div class="flex flex-none border-t border-surface-200-700-token p-2 items-center">
+    <div class="flex flex-none border-t border-surface-200-700-token p-2 items-center gap-2">
 
-      <div class="flex-grow flex items-center gap-2">
+      <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit} placeholder="Message"/>
 
-        <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit} placeholder="Message"/>
-
-        <button disabled={!text} on:click={onSubmit}
-                class="btn btn-icon variant-filled-primary">
-          <svg class="w-5 h-5 text-white pl-0.5" viewBox="0 96 960 960" fill="currentColor">
-            <path
-                d="M162 878q-15 6-28.5-2.5T120 851V674q0-11 6.5-19t16.5-10l279-69-279-71q-10-2-16.5-10t-6.5-19V301q0-16 13.5-24.5T162 274l652 274q18 8 18 28t-18 28L162 878Z"/>
-          </svg>
-        </button>
-      </div>
+      <button disabled={!text} on:click={onSubmit}
+              class="btn btn-icon variant-filled-primary">
+        <svg class="w-5 h-5 text-white pl-0.5" viewBox="0 96 960 960" fill="currentColor">
+          <path
+              d="M162 878q-15 6-28.5-2.5T120 851V674q0-11 6.5-19t16.5-10l279-69-279-71q-10-2-16.5-10t-6.5-19V301q0-16 13.5-24.5T162 274l652 274q18 8 18 28t-18 28L162 878Z"/>
+        </svg>
+      </button>
 
     </div>
+
   </div>
 
   {#if avatarElement && peerProfile}
@@ -246,21 +244,19 @@
     </div>
 
     {#if newMessagePeer}
-      <div class="flex flex-none border-t border-surface-200-700-token p-2 items-center">
-        <div class="flex-grow flex items-center gap-2">
+      <div class="flex flex-none border-t border-surface-200-700-token p-2 items-center gap-2">
 
-          <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit}
-                             className="!rounded-full" placeholder="Message"/>
+        <MessengerTextarea {text} on:textChanged={onTextChange} on:enterPressed={onSubmit}
+                           className="!rounded-full" placeholder="Message"/>
 
-          <button disabled={!text} on:click={onSubmit}
-                  class="btn btn-icon variant-filled-primary">
-            <svg class="w-5 h-5 text-white pl-0.5" viewBox="0 96 960 960" fill="currentColor">
-              <path
-                  d="M162 878q-15 6-28.5-2.5T120 851V674q0-11 6.5-19t16.5-10l279-69-279-71q-10-2-16.5-10t-6.5-19V301q0-16 13.5-24.5T162 274l652 274q18 8 18 28t-18 28L162 878Z"/>
-            </svg>
-          </button>
+        <button disabled={!text} on:click={onSubmit}
+                class="btn btn-icon variant-filled-primary">
+          <svg class="w-5 h-5 text-white pl-0.5" viewBox="0 96 960 960" fill="currentColor">
+            <path
+                d="M162 878q-15 6-28.5-2.5T120 851V674q0-11 6.5-19t16.5-10l279-69-279-71q-10-2-16.5-10t-6.5-19V301q0-16 13.5-24.5T162 274l652 274q18 8 18 28t-18 28L162 878Z"/>
+          </svg>
+        </button>
 
-        </div>
       </div>
     {/if}
 

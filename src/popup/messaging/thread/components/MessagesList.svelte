@@ -103,10 +103,6 @@
         clearNotification();
     };
 
-    $: {
-        console.log('newMessageTimestamp', newMessagesTimestamp ? DateTime.fromMillis(newMessagesTimestamp).toLocaleString(DateTime.TIME_SIMPLE) : 'undefined');
-    }
-
     onMount(async () => {
         window.addEventListener('focus', onFocus);
         window.addEventListener('blur', onBlur);

@@ -10,6 +10,7 @@
     export let placeholder: string = '';
 
     const dispatch = createEventDispatcher();
+
     let textarea: HTMLTextAreaElement | undefined;
 
     const focusTextArea = () => {
@@ -54,15 +55,17 @@
         }
     };
 
-    $: if (text === '') {
-        resizeTextarea().catch(() => {});
+    $: if (textarea && !text?.length) {
+        resizeTextarea(textarea).catch(() => {});
     }
 
     onMount(async () => {
         window.addEventListener('focus', focusHandler);
 
-        await resizeTextarea();
-        focusTextArea();
+        if (textarea) {
+            await resizeTextarea(textarea);
+            focusTextArea();
+        }
     });
 
     onDestroy(() => {
