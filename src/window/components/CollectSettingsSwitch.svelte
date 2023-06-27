@@ -1,7 +1,8 @@
 <script lang="ts">
-    import {collectSettings, type CollectSettings} from '../../lib/stores/state-store';
+    import {collectSettings} from '../../lib/stores/state-store';
     import {onMount} from 'svelte';
     import type {Writable} from 'svelte/store';
+    import type {CollectSettings} from '../../lib/collect-settings';
 
     export let id: string;
     export let className: string = undefined;

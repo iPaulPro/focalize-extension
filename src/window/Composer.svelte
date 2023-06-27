@@ -22,7 +22,6 @@
         attachments,
         author,
         clearPostState,
-        type CollectSettings,
         collectSettings,
         content,
         cover,
@@ -81,6 +80,7 @@
     import {DateTime} from 'luxon';
     import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
     import {launchComposerWindow} from '../lib/utils.js';
+    import type {CollectSettings} from '../lib/collect-settings';
 
     /**
      * Bound to the tag component
@@ -98,7 +98,7 @@
     let isSubmittingPost = false;
     let isFileDragged = false;
     let collectSettingsDialog: HTMLDialogElement;
-    let showFeeCollectDialog = false;
+    let showCollectDialog = false;
     let gifSelectionDialog: HTMLDialogElement;
     let enableDispatcherDialog: HTMLDialogElement;
     let postDraftsDialog: HTMLDialogElement;
@@ -158,15 +158,15 @@
         currentTabData = getCurrentTabData();
     };
 
-    const showCollectFeesDialog = async () => {
-        showFeeCollectDialog = true;
+    const showCollectSettingsDialog = async () => {
+        showCollectDialog = true;
         await tick();
         collectSettingsDialog?.showModal();
     };
 
     const onCollectSettingsDialogDone = (e) => {
         collectSettingsDialog?.close();
-        showFeeCollectDialog = false;
+        showCollectDialog = false;
     };
 
     const showGifSelectionDialog = async () => {
@@ -321,12 +321,16 @@
         let text = getCollectPrice(settings);
         console.log('getCollectString', settings, text);
 
+        const getTimed = () => settings.durationInHours > 0
+            ? `${settings.durationInHours} hours`
+            : DateTime.fromISO(settings.endDate).toLocaleString(DateTime.DATETIME_SHORT)
+
         if (settings.limit) {
             edition = settings.limit === 1 ? 'Edition' : 'Editions';
-            subtext = `${settings.limit} ${edition}` + (settings.timed ? ', 24 hours' : '');
+            subtext = `${settings.limit} ${edition}` + (settings.timed ? `, ${getTimed()}` : '');
         } else
             if (settings.timed) {
-            subtext = '24 hours'
+            subtext = getTimed();
         }
 
         if (!text) {
@@ -684,7 +688,7 @@
 
             </Select>
 
-            <button type="button" on:click={showCollectFeesDialog}
+            <button type="button" on:click={showCollectSettingsDialog}
                     class="py-3 px-4 text-orange-700 flex items-center gap-2
                     dark:text-orange-200 font-semibold sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
 
@@ -915,7 +919,7 @@
 
 </main>
 
-{#if showFeeCollectDialog}
+{#if showCollectDialog}
   <dialog id="collectFees" bind:this={collectSettingsDialog}
           class="w-2/3 max-w-lg rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600
           p-0 overflow-hidden max-h-screen">

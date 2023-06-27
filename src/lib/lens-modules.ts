@@ -11,7 +11,8 @@ import {PublicationContentWarning} from "./graph/lens-service";
 
 import gqlClient from "./graph/graphql-client";
 import {DateTime} from "luxon";
-import type {CollectSettings} from "./stores/state-store";
+
+import type {CollectSettings} from './collect-settings';
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 
@@ -95,20 +96,6 @@ export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
     return enabledModuleCurrencies;
 };
 
-export const isMultirecipientFeeCollectModuleParams = (
-    params: SimpleMultiModuleParams
-): params is MultirecipientFeeCollectModuleParams => params && 'recipients' in params;
-
-export const getCollectModuleParams = (
-    params: SimpleMultiModuleParams
-): CollectModuleParams => {
-    if (isMultirecipientFeeCollectModuleParams(params)) {
-        return {multirecipientFeeCollectModule: params};
-    }
-
-    return {simpleCollectModule: params}
-}
-
 export const collectSettingsToModuleParams = (
     address: string,
     collectSettings: CollectSettings,
@@ -124,6 +111,15 @@ export const collectSettingsToModuleParams = (
     if (!collectSettings.isCollectible) {
         return REVERT_COLLECT_MODULE;
     }
+
+    const getEndTimestamp = (): string | null => {
+        if (collectSettings.durationInHours && collectSettings.durationInHours > 0) {
+            return DateTime.utc().plus({hours: collectSettings.durationInHours}).toISO();
+        } else if (collectSettings.endDate && DateTime.fromISO(collectSettings.endDate).isValid) {
+            return collectSettings.endDate;
+        }
+        return null;
+    };
 
     if (collectSettings.price && collectSettings.token) {
         const amount: ModuleFeeAmountParams = {
@@ -174,7 +170,7 @@ export const collectSettingsToModuleParams = (
         }
 
         if (collectSettings.timed) {
-            multirecipientFeeCollectModule.endTimestamp = DateTime.utc().plus({days: 1}).toISO();
+            multirecipientFeeCollectModule.endTimestamp = getEndTimestamp();
         }
 
         return {multirecipientFeeCollectModule};
@@ -189,7 +185,7 @@ export const collectSettingsToModuleParams = (
     }
 
     if (collectSettings.timed) {
-        simpleCollectModule.endTimestamp = DateTime.utc().plus({days: 1}).toISO();
+        simpleCollectModule.endTimestamp = getEndTimestamp();
     }
 
     return {simpleCollectModule};

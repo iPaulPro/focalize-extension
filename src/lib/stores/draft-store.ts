@@ -2,8 +2,8 @@ import {v4 as uuid} from 'uuid';
 import {DateTime} from 'luxon';
 
 import {readable} from "svelte/store";
-import type {CollectSettings} from './state-store';
 import type {PublicationMetadataMediaInput} from '../graph/lens-service';
+import type {CollectSettings} from '../collect-settings';
 
 export type PostDraft = {
     id?: string,
@@ -25,7 +25,7 @@ const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
 }
 
 export const postDrafts = readable<Map<string, PostDraft>>(new Map(), set => {
-    const listener = (changes: { [p: string]: chrome.storage.StorageChange }, areaName: "local" | "sync" | "managed" | "session") => {
+    const listener = (changes: { [p: string]: chrome.storage.StorageChange }) => {
         if (changes.postDrafts) {
             set(new Map(JSON.parse(changes.postDrafts.newValue)));
         }

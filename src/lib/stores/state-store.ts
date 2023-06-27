@@ -1,8 +1,9 @@
 import type {Writable} from 'svelte/store';
 import {writable} from 'svelte/store';
-import type {Erc20, PublicationMetadataMediaInput} from "../graph/lens-service";
-import type {PostDraft} from "./draft-store";
-import type {Web3File} from "../ipfs-service";
+import type {PublicationMetadataMediaInput} from '../graph/lens-service';
+import type {PostDraft} from './draft-store';
+import type {Web3File} from '../ipfs-service';
+import type {CollectSettings} from '../collect-settings';
 
 export interface Recipient {
     address: string;
@@ -11,17 +12,6 @@ export interface Recipient {
         lens?: string;
         ens?: string;
     }
-}
-
-export interface CollectSettings {
-    isCollectible?: boolean;
-    price?: number;
-    token?: Erc20;
-    limit?: number;
-    referralFee?: number;
-    followerOnly?: boolean;
-    timed?: boolean;
-    recipients?: Recipient[];
 }
 
 export enum PublicationState {

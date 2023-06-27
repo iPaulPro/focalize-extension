@@ -4,8 +4,9 @@
     import {z} from 'zod';
     import {debounce} from 'throttle-debounce';
     import {createEventDispatcher} from 'svelte';
-    import {type CollectSettings, collectSettings, type Recipient} from '../../lib/stores/state-store';
+    import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {derived, type Readable} from 'svelte/store';
+    import type {CollectSettings} from '../../lib/collect-settings';
 
     const dispatch = createEventDispatcher();
 

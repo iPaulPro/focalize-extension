@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {createEventDispatcher, onMount, tick} from 'svelte';
-    import {z} from 'zod';
+    import {z, ZodError} from 'zod';
 
     import {getEnabledModuleCurrencies} from '../../lib/lens-modules';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
@@ -17,6 +17,7 @@
     import CollectFeeSplitInput from './CollectFeeSplitInput.svelte';
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
+    import {DateTime} from 'luxon';
 
     export let isCompact: boolean = false;
 
@@ -30,6 +31,8 @@
     let splitRevenue: Writable<boolean> = writable();
     let addingRecipient: boolean = false;
     let splitEvenly: boolean = true;
+    let endDateValue: string;
+    let endTimeValue: string;
 
     const priceSchema = z.number({
         required_error: 'Price is not set',
@@ -47,6 +50,11 @@
         invalid_type_error: 'Limit must be a number',
     }).positive('Limit must be greater than zero');
 
+    const timeSchema = z.date({
+        required_error: 'Date is not set',
+        invalid_type_error: 'Date must be a valid date',
+    }).min(new Date(), 'End time must be in the future');
+
     let currencies: Erc20[];
     let token: Erc20;
 
@@ -54,8 +62,9 @@
     let limitError: string;
     let referralError: string;
     let splitError: string;
+    let timeError: string;
 
-    const validatePrice = (price: number): number => {
+    const validatePrice = (price: number): number | null => {
         try {
             priceSchema.parse(price);
             priceError = null;
@@ -74,7 +83,7 @@
         }
     };
 
-    const validateReferral = (referral: number) => {
+    const validateReferral = (referral: number): number | null => {
         console.log('validateReferral', referral, 'hasReferralFee', $hasReferralFee);
         try {
             referralSchema.parse(referral);
@@ -91,7 +100,7 @@
         validateReferral(Number(value));
     };
 
-    const validateLimit = (limit: number) => {
+    const validateLimit = (limit: number): number | null => {
         console.log('validateLimit', limit, 'isLimited', $isLimited);
         try {
             limitSchema.parse(limit);
@@ -103,11 +112,21 @@
         return null;
     };
 
+    const validateTime = (isoTime: string): string | null => {
+        console.log('validateTime', isoTime, 'timed', $collectSettings.timed);
+        try {
+            const date = new Date(isoTime);
+            timeSchema.parse(date);
+            timeError = null;
+            return isoTime;
+        } catch (e) {
+            timeError = e.issues?.[0]?.message ?? 'Invalid date';
+        }
+        return null;
+    };
+
     const onDoneClick = async () => {
         console.log('onDoneClick', $collectSettings);
-
-        if (!$collectSettings) return;
-
         dispatch('done');
     };
 
@@ -189,6 +208,22 @@
         }
     }
 
+    $: if ($collectSettings.timed === false) {
+        $collectSettings.durationInHours = 24;
+        $collectSettings.endDate = undefined;
+    } else if ($collectSettings.durationInHours === 0) {
+        if (endDateValue && endTimeValue) {
+            const iso = `${endDateValue}T${endTimeValue}`;
+            const dateTime = DateTime.fromISO(iso).toISO(); // add timezone offset
+            $collectSettings.endDate = validateTime(dateTime);
+        }
+    } else {
+        if (!$collectSettings.durationInHours) {
+            $collectSettings.durationInHours = 24;
+        }
+        timeError = null;
+    }
+
     $: if ($collectSettings.recipients) {
         const total = $collectSettings.recipients?.filter((recipient: Recipient) => recipient.split)
             .reduce((acc: number, recipient: Recipient) => acc + recipient.split, 0) ?? 0;
@@ -203,13 +238,20 @@
     $: recipientsAtCapacity = $collectSettings.recipients?.length === 4;
 
     onMount(async () => {
-        console.log('onMount', $collectSettings);
         $isPaid = $collectSettings.price !== undefined;
         $isLimited = $collectSettings.limit !== undefined;
         $hasReferralFee = $collectSettings.referralFee !== undefined;
         $splitRevenue = $collectSettings.recipients?.length > 0;
 
         currencies = await getEnabledModuleCurrencies();
+
+        console.log('onMount', $collectSettings);
+        if ($collectSettings.endDate) {
+            const endDate = DateTime.fromISO($collectSettings.endDate);
+            endDateValue = endDate.toISODate();
+            endTimeValue = endDate.toISOTime({ includeOffset: false, suppressMilliseconds: true });
+            console.log('onMount: endDateValue', endDateValue, 'endTimeValue', endTimeValue);
+        }
     });
 </script>
 
@@ -367,7 +409,7 @@
 
                 {#if $splitRevenue}
 
-                  <div class="pl-6 flex flex-col gap-1.5" in:slide>
+                  <div class="pl-6 flex flex-col gap-1.5" transition:slide>
 
                     {#each $collectSettings.recipients as recipient, index}
 
@@ -386,7 +428,7 @@
                                })}>
                               {recipient.identity?.lens ?? recipient.identity?.ens ?? truncateAddress(recipient.address)}
                             </div>
-                            {#if recipient.split && $collectSettings.token}
+                            {#if $collectSettings.price && recipient.split && $collectSettings.token}
                               <div class="text-xs text-gray-500 dark:text-gray-400">
                                 {formatCryptoValue($collectSettings.price * (recipient.split / 100))} ${$collectSettings.token.symbol}
                               </div>
@@ -578,7 +620,7 @@
             {/if}
           </div><!-- #collectLimit -->
 
-          <div id="timed" class="flex items-center gap-6" in:slide>
+          <div id="timed" class="flex items-center gap-6 justify-between" in:slide>
             <CollectSettingsSwitch settingsKey="timed" id="collectTimedToggle">
               <div slot="icon" class="w-full h-full">
                 <svg viewBox="0 0 24 24" fill="none" class="w-full h-full"
@@ -591,9 +633,63 @@
                 Limited time
               </div>
             </CollectSettingsSwitch>
+
+            {#if $collectSettings.timed}
+              <div class="flex gap-2 items-center">
+                {#if timeError}
+                  <svg class="w-5 h-5 text-red-600 cursor-help" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       use:tippy={{
+                         content: timeError,
+                         appendTo: 'parent',
+                       }}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                {/if}
+
+                <select id="timedType"
+                        bind:value={$collectSettings.durationInHours}
+                        class="text-center rounded-xl dark:bg-gray-800 cursor-pointer
+                        text-base font-medium text-gray-900 dark:text-gray-100
+                        focus:border-orange-500 focus:ring-orange-500
+                        {timeError ? 'border-red-600' : 'border-gray-300 dark:border-gray-600'}">
+                  <option value={0}>Custom</option>
+                  <option value={1}>1 hour</option>
+                  <option value={6}>6 hours</option>
+                  <option value={24}>1 day</option>
+                  <option value={72}>3 days</option>
+                  <option value={168}>7 days</option>
+                </select>
+              </div>
+            {/if}
+
           </div><!-- #timed -->
 
-          <div id="follower-only" class="flex items-center gap-6" in:slide>
+          {#if $collectSettings.durationInHours === 0}
+            <div class="flex gap-2 justify-end pb-2 pt-0.5 items-center" transition:slide>
+              <div class="opacity-60">
+                Sale ends
+              </div>
+
+              <label class="text-gray-700" for="date">
+                <input id="date" type="date" bind:value={endDateValue}
+                       class="px-3 py-2 text-[0.925rem] font-semibold text-gray-900 dark:text-gray-100
+                       dark:bg-gray-800 placeholder-gray-400 rounded-xl appearance-none
+                       border border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"/>
+              </label>
+
+              <label class="text-gray-700" for="time">
+                <input id="time" type="time" step="60" bind:value={endTimeValue}
+                       class="px-3 py-2 text-[0.925rem] font-semibold text-gray-900 dark:text-gray-100 dark:bg-gray-800
+                       placeholder-gray-400 rounded-xl appearance-none
+                       border border-gray-300 dark:border-gray-600 focus:border-orange-500 focus:ring-orange-500"/>
+              </label>
+            </div>
+          {/if}
+
+          <div id="follower-only" class="flex items-center gap-6">
             <CollectSettingsSwitch settingsKey="followerOnly" id="followerOnlyToggle">
               <div slot="icon" class="w-full h-full">
                 <svg viewBox="0 0 24 24" fill="none" class="w-full h-full"
@@ -635,7 +731,7 @@
       {/if}
     </div>
     <button type="button" on:click={onDoneClick}
-            disabled={priceError || referralError || limitError || splitError}
+            disabled={priceError || referralError || limitError || splitError || timeError}
             class="w-auto py-1.5 px-8 flex justify-center items-center
               bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
               dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600

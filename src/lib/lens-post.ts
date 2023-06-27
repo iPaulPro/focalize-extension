@@ -273,12 +273,6 @@ export const submitPost = async (
     const contentURI = `ipfs://${metadataCid}`;
     console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
 
-    if (collectModule.multirecipientFeeCollectModule?.endTimestamp) {
-        // Ensure the 24 hours starts from now, as the existing timestamp may be old
-        // TODO remove when custom end times are supported
-        collectModule.multirecipientFeeCollectModule.endTimestamp = DateTime.utc().plus({days:1}).toISO();
-    }
-
     // At this point we know the metadata is valid and available on IPFS, so show optimistic completion
     publicationState.set(PublicationState.SUBMITTED);
 
