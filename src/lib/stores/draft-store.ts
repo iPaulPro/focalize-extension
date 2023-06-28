@@ -1,20 +1,8 @@
 import {v4 as uuid} from 'uuid';
 import {DateTime} from 'luxon';
 
-import {readable} from "svelte/store";
-import type {PublicationMetadataMediaInput} from '../graph/lens-service';
-import type {CollectSettings} from '../collect-settings';
-
-export type PostDraft = {
-    id?: string,
-    title?: string,
-    content?: string,
-    description?: string,
-    attachments?: PublicationMetadataMediaInput[],
-    author?: string,
-    collectFee?: CollectSettings,
-    timestamp?: number,
-};
+import {readable} from 'svelte/store';
+import type {PostDraft} from '../post-draft';
 
 const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
     const storage = await chrome.storage.local.get('postDrafts');

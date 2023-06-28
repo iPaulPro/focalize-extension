@@ -1,9 +1,9 @@
 import type {Writable} from 'svelte/store';
 import {writable} from 'svelte/store';
 import type {PublicationMetadataMediaInput} from '../graph/lens-service';
-import type {PostDraft} from './draft-store';
 import type {Web3File} from '../ipfs-service';
 import type {CollectSettings} from '../collect-settings';
+import type {PostDraft} from '../post-draft';
 
 export interface Recipient {
     address: string;

@@ -4,10 +4,10 @@
     import {postDrafts} from "../stores/draft-store";
     import AutoRelativeTimeView from "./AutoRelativeTimeView.svelte";
 
-    import type {PostDraft} from "../stores/draft-store";
     import {draftId} from '../stores/state-store';
     import PostDraftMenu from "./PostDraftMenu.svelte";
     import {createEventDispatcher} from "svelte";
+    import type {PostDraft} from '../post-draft';
 
     const dispatch = createEventDispatcher();
 
@@ -23,7 +23,7 @@
 
   <div class="grow flex flex-col divider overflow-y-auto max-h-96">
 
-    {#each items as item}
+    {#each items as item (item.id)}
       {@const hasTopLine = item.title || item.content}
 
       <div class="flex shrink-0 h-24 pl-4 pr-1 items-center border-b border-gray-200 dark:border-gray-700

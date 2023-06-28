@@ -67,7 +67,6 @@
     import GifSelectionDialog from './components/GifSelectionDialog.svelte';
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte';
     import {ensureUser, type User} from '../lib/user';
-    import type {PostDraft} from '../lib/stores/draft-store';
     import {getDraft, postDrafts, saveDraft} from '../lib/stores/draft-store';
 
     import {Subject} from 'rxjs';
@@ -81,6 +80,7 @@
     import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
     import {launchComposerWindow} from '../lib/utils.js';
     import type {CollectSettings} from '../lib/collect-settings';
+    import type {PostDraft} from '../lib/post-draft';
 
     /**
      * Bound to the tag component

@@ -161,7 +161,7 @@
     {#if threads.length > 0}
       <ul bind:this={listElement}
           class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-        {#each threads as thread}
+        {#each threads as thread (thread.conversation.topic)}
           <ThreadItem {thread} on:select={onThreadSelected}/>
         {/each}
       </ul>

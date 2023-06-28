@@ -125,7 +125,7 @@
     </div>
   </InfiniteLoading>
 
-  {#each messages as message, i}
+  {#each messages as message, i (message.id)}
 
     {@const previousMessage = messages[i - 1]}
 
