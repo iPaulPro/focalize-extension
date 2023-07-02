@@ -31,8 +31,8 @@
        hover:bg-orange-300 dark:hover:bg-gray-800">
 
     <span class="inline-block w-max flex flex-col pl-2 pr-4">
-      <span class="text-sm transition-none"><span class="font-semibold">Seamless</span> <span class="opacity-60">(no popups)</span></span>
-      <span class="pt-1 text-xs whitespace-pre-line transition-none">Post without signing or paying gas</span>
+      <span class="text-sm"><span class="font-semibold">Seamless</span> <span class="opacity-60">(no popups)</span></span>
+      <span class="pt-1 text-xs whitespace-pre-line">Post without signing or paying gas</span>
     </span>
 
     {#if $useDispatcher}
@@ -45,8 +45,8 @@
        hover:bg-orange-300 dark:hover:bg-gray-800">
 
     <span class="inline-blockw-max flex flex-col pl-2 pr-4">
-      <span class="font-semibold text-sm transition-none">Self-sign</span>
-      <span class="pt-1 text-xs whitespace-pre-line transition-none">Post for free but sign your transactions</span>
+      <span class="font-semibold text-sm">Self-sign</span>
+      <span class="pt-1 text-xs whitespace-pre-line">Post for free but sign your transactions</span>
     </span>
 
     {#if $useRelay && !$useDispatcher}
@@ -59,8 +59,8 @@
        hover:bg-orange-300 dark:hover:bg-gray-800">
 
     <span class="inline-blockw-max flex flex-col pl-2 pr-4">
-      <span class="font-semibold text-sm transition-none">Paid</span>
-      <span class="pt-1 text-xs whitespace-pre-line transition-none">Pay for your own gas</span>
+      <span class="font-semibold text-sm">Paid</span>
+      <span class="pt-1 text-xs whitespace-pre-line">Pay for your own gas</span>
     </span>
 
     {#if !$useDispatcher && !$useRelay}

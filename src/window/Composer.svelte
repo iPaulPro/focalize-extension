@@ -4,7 +4,7 @@
     import {ensureCorrectChain} from '../lib/ethers-service';
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
 
-    import type {SelectItem} from '../lib/lens-modules';
+    import type {SelectOption} from '../lib/lens-modules';
     import {collectSettingsToModuleParams, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,} from '../lib/lens-modules';
 
     import {
@@ -79,8 +79,8 @@
     import {DateTime} from 'luxon';
     import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
     import {launchComposerWindow} from '../lib/utils.js';
-    import type {CollectSettings} from '../lib/collect-settings';
     import type {PostDraft} from '../lib/post-draft';
+    import CollectMetadata from './components/CollectMetadata.svelte';
 
     /**
      * Bound to the tag component
@@ -92,7 +92,7 @@
     let mainFocus: PublicationMainFocus;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
-    let referenceItem: SelectItem<ReferenceModules> = REFERENCE_ITEMS[0];
+    let referenceItem: SelectOption<ReferenceModules> = REFERENCE_ITEMS[0];
 
     let postId: string;
     let isSubmittingPost = false;
@@ -127,8 +127,7 @@
         url: string,
         icon: string,
     } | undefined => {
-        const queryString = window.location.search;
-        const urlParams = getSearchParamsMap(queryString);
+        const urlParams = getSearchParams();
 
         const title = urlParams.title;
         const desc = urlParams.desc;
@@ -141,7 +140,7 @@
             url,
             icon
         } : undefined;
-    }
+    };
 
     const parseSearchParams = () => {
         const urlParams = getSearchParams();
@@ -172,7 +171,7 @@
     const showGifSelectionDialog = async () => {
         gifSelectionDialog?.showModal();
         onGifDialogShown();
-    }
+    };
 
     const buildMetadata = (): PublicationMetadataV2Input => {
         if (!$currentUser) throw new Error('No user found');
@@ -197,7 +196,7 @@
         }
 
         if ($cover) {
-            $attachments[0].cover = `ipfs://${$cover.cid}`
+            $attachments[0].cover = `ipfs://${$cover.cid}`;
         }
 
         const tags = getTags().length === 0 ? null : getTags();
@@ -308,43 +307,6 @@
         }
     };
 
-    const getCollectPrice = (settings: CollectSettings): string | undefined => {
-        if (!settings?.price) return 'Free collect';
-        return settings.price + ' $' + settings.token?.symbol;
-    };
-
-    const getCollectString = (settings: CollectSettings): string | undefined => {
-        if (!settings || !settings.isCollectible) return null;
-
-        let subtext: string, edition: string;
-
-        let text = getCollectPrice(settings);
-        console.log('getCollectString', settings, text);
-
-        const getTimed = () => settings.durationInHours > 0
-            ? `${settings.durationInHours} hours`
-            : DateTime.fromISO(settings.endDate).toLocaleString(DateTime.DATETIME_SHORT)
-
-        if (settings.limit) {
-            edition = settings.limit === 1 ? 'Edition' : 'Editions';
-            subtext = `${settings.limit} ${edition}` + (settings.timed ? `, ${getTimed()}` : '');
-        } else
-            if (settings.timed) {
-            subtext = getTimed();
-        }
-
-        if (!text) {
-            text = subtext;
-        } else if (subtext) {
-            text += ', ' + subtext;
-        }
-        return text;
-    }
-
-    $: collectFeeString = getCollectString($collectSettings);
-
-    $: collectPrice = getCollectPrice($collectSettings);
-
     const setAttachment = (f: File) => {
         if (f.type === 'image/heic') {
             toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.', {duration: 5000});
@@ -396,7 +358,7 @@
     };
 
     const onDispatcherDialogClosed = () => {
-        $dispatcherDialogShown = true
+        $dispatcherDialogShown = true;
 
         if ($currentUser?.canUseRelay === false) {
             $useDispatcher = false;
@@ -495,16 +457,16 @@
         } else if ($draftId) {
             $draftId = $draftId;
         }
-    }
+    };
 
     const openInNewTab = async () => {
         await ensureDraft();
-        await launchComposerTab($draftId)
+        await launchComposerTab($draftId);
     };
 
     const openInPopupWindow = async () => {
         await ensureDraft();
-        await launchComposerWindow(null, $draftId)
+        await launchComposerWindow(null, $draftId);
     };
 
     $: if ($draftId !== postDraft?.id) {
@@ -549,7 +511,7 @@
   {#if (postMetaData && $publicationState && $publicationState !== PublicationState.ERROR) || postId}
 
     <div bind:this={contentDiv} bind:offsetHeight={contentDivHeight}>
-      <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId} />
+      <PostPreview currentUser={$currentUser} publicationState={$publicationState} {postMetaData} {postId}/>
     </div>
 
   {:else}
@@ -576,7 +538,8 @@
               </svg>
             </button>
           {:else if isPopupWindow === false}
-            <button type="button" on:click={openInPopupWindow} use:tippy={({delay: 400, content: 'Open in a popup window'})}
+            <button type="button" on:click={openInPopupWindow}
+                    use:tippy={({delay: 400, content: 'Open in a popup window'})}
                     class="absolute right-6 top-10 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
               <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
@@ -603,7 +566,8 @@
 
               <div class="flex flex-col truncate">
                 <div class="flex justify-between items-end gap-24">
-                  <div class="flex gap-0.5 text-orange-600 dark:text-orange-200 transition-none font-semibold items-center">
+                  <div
+                      class="flex gap-0.5 text-orange-600 dark:text-orange-200 font-semibold items-center">
                     <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -625,11 +589,11 @@
                   {#if currentTabData.icon}
                     <img src={currentTabData.icon} alt="Favicon" class="h-4">
                   {/if}
-                  <span class="transition-none truncate">{currentTabData.title}</span>
+                  <span class="truncate">{currentTabData.title}</span>
                 </div>
 
                 {#if currentTabData.desc}
-                  <div class="opacity-60 transition-none pr-4 truncate whitespace-pre-wrap">
+                  <div class="opacity-60 pr-4 truncate whitespace-pre-wrap">
                     {currentTabData.desc}
                   </div>
                 {/if}
@@ -639,13 +603,31 @@
 
           {/if}
 
-          {#if isMediaPostType || $file}
-            <MediaUploader isCollectable={$collectSettings.isCollectible} {collectPrice}/>
+          {#if $collectSettings.isCollectible || isMediaPostType || $file}
+
+            <div class="flex w-full justify-center px-4 pt-6 pb-4 bg-gray-100 dark:bg-gray-700 rounded-xl shadow">
+
+              {#if isMediaPostType || $file}
+                <div class="{$collectSettings.isCollectible ? 'w-1/2' : 'w-full'}">
+                  <MediaUploader isCollectable={$collectSettings.isCollectible}/>
+                </div>
+              {/if}
+
+              {#if $collectSettings.isCollectible}
+                <div class:px-16={!isMediaPostType && !$file}
+                     class="w-1/2 grow">
+                  <CollectMetadata on:settingsClick={showCollectSettingsDialog}/>
+                </div>
+              {/if}
+
+            </div>
+
           {/if}
 
-          <div class="flex flex-wrap gap-4 ml-[4.5rem]
+          <div class="flex flex-wrap gap-6 ml-[4.5rem]
                {isPopupWindow ? 'pt-2' : 'pt-3'}
-               {isMediaPostType || currentTabData ? '' : 'border-t border-t-gray-200 dark:border-t-gray-700'}">
+               {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
+                  : 'border-t border-t-gray-200 dark:border-t-gray-700'}">
 
             <Select bind:value={referenceItem}
                     items={REFERENCE_ITEMS}
@@ -672,11 +654,11 @@
                     focus:!outline-none !focus:ring-0 focus:!border-none !bg-none">
 
               <div slot="item" let:item let:index>
-                <ModuleChoiceItem {item} />
+                <ModuleChoiceItem {item}/>
               </div>
 
               <div slot="selection" let:selection class="flex cursor-pointer">
-                <ModuleSelectionItem {selection} />
+                <ModuleSelectionItem {selection}/>
               </div>
 
               <div slot="chevron-icon">
@@ -698,7 +680,7 @@
               </svg>
 
               <span class="pl-1">
-                {$collectSettings.isCollectible ? collectFeeString : 'Create a digital collectible'}
+                {$collectSettings.isCollectible ? 'Edit collect settings' : 'Create a digital collectible'}
               </span>
 
               <svg class="w-4 h-4 inline" viewBox="0 0 24 24" fill="none"
@@ -739,7 +721,8 @@
                       !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
                 <div slot="prepend" class="pr-1">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
-                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                       fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                       stroke-linejoin="round">
                     <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
                     <line x1="4" y1="22" x2="4" y2="15"/>
                   </svg>
@@ -821,9 +804,10 @@
             <button type="button" on:click={() => postDraftsDialog.showModal()}
                     class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
               {#if postDraft}
-                <span use:tippy={({delay: 500, content: DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.DATETIME_MED)})}>
+                <span
+                    use:tippy={({delay: 500, content: DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.DATETIME_MED)})}>
                   Draft saved
-                  <AutoRelativeTimeView timestamp={postDraft.timestamp} className="transition-none" suffix={true} />
+                  <AutoRelativeTimeView timestamp={postDraft.timestamp} suffix={true}/>
                 </span>
               {:else if $postDrafts.size > 0}
                 View all drafts ({[...$postDrafts.values()].length})
@@ -833,7 +817,7 @@
             <div class="flex items-stretch {isPopupWindow ? 'py-2' : 'py-4'}">
 
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
-                    class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
+                      class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
                     rounded-l-full w-auto bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -872,8 +856,8 @@
                 {/if}
               </button>
 
-            <button type="button" disabled={!submitEnabled}
-                    class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
+              <button type="button" disabled={!submitEnabled}
+                      class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
                     border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
                     bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
@@ -941,7 +925,7 @@
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
   <DialogOuter title="Enable Dispatcher">
-    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()} />
+    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()}/>
   </DialogOuter>
 </dialog>
 
@@ -949,9 +933,9 @@
         class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
         dark:border-gray-600 overflow-hidden"
         on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
-  <DialogOuter title="Post drafts" >
+  <DialogOuter title="Post drafts">
     <PostDraftsList on:dismiss={() => postDraftsDialog.close()}/>
   </DialogOuter>
 </dialog>
 
-<Toaster />
+<Toaster/>

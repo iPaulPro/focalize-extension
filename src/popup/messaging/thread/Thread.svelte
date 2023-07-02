@@ -73,7 +73,7 @@
             }
 
             try {
-                thread = await newThread(newMessagePeer, text);
+                thread = await newThread(newMessagePeer);
                 console.log('onSubmit: started new thread', thread);
             } catch (e) {
                 console.error('onSubmit: Error starting new thread', e);

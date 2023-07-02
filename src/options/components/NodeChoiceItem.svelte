@@ -34,8 +34,8 @@
   {/if}
 
   <div class="w-max flex flex-col pl-4 pr-8">
-    <div class="font-semibold text-sm transition-none">{item.name}</div>
-    <div class="pt-1 text-xs whitespace-pre-line transition-none">{item.baseUrl}</div>
+    <div class="font-semibold text-sm">{item.name}</div>
+    <div class="pt-1 text-xs whitespace-pre-line">{item.baseUrl}</div>
   </div>
 </div>
 

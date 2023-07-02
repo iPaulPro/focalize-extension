@@ -1,4 +1,4 @@
-import type {Notification, Profile} from './graph/lens-service';
+import type {Notification} from './graph/lens-service';
 import showdown from 'showdown';
 import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
@@ -356,10 +356,9 @@ export const clearBadge = async () => {
     await chrome.action.setTitle({title: 'Focalize'});
 };
 
-export const getSearchParams = () => {
+export const getSearchParams = (): Record<string, string> => {
     const queryString = window.location.search;
-    const urlParams = getSearchParamsMap(queryString);
-    return urlParams;
+    return getSearchParamsMap(queryString);
 };
 
 export const isPopup = async (): Promise<boolean> => {

@@ -37,8 +37,8 @@
   </div>
 
   <div class="w-max flex flex-col pl-4 pr-2">
-    <div class="font-semibold text-sm transition-none">{item.label}</div>
-    <div class="pt-1 text-xs whitespace-pre-line transition-none">{item.summary}</div>
+    <div class="font-semibold text-sm">{item.label}</div>
+    <div class="pt-1 text-xs whitespace-pre-line">{item.summary}</div>
   </div>
 
   {#if item.btn}

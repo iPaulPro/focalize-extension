@@ -2,9 +2,9 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {createEventDispatcher, onMount, tick} from 'svelte';
-    import {z, ZodError} from 'zod';
+    import {z} from 'zod';
 
-    import {getEnabledModuleCurrencies} from '../../lib/lens-modules';
+    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/lens-modules';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
 
     import type {Erc20, RecipientDataInput} from '../../lib/graph/lens-service';
@@ -174,6 +174,10 @@
 
     $: if ($isPaid === false) {
         $collectSettings.price = undefined;
+        $collectSettings.referralFee = undefined;
+        $collectSettings.recipients = undefined;
+        $hasReferralFee = false;
+        $splitRevenue = false;
         priceError = null;
     } else {
         validatePrice($collectSettings.price);
@@ -208,20 +212,16 @@
         }
     }
 
-    $: if ($collectSettings.timed === false) {
+    $: if ($collectSettings.timed && $collectSettings.durationInHours === undefined) {
         $collectSettings.durationInHours = 24;
-        $collectSettings.endDate = undefined;
-    } else if ($collectSettings.durationInHours === 0) {
-        if (endDateValue && endTimeValue) {
-            const iso = `${endDateValue}T${endTimeValue}`;
-            const dateTime = DateTime.fromISO(iso).toISO(); // add timezone offset
-            $collectSettings.endDate = validateTime(dateTime);
-        }
-    } else {
-        if (!$collectSettings.durationInHours) {
-            $collectSettings.durationInHours = 24;
-        }
+    } else if ($collectSettings.timed === false) {
         timeError = null;
+        $collectSettings.durationInHours = undefined;
+        $collectSettings.endDate = undefined;
+    } else if ($collectSettings.durationInHours === 0 && (endDateValue && endTimeValue)) {
+        const iso = `${endDateValue}T${endTimeValue}`;
+        const dateTime = DateTime.fromISO(iso).toISO(); // add timezone offset
+        $collectSettings.endDate = validateTime(dateTime);
     }
 
     $: if ($collectSettings.recipients) {
@@ -236,6 +236,10 @@
     }
 
     $: recipientsAtCapacity = $collectSettings.recipients?.length === 4;
+
+    $: if (isPaid && !$collectSettings.token && currencies?.length) {
+        $collectSettings.token = currencies[0];
+    }
 
     onMount(async () => {
         $isPaid = $collectSettings.price !== undefined;
@@ -655,12 +659,9 @@
                         text-base font-medium text-gray-900 dark:text-gray-100
                         focus:border-orange-500 focus:ring-orange-500
                         {timeError ? 'border-red-600' : 'border-gray-300 dark:border-gray-600'}">
-                  <option value={0}>Custom</option>
-                  <option value={1}>1 hour</option>
-                  <option value={6}>6 hours</option>
-                  <option value={24}>1 day</option>
-                  <option value={72}>3 days</option>
-                  <option value={168}>7 days</option>
+                  {#each COLLECT_DURATION_ITEMS as item}
+                    <option value={item.value}>{item.label}</option>
+                  {/each}
                 </select>
               </div>
             {/if}

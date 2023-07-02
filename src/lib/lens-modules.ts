@@ -18,14 +18,14 @@ export type ContentWarning = string | PublicationContentWarning.Nsfw | Publicati
 
 export type SimpleMultiModuleParams = SimpleCollectModuleParams | MultirecipientFeeCollectModuleParams;
 
-export type SelectItem<Type> = {
+export type SelectOption<Type> = {
     value: Type,
     label: string,
     summary?: string,
     icon?: string
 };
 
-export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
+export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
     {
         value: {
             followerOnlyReferenceModule: false
@@ -80,11 +80,20 @@ export const REFERENCE_ITEMS: SelectItem<ReferenceModuleParams>[] = [
     },
 ];
 
-export const CONTENT_WARNING_ITEMS: SelectItem<ContentWarning>[] = [
+export const CONTENT_WARNING_ITEMS: SelectOption<ContentWarning>[] = [
     {value: null, label: 'No content warning'},
     {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
     {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},
     {value: PublicationContentWarning.Sensitive, label: 'Sensitive'},
+];
+
+export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
+    {value: 0, label: 'Custom'},
+    {value: 1, label: '1 hour'},
+    {value: 6, label: '6 hours'},
+    {value: 24, label: '1 day'},
+    {value: 72, label: '3 days'},
+    {value: 168, label: '1 week'},
 ];
 
 export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: true};
