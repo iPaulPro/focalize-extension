@@ -552,7 +552,7 @@
           {#if currentTabData}
 
             <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
-                 class="flex w-fit max-w-[70%] ml-[5.5rem] pt-1 pb-2 pr-2 truncate
+                 class="flex w-fit max-w-[70%] ml-[5.5rem] mb-2 pt-1 pb-2 pr-2 truncate
                         cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
 
@@ -568,11 +568,12 @@
                 <div class="flex justify-between items-end gap-24">
                   <div
                       class="flex gap-0.5 text-orange-600 dark:text-orange-200 font-semibold items-center">
-                    <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 18l6-6-6-6"/>
+                    <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
+                      <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
+                      <path
+                          d="M63.413 94.97a1.907 1.907 0 0 1-1.746-1.144l-4.186-9.6A19.329 19.329 0 0 0 47.455 74.2l-9.6-4.185a1.906 1.906 0 0 1 0-3.493l9.6-4.187a19.324 19.324 0 0 0 10.026-10.029l4.186-9.6a1.9 1.9 0 0 1 3.492 0l4.186 9.6A19.322 19.322 0 0 0 79.37 62.331l9.6 4.187a1.905 1.905 0 0 1 0 3.493l-9.6 4.185a19.322 19.322 0 0 0-10.025 10.026l-4.186 9.6a1.907 1.907 0 0 1-1.746 1.148ZM44.163 37.924a1.528 1.528 0 0 1-1.4-.917l-2.519-5.777a11.247 11.247 0 0 0-5.833-5.83l-5.777-2.517a1.528 1.528 0 0 1 0-2.8l5.778-2.518a11.247 11.247 0 0 0 5.833-5.833l2.518-5.778a1.527 1.527 0 0 1 2.8 0l2.518 5.777a11.247 11.247 0 0 0 5.834 5.834l5.778 2.518a1.528 1.528 0 0 1 0 2.8L53.914 25.4a11.251 11.251 0 0 0-5.833 5.835l-2.518 5.777a1.528 1.528 0 0 1-1.4.912ZM21.47 59.915a1.271 1.271 0 0 1-1.164-.762l-1.742-4a7.57 7.57 0 0 0-3.925-3.925l-3.995-1.74a1.27 1.27 0 0 1 0-2.328l4-1.742a7.568 7.568 0 0 0 3.92-3.918l1.742-4a1.271 1.271 0 0 1 1.164-.762 1.272 1.272 0 0 1 1.165.762l1.741 4a7.564 7.564 0 0 0 3.924 3.92l4 1.742a1.27 1.27 0 0 1 0 2.328l-4 1.741a7.566 7.566 0 0 0-3.924 3.924l-1.741 4a1.272 1.272 0 0 1-1.165.76Z"/>
                     </svg>
+                    <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
                   </div>
 
                   <button type="button" on:click={clearCurrentTabData}

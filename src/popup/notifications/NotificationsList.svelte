@@ -159,7 +159,7 @@
   <ul bind:this={listElement}
       class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
 
-    {#each notifications as notification (notification.notificationId)}
+    {#each notifications as notification}
       <li>
         <NotificationItem {notification} {lastUpdate}/>
       </li>

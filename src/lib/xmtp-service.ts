@@ -124,7 +124,7 @@ const getProfilesBatch = async (
     const userProfileId = await getUserProfileId();
 
     const profiles: Profile[] = [];
-    let remainingIds = new Array(...profileIds);
+    let remainingIds = new Set(profileIds);
 
     // First check if we have any profiles cached
     const storage = await chrome.storage.local.get(KEY_PROFILES);
@@ -134,14 +134,15 @@ const getProfilesBatch = async (
             const savedProfile = savedProfiles[profileId];
             if (savedProfile) {
                 profiles.push(savedProfile);
-                remainingIds = remainingIds.filter((id) => id !== profileId);
+                const notFound = Array.from(remainingIds).filter((id) => id !== profileId);
+                remainingIds = new Set(notFound);
             }
         }
     }
 
-    if (remainingIds.length === 0) return profiles;
+    if (remainingIds.size === 0) return profiles;
 
-    const newProfiles = await fetchAllProfiles(remainingIds, userProfileId);
+    const newProfiles = await fetchAllProfiles(Array.from(remainingIds), userProfileId);
     console.log('getProfiles: new profiles to cache', newProfiles.length);
 
     if (!savedProfiles) {
