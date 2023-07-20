@@ -1,4 +1,4 @@
-mutation CreatePostViaDispatcher($request: CreatePublicPostRequest!) {
+mutation createPostViaDispatcher($request: CreatePublicPostRequest!) {
     createPostViaDispatcher(request: $request) {
         __typename
         ... on RelayerResult {

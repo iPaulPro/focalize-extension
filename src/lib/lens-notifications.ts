@@ -1,7 +1,7 @@
 import type {Notification, PaginatedNotificationResult} from './graph/lens-service';
 import {NotificationTypes, type PaginatedResultInfo, type Profile} from './graph/lens-service';
 import {getOrRefreshAccessToken} from './lens-auth';
-import gqlClient from './graph/graphql-client';
+import lensApi from './graph/lens-api';
 import {getAvatarForLensHandle, getAvatarFromAddress, stripMarkdown, truncate} from './utils';
 import type {LensNode} from './lens-nodes';
 import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from './lens-nodes';
@@ -90,7 +90,7 @@ const getPaginatedNotificationResult = async (
     );
 
     try {
-        const {notifications} = await gqlClient.Notifications({
+        const {notifications} = await lensApi.notifications({
             request: {
                 profileId: user.profileId,
                 limit,

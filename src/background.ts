@@ -2,7 +2,7 @@ import {DateTime} from 'luxon';
 
 import {pollForPublicationId} from './lib/has-transaction-been-indexed';
 
-import gqlClient from './lib/graph/graphql-client';
+import lensApi from './lib/graph/lens-api';
 import type {
     NewCollectNotification,
     NewCommentNotification,
@@ -301,7 +301,7 @@ const getPendingProxyActions = async () => {
 
 const checkProxyActionStatus = async (proxyActionId: string, handle: string) => {
     console.log('checkProxyActionStatus: checking status of proxy action', proxyActionId, handle);
-    const {proxyActionStatus} = await gqlClient.ProxyActionStatus({proxyActionId});
+    const {proxyActionStatus} = await lensApi.proxyActionStatus({proxyActionId});
     console.log('checkProxyActionStatus: proxyActionStatus', proxyActionStatus);
 
     if (proxyActionStatus.__typename === 'ProxyActionError') {
@@ -474,7 +474,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 const searchProfiles = async (query: string, limit: number): Promise<Profile[]> => {
-    const {search} = await gqlClient.SearchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});
+    const {search} = await lensApi.searchProfiles({request: {query, limit, type: SearchRequestTypes.Profile}});
 
     if (search.__typename === "ProfileSearchResult" && search.items) {
         return search.items as Profile[];

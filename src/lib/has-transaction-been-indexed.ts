@@ -1,4 +1,4 @@
-import gqlClient from "./graph/graphql-client";
+import lensApi from "./graph/lens-api";
 import type {TransactionReceipt} from "./graph/lens-service";
 import {PublicationMetadataStatusType} from "./graph/lens-service";
 import {sleep} from "./utils";
@@ -27,7 +27,7 @@ export const pollUntilIndexed = async (
     stateListener?: (state: PublicationState) => void
 ): Promise<TransactionReceipt | null | undefined> => {
     while (true) {
-        const {hasTxHashBeenIndexed} = await gqlClient.HasTransactionBeenIndexed({request: {txHash}});
+        const {hasTxHashBeenIndexed} = await lensApi.hasTransactionBeenIndexed({request: {txHash}});
         console.log('pollUntilIndexed: hasTxHashBeenIndexed', hasTxHashBeenIndexed);
 
         if (hasTxHashBeenIndexed.__typename === 'TransactionError') {

@@ -6,7 +6,7 @@ import {getSigner, signTypedData} from './ethers-service';
 import {splitSignature} from 'ethers/lib/utils';
 import {pollUntilIndexed} from './has-transaction-been-indexed';
 
-import gqlClient from './graph/graphql-client';
+import lensApi from './graph/lens-api';
 
 import type {
     BroadcastRequest,
@@ -25,7 +25,7 @@ import type {User} from './user';
  * Gets the default profile of the address supplied.
  */
 export const getDefaultProfile = async (ethereumAddress: string): Promise<Profile> => {
-    const {defaultProfile} = await gqlClient.DefaultProfile({request: {ethereumAddress}})
+    const {defaultProfile} = await lensApi.defaultProfile({request: {ethereumAddress}})
     if (defaultProfile?.__typename === 'Profile') return defaultProfile;
     throw new Error('Unable to get default profile');
 };
@@ -33,7 +33,7 @@ export const getDefaultProfile = async (ethereumAddress: string): Promise<Profil
 export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const {profiles} = await gqlClient.Profiles({
+    const {profiles} = await lensApi.profiles({
         request: {ownedBy}, userProfileId
     });
     return profiles.items;
@@ -42,7 +42,7 @@ export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
 export const getProfileById = async (profileId: string): Promise<Profile> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const {profile} = await gqlClient.GetProfile({request: {profileId}, userProfileId});
+    const {profile} = await lensApi.getProfile({request: {profileId}, userProfileId});
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }
@@ -50,7 +50,7 @@ export const getProfileById = async (profileId: string): Promise<Profile> => {
 export const getProfileByHandle = async (handle: string): Promise<Profile> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const {profile} = await gqlClient.GetProfile({request: {handle}, userProfileId});
+    const {profile} = await lensApi.getProfile({request: {handle}, userProfileId});
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }
@@ -58,7 +58,7 @@ export const getProfileByHandle = async (handle: string): Promise<Profile> => {
 export const getProfileByAddress = async (ethereumAddress: string): Promise<Profile> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const {profiles} = await gqlClient.Profiles({
+    const {profiles} = await lensApi.profiles({
         request: {
             ownedBy: [ethereumAddress]
         },
@@ -82,7 +82,7 @@ export const canUseRelay = async (profileId: string): Promise<boolean> => {
 }
 
 export const setDispatcher = async (request: SetDispatcherRequest): Promise<string> => {
-    const {createSetDispatcherTypedData} = await gqlClient.CreateSetDispatcherTypedData({request});
+    const {createSetDispatcherTypedData} = await lensApi.createSetDispatcherTypedData({request});
 
     const typedData = createSetDispatcherTypedData.typedData;
     if (!typedData) {
@@ -98,7 +98,7 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
         id: createSetDispatcherTypedData.id,
         signature
     }
-    const {broadcast} = await gqlClient.Broadcast({request: broadcastReq});
+    const {broadcast} = await lensApi.broadcast({request: broadcastReq});
     console.log('setDispatcher: broadcast result', broadcast);
 
     if (broadcast.__typename === 'RelayError') {
@@ -136,7 +136,7 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
     console.log('followProfile: handle, followModule', profile.handle, profile.followModule);
     if (!profile.followModule) {
         try {
-            const {proxyAction}: ProxyActionMutation = await gqlClient.ProxyAction({request: {follow: {freeFollow: {profileId: profile.id}}}});
+            const {proxyAction}: ProxyActionMutation = await lensApi.proxyAction({request: {follow: {freeFollow: {profileId: profile.id}}}});
             console.log('followProfile: created proxy action with id =', proxyAction);
             await chrome.runtime.sendMessage({type: 'proxyAction', proxyActionId: proxyAction, profile});
             return true;
@@ -148,7 +148,7 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
     const localStorage = await chrome.storage.local.get('currentUser');
     const currentUser: User = localStorage.currentUser;
 
-    const {createFollowTypedData}: CreateFollowTypedDataMutation = await gqlClient.CreateFollowTypedData({
+    const {createFollowTypedData}: CreateFollowTypedDataMutation = await lensApi.createFollowTypedData({
         request: {
             follow: [
                 {
@@ -173,7 +173,7 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
         id: createFollowTypedData.id,
         signature
     }
-    const {broadcast} = await gqlClient.Broadcast({request: broadcastReq});
+    const {broadcast} = await lensApi.broadcast({request: broadcastReq});
     console.log('followProfile: broadcast result', broadcast);
 
     if (broadcast.__typename === 'RelayError') {
@@ -229,7 +229,7 @@ const burnFollowWithSig = async (signature: string, typedData: CreateBurnEip712T
 export const unfollowProfile = async (profile: Profile): Promise<boolean> => {
     console.log('unfollowProfile', profile);
 
-    const {createUnfollowTypedData}: CreateUnfollowTypedDataMutation = await gqlClient.CreateUnfollowTypedData({
+    const {createUnfollowTypedData}: CreateUnfollowTypedDataMutation = await lensApi.createUnfollowTypedData({
         request: {
             profile: profile.id,
         }
@@ -249,7 +249,7 @@ export const unfollowProfile = async (profile: Profile): Promise<boolean> => {
         id: createUnfollowTypedData.id,
         signature
     }
-    const {broadcast} = await gqlClient.Broadcast({request: broadcastReq});
+    const {broadcast} = await lensApi.broadcast({request: broadcastReq});
     console.log('unfollowProfile: broadcast result', broadcast);
 
     if (broadcast.__typename === 'RelayError') {
@@ -273,7 +273,7 @@ export const getMutualFollows = async (
     yourProfileId: string,
     limit?: number,
 ): Promise<{profiles: Profile[], total:number}> => {
-    const {mutualFollowersProfiles} = await gqlClient.MutualFollowersProfiles({
+    const {mutualFollowersProfiles} = await lensApi.mutualFollowersProfiles({
         request: {viewingProfileId, yourProfileId}
     });
     console.log('getMutualFollows: mutualFollowersProfiles', mutualFollowersProfiles, 'items', mutualFollowersProfiles.items, 'total', mutualFollowersProfiles.pageInfo.totalCount ?? 'none');

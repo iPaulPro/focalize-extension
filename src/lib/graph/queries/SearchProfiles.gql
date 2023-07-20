@@ -1,4 +1,4 @@
-query SearchProfiles($request: SearchQueryRequest!) {
+query searchProfiles($request: SearchQueryRequest!) {
     search(request: $request) {
         ... on ProfileSearchResult {
             __typename

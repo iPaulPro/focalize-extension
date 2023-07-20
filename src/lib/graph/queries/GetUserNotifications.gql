@@ -1,4 +1,4 @@
-query Notifications($request: NotificationRequest!, $userProfileId: ProfileId!) {
+query notifications($request: NotificationRequest!, $userProfileId: ProfileId!) {
     notifications(request: $request) {
         __typename
         items {

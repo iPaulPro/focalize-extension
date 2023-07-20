@@ -1,6 +1,5 @@
 import {v4 as uuid} from "uuid";
 import Autolinker, {UrlMatch} from "autolinker";
-import {DateTime} from "luxon";
 
 import {APP_ID, LENS_PREVIEW_NODE} from "../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
@@ -24,7 +23,7 @@ import {getLensHub} from "./lens-hub";
 import {signTypedData} from "./ethers-service";
 import {deleteDraft} from "./stores/draft-store";
 
-import gqlClient from "./graph/graphql-client";
+import lensApi from "./graph/lens-api";
 import type {User} from "./user";
 import {PublicationState, publicationState} from "./stores/state-store";
 
@@ -180,12 +179,12 @@ const validateMetadata = async (metadata: PublicationMetadataV2Input) => {
             appId: APP_ID,
         }
     };
-    const {validatePublicationMetadata} = await gqlClient.ValidatePublicationMetadata({request});
+    const {validatePublicationMetadata} = await lensApi.validatePublicationMetadata({request});
     return validatePublicationMetadata;
 }
 
 const _createPostViaDispatcher = async (request: CreatePublicPostRequest): Promise<RelayerResult> => {
-    const {createPostViaDispatcher} = await gqlClient.CreatePostViaDispatcher({request});
+    const {createPostViaDispatcher} = await lensApi.createPostViaDispatcher({request});
     if (createPostViaDispatcher.__typename === 'RelayError') throw createPostViaDispatcher.reason;
     return createPostViaDispatcher;
 }
@@ -197,7 +196,7 @@ const _createPostTypedData = async (
     referenceModule: ReferenceModuleParams,
 ): Promise<CreatePostBroadcastItemResult> => {
     const request = {profileId, contentURI, referenceModule, collectModule}
-    const {createPostTypedData} = await gqlClient.CreatePostTypedData({request});
+    const {createPostTypedData} = await lensApi.createPostTypedData({request});
     return createPostTypedData;
 };
 
@@ -226,7 +225,7 @@ const createPostTransaction = async (
             id: postResult.id,
             signature
         }
-        const {broadcast} = await gqlClient.Broadcast({request});
+        const {broadcast} = await lensApi.broadcast({request});
 
         if (broadcast.__typename === 'RelayerResult') {
             console.log('createPostTransaction: broadcast transaction success', broadcast.txHash)

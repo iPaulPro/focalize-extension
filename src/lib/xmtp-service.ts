@@ -1,7 +1,7 @@
 import {Client, type Conversation, DecodedMessage, SortDirection, Stream} from '@xmtp/xmtp-js';
 import {Observable} from 'rxjs';
 import type {Profile, ProfilesQuery} from './graph/lens-service';
-import gqlClient from './graph/graphql-client';
+import lensApi from './graph/lens-api';
 import {
     getCached, saveToCache,
     KEY_LATEST_MESSAGE_MAP, KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES,
@@ -105,7 +105,7 @@ const fetchAllProfiles = async (profileIds: string[], userProfileId?: string): P
         const currentIds = profileIds.slice(0, chunkSize);
         profileIds = profileIds.slice(chunkSize);
 
-        const {profiles: currentProfilesResult}: ProfilesQuery = await gqlClient.Profiles({
+        const {profiles: currentProfilesResult}: ProfilesQuery = await lensApi.profiles({
             request: {profileIds: currentIds, limit: chunkSize, cursor},
             userProfileId,
         });
@@ -443,7 +443,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 
 const getPeerProfile = async (conversation: Conversation): Promise<Profile | undefined> => {
     const userProfileId = await getUserProfileId();
-    const {profiles}: ProfilesQuery = await gqlClient.Profiles({
+    const {profiles}: ProfilesQuery = await lensApi.profiles({
         request: {ownedBy: [conversation.peerAddress]}, userProfileId
     });
     return profiles.items?.[0];

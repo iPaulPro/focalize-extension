@@ -1,4 +1,4 @@
-query MutualFollowersProfiles($request: MutualFollowersProfilesQueryRequest!) {
+query mutualFollowersProfiles($request: MutualFollowersProfilesQueryRequest!) {
     mutualFollowersProfiles(request: $request) {
         items {
             ...ProfileFields

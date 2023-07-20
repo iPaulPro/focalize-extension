@@ -1,9 +1,0 @@
-query ApprovedModuleAllowanceAmount($request: ApprovedModuleAllowanceAmountRequest!) {
-    approvedModuleAllowanceAmount(request: $request) {
-        __typename
-        currency
-        module
-        contractAddress
-        allowance
-    }
-}

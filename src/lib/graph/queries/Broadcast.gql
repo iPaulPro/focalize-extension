@@ -1,4 +1,4 @@
-mutation Broadcast($request: BroadcastRequest!) {
+mutation broadcast($request: BroadcastRequest!) {
     broadcast(request: $request) {
         __typename
         ... on RelayerResult {

@@ -1,4 +1,4 @@
-query DefaultProfile($request: DefaultProfileRequest!, $userProfileId: ProfileId) {
+query defaultProfile($request: DefaultProfileRequest!, $userProfileId: ProfileId) {
     defaultProfile(request: $request) {
         __typename
         isFollowedByMe

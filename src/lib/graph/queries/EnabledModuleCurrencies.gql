@@ -1,4 +1,4 @@
-query EnabledModuleCurrencies {
+query enabledModuleCurrencies {
     enabledModuleCurrencies {
         __typename
         name

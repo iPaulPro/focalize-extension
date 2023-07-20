@@ -1,4 +1,4 @@
-mutation CreateFollowTypedData($request: FollowRequest!) {
+mutation createFollowTypedData($request: FollowRequest!) {
     createFollowTypedData(request: $request) {
         id
         expiresAt

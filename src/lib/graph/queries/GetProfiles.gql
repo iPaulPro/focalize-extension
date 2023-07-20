@@ -1,4 +1,4 @@
-query Profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
+query profiles($request: ProfileQueryRequest!, $userProfileId: ProfileId!) {
     profiles(request: $request) {
         __typename
         items {

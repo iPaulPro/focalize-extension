@@ -1,4 +1,4 @@
-mutation CreatePostTypedData($request: CreatePublicPostRequest!) {
+mutation createPostTypedData($request: CreatePublicPostRequest!) {
     createPostTypedData(request: $request) {
         __typename
         id

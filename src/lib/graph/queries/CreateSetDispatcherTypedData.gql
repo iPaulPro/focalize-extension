@@ -1,4 +1,4 @@
-mutation CreateSetDispatcherTypedData($request: SetDispatcherRequest!) {
+mutation createSetDispatcherTypedData($request: SetDispatcherRequest!) {
     createSetDispatcherTypedData(request: $request) {
         __typename
         id

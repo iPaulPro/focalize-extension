@@ -1,4 +1,4 @@
-query ValidatePublicationMetadata($request: ValidatePublicationMetadataRequest!) {
+query validatePublicationMetadata($request: ValidatePublicationMetadataRequest!) {
     validatePublicationMetadata(request: $request) {
         __typename
         reason

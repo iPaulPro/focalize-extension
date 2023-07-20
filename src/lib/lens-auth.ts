@@ -1,7 +1,7 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import gqlClient from "./graph/graphql-client";
+import lensApi from "./graph/lens-api";
 
 export const authenticateUser = async () => {
     const {initEthers, getSigner, getAccounts, clearProvider} = await import('./ethers-service');
@@ -29,14 +29,14 @@ export const authenticateUser = async () => {
     console.log('authenticate: Authenticating with address', address);
 
     // Getting the challenge from the server
-    const {challenge} = await gqlClient.Challenge({request: {address}});
+    const {challenge} = await lensApi.challenge({request: {address}});
     console.log('authenticate: Lens challenge response', challenge);
 
     const signer = getSigner();
     const signature = await signer.signMessage(challenge.text);
     console.log('authenticate: Signed Lens challenge', signature);
 
-    const {authenticate} = await gqlClient.Authenticate({request: {address, signature}});
+    const {authenticate} = await lensApi.authenticate({request: {address, signature}});
     console.log('authenticate: Lens auth response', authenticate);
 
     await chrome.storage.local.set(
@@ -114,7 +114,7 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
 
     // console.log('refreshAccessToken: Refreshing access token with refresh token...');
 
-    const {refresh} = await gqlClient.Refresh({request: {refreshToken}});
+    const {refresh} = await lensApi.refresh({request: {refreshToken}});
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
@@ -138,7 +138,7 @@ export const isValidSession = async (accessToken: string | undefined) => {
     if (!accessToken) {
         accessToken = await getOrRefreshAccessToken();
     }
-    const {verify} = await gqlClient.Verify({request: {accessToken}});
+    const {verify} = await lensApi.verify({request: {accessToken}});
     return verify;
 };
 

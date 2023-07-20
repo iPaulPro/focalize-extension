@@ -1,4 +1,4 @@
-mutation Authenticate($request: SignedAuthChallenge!) {
+mutation authenticate($request: SignedAuthChallenge!) {
     authenticate(request: $request) {
         __typename
         accessToken

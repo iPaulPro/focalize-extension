@@ -9,7 +9,7 @@ import type {
 
 import {PublicationContentWarning} from "./graph/lens-service";
 
-import gqlClient from "./graph/graphql-client";
+import lensApi from "./graph/lens-api";
 import {DateTime} from "luxon";
 
 import type {CollectSettings} from './collect-settings';
@@ -101,7 +101,7 @@ export const REVERT_COLLECT_MODULE: CollectModuleParams = {revertCollectModule: 
 export const DEFAULT_REFERENCE_MODULE: ReferenceModuleParams = {followerOnlyReferenceModule: false}
 
 export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
-    const {enabledModuleCurrencies} = await gqlClient.EnabledModuleCurrencies();
+    const {enabledModuleCurrencies} = await lensApi.enabledModuleCurrencies();
     return enabledModuleCurrencies;
 };
 

@@ -1,4 +1,4 @@
-query HasTransactionBeenIndexed($request: HasTxHashBeenIndexedRequest!) {
+query hasTransactionBeenIndexed($request: HasTxHashBeenIndexedRequest!) {
     hasTxHashBeenIndexed(request: $request) {
         ... on TransactionIndexedResult {
             __typename

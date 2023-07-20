@@ -1,4 +1,4 @@
-query Challenge($request: ChallengeRequest!) {
+query challenge($request: ChallengeRequest!) {
     challenge(request: $request) {
         __typename
         text
