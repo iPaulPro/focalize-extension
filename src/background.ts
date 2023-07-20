@@ -1,8 +1,8 @@
 import {DateTime} from 'luxon';
 
-import {pollForPublicationId} from './lib/has-transaction-been-indexed';
+import {pollForPublicationId} from './lib/utils/has-transaction-been-indexed';
 
-import lensApi from './lib/graph/lens-api';
+import lensApi from './lib/lens-api';
 import type {
     NewCollectNotification,
     NewCommentNotification,
@@ -14,7 +14,7 @@ import type {
     PublicationMetadataV2Input,
 } from './lib/graph/lens-service';
 import {ProxyActionStatusTypes, SearchRequestTypes} from './lib/graph/lens-service';
-import type {User} from './lib/user';
+import type {User} from './lib/user/user';
 import {
     getAvatarForLensHandle,
     getAvatarFromAddress,
@@ -23,9 +23,9 @@ import {
     stripMarkdown,
     truncate,
     truncateAddress, updateBadge
-} from './lib/utils';
+} from './lib/utils/utils';
 import type {PublicationState} from './lib/stores/state-store';
-import {getPublicationUrl, type LensNode} from './lib/lens-nodes';
+import {getPublicationUrl, type LensNode} from './lib/publications/lens-nodes';
 import {
     getAvatarFromNotification,
     getLatestNotifications,
@@ -34,7 +34,7 @@ import {
     getNotificationHandle,
     getNotificationLink,
     NOTIFICATIONS_QUERY_LIMIT
-} from './lib/lens-notifications';
+} from './lib/notifications/lens-notifications';
 import {
     KEY_MESSAGE_TIMESTAMPS, KEY_NOTIFICATION_ITEMS_CACHE, KEY_PENDING_PROXY_ACTIONS, KEY_WINDOW_TOPIC_MAP,
     type WindowTopicMap, type PendingProxyActionMap, type MessageTimestampMap,

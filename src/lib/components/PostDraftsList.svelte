@@ -7,7 +7,7 @@
     import {draftId} from '../stores/state-store';
     import PostDraftMenu from "./PostDraftMenu.svelte";
     import {createEventDispatcher} from "svelte";
-    import type {PostDraft} from '../post-draft';
+    import type {PostDraft} from '../publications/PostDraft';
 
     const dispatch = createEventDispatcher();
 

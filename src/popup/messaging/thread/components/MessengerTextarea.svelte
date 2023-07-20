@@ -1,9 +1,11 @@
 <script lang="ts">
     import {onMount, createEventDispatcher, onDestroy} from 'svelte';
     import {debounce} from 'throttle-debounce';
-    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../../../lib/lens-search';
+    import {searchHandles} from '../../../../lib/user/search-handles';
     import Tribute from 'tributejs';
-    import {resizeTextarea} from '../../../../lib/utils';
+    import {resizeTextarea} from '../../../../lib/utils/utils';
+    import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
+    import {buildLoadingItemTemplate} from '../../../../lib/user/tribute-loading-template';
 
     export let text: string = '';
     export let className: string = '';

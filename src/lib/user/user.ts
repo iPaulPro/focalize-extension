@@ -1,10 +1,10 @@
-import {initEthers} from "./ethers-service";
+import {initEthers} from "../evm/ethers-service";
 import {getDefaultProfile, getProfiles} from "./lens-profile";
 
-import type {Profile} from "./graph/lens-service";
+import type {Profile} from "../graph/lens-service";
 import {getSavedAccessToken} from "./lens-auth";
-import {currentUser, getUser} from './stores/user-store';
-import {getAvatarForLensHandle} from "./utils";
+import {currentUser, getUser} from '../stores/user-store';
+import {getAvatarForLensHandle} from "../utils/utils";
 
 export type User = {
     address: string,

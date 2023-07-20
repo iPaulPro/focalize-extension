@@ -1,9 +1,9 @@
 import {chromeStorageSync} from "./chrome-storage-store";
 import {derived, type Readable, type Writable} from 'svelte/store';
-import type {LensNode} from "../lens-nodes";
+import type {LensNode} from "../publications/lens-nodes";
 
 import nodes from './/nodes.json';
-import {getNotificationCountSinceLastOpened} from '../utils';
+import {getNotificationCountSinceLastOpened} from '../utils/utils';
 
 /**
  * Preferences are saved to the `sync` chrome storage area.

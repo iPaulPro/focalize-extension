@@ -2,10 +2,10 @@
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import lensLogo from '../../assets/lens-logo-small.svg';
     import InlineSVG from 'svelte-inline-svg';
-    import {ensureCorrectChain} from '../../lib/ethers-service';
-    import {authenticateUser} from '../../lib/lens-auth';
+    import {ensureCorrectChain} from '../../lib/evm/ethers-service';
+    import {authenticateUser} from '../../lib/user/lens-auth';
     import {currentUser} from '../../lib/stores/user-store';
-    import {userFromProfile} from '../../lib/user';
+    import {userFromProfile} from '../../lib/user/user';
     import toast from 'svelte-french-toast';
 
     const onSignInClick = async () => {

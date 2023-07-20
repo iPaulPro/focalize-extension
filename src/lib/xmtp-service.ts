@@ -1,17 +1,17 @@
 import {Client, type Conversation, DecodedMessage, SortDirection, Stream} from '@xmtp/xmtp-js';
 import {Observable} from 'rxjs';
 import type {Profile, ProfilesQuery} from './graph/lens-service';
-import lensApi from './graph/lens-api';
+import lensApi from './lens-api';
 import {
     getCached, saveToCache,
     KEY_LATEST_MESSAGE_MAP, KEY_MESSAGE_TIMESTAMPS, KEY_PROFILES,
     type LatestMessageMap, type MessageTimestampMap,
 } from './stores/cache-store';
-import {buildXmtpStorageKey, getEnsFromAddress, getXmtpKeys, truncateAddress} from './utils';
+import {buildXmtpStorageKey, getEnsFromAddress, getXmtpKeys, truncateAddress} from './utils/utils';
 import type {InvitationContext} from '@xmtp/xmtp-js/dist/types/src/Invitation';
 import {getUser} from './stores/user-store';
-import type {User} from './user';
-import {getProfiles} from './lens-profile';
+import type {User} from './user/user';
+import {getProfiles} from './user/lens-profile';
 
 const LENS_PREFIX = 'lens.dev/dm';
 
@@ -68,7 +68,7 @@ export const getXmtpClient = async (): Promise<Client> => {
         }
     }
 
-    const {getSigner} = await import('./ethers-service');
+    const {getSigner} = await import('./evm/ethers-service');
     const signer = getSigner();
     if (!signer) throw new Error('Unable to find wallet for signing.');
 

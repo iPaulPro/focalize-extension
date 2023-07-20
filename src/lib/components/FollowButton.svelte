@@ -3,7 +3,7 @@
         Profile,
         ProfileFollowModuleSettings
     } from '../graph/lens-service';
-    import {followProfile, unfollowProfile} from '../lens-profile';
+    import {followProfile, unfollowProfile} from '../user/lens-profile';
     import toast from 'svelte-french-toast';
 
     export let profile: Profile;

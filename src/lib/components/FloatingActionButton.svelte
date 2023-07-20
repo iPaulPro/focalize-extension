@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {hideOnScroll} from '../utils';
+    import {hideOnScroll} from '../utils/utils';
     import {createEventDispatcher} from 'svelte';
 
     export let scrollElement: HTMLElement;

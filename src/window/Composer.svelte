@@ -1,11 +1,11 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import {ensureCorrectChain} from '../lib/ethers-service';
-    import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/file-utils';
+    import {ensureCorrectChain} from '../lib/evm/ethers-service';
+    import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
 
-    import type {SelectOption} from '../lib/lens-modules';
-    import {collectSettingsToModuleParams, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,} from '../lib/lens-modules';
+    import type {SelectOption} from '../lib/publications/lens-modules';
+    import {collectSettingsToModuleParams, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,} from '../lib/publications/lens-modules';
 
     import {
         createAudioAttributes,
@@ -16,7 +16,7 @@
         generateVideoPostMetadata,
         getUrlsFromText,
         submitPost,
-    } from '../lib/lens-post';
+    } from '../lib/publications/lens-post';
 
     import {
         attachments,
@@ -66,7 +66,7 @@
     import tags from 'language-tags';
     import GifSelectionDialog from './components/GifSelectionDialog.svelte';
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte';
-    import {ensureUser, type User} from '../lib/user';
+    import {ensureUser, type User} from '../lib/user/user';
     import {getDraft, postDrafts, saveDraft} from '../lib/stores/draft-store';
 
     import {Subject} from 'rxjs';
@@ -77,9 +77,9 @@
     import DialogOuter from '../lib/components/DialogOuter.svelte';
     import {throttle} from 'throttle-debounce';
     import {DateTime} from 'luxon';
-    import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils';
-    import {launchComposerWindow} from '../lib/utils.js';
-    import type {PostDraft} from '../lib/post-draft';
+    import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils/utils';
+    import {launchComposerWindow} from '../lib/utils/utils.js';
+    import type {PostDraft} from '../lib/publications/PostDraft';
     import CollectMetadata from './components/CollectMetadata.svelte';
 
     /**

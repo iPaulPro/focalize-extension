@@ -4,13 +4,13 @@
 
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {ipfsUrlToGatewayUrl} from '../../lib/ipfs-service';
-    import {htmlFromMarkdown} from "../../lib/utils";
+    import {htmlFromMarkdown} from "../../lib/utils/utils";
     import {PublicationState} from '../../lib/stores/state-store';
     import LoadingSpinner from "../../lib/components/LoadingSpinner.svelte";
 
     import type {PublicationMetadataV2Input} from "../../lib/graph/lens-service";
-    import type {User} from "../../lib/user";
-    import {getNodeForPublicationMainFocus, getPublicationUrl} from "../../lib/lens-nodes";
+    import type {User} from "../../lib/user/user";
+    import {getNodeForPublicationMainFocus, getPublicationUrl} from "../../lib/publications/lens-nodes";
 
     export let currentUser: User;
     export let publicationState: PublicationState;

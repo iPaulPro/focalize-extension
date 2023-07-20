@@ -1,4 +1,4 @@
-import type {PublicationMetadataMediaInput} from './graph/lens-service';
+import type {PublicationMetadataMediaInput} from '../graph/lens-service';
 import type {CollectSettings} from './collect-settings';
 
 export type PostDraft = {

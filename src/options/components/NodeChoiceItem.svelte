@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type {LensNode} from "../../lib/lens-nodes";
+    import type {LensNode} from "../../lib/publications/lens-nodes";
 
     import IconLenster from '../../assets/ic_lenster.webp';
     import IconLenstube from '../../assets/ic_lenstube.webp';

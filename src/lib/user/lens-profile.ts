@@ -1,12 +1,12 @@
 import {ethers} from 'ethers';
-import {LENS_FOLLOW_NFT_ABI} from '../config';
+import {LENS_FOLLOW_NFT_ABI} from '../../config';
 
-import {getLensHub} from './lens-hub';
-import {getSigner, signTypedData} from './ethers-service';
+import {getLensHub} from '../evm/lens-hub';
+import {getSigner, signTypedData} from '../evm/ethers-service';
 import {splitSignature} from 'ethers/lib/utils';
-import {pollUntilIndexed} from './has-transaction-been-indexed';
+import {pollUntilIndexed} from '../utils/has-transaction-been-indexed';
 
-import lensApi from './graph/lens-api';
+import lensApi from '../lens-api';
 
 import type {
     BroadcastRequest,
@@ -18,7 +18,7 @@ import type {
     ProxyActionMutation,
     RelayerResult,
     SetDispatcherRequest,
-} from './graph/lens-service';
+} from '../graph/lens-service';
 import type {User} from './user';
 
 /**

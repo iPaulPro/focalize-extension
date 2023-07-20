@@ -9,7 +9,7 @@
     import {Subscription} from 'rxjs';
     import {get} from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
-    import {isPeerMessage} from '../../../../lib/utils';
+    import {isPeerMessage} from '../../../../lib/utils/utils';
     import {messagesUnreadTopics} from '../../../../lib/stores/preferences-store';
 
     const dispatch = createEventDispatcher();

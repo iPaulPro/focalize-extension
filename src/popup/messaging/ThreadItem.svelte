@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getAvatarForLensHandle, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils';
+    import {getAvatarForLensHandle, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils/utils';
     import {getPeerName, isUnread, type Thread} from '../../lib/xmtp-service';
     import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';

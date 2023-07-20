@@ -4,12 +4,12 @@
     import {darkMode, messagesUnreadCount, unreadNotificationsCount} from '../lib/stores/preferences-store';
     import {storePopup, TabGroup, Tab} from '@skeletonlabs/skeleton';
     import NotificationsList from './notifications/NotificationsList.svelte';
-    import {clearBadge, getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils';
+    import {clearBadge, getOpenGraphTags, launchComposerWindow, scrollEndListener} from '../lib/utils/utils';
     import {DateTime} from 'luxon';
     import {onMount} from 'svelte';
     import {Toaster} from 'svelte-french-toast';
     import ThreadList from './messaging/ThreadList.svelte';
-    import {ensureUser} from '../lib/user';
+    import {ensureUser} from '../lib/user/user';
     import {selectedMainTab} from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';

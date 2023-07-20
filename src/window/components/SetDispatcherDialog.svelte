@@ -3,7 +3,7 @@
     import toast from 'svelte-french-toast';
 
     import {currentUser} from "../../lib/stores/user-store";
-    import {setDispatcher} from "../../lib/lens-profile";
+    import {setDispatcher} from "../../lib/user/lens-profile";
     import {useDispatcher} from "../../lib/stores/preferences-store";
 
     const dispatch = createEventDispatcher();

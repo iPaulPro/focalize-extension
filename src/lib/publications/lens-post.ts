@@ -1,7 +1,7 @@
 import {v4 as uuid} from "uuid";
 import Autolinker, {UrlMatch} from "autolinker";
 
-import {APP_ID, LENS_PREVIEW_NODE} from "../config";
+import {APP_ID, LENS_PREVIEW_NODE} from "../../config";
 import {DEFAULT_REFERENCE_MODULE, REVERT_COLLECT_MODULE} from "./lens-modules";
 
 import type {
@@ -15,17 +15,17 @@ import type {
     ReferenceModuleParams,
     RelayerResult,
     ValidatePublicationMetadataRequest
-} from "./graph/lens-service";
-import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes,} from "./graph/lens-service";
-import {getOrRefreshAccessToken} from "./lens-auth";
-import {uploadAndPin} from "./ipfs-service";
-import {getLensHub} from "./lens-hub";
-import {signTypedData} from "./ethers-service";
-import {deleteDraft} from "./stores/draft-store";
+} from "../graph/lens-service";
+import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisplayTypes,} from "../graph/lens-service";
+import {getOrRefreshAccessToken} from "../user/lens-auth";
+import {uploadAndPin} from "../ipfs-service";
+import {getLensHub} from "../evm/lens-hub";
+import {signTypedData} from "../evm/ethers-service";
+import {deleteDraft} from "../stores/draft-store";
 
-import lensApi from "./graph/lens-api";
-import type {User} from "./user";
-import {PublicationState, publicationState} from "./stores/state-store";
+import lensApi from "../lens-api";
+import type {User} from "../user/user";
+import {PublicationState, publicationState} from "../stores/state-store";
 
 const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uuid()): File => {
     const obj = {

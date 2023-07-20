@@ -2,7 +2,7 @@
     import {onMount} from 'svelte';
     import {getXmtpClient} from '../../../lib/xmtp-service';
     import {darkMode, messagesRefreshEnabled} from '../../../lib/stores/preferences-store';
-    import {ensureUser} from '../../../lib/user';
+    import {ensureUser} from '../../../lib/user/user';
     import {Toast, toastStore, storePopup} from '@skeletonlabs/skeleton';
     import {arrow, autoUpdate, computePosition, flip, offset, shift} from '@floating-ui/dom';
     import {selectedMainTab} from '../../../lib/stores/cache-store';

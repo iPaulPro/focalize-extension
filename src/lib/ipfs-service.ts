@@ -35,7 +35,6 @@ export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): P
     );
 
     console.log('uploadFile: result =', res);
-
     return res.data.Hash;
 }
 
@@ -55,7 +54,6 @@ export const unpin = async (cid: string): Promise<string[]> => {
     );
 
     console.log('unpin: result =', res);
-
     return res.data.Pins;
 };
 

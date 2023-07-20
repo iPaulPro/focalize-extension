@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {truncate} from '../utils';
+    import {truncate} from '../utils/utils';
     import DOMPurify from 'isomorphic-dompurify';
 
     export let text: string = '';

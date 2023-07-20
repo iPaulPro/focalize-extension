@@ -1,5 +1,5 @@
-import type {Erc20} from './graph/lens-service';
-import type {Recipient} from './stores/state-store';
+import type {Erc20} from '../graph/lens-service';
+import type {Recipient} from '../stores/state-store';
 
 export interface CollectSettings {
     isCollectible?: boolean;

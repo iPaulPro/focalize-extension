@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onDestroy} from 'svelte';
     import {DateTime, Duration, Interval} from 'luxon';
-    import {isToday} from '../utils';
+    import {isToday} from '../utils/utils';
 
     export let timestamp: number;
     export let className: string = '';

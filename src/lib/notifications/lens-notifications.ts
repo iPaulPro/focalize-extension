@@ -1,14 +1,14 @@
-import type {Notification, PaginatedNotificationResult} from './graph/lens-service';
-import {NotificationTypes, type PaginatedResultInfo, type Profile} from './graph/lens-service';
-import {getOrRefreshAccessToken} from './lens-auth';
-import lensApi from './graph/lens-api';
-import {getAvatarForLensHandle, getAvatarFromAddress, stripMarkdown, truncate} from './utils';
-import type {LensNode} from './lens-nodes';
-import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from './lens-nodes';
+import type {Notification, PaginatedNotificationResult} from '../graph/lens-service';
+import {NotificationTypes, type PaginatedResultInfo, type Profile} from '../graph/lens-service';
+import {getOrRefreshAccessToken} from '../user/lens-auth';
+import lensApi from '../lens-api';
+import {getAvatarForLensHandle, getAvatarFromAddress, stripMarkdown, truncate} from '../utils/utils';
+import type {LensNode} from '../publications/lens-nodes';
+import {getNodeForPublicationMainFocus, getProfileUrl, getPublicationUrlFromNode} from '../publications/lens-nodes';
 
-import type {User} from './user';
+import type {User} from '../user/user';
 
-import {KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE} from './stores/cache-store';
+import {KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE} from '../stores/cache-store';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
@@ -107,6 +107,7 @@ const getPaginatedNotificationResult = async (
             return notificationsRes;
         }
     } catch (e) {
+        console.error('getNotifications: Error getting notifications', e);
         return null;
     }
     return null;

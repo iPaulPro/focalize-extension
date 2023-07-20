@@ -5,7 +5,7 @@
     import imageExternal from '../../assets/ic_external.svg';
 
     import {uploadAndPin, unpin, getCidFromIpfsUrl, type Web3File} from "../../lib/ipfs-service";
-    import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/file-utils'
+    import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/utils/file-utils'
     import {attachments, author, cover, file, title} from "../../lib/stores/state-store";
 
     import * as id3 from "id3js";

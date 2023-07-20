@@ -1,4 +1,4 @@
-import {PublicationMainFocus} from "./graph/lens-service";
+import {PublicationMainFocus} from "../graph/lens-service";
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 

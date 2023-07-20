@@ -1,11 +1,11 @@
 <script lang="ts">
     import {currentUser} from '../stores/user-store'
-    import {getProfiles} from '../lens-profile'
+    import {getProfiles} from '../user/lens-profile'
     import LoadingSpinner from './LoadingSpinner.svelte'
     import InlineSVG from 'svelte-inline-svg';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {userFromProfile} from '../user';
-    import {getAvatarForLensHandle} from "../utils";
+    import {userFromProfile} from '../user/user';
+    import {getAvatarForLensHandle} from "../utils/utils";
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
     import type {Profile} from '../graph/lens-service';

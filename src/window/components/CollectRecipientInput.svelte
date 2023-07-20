@@ -2,11 +2,13 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import Tribute from 'tributejs';
-    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from '../../lib/lens-search';
-    import {getAddressFromEns, getEnsFromAddress, isEthereumAddress, validateRecipient} from '../../lib/utils';
+    import {searchHandles} from '../../lib/user/search-handles';
+    import {getAddressFromEns, getEnsFromAddress, isEthereumAddress, validateRecipient} from '../../lib/utils/utils';
     import {createEventDispatcher, onMount} from 'svelte';
-    import {getProfileByAddress, getProfileByHandle} from '../../lib/lens-profile';
+    import {getProfileByAddress, getProfileByHandle} from '../../lib/user/lens-profile';
     import type {Recipient} from '../../lib/stores/state-store';
+    import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
+    import {buildLoadingItemTemplate} from '../../lib/user/tribute-loading-template';
 
     export let menuContainer: HTMLElement;
 

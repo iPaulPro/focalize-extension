@@ -10,16 +10,16 @@
         getNotificationLink,
         getNotificationProfile,
         getNotificationWalletAddress
-    } from '../../lib/lens-notifications';
+    } from '../../lib/notifications/lens-notifications';
     import {DateTime} from 'luxon';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getProfileUrl} from '../../lib/lens-nodes';
+    import {getProfileUrl} from '../../lib/publications/lens-nodes';
     import {nodeSearch} from '../../lib/stores/preferences-store';
-    import {truncate, truncateAddress} from '../../lib/utils';
+    import {truncate, truncateAddress} from '../../lib/utils/utils';
     import NotificationIcon from './NotificationIcon.svelte';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
-    import {getNotificationDisplayName} from '../../lib/lens-notifications.js';
+    import {getNotificationDisplayName} from '../../lib/notifications/lens-notifications.js';
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
 
     export let notification: Notification;

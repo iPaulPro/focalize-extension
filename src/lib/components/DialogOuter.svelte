@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import {isPopup} from '../utils';
+    import {isPopup} from '../utils/utils';
 
     export let title: string;
     let isCompact: boolean = false;

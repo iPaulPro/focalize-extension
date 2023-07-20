@@ -1,10 +1,10 @@
 <script lang="ts">
     import Select from "svelte-select";
-    import {LENS_NODES} from "../../lib/lens-nodes";
+    import {LENS_NODES} from "../../lib/publications/lens-nodes";
     import {darkMode} from "../../lib/stores/preferences-store";
     import NodeSelectionItem from "./NodeSelectionItem.svelte";
     import NodeChoiceItem from "./NodeChoiceItem.svelte";
-    import type {LensNode} from "../../lib/lens-nodes";
+    import type {LensNode} from "../../lib/publications/lens-nodes";
     import type {Writable} from "svelte/store";
 
     export let preference: Writable<LensNode>;

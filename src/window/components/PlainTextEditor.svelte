@@ -6,10 +6,10 @@
 
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
 
-    import {buildLoadingItemTemplate, buildTributeUsernameMenuTemplate, searchHandles} from "../../lib/lens-search";
+    import {searchHandles} from "../../lib/user/search-handles";
     import {content} from "../../lib/stores/state-store";
     import {darkMode, richTextComposer} from '../../lib/stores/preferences-store';
-    import {supportedMimeTypesJoined} from '../../lib/file-utils'
+    import {supportedMimeTypesJoined} from '../../lib/utils/file-utils'
 
     import MediumEditor from 'medium-editor';
     import TurndownService from "turndown";
@@ -17,9 +17,11 @@
     import 'font-awesome/css/font-awesome.css';
     import 'medium-editor/dist/css/medium-editor.css';
     import 'medium-editor/dist/css/themes/tim.css';
-    import {htmlFromMarkdown, resizeTextarea, stripMarkdown} from '../../lib/utils';
+    import {htmlFromMarkdown, resizeTextarea, stripMarkdown} from '../../lib/utils/utils';
     import CurrentUserAvatar from '../../lib/components/CurrentUserAvatar.svelte';
     import {get} from '../../lib/stores/chrome-storage-store';
+    import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
+    import {buildLoadingItemTemplate} from '../../lib/user/tribute-loading-template';
 
     export let disabled: boolean = false;
     export let isCompact: boolean;

@@ -1,8 +1,8 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
-    import {getAvatarForLensHandle, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils';
+    import {getAvatarForLensHandle, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
-    import {ensureUser} from '../../../lib/user';
+    import {ensureUser} from '../../../lib/user/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
     import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {darkMode, nodeSearch} from '../../../lib/stores/preferences-store';
@@ -10,8 +10,8 @@
     import FloatingComponent from '../../../lib/components/FloatingComponent.svelte';
     import ProfileHoverCard from '../../../lib/components/ProfileHoverCard.svelte';
     import MessagesList from './components/MessagesList.svelte';
-    import WindowBlinker from '../../../lib/WindowBlinker';
-    import {getProfileUrl} from '../../../lib/lens-nodes';
+    import WindowBlinker from '../../../lib/utils/WindowBlinker';
+    import {getProfileUrl} from '../../../lib/publications/lens-nodes';
     import {Toast, toastStore, storePopup} from '@skeletonlabs/skeleton';
     import {arrow, autoUpdate, computePosition, flip, offset, shift} from '@floating-ui/dom';
     import LoadingSpinner from '../../../lib/components/LoadingSpinner.svelte';

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {getLatestNotifications, getNextNotifications} from '../../lib/lens-notifications';
+    import {getLatestNotifications, getNextNotifications} from '../../lib/notifications/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import type {Notification} from '../../lib/graph/lens-service';
     import NotificationItem from './NotificationItem.svelte';
@@ -12,7 +12,7 @@
     } from '../../lib/stores/cache-store';
     import {get} from '../../lib/stores/chrome-storage-store';
     import {tick} from 'svelte';
-    import {hideOnScroll, scrollEndListener} from '../../lib/utils';
+    import {hideOnScroll, scrollEndListener} from '../../lib/utils/utils';
     import {notificationsTimestamp} from '../../lib/stores/preferences-store';
 
     export let lastUpdate: DateTime;

@@ -1,4 +1,4 @@
-import {CHAIN_ID, INFURA_PROJECT_ID} from '../config';
+import {CHAIN_ID, INFURA_PROJECT_ID} from '../../config';
 import {createExternalExtensionProvider} from '@metamask/providers';
 import {hexValue} from 'ethers/lib/utils';
 import omitDeep from 'omit-deep';
@@ -8,10 +8,10 @@ import type {TypedDataDomain, TypedDataField} from 'ethers';
 import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
-import MetaMaskLogo from '../assets/metamask.svg';
+import MetaMaskLogo from '../../assets/metamask.svg';
 import MetaMaskInPageProvider from './providers/connectors';
 import ethProvider from 'eth-provider';
-import {getPreference, KEY_DARK_MODE} from './stores/preferences-store';
+import {getPreference, KEY_DARK_MODE} from '../stores/preferences-store';
 
 let provider: Web3Provider;
 

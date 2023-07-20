@@ -1,17 +1,17 @@
 <script lang="ts">
     import Tribute from 'tributejs';
     import {
-        buildLoadingItemTemplate,
-        buildTributeUsernameMenuTemplate,
         searchHandles
-    } from '../../../../lib/lens-search';
+    } from '../../../../lib/user/search-handles';
     import {onMount} from 'svelte';
     import {createEventDispatcher} from 'svelte';
     import type {Peer} from '../../../../lib/xmtp-service';
-    import {validateRecipient, getAddressFromEns, getEnsFromAddress, isEthereumAddress} from '../../../../lib/utils';
-    import {getProfileByHandle} from '../../../../lib/lens-profile';
+    import {validateRecipient, getAddressFromEns, getEnsFromAddress, isEthereumAddress} from '../../../../lib/utils/utils';
+    import {getProfileByHandle} from '../../../../lib/user/lens-profile';
     import {canMessage} from '../../../../lib/xmtp-service';
     import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
+    import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
+    import {buildLoadingItemTemplate} from '../../../../lib/user/tribute-loading-template';
 
     const dispatch = createEventDispatcher();
 

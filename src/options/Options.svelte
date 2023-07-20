@@ -1,8 +1,8 @@
 <script lang="ts">
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {logOut} from "../lib/lens-auth";
-    import {getAuthenticatedUser, UserError} from "../lib/user";
+    import {logOut} from "../lib/user/lens-auth";
+    import {getAuthenticatedUser, UserError} from "../lib/user/user";
     import {currentUser} from "../lib/stores/user-store";
     import {darkMode, pinPromptShown} from '../lib/stores/preferences-store';
 
@@ -10,7 +10,7 @@
     import AllSettings from "./components/AllSettings.svelte";
     import PinPromptDialog from "./components/PinPromptDialog.svelte";
     import DialogOuter from "../lib/components/DialogOuter.svelte";
-    import {isOnToolbar} from '../lib/utils';
+    import {isOnToolbar} from '../lib/utils/utils';
     import {get} from '../lib/stores/chrome-storage-store';
     import Login from './components/Login.svelte';
 

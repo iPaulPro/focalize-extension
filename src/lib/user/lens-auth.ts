@@ -1,10 +1,10 @@
 import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
-import lensApi from "./graph/lens-api";
+import lensApi from "../lens-api";
 
 export const authenticateUser = async () => {
-    const {initEthers, getSigner, getAccounts, clearProvider} = await import('./ethers-service');
+    const {initEthers, getSigner, getAccounts, clearProvider} = await import('../evm/ethers-service');
     const {getDefaultProfile} = await import('./lens-profile');
 
     let address: string | undefined;

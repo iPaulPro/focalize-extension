@@ -4,7 +4,7 @@
     import {createEventDispatcher, onMount, tick} from 'svelte';
     import {z} from 'zod';
 
-    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/lens-modules';
+    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/publications/lens-modules';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
 
     import type {Erc20, RecipientDataInput} from '../../lib/graph/lens-service';
@@ -13,7 +13,7 @@
     import {currentUser} from '../../lib/stores/user-store';
     import CollectSettingsSwitch from './CollectSettingsSwitch.svelte';
     import {fade, slide} from 'svelte/transition';
-    import {formatCryptoValue, getAvatarForLensHandle, getAvatarFromAddress, truncateAddress} from '../../lib/utils';
+    import {formatCryptoValue, getAvatarForLensHandle, getAvatarFromAddress, truncateAddress} from '../../lib/utils/utils';
     import CollectFeeSplitInput from './CollectFeeSplitInput.svelte';
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';

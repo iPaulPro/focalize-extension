@@ -1,14 +1,14 @@
 import {GraphQLClient} from 'graphql-request'
-import {LENS_API} from '../../config';
-import {getOrRefreshAccessToken} from "../lens-auth";
-import {getSdk} from "./lens-service";
+import type {RequestMiddleware} from 'graphql-request/dist/types';
+import {LENS_API} from '../config';
+import {getOrRefreshAccessToken} from "./user/lens-auth";
+import {getSdk} from "./graph/lens-service";
 
-const middleware = async (request: RequestInit) => {
-    // @ts-ignore
+const requestMiddleware: RequestMiddleware = async (request) => {
     const operationName = request.operationName;
-    if (operationName === 'Challenge' ||
-        operationName === 'Authenticate' ||
-        operationName === 'Refresh') {
+    if (operationName === 'challenge' ||
+        operationName === 'authenticate' ||
+        operationName === 'refresh') {
         return request;
     }
 
@@ -27,8 +27,7 @@ const client = new GraphQLClient(
     {
         fetch,
         cache: "no-cache",
-        // @ts-ignore
-        requestMiddleware: middleware
+        requestMiddleware
     }
 );
 

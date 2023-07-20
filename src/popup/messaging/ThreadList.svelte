@@ -11,7 +11,7 @@
     import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
     import {latestMessageMap, selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
-    import {launchThreadWindow} from '../../lib/utils';
+    import {launchThreadWindow} from '../../lib/utils/utils';
     import {createEventDispatcher} from 'svelte';
     import {currentUser} from '../../lib/stores/user-store';
 

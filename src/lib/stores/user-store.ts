@@ -1,6 +1,6 @@
 import {chromeStorageLocal} from "./chrome-storage-store";
 import type {Writable} from 'svelte/store';
-import type {User} from "../user";
+import type {User} from "../user/user";
 
 export const KEY_CURRENT_USER = 'currentUser';
 /**

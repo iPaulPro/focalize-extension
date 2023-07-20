@@ -5,18 +5,16 @@ import type {
     SimpleCollectModuleParams,
     MultirecipientFeeCollectModuleParams,
     ModuleFeeAmountParams, RecipientDataInput,
-} from './graph/lens-service';
+} from '../graph/lens-service';
 
-import {PublicationContentWarning} from "./graph/lens-service";
+import {PublicationContentWarning} from "../graph/lens-service";
 
-import lensApi from "./graph/lens-api";
+import lensApi from "../lens-api";
 import {DateTime} from "luxon";
 
 import type {CollectSettings} from './collect-settings';
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
-
-export type SimpleMultiModuleParams = SimpleCollectModuleParams | MultirecipientFeeCollectModuleParams;
 
 export type SelectOption<Type> = {
     value: Type,

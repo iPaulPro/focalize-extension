@@ -1,5 +1,5 @@
-import nodes from './stores/nodes.json';
-import {PublicationMainFocus} from "./graph/lens-service";
+import nodes from '../stores/nodes.json';
+import {PublicationMainFocus} from "../graph/lens-service";
 
 export type LensNode = {
     name: string,

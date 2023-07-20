@@ -1,4 +1,4 @@
-import type {Notification} from './graph/lens-service';
+import type {Notification} from '../graph/lens-service';
 import showdown from 'showdown';
 import * as cheerio from 'cheerio';
 import {fromEvent, Subject, takeUntil} from 'rxjs';
@@ -7,14 +7,14 @@ import {DateTime} from 'luxon';
 import type {DecodedMessage} from '@xmtp/xmtp-js';
 import type {Provider} from '@ethersproject/providers';
 import {ethers} from 'ethers';
-import {INFURA_PROJECT_ID} from '../config';
+import {INFURA_PROJECT_ID} from '../../config';
 import {
     getPreference,
     KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NOTIFICATIONS_TIMESTAMP,
     KEY_USE_POPUP_COMPOSER,
-} from './stores/preferences-store';
-import {KEY_WINDOW_TOPIC_MAP} from './stores/cache-store';
+} from '../stores/preferences-store';
+import {KEY_WINDOW_TOPIC_MAP} from '../stores/cache-store';
 import {tick} from 'svelte';
 import {z, ZodType} from 'zod';
 
@@ -187,7 +187,7 @@ export const scrollEndListener = (
     node: HTMLElement,
     options: ScrollEndListenerOptions = {}
 ): { destroy: () => void } => {
-    const { delay = 200, onScrollEnd = (node: HTMLElement) => {} } = options;
+    const { delay = 200, onScrollEnd = (element: HTMLElement) => {} } = options;
     const destroy = new Subject<void>();
 
     fromEvent(node, "scroll")

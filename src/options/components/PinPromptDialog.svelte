@@ -4,7 +4,7 @@
     import {interval, Subscription} from 'rxjs';
     import {takeWhile, switchMap} from 'rxjs/operators';
     import {createEventDispatcher, onDestroy, onMount} from "svelte";
-    import {isOnToolbar} from "../../lib/utils";
+    import {isOnToolbar} from "../../lib/utils/utils";
 
     const dispatch = createEventDispatcher();
 
