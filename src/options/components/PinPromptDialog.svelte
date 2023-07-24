@@ -42,7 +42,7 @@
 
     <button type="button" on:click={() => dispatch('dismiss')}
             class="py-1.5 px-8 flex justify-center items-center
-            bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400
+            bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400
             dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600
             rounded-full shadow-md
             focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2

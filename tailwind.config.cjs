@@ -25,7 +25,8 @@ const config = {
         }
       },
       dropShadow: {
-        'dark': '0 1px 1px rgba(0, 0, 0, 0.7)'
+        'dark': '0 1px 1px rgba(0, 0, 0, 0.3)',
+        'darker': '0 1px 1px rgba(0, 0, 0, 0.7)'
       }
     }
   },

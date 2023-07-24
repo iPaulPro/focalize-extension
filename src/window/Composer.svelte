@@ -263,6 +263,8 @@
 
         isSubmittingPost = true;
 
+        await ensureDraft();
+
         try {
             await ensureCorrectChain();
         } catch (e) {
@@ -819,7 +821,7 @@
 
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
                       class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
-                    rounded-l-full w-auto bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
+                    rounded-l-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
@@ -860,7 +862,7 @@
               <button type="button" disabled={!submitEnabled}
                       class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
                     border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
-                    bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700
+                    bg-orange-600 hover:bg-orange-700
                     disabled:bg-neutral-400 dark:disabled:bg-gray-600
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center text-lg dark:disabled:text-gray-400

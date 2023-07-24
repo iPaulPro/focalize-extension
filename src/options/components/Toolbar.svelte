@@ -52,7 +52,7 @@
           </a>
 
           <div class="w-10 h-10">
-            <CurrentUserAvatar/>
+            <CurrentUserAvatar showSettings={showIcon}/>
           </div>
 
         </div>

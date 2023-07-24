@@ -7,7 +7,6 @@
         notificationsEnabled,
         notificationsRefreshInterval,
     } from '../../lib/stores/preferences-store';
-    import type {RefreshInterval} from '../../lib/stores/preferences-store'
     import {nodeNotifications, notificationsForFollows, notificationsGrouped} from "../../lib/stores/preferences-store";
 
     import LensNodeSelect from "./LensNodeSelect.svelte";
@@ -15,6 +14,7 @@
         notificationsFiltered, notificationsForCollects, notificationsForComments,
         notificationsForMentions, notificationsForMirrors, notificationsForReactions
     } from '../../lib/stores/preferences-store';
+    import type {RefreshInterval} from '../../lib/notifications/RefreshInterval';
 
     const collection: RefreshInterval[] = [
         {value: 1, label: '1 min'},

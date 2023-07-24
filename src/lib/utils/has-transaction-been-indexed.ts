@@ -1,13 +1,12 @@
 import lensApi from "../lens-api";
 import type {TransactionReceipt} from "../graph/lens-service";
-import {PublicationMetadataStatusType} from "../graph/lens-service";
+import {PublicationMetadataStatusType, type Log} from "../graph/lens-service";
 import {sleep} from "./utils";
-import {BigNumber, utils} from "ethers";
-import type {Log} from "@ethersproject/providers";
+import {AbiCoder, id} from "ethers";
 import {PublicationState} from "../stores/state-store";
 
 const getPublicationId = (logs: Array<Log>) => {
-    const topicId = utils.id(
+    const topicId = id(
         'PostCreated(uint256,uint256,string,address,bytes,address,bytes,uint256)'
     );
 
@@ -18,8 +17,8 @@ const getPublicationId = (logs: Array<Log>) => {
 
     const profileCreatedEventLog = log.topics;
 
-    const publicationId = utils.defaultAbiCoder.decode(['uint256'], profileCreatedEventLog[2])[0];
-    return BigNumber.from(publicationId).toHexString();
+    const publicationId = AbiCoder.defaultAbiCoder().decode(['uint256'], profileCreatedEventLog[2])[0];
+    return '0x' + BigInt(publicationId).toString(16);
 }
 
 export const pollUntilIndexed = async (

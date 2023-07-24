@@ -55,8 +55,8 @@
     content: "";
     height: 1.25rem;
     width: 1.25rem;
-    left: 0.25rem;
-    bottom: 0.25rem;
+    left: 0.2rem;
+    bottom: 0.15rem;
     background-color: white;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     -webkit-transition: .4s;
@@ -80,7 +80,7 @@
   }
 
   input:checked + .slider:before {
-    transform: translateX(1.75rem);
+    transform: translateX(1.65rem);
     background-color: white;
   }
 

@@ -12,7 +12,7 @@ import {PublicationContentWarning} from "../graph/lens-service";
 import lensApi from "../lens-api";
 import {DateTime} from "luxon";
 
-import type {CollectSettings} from './collect-settings';
+import type {CollectSettings} from './CollectSettings';
 
 export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
 

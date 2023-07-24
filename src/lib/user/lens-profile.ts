@@ -3,7 +3,6 @@ import {LENS_FOLLOW_NFT_ABI} from '../../config';
 
 import {getLensHub} from '../evm/lens-hub';
 import {getSigner, signTypedData} from '../evm/ethers-service';
-import {splitSignature} from 'ethers/lib/utils';
 import {pollUntilIndexed} from '../utils/has-transaction-been-indexed';
 
 import lensApi from '../lens-api';
@@ -104,9 +103,9 @@ export const setDispatcher = async (request: SetDispatcherRequest): Promise<stri
     if (broadcast.__typename === 'RelayError') {
         console.error('setDispatcher: relay broadcast failed', broadcast.reason);
 
-        const {v, r, s} = splitSignature(signature);
+        const {v, r, s} = ethers.Signature.from(signature);
 
-        const lensHub = getLensHub();
+        const lensHub = await getLensHub();
         const tx = await lensHub.setDispatcherWithSig({
             profileId: typedData.value.profileId,
             dispatcher: typedData.value.dispatcher,
@@ -179,9 +178,9 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
     if (broadcast.__typename === 'RelayError') {
         console.error('followProfile: relay broadcast failed', broadcast.reason);
 
-        const {v, r, s} = splitSignature(signature);
+        const {v, r, s} = ethers.Signature.from(signature);
 
-        const lensHub = getLensHub();
+        const lensHub = await getLensHub();
         const tx = await lensHub.followWithSig( {
             follower: currentUser.address,
             profileIds: typedData.value.profileIds,
@@ -206,13 +205,13 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
 };
 
 const burnFollowWithSig = async (signature: string, typedData: CreateBurnEip712TypedData) => {
-    const {v, r, s} = splitSignature(signature);
+    const {v, r, s} = ethers.Signature.from(signature);
 
     // load up the follower nft contract
     const followNftContract = new ethers.Contract(
         typedData.domain.verifyingContract,
         LENS_FOLLOW_NFT_ABI,
-        getSigner()
+        await getSigner()
     );
 
     const sig = {

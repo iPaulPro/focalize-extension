@@ -75,8 +75,9 @@ const getPaginatedNotificationResult = async (
     try {
         accessToken = await getOrRefreshAccessToken();
     } catch (e) {
-        // TODO show notification to log back in if needed
         console.error('getNotifications: Error getting access token', e);
+        chrome.runtime.openOptionsPage();
+        window?.close();
     }
     if (!accessToken) return null;
 

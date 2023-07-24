@@ -6,7 +6,7 @@
     import {createEventDispatcher} from 'svelte';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {derived, type Readable} from 'svelte/store';
-    import type {CollectSettings} from '../../lib/publications/collect-settings';
+    import type {CollectSettings} from '../../lib/publications/CollectSettings';
 
     const dispatch = createEventDispatcher();
 

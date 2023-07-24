@@ -69,7 +69,7 @@ export const getXmtpClient = async (): Promise<Client> => {
     }
 
     const {getSigner} = await import('./evm/ethers-service');
-    const signer = getSigner();
+    const signer = await getSigner();
     if (!signer) throw new Error('Unable to find wallet for signing.');
 
     const address = await signer?.getAddress();

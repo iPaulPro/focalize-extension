@@ -7,6 +7,8 @@
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {currentUser} from '../stores/user-store';
 
+    export let showSettings = true;
+
     let avatarError;
     let logoutDialog: HTMLDialogElement;
 
@@ -18,7 +20,7 @@
 <div class="w-full h-full cursor-pointer tooltip flex-none"
      use:tooltip={{
            component: AccountChooser,
-           props: {},
+           props: {showSettings},
            trigger: 'click',
            interactive: true,
            placement: 'auto'
@@ -38,7 +40,7 @@
 
 <dialog id="logoutDialog" bind:this={logoutDialog}
         on:click={(event) => {if (event.target.id === 'logoutDialog') logoutDialog?.close()}}
-        class="rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+        class="rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
   <DialogOuter title="Log out">
     <ConfirmLogoutDialog />
   </DialogOuter>

@@ -2,7 +2,7 @@ import type {Writable} from 'svelte/store';
 import {writable} from 'svelte/store';
 import type {PublicationMetadataMediaInput} from '../graph/lens-service';
 import type {Web3File} from '../ipfs-service';
-import type {CollectSettings} from '../publications/collect-settings';
+import type {CollectSettings} from '../publications/CollectSettings';
 import type {PostDraft} from '../publications/PostDraft';
 
 export interface Recipient {

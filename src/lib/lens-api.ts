@@ -12,13 +12,18 @@ const requestMiddleware: RequestMiddleware = async (request) => {
         return request;
     }
 
-    const token = await getOrRefreshAccessToken();
-    return {
-        ...request,
-        headers: {
-            ...request.headers,
-            'x-access-token': token ? `Bearer ${token}` : '',
-        },
+    try {
+        const token = await getOrRefreshAccessToken();
+        return {
+            ...request,
+            headers: {
+                ...request.headers,
+                'x-access-token': token ? `Bearer ${token}` : '',
+            },
+        };
+    } catch (e) {
+        console.warn('requestMiddleware: Error getting access token', e);
+        return request;
     }
 };
 

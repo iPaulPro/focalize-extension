@@ -3,94 +3,90 @@
 /* eslint-disable */
 import type {
   BaseContract,
-  BigNumber,
   BigNumberish,
   BytesLike,
-  CallOverrides,
-  ContractTransaction,
-  Overrides,
-  PopulatedTransaction,
-  Signer,
-  utils,
-} from "ethers";
-import type {
   FunctionFragment,
   Result,
+  Interface,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+  AddressLike,
+  ContractRunner,
+  ContractMethod,
+  Listener,
+} from "ethers";
 import type {
-  TypedEventFilter,
-  TypedEvent,
+  TypedContractEvent,
+  TypedDeferredTopicFilter,
+  TypedEventLog,
+  TypedLogDescription,
   TypedListener,
-  OnEvent,
-  PromiseOrValue,
+  TypedContractMethod,
 } from "./common";
 
 export declare namespace DataTypes {
   export type EIP712SignatureStruct = {
-    v: PromiseOrValue<BigNumberish>;
-    r: PromiseOrValue<BytesLike>;
-    s: PromiseOrValue<BytesLike>;
-    deadline: PromiseOrValue<BigNumberish>;
+    v: BigNumberish;
+    r: BytesLike;
+    s: BytesLike;
+    deadline: BigNumberish;
   };
 
   export type EIP712SignatureStructOutput = [
-    number,
-    string,
-    string,
-    BigNumber
-  ] & { v: number; r: string; s: string; deadline: BigNumber };
+    v: bigint,
+    r: string,
+    s: string,
+    deadline: bigint
+  ] & { v: bigint; r: string; s: string; deadline: bigint };
 
   export type CollectWithSigDataStruct = {
-    collector: PromiseOrValue<string>;
-    profileId: PromiseOrValue<BigNumberish>;
-    pubId: PromiseOrValue<BigNumberish>;
-    data: PromiseOrValue<BytesLike>;
+    collector: AddressLike;
+    profileId: BigNumberish;
+    pubId: BigNumberish;
+    data: BytesLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type CollectWithSigDataStructOutput = [
-    string,
-    BigNumber,
-    BigNumber,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    collector: string,
+    profileId: bigint,
+    pubId: bigint,
+    data: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
     collector: string;
-    profileId: BigNumber;
-    pubId: BigNumber;
+    profileId: bigint;
+    pubId: bigint;
     data: string;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type CommentDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    contentURI: PromiseOrValue<string>;
-    profileIdPointed: PromiseOrValue<BigNumberish>;
-    pubIdPointed: PromiseOrValue<BigNumberish>;
-    referenceModuleData: PromiseOrValue<BytesLike>;
-    collectModule: PromiseOrValue<string>;
-    collectModuleInitData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    contentURI: string;
+    profileIdPointed: BigNumberish;
+    pubIdPointed: BigNumberish;
+    referenceModuleData: BytesLike;
+    collectModule: AddressLike;
+    collectModuleInitData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
   };
 
   export type CommentDataStructOutput = [
-    BigNumber,
-    string,
-    BigNumber,
-    BigNumber,
-    string,
-    string,
-    string,
-    string,
-    string
+    profileId: bigint,
+    contentURI: string,
+    profileIdPointed: bigint,
+    pubIdPointed: bigint,
+    referenceModuleData: string,
+    collectModule: string,
+    collectModuleInitData: string,
+    referenceModule: string,
+    referenceModuleInitData: string
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     contentURI: string;
-    profileIdPointed: BigNumber;
-    pubIdPointed: BigNumber;
+    profileIdPointed: bigint;
+    pubIdPointed: bigint;
     referenceModuleData: string;
     collectModule: string;
     collectModuleInitData: string;
@@ -99,34 +95,34 @@ export declare namespace DataTypes {
   };
 
   export type CommentWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    contentURI: PromiseOrValue<string>;
-    profileIdPointed: PromiseOrValue<BigNumberish>;
-    pubIdPointed: PromiseOrValue<BigNumberish>;
-    referenceModuleData: PromiseOrValue<BytesLike>;
-    collectModule: PromiseOrValue<string>;
-    collectModuleInitData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    contentURI: string;
+    profileIdPointed: BigNumberish;
+    pubIdPointed: BigNumberish;
+    referenceModuleData: BytesLike;
+    collectModule: AddressLike;
+    collectModuleInitData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type CommentWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    BigNumber,
-    BigNumber,
-    string,
-    string,
-    string,
-    string,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    contentURI: string,
+    profileIdPointed: bigint,
+    pubIdPointed: bigint,
+    referenceModuleData: string,
+    collectModule: string,
+    collectModuleInitData: string,
+    referenceModule: string,
+    referenceModuleInitData: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     contentURI: string;
-    profileIdPointed: BigNumber;
-    pubIdPointed: BigNumber;
+    profileIdPointed: bigint;
+    pubIdPointed: bigint;
     referenceModuleData: string;
     collectModule: string;
     collectModuleInitData: string;
@@ -136,21 +132,21 @@ export declare namespace DataTypes {
   };
 
   export type CreateProfileDataStruct = {
-    to: PromiseOrValue<string>;
-    handle: PromiseOrValue<string>;
-    imageURI: PromiseOrValue<string>;
-    followModule: PromiseOrValue<string>;
-    followModuleInitData: PromiseOrValue<BytesLike>;
-    followNFTURI: PromiseOrValue<string>;
+    to: AddressLike;
+    handle: string;
+    imageURI: string;
+    followModule: AddressLike;
+    followModuleInitData: BytesLike;
+    followNFTURI: string;
   };
 
   export type CreateProfileDataStructOutput = [
-    string,
-    string,
-    string,
-    string,
-    string,
-    string
+    to: string,
+    handle: string,
+    imageURI: string,
+    followModule: string,
+    followModuleInitData: string,
+    followNFTURI: string
   ] & {
     to: string;
     handle: string;
@@ -161,42 +157,42 @@ export declare namespace DataTypes {
   };
 
   export type FollowWithSigDataStruct = {
-    follower: PromiseOrValue<string>;
-    profileIds: PromiseOrValue<BigNumberish>[];
-    datas: PromiseOrValue<BytesLike>[];
+    follower: AddressLike;
+    profileIds: BigNumberish[];
+    datas: BytesLike[];
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type FollowWithSigDataStructOutput = [
-    string,
-    BigNumber[],
-    string[],
-    DataTypes.EIP712SignatureStructOutput
+    follower: string,
+    profileIds: bigint[],
+    datas: string[],
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
     follower: string;
-    profileIds: BigNumber[];
+    profileIds: bigint[];
     datas: string[];
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type ProfileStructStruct = {
-    pubCount: PromiseOrValue<BigNumberish>;
-    followModule: PromiseOrValue<string>;
-    followNFT: PromiseOrValue<string>;
-    handle: PromiseOrValue<string>;
-    imageURI: PromiseOrValue<string>;
-    followNFTURI: PromiseOrValue<string>;
+    pubCount: BigNumberish;
+    followModule: AddressLike;
+    followNFT: AddressLike;
+    handle: string;
+    imageURI: string;
+    followNFTURI: string;
   };
 
   export type ProfileStructStructOutput = [
-    BigNumber,
-    string,
-    string,
-    string,
-    string,
-    string
+    pubCount: bigint,
+    followModule: string,
+    followNFT: string,
+    handle: string,
+    imageURI: string,
+    followNFTURI: string
   ] & {
-    pubCount: BigNumber;
+    pubCount: bigint;
     followModule: string;
     followNFT: string;
     handle: string;
@@ -205,24 +201,24 @@ export declare namespace DataTypes {
   };
 
   export type PublicationStructStruct = {
-    profileIdPointed: PromiseOrValue<BigNumberish>;
-    pubIdPointed: PromiseOrValue<BigNumberish>;
-    contentURI: PromiseOrValue<string>;
-    referenceModule: PromiseOrValue<string>;
-    collectModule: PromiseOrValue<string>;
-    collectNFT: PromiseOrValue<string>;
+    profileIdPointed: BigNumberish;
+    pubIdPointed: BigNumberish;
+    contentURI: string;
+    referenceModule: AddressLike;
+    collectModule: AddressLike;
+    collectNFT: AddressLike;
   };
 
   export type PublicationStructStructOutput = [
-    BigNumber,
-    BigNumber,
-    string,
-    string,
-    string,
-    string
+    profileIdPointed: bigint,
+    pubIdPointed: bigint,
+    contentURI: string,
+    referenceModule: string,
+    collectModule: string,
+    collectNFT: string
   ] & {
-    profileIdPointed: BigNumber;
-    pubIdPointed: BigNumber;
+    profileIdPointed: bigint;
+    pubIdPointed: bigint;
     contentURI: string;
     referenceModule: string;
     collectModule: string;
@@ -230,52 +226,52 @@ export declare namespace DataTypes {
   };
 
   export type MirrorDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    profileIdPointed: PromiseOrValue<BigNumberish>;
-    pubIdPointed: PromiseOrValue<BigNumberish>;
-    referenceModuleData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    profileIdPointed: BigNumberish;
+    pubIdPointed: BigNumberish;
+    referenceModuleData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
   };
 
   export type MirrorDataStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    string,
-    string,
-    string
+    profileId: bigint,
+    profileIdPointed: bigint,
+    pubIdPointed: bigint,
+    referenceModuleData: string,
+    referenceModule: string,
+    referenceModuleInitData: string
   ] & {
-    profileId: BigNumber;
-    profileIdPointed: BigNumber;
-    pubIdPointed: BigNumber;
+    profileId: bigint;
+    profileIdPointed: bigint;
+    pubIdPointed: bigint;
     referenceModuleData: string;
     referenceModule: string;
     referenceModuleInitData: string;
   };
 
   export type MirrorWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    profileIdPointed: PromiseOrValue<BigNumberish>;
-    pubIdPointed: PromiseOrValue<BigNumberish>;
-    referenceModuleData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    profileIdPointed: BigNumberish;
+    pubIdPointed: BigNumberish;
+    referenceModuleData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type MirrorWithSigDataStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    string,
-    string,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    profileIdPointed: bigint,
+    pubIdPointed: bigint,
+    referenceModuleData: string,
+    referenceModule: string,
+    referenceModuleInitData: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
-    profileIdPointed: BigNumber;
-    pubIdPointed: BigNumber;
+    profileId: bigint;
+    profileIdPointed: bigint;
+    pubIdPointed: bigint;
     referenceModuleData: string;
     referenceModule: string;
     referenceModuleInitData: string;
@@ -283,23 +279,23 @@ export declare namespace DataTypes {
   };
 
   export type PostDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    contentURI: PromiseOrValue<string>;
-    collectModule: PromiseOrValue<string>;
-    collectModuleInitData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    contentURI: string;
+    collectModule: AddressLike;
+    collectModuleInitData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
   };
 
   export type PostDataStructOutput = [
-    BigNumber,
-    string,
-    string,
-    string,
-    string,
-    string
+    profileId: bigint,
+    contentURI: string,
+    collectModule: string,
+    collectModuleInitData: string,
+    referenceModule: string,
+    referenceModuleInitData: string
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     contentURI: string;
     collectModule: string;
     collectModuleInitData: string;
@@ -308,25 +304,25 @@ export declare namespace DataTypes {
   };
 
   export type PostWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    contentURI: PromiseOrValue<string>;
-    collectModule: PromiseOrValue<string>;
-    collectModuleInitData: PromiseOrValue<BytesLike>;
-    referenceModule: PromiseOrValue<string>;
-    referenceModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    contentURI: string;
+    collectModule: AddressLike;
+    collectModuleInitData: BytesLike;
+    referenceModule: AddressLike;
+    referenceModuleInitData: BytesLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type PostWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    string,
-    string,
-    string,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    contentURI: string,
+    collectModule: string,
+    collectModuleInitData: string,
+    referenceModule: string,
+    referenceModuleInitData: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     contentURI: string;
     collectModule: string;
     collectModuleInitData: string;
@@ -336,84 +332,84 @@ export declare namespace DataTypes {
   };
 
   export type SetDefaultProfileWithSigDataStruct = {
-    wallet: PromiseOrValue<string>;
-    profileId: PromiseOrValue<BigNumberish>;
+    wallet: AddressLike;
+    profileId: BigNumberish;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type SetDefaultProfileWithSigDataStructOutput = [
-    string,
-    BigNumber,
-    DataTypes.EIP712SignatureStructOutput
+    wallet: string,
+    profileId: bigint,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
     wallet: string;
-    profileId: BigNumber;
+    profileId: bigint;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type SetDispatcherWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    dispatcher: PromiseOrValue<string>;
+    profileId: BigNumberish;
+    dispatcher: AddressLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type SetDispatcherWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    dispatcher: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     dispatcher: string;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type SetFollowModuleWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    followModule: PromiseOrValue<string>;
-    followModuleInitData: PromiseOrValue<BytesLike>;
+    profileId: BigNumberish;
+    followModule: AddressLike;
+    followModuleInitData: BytesLike;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type SetFollowModuleWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    followModule: string,
+    followModuleInitData: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     followModule: string;
     followModuleInitData: string;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type SetFollowNFTURIWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    followNFTURI: PromiseOrValue<string>;
+    profileId: BigNumberish;
+    followNFTURI: string;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type SetFollowNFTURIWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    followNFTURI: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     followNFTURI: string;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
 
   export type SetProfileImageURIWithSigDataStruct = {
-    profileId: PromiseOrValue<BigNumberish>;
-    imageURI: PromiseOrValue<string>;
+    profileId: BigNumberish;
+    imageURI: string;
     sig: DataTypes.EIP712SignatureStruct;
   };
 
   export type SetProfileImageURIWithSigDataStructOutput = [
-    BigNumber,
-    string,
-    DataTypes.EIP712SignatureStructOutput
+    profileId: bigint,
+    imageURI: string,
+    sig: DataTypes.EIP712SignatureStructOutput
   ] & {
-    profileId: BigNumber;
+    profileId: bigint;
     imageURI: string;
     sig: DataTypes.EIP712SignatureStructOutput;
   };
@@ -421,102 +417,19 @@ export declare namespace DataTypes {
 
 export declare namespace IERC721Time {
   export type TokenDataStruct = {
-    owner: PromiseOrValue<string>;
-    mintTimestamp: PromiseOrValue<BigNumberish>;
+    owner: AddressLike;
+    mintTimestamp: BigNumberish;
   };
 
-  export type TokenDataStructOutput = [string, BigNumber] & {
+  export type TokenDataStructOutput = [owner: string, mintTimestamp: bigint] & {
     owner: string;
-    mintTimestamp: BigNumber;
+    mintTimestamp: bigint;
   };
 }
 
-export interface LensHubInterface extends utils.Interface {
-  functions: {
-    "approve(address,uint256)": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "burn(uint256)": FunctionFragment;
-    "burnWithSig(uint256,(uint8,bytes32,bytes32,uint256))": FunctionFragment;
-    "collect(uint256,uint256,bytes)": FunctionFragment;
-    "collectWithSig((address,uint256,uint256,bytes,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "comment((uint256,string,uint256,uint256,bytes,address,bytes,address,bytes))": FunctionFragment;
-    "commentWithSig((uint256,string,uint256,uint256,bytes,address,bytes,address,bytes,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "createProfile((address,string,string,address,bytes,string))": FunctionFragment;
-    "defaultProfile(address)": FunctionFragment;
-    "emitCollectNFTTransferEvent(uint256,uint256,uint256,address,address)": FunctionFragment;
-    "emitFollowNFTTransferEvent(uint256,uint256,address,address)": FunctionFragment;
-    "exists(uint256)": FunctionFragment;
-    "follow(uint256[],bytes[])": FunctionFragment;
-    "followWithSig((address,uint256[],bytes[],(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "getApproved(uint256)": FunctionFragment;
-    "getCollectModule(uint256,uint256)": FunctionFragment;
-    "getCollectNFT(uint256,uint256)": FunctionFragment;
-    "getCollectNFTImpl()": FunctionFragment;
-    "getContentURI(uint256,uint256)": FunctionFragment;
-    "getDispatcher(uint256)": FunctionFragment;
-    "getDomainSeparator()": FunctionFragment;
-    "getFollowModule(uint256)": FunctionFragment;
-    "getFollowNFT(uint256)": FunctionFragment;
-    "getFollowNFTImpl()": FunctionFragment;
-    "getFollowNFTURI(uint256)": FunctionFragment;
-    "getGovernance()": FunctionFragment;
-    "getHandle(uint256)": FunctionFragment;
-    "getProfile(uint256)": FunctionFragment;
-    "getProfileIdByHandle(string)": FunctionFragment;
-    "getPub(uint256,uint256)": FunctionFragment;
-    "getPubCount(uint256)": FunctionFragment;
-    "getPubPointer(uint256,uint256)": FunctionFragment;
-    "getPubType(uint256,uint256)": FunctionFragment;
-    "getReferenceModule(uint256,uint256)": FunctionFragment;
-    "getState()": FunctionFragment;
-    "initialize(string,string,address)": FunctionFragment;
-    "isApprovedForAll(address,address)": FunctionFragment;
-    "isCollectModuleWhitelisted(address)": FunctionFragment;
-    "isFollowModuleWhitelisted(address)": FunctionFragment;
-    "isProfileCreatorWhitelisted(address)": FunctionFragment;
-    "isReferenceModuleWhitelisted(address)": FunctionFragment;
-    "mintTimestampOf(uint256)": FunctionFragment;
-    "mirror((uint256,uint256,uint256,bytes,address,bytes))": FunctionFragment;
-    "mirrorWithSig((uint256,uint256,uint256,bytes,address,bytes,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "name()": FunctionFragment;
-    "ownerOf(uint256)": FunctionFragment;
-    "permit(address,uint256,(uint8,bytes32,bytes32,uint256))": FunctionFragment;
-    "permitForAll(address,address,bool,(uint8,bytes32,bytes32,uint256))": FunctionFragment;
-    "post((uint256,string,address,bytes,address,bytes))": FunctionFragment;
-    "postWithSig((uint256,string,address,bytes,address,bytes,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "safeTransferFrom(address,address,uint256)": FunctionFragment;
-    "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
-    "setApprovalForAll(address,bool)": FunctionFragment;
-    "setDefaultProfile(uint256)": FunctionFragment;
-    "setDefaultProfileWithSig((address,uint256,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "setDispatcher(uint256,address)": FunctionFragment;
-    "setDispatcherWithSig((uint256,address,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "setEmergencyAdmin(address)": FunctionFragment;
-    "setFollowModule(uint256,address,bytes)": FunctionFragment;
-    "setFollowModuleWithSig((uint256,address,bytes,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "setFollowNFTURI(uint256,string)": FunctionFragment;
-    "setFollowNFTURIWithSig((uint256,string,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "setGovernance(address)": FunctionFragment;
-    "setProfileImageURI(uint256,string)": FunctionFragment;
-    "setProfileImageURIWithSig((uint256,string,(uint8,bytes32,bytes32,uint256)))": FunctionFragment;
-    "setState(uint8)": FunctionFragment;
-    "sigNonces(address)": FunctionFragment;
-    "supportsInterface(bytes4)": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "tokenByIndex(uint256)": FunctionFragment;
-    "tokenDataOf(uint256)": FunctionFragment;
-    "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
-    "tokenURI(uint256)": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "whitelistCollectModule(address,bool)": FunctionFragment;
-    "whitelistFollowModule(address,bool)": FunctionFragment;
-    "whitelistProfileCreator(address,bool)": FunctionFragment;
-    "whitelistReferenceModule(address,bool)": FunctionFragment;
-  };
-
+export interface LensHubInterface extends Interface {
   getFunction(
-    nameOrSignatureOrTopic:
+    nameOrSignature:
       | "approve"
       | "balanceOf"
       | "burn"
@@ -599,29 +512,26 @@ export interface LensHubInterface extends utils.Interface {
       | "whitelistReferenceModule"
   ): FunctionFragment;
 
+  getEvent(
+    nameOrSignatureOrTopic: "Approval" | "ApprovalForAll" | "Transfer"
+  ): EventFragment;
+
   encodeFunctionData(
     functionFragment: "approve",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "burn",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
+  encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "burnWithSig",
-    values: [PromiseOrValue<BigNumberish>, DataTypes.EIP712SignatureStruct]
+    values: [BigNumberish, DataTypes.EIP712SignatureStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "collect",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "collectWithSig",
@@ -641,34 +551,23 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "defaultProfile",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "emitCollectNFTTransferEvent",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "emitFollowNFTTransferEvent",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [BigNumberish, BigNumberish, AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "exists",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "follow",
-    values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BytesLike>[]]
+    values: [BigNumberish[], BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "followWithSig",
@@ -676,15 +575,15 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCollectModule",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCollectNFT",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCollectNFTImpl",
@@ -692,11 +591,11 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getContentURI",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getDispatcher",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getDomainSeparator",
@@ -704,11 +603,11 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getFollowModule",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getFollowNFT",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getFollowNFTImpl",
@@ -716,7 +615,7 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getFollowNFTURI",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getGovernance",
@@ -724,68 +623,64 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getHandle",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getProfile",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getProfileIdByHandle",
-    values: [PromiseOrValue<string>]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getPub",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getPubCount",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getPubPointer",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getPubType",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getReferenceModule",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "getState", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<string>
-    ]
+    values: [string, string, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [AddressLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isCollectModuleWhitelisted",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isFollowModuleWhitelisted",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isProfileCreatorWhitelisted",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isReferenceModuleWhitelisted",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "mintTimestampOf",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "mirror",
@@ -798,24 +693,15 @@ export interface LensHubInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "permit",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      DataTypes.EIP712SignatureStruct
-    ]
+    values: [AddressLike, BigNumberish, DataTypes.EIP712SignatureStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "permitForAll",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<boolean>,
-      DataTypes.EIP712SignatureStruct
-    ]
+    values: [AddressLike, AddressLike, boolean, DataTypes.EIP712SignatureStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "post",
@@ -827,28 +713,19 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256)",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setDefaultProfile",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setDefaultProfileWithSig",
@@ -856,7 +733,7 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setDispatcher",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setDispatcherWithSig",
@@ -864,15 +741,11 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setEmergencyAdmin",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setFollowModule",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
+    values: [BigNumberish, AddressLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setFollowModuleWithSig",
@@ -880,7 +753,7 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setFollowNFTURI",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setFollowNFTURIWithSig",
@@ -888,11 +761,11 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setGovernance",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setProfileImageURI",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setProfileImageURIWithSig",
@@ -900,32 +773,32 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setState",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "sigNonces",
-    values: [PromiseOrValue<string>]
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
-    values: [PromiseOrValue<BytesLike>]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "tokenByIndex",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenDataOf",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenOfOwnerByIndex",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "tokenURI",
-    values: [PromiseOrValue<BigNumberish>]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -933,27 +806,23 @@ export interface LensHubInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
+    values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistCollectModule",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistFollowModule",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistProfileCreator",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "whitelistReferenceModule",
-    values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
+    values: [AddressLike, boolean]
   ): string;
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -1210,2227 +1079,1050 @@ export interface LensHubInterface extends utils.Interface {
     functionFragment: "whitelistReferenceModule",
     data: BytesLike
   ): Result;
-
-  events: {
-    "Approval(address,address,uint256)": EventFragment;
-    "ApprovalForAll(address,address,bool)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
-export interface ApprovalEventObject {
-  owner: string;
-  approved: string;
-  tokenId: BigNumber;
+export namespace ApprovalEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    approved: AddressLike,
+    tokenId: BigNumberish
+  ];
+  export type OutputTuple = [owner: string, approved: string, tokenId: bigint];
+  export interface OutputObject {
+    owner: string;
+    approved: string;
+    tokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  ApprovalEventObject
->;
 
-export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
-
-export interface ApprovalForAllEventObject {
-  owner: string;
-  operator: string;
-  approved: boolean;
+export namespace ApprovalForAllEvent {
+  export type InputTuple = [
+    owner: AddressLike,
+    operator: AddressLike,
+    approved: boolean
+  ];
+  export type OutputTuple = [
+    owner: string,
+    operator: string,
+    approved: boolean
+  ];
+  export interface OutputObject {
+    owner: string;
+    operator: string;
+    approved: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type ApprovalForAllEvent = TypedEvent<
-  [string, string, boolean],
-  ApprovalForAllEventObject
->;
 
-export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
-
-export interface TransferEventObject {
-  from: string;
-  to: string;
-  tokenId: BigNumber;
+export namespace TransferEvent {
+  export type InputTuple = [
+    from: AddressLike,
+    to: AddressLike,
+    tokenId: BigNumberish
+  ];
+  export type OutputTuple = [from: string, to: string, tokenId: bigint];
+  export interface OutputObject {
+    from: string;
+    to: string;
+    tokenId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
-export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  TransferEventObject
->;
-
-export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
 export interface LensHub extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(runner?: ContractRunner | null): LensHub;
+  waitForDeployment(): Promise<this>;
 
   interface: LensHubInterface;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  queryFilter<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
-
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
-
-  functions: {
-    approve(
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    burn(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    burnWithSig(
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    collect(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    collectWithSig(
-      vars: DataTypes.CollectWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    comment(
-      vars: DataTypes.CommentDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    commentWithSig(
-      vars: DataTypes.CommentWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    createProfile(
-      vars: DataTypes.CreateProfileDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    defaultProfile(
-      wallet: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    emitCollectNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      collectNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    emitFollowNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    exists(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    follow(
-      profileIds: PromiseOrValue<BigNumberish>[],
-      datas: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    followWithSig(
-      vars: DataTypes.FollowWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getCollectModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getCollectNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getCollectNFTImpl(overrides?: CallOverrides): Promise<[string]>;
-
-    getContentURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getDomainSeparator(overrides?: CallOverrides): Promise<[string]>;
-
-    getFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getFollowNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getFollowNFTImpl(overrides?: CallOverrides): Promise<[string]>;
-
-    getFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getGovernance(overrides?: CallOverrides): Promise<[string]>;
-
-    getHandle(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[DataTypes.ProfileStructStructOutput]>;
-
-    getProfileIdByHandle(
-      handle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getPub(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[DataTypes.PublicationStructStructOutput]>;
-
-    getPubCount(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getPubPointer(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber]>;
-
-    getPubType(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[number]>;
-
-    getReferenceModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getState(overrides?: CallOverrides): Promise<[number]>;
-
-    initialize(
-      name: PromiseOrValue<string>,
-      symbol: PromiseOrValue<string>,
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    isApprovedForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    isCollectModuleWhitelisted(
-      collectModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    isFollowModuleWhitelisted(
-      followModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    isProfileCreatorWhitelisted(
-      profileCreator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    isReferenceModuleWhitelisted(
-      referenceModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    mintTimestampOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    mirror(
-      vars: DataTypes.MirrorDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    mirrorWithSig(
-      vars: DataTypes.MirrorWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    permit(
-      spender: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    permitForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    post(
-      vars: DataTypes.PostDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    postWithSig(
-      vars: DataTypes.PostWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setApprovalForAll(
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDefaultProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDefaultProfileWithSig(
-      vars: DataTypes.SetDefaultProfileWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      dispatcher: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setDispatcherWithSig(
-      vars: DataTypes.SetDispatcherWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setEmergencyAdmin(
-      newEmergencyAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      followModule: PromiseOrValue<string>,
-      followModuleInitData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFollowModuleWithSig(
-      vars: DataTypes.SetFollowModuleWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setFollowNFTURIWithSig(
-      vars: DataTypes.SetFollowNFTURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setGovernance(
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setProfileImageURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      imageURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setProfileImageURIWithSig(
-      vars: DataTypes.SetProfileImageURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    setState(
-      newState: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    sigNonces(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    tokenDataOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[IERC721Time.TokenDataStructOutput]>;
-
-    tokenOfOwnerByIndex(
-      owner: PromiseOrValue<string>,
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    whitelistCollectModule(
-      collectModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    whitelistFollowModule(
-      followModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    whitelistProfileCreator(
-      profileCreator: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    whitelistReferenceModule(
-      referenceModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  approve(
-    to: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  balanceOf(
-    owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  burn(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  burnWithSig(
-    tokenId: PromiseOrValue<BigNumberish>,
-    sig: DataTypes.EIP712SignatureStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  collect(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  collectWithSig(
-    vars: DataTypes.CollectWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  comment(
-    vars: DataTypes.CommentDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  commentWithSig(
-    vars: DataTypes.CommentWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  createProfile(
-    vars: DataTypes.CreateProfileDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  defaultProfile(
-    wallet: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  emitCollectNFTTransferEvent(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    collectNFTId: PromiseOrValue<BigNumberish>,
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  emitFollowNFTTransferEvent(
-    profileId: PromiseOrValue<BigNumberish>,
-    followNFTId: PromiseOrValue<BigNumberish>,
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  exists(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  follow(
-    profileIds: PromiseOrValue<BigNumberish>[],
-    datas: PromiseOrValue<BytesLike>[],
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  followWithSig(
-    vars: DataTypes.FollowWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getApproved(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getCollectModule(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getCollectNFT(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getCollectNFTImpl(overrides?: CallOverrides): Promise<string>;
-
-  getContentURI(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getDispatcher(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getDomainSeparator(overrides?: CallOverrides): Promise<string>;
-
-  getFollowModule(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getFollowNFT(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getFollowNFTImpl(overrides?: CallOverrides): Promise<string>;
-
-  getFollowNFTURI(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getGovernance(overrides?: CallOverrides): Promise<string>;
-
-  getHandle(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getProfile(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<DataTypes.ProfileStructStructOutput>;
-
-  getProfileIdByHandle(
-    handle: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getPub(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<DataTypes.PublicationStructStructOutput>;
-
-  getPubCount(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getPubPointer(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber]>;
-
-  getPubType(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<number>;
-
-  getReferenceModule(
-    profileId: PromiseOrValue<BigNumberish>,
-    pubId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getState(overrides?: CallOverrides): Promise<number>;
-
-  initialize(
-    name: PromiseOrValue<string>,
-    symbol: PromiseOrValue<string>,
-    newGovernance: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  isApprovedForAll(
-    owner: PromiseOrValue<string>,
-    operator: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isCollectModuleWhitelisted(
-    collectModule: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isFollowModuleWhitelisted(
-    followModule: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isProfileCreatorWhitelisted(
-    profileCreator: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isReferenceModuleWhitelisted(
-    referenceModule: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  mintTimestampOf(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  mirror(
-    vars: DataTypes.MirrorDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  mirrorWithSig(
-    vars: DataTypes.MirrorWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  name(overrides?: CallOverrides): Promise<string>;
-
-  ownerOf(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  permit(
-    spender: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    sig: DataTypes.EIP712SignatureStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  permitForAll(
-    owner: PromiseOrValue<string>,
-    operator: PromiseOrValue<string>,
-    approved: PromiseOrValue<boolean>,
-    sig: DataTypes.EIP712SignatureStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  post(
-    vars: DataTypes.PostDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  postWithSig(
-    vars: DataTypes.PostWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "safeTransferFrom(address,address,uint256)"(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  "safeTransferFrom(address,address,uint256,bytes)"(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    _data: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setApprovalForAll(
-    operator: PromiseOrValue<string>,
-    approved: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDefaultProfile(
-    profileId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDefaultProfileWithSig(
-    vars: DataTypes.SetDefaultProfileWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDispatcher(
-    profileId: PromiseOrValue<BigNumberish>,
-    dispatcher: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setDispatcherWithSig(
-    vars: DataTypes.SetDispatcherWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setEmergencyAdmin(
-    newEmergencyAdmin: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFollowModule(
-    profileId: PromiseOrValue<BigNumberish>,
-    followModule: PromiseOrValue<string>,
-    followModuleInitData: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFollowModuleWithSig(
-    vars: DataTypes.SetFollowModuleWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFollowNFTURI(
-    profileId: PromiseOrValue<BigNumberish>,
-    followNFTURI: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setFollowNFTURIWithSig(
-    vars: DataTypes.SetFollowNFTURIWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setGovernance(
-    newGovernance: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setProfileImageURI(
-    profileId: PromiseOrValue<BigNumberish>,
-    imageURI: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setProfileImageURIWithSig(
-    vars: DataTypes.SetProfileImageURIWithSigDataStruct,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  setState(
-    newState: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  sigNonces(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  supportsInterface(
-    interfaceId: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  tokenByIndex(
-    index: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  tokenDataOf(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<IERC721Time.TokenDataStructOutput>;
-
-  tokenOfOwnerByIndex(
-    owner: PromiseOrValue<string>,
-    index: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  tokenURI(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  transferFrom(
-    from: PromiseOrValue<string>,
-    to: PromiseOrValue<string>,
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  whitelistCollectModule(
-    collectModule: PromiseOrValue<string>,
-    whitelist: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  whitelistFollowModule(
-    followModule: PromiseOrValue<string>,
-    whitelist: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  whitelistProfileCreator(
-    profileCreator: PromiseOrValue<string>,
-    whitelist: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  whitelistReferenceModule(
-    referenceModule: PromiseOrValue<string>,
-    whitelist: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    approve(
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    burn(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    burnWithSig(
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    collect(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    collectWithSig(
-      vars: DataTypes.CollectWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    comment(
-      vars: DataTypes.CommentDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    commentWithSig(
-      vars: DataTypes.CommentWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    createProfile(
-      vars: DataTypes.CreateProfileDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    defaultProfile(
-      wallet: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    emitCollectNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      collectNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    emitFollowNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    exists(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    follow(
-      profileIds: PromiseOrValue<BigNumberish>[],
-      datas: PromiseOrValue<BytesLike>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    followWithSig(
-      vars: DataTypes.FollowWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getCollectModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getCollectNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getCollectNFTImpl(overrides?: CallOverrides): Promise<string>;
-
-    getContentURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getDomainSeparator(overrides?: CallOverrides): Promise<string>;
-
-    getFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getFollowNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getFollowNFTImpl(overrides?: CallOverrides): Promise<string>;
-
-    getFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getGovernance(overrides?: CallOverrides): Promise<string>;
-
-    getHandle(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<DataTypes.ProfileStructStructOutput>;
-
-    getProfileIdByHandle(
-      handle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPub(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<DataTypes.PublicationStructStructOutput>;
-
-    getPubCount(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPubPointer(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber]>;
-
-    getPubType(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<number>;
-
-    getReferenceModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getState(overrides?: CallOverrides): Promise<number>;
-
-    initialize(
-      name: PromiseOrValue<string>,
-      symbol: PromiseOrValue<string>,
-      newGovernance: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    isApprovedForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isCollectModuleWhitelisted(
-      collectModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isFollowModuleWhitelisted(
-      followModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isProfileCreatorWhitelisted(
-      profileCreator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isReferenceModuleWhitelisted(
-      referenceModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    mintTimestampOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mirror(
-      vars: DataTypes.MirrorDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mirrorWithSig(
-      vars: DataTypes.MirrorWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<string>;
-
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    permit(
-      spender: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    permitForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    post(
-      vars: DataTypes.PostDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    postWithSig(
-      vars: DataTypes.PostWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setApprovalForAll(
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDefaultProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDefaultProfileWithSig(
-      vars: DataTypes.SetDefaultProfileWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      dispatcher: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDispatcherWithSig(
-      vars: DataTypes.SetDispatcherWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setEmergencyAdmin(
-      newEmergencyAdmin: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      followModule: PromiseOrValue<string>,
-      followModuleInitData: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFollowModuleWithSig(
-      vars: DataTypes.SetFollowModuleWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTURI: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setFollowNFTURIWithSig(
-      vars: DataTypes.SetFollowNFTURIWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setGovernance(
-      newGovernance: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setProfileImageURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      imageURI: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setProfileImageURIWithSig(
-      vars: DataTypes.SetProfileImageURIWithSigDataStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setState(
-      newState: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    sigNonces(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    symbol(overrides?: CallOverrides): Promise<string>;
-
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenDataOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<IERC721Time.TokenDataStructOutput>;
-
-    tokenOfOwnerByIndex(
-      owner: PromiseOrValue<string>,
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    whitelistCollectModule(
-      collectModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    whitelistFollowModule(
-      followModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    whitelistProfileCreator(
-      profileCreator: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    whitelistReferenceModule(
-      referenceModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+  queryFilter<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+  on<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  on<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  once<TCEvent extends TypedContractEvent>(
+    event: TCEvent,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+  once<TCEvent extends TypedContractEvent>(
+    filter: TypedDeferredTopicFilter<TCEvent>,
+    listener: TypedListener<TCEvent>
+  ): Promise<this>;
+
+  listeners<TCEvent extends TypedContractEvent>(
+    event: TCEvent
+  ): Promise<Array<TypedListener<TCEvent>>>;
+  listeners(eventName?: string): Promise<Array<Listener>>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
+
+  approve: TypedContractMethod<
+    [to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+
+  burn: TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
+
+  burnWithSig: TypedContractMethod<
+    [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  collect: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
+    [bigint],
+    "nonpayable"
+  >;
+
+  collectWithSig: TypedContractMethod<
+    [vars: DataTypes.CollectWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  comment: TypedContractMethod<
+    [vars: DataTypes.CommentDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  commentWithSig: TypedContractMethod<
+    [vars: DataTypes.CommentWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  createProfile: TypedContractMethod<
+    [vars: DataTypes.CreateProfileDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  defaultProfile: TypedContractMethod<[wallet: AddressLike], [bigint], "view">;
+
+  emitCollectNFTTransferEvent: TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      pubId: BigNumberish,
+      collectNFTId: BigNumberish,
+      from: AddressLike,
+      to: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  emitFollowNFTTransferEvent: TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      followNFTId: BigNumberish,
+      from: AddressLike,
+      to: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  exists: TypedContractMethod<[tokenId: BigNumberish], [boolean], "view">;
+
+  follow: TypedContractMethod<
+    [profileIds: BigNumberish[], datas: BytesLike[]],
+    [bigint[]],
+    "nonpayable"
+  >;
+
+  followWithSig: TypedContractMethod<
+    [vars: DataTypes.FollowWithSigDataStruct],
+    [bigint[]],
+    "nonpayable"
+  >;
+
+  getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+
+  getCollectModule: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getCollectNFT: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getCollectNFTImpl: TypedContractMethod<[], [string], "view">;
+
+  getContentURI: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getDispatcher: TypedContractMethod<
+    [profileId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getDomainSeparator: TypedContractMethod<[], [string], "view">;
+
+  getFollowModule: TypedContractMethod<
+    [profileId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getFollowNFT: TypedContractMethod<
+    [profileId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getFollowNFTImpl: TypedContractMethod<[], [string], "view">;
+
+  getFollowNFTURI: TypedContractMethod<
+    [profileId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getGovernance: TypedContractMethod<[], [string], "view">;
+
+  getHandle: TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+
+  getProfile: TypedContractMethod<
+    [profileId: BigNumberish],
+    [DataTypes.ProfileStructStructOutput],
+    "view"
+  >;
+
+  getProfileIdByHandle: TypedContractMethod<[handle: string], [bigint], "view">;
+
+  getPub: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [DataTypes.PublicationStructStructOutput],
+    "view"
+  >;
+
+  getPubCount: TypedContractMethod<[profileId: BigNumberish], [bigint], "view">;
+
+  getPubPointer: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [[bigint, bigint]],
+    "view"
+  >;
+
+  getPubType: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  getReferenceModule: TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getState: TypedContractMethod<[], [bigint], "view">;
+
+  initialize: TypedContractMethod<
+    [name: string, symbol: string, newGovernance: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  isApprovedForAll: TypedContractMethod<
+    [owner: AddressLike, operator: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  isCollectModuleWhitelisted: TypedContractMethod<
+    [collectModule: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  isFollowModuleWhitelisted: TypedContractMethod<
+    [followModule: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  isProfileCreatorWhitelisted: TypedContractMethod<
+    [profileCreator: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  isReferenceModuleWhitelisted: TypedContractMethod<
+    [referenceModule: AddressLike],
+    [boolean],
+    "view"
+  >;
+
+  mintTimestampOf: TypedContractMethod<
+    [tokenId: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  mirror: TypedContractMethod<
+    [vars: DataTypes.MirrorDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  mirrorWithSig: TypedContractMethod<
+    [vars: DataTypes.MirrorWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  name: TypedContractMethod<[], [string], "view">;
+
+  ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+
+  permit: TypedContractMethod<
+    [
+      spender: AddressLike,
+      tokenId: BigNumberish,
+      sig: DataTypes.EIP712SignatureStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  permitForAll: TypedContractMethod<
+    [
+      owner: AddressLike,
+      operator: AddressLike,
+      approved: boolean,
+      sig: DataTypes.EIP712SignatureStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  post: TypedContractMethod<
+    [vars: DataTypes.PostDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  postWithSig: TypedContractMethod<
+    [vars: DataTypes.PostWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+
+  "safeTransferFrom(address,address,uint256)": TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  "safeTransferFrom(address,address,uint256,bytes)": TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      tokenId: BigNumberish,
+      _data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  setApprovalForAll: TypedContractMethod<
+    [operator: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  setDefaultProfile: TypedContractMethod<
+    [profileId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  setDefaultProfileWithSig: TypedContractMethod<
+    [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  setDispatcher: TypedContractMethod<
+    [profileId: BigNumberish, dispatcher: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setDispatcherWithSig: TypedContractMethod<
+    [vars: DataTypes.SetDispatcherWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  setEmergencyAdmin: TypedContractMethod<
+    [newEmergencyAdmin: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setFollowModule: TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      followModule: AddressLike,
+      followModuleInitData: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  setFollowModuleWithSig: TypedContractMethod<
+    [vars: DataTypes.SetFollowModuleWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  setFollowNFTURI: TypedContractMethod<
+    [profileId: BigNumberish, followNFTURI: string],
+    [void],
+    "nonpayable"
+  >;
+
+  setFollowNFTURIWithSig: TypedContractMethod<
+    [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  setGovernance: TypedContractMethod<
+    [newGovernance: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  setProfileImageURI: TypedContractMethod<
+    [profileId: BigNumberish, imageURI: string],
+    [void],
+    "nonpayable"
+  >;
+
+  setProfileImageURIWithSig: TypedContractMethod<
+    [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+
+  setState: TypedContractMethod<[newState: BigNumberish], [void], "nonpayable">;
+
+  sigNonces: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+
+  supportsInterface: TypedContractMethod<
+    [interfaceId: BytesLike],
+    [boolean],
+    "view"
+  >;
+
+  symbol: TypedContractMethod<[], [string], "view">;
+
+  tokenByIndex: TypedContractMethod<[index: BigNumberish], [bigint], "view">;
+
+  tokenDataOf: TypedContractMethod<
+    [tokenId: BigNumberish],
+    [IERC721Time.TokenDataStructOutput],
+    "view"
+  >;
+
+  tokenOfOwnerByIndex: TypedContractMethod<
+    [owner: AddressLike, index: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  tokenURI: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+
+  totalSupply: TypedContractMethod<[], [bigint], "view">;
+
+  transferFrom: TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  whitelistCollectModule: TypedContractMethod<
+    [collectModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  whitelistFollowModule: TypedContractMethod<
+    [followModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  whitelistProfileCreator: TypedContractMethod<
+    [profileCreator: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  whitelistReferenceModule: TypedContractMethod<
+    [referenceModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
+
+  getFunction(
+    nameOrSignature: "approve"
+  ): TypedContractMethod<
+    [to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "balanceOf"
+  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "burn"
+  ): TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "burnWithSig"
+  ): TypedContractMethod<
+    [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "collect"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "collectWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.CollectWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "comment"
+  ): TypedContractMethod<
+    [vars: DataTypes.CommentDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "commentWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.CommentWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "createProfile"
+  ): TypedContractMethod<
+    [vars: DataTypes.CreateProfileDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "defaultProfile"
+  ): TypedContractMethod<[wallet: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "emitCollectNFTTransferEvent"
+  ): TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      pubId: BigNumberish,
+      collectNFTId: BigNumberish,
+      from: AddressLike,
+      to: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "emitFollowNFTTransferEvent"
+  ): TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      followNFTId: BigNumberish,
+      from: AddressLike,
+      to: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "exists"
+  ): TypedContractMethod<[tokenId: BigNumberish], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "follow"
+  ): TypedContractMethod<
+    [profileIds: BigNumberish[], datas: BytesLike[]],
+    [bigint[]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "followWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.FollowWithSigDataStruct],
+    [bigint[]],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getApproved"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getCollectModule"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCollectNFT"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getCollectNFTImpl"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getContentURI"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getDispatcher"
+  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getDomainSeparator"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getFollowModule"
+  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getFollowNFT"
+  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getFollowNFTImpl"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getFollowNFTURI"
+  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getGovernance"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getHandle"
+  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getProfile"
+  ): TypedContractMethod<
+    [profileId: BigNumberish],
+    [DataTypes.ProfileStructStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getProfileIdByHandle"
+  ): TypedContractMethod<[handle: string], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getPub"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [DataTypes.PublicationStructStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPubCount"
+  ): TypedContractMethod<[profileId: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getPubPointer"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [[bigint, bigint]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPubType"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getReferenceModule"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, pubId: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getState"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "initialize"
+  ): TypedContractMethod<
+    [name: string, symbol: string, newGovernance: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "isApprovedForAll"
+  ): TypedContractMethod<
+    [owner: AddressLike, operator: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "isCollectModuleWhitelisted"
+  ): TypedContractMethod<[collectModule: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isFollowModuleWhitelisted"
+  ): TypedContractMethod<[followModule: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isProfileCreatorWhitelisted"
+  ): TypedContractMethod<[profileCreator: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isReferenceModuleWhitelisted"
+  ): TypedContractMethod<[referenceModule: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "mintTimestampOf"
+  ): TypedContractMethod<[tokenId: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "mirror"
+  ): TypedContractMethod<
+    [vars: DataTypes.MirrorDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mirrorWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.MirrorWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "name"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "ownerOf"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "permit"
+  ): TypedContractMethod<
+    [
+      spender: AddressLike,
+      tokenId: BigNumberish,
+      sig: DataTypes.EIP712SignatureStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "permitForAll"
+  ): TypedContractMethod<
+    [
+      owner: AddressLike,
+      operator: AddressLike,
+      approved: boolean,
+      sig: DataTypes.EIP712SignatureStruct
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "post"
+  ): TypedContractMethod<
+    [vars: DataTypes.PostDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "postWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.PostWithSigDataStruct],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "safeTransferFrom(address,address,uint256)"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "safeTransferFrom(address,address,uint256,bytes)"
+  ): TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      tokenId: BigNumberish,
+      _data: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setApprovalForAll"
+  ): TypedContractMethod<
+    [operator: AddressLike, approved: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setDefaultProfile"
+  ): TypedContractMethod<[profileId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setDefaultProfileWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setDispatcher"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, dispatcher: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setDispatcherWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.SetDispatcherWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setEmergencyAdmin"
+  ): TypedContractMethod<
+    [newEmergencyAdmin: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFollowModule"
+  ): TypedContractMethod<
+    [
+      profileId: BigNumberish,
+      followModule: AddressLike,
+      followModuleInitData: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFollowModuleWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.SetFollowModuleWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFollowNFTURI"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, followNFTURI: string],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setFollowNFTURIWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setGovernance"
+  ): TypedContractMethod<[newGovernance: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "setProfileImageURI"
+  ): TypedContractMethod<
+    [profileId: BigNumberish, imageURI: string],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setProfileImageURIWithSig"
+  ): TypedContractMethod<
+    [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "setState"
+  ): TypedContractMethod<[newState: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "sigNonces"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "supportsInterface"
+  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "symbol"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "tokenByIndex"
+  ): TypedContractMethod<[index: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "tokenDataOf"
+  ): TypedContractMethod<
+    [tokenId: BigNumberish],
+    [IERC721Time.TokenDataStructOutput],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "tokenOfOwnerByIndex"
+  ): TypedContractMethod<
+    [owner: AddressLike, index: BigNumberish],
+    [bigint],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "tokenURI"
+  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "totalSupply"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "transferFrom"
+  ): TypedContractMethod<
+    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "whitelistCollectModule"
+  ): TypedContractMethod<
+    [collectModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "whitelistFollowModule"
+  ): TypedContractMethod<
+    [followModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "whitelistProfileCreator"
+  ): TypedContractMethod<
+    [profileCreator: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "whitelistReferenceModule"
+  ): TypedContractMethod<
+    [referenceModule: AddressLike, whitelist: boolean],
+    [void],
+    "nonpayable"
+  >;
+
+  getEvent(
+    key: "Approval"
+  ): TypedContractEvent<
+    ApprovalEvent.InputTuple,
+    ApprovalEvent.OutputTuple,
+    ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "ApprovalForAll"
+  ): TypedContractEvent<
+    ApprovalForAllEvent.InputTuple,
+    ApprovalForAllEvent.OutputTuple,
+    ApprovalForAllEvent.OutputObject
+  >;
+  getEvent(
+    key: "Transfer"
+  ): TypedContractEvent<
+    TransferEvent.InputTuple,
+    TransferEvent.OutputTuple,
+    TransferEvent.OutputObject
+  >;
 
   filters: {
-    "Approval(address,address,uint256)"(
-      owner?: PromiseOrValue<string> | null,
-      approved?: PromiseOrValue<string> | null,
-      tokenId?: PromiseOrValue<BigNumberish> | null
-    ): ApprovalEventFilter;
-    Approval(
-      owner?: PromiseOrValue<string> | null,
-      approved?: PromiseOrValue<string> | null,
-      tokenId?: PromiseOrValue<BigNumberish> | null
-    ): ApprovalEventFilter;
-
-    "ApprovalForAll(address,address,bool)"(
-      owner?: PromiseOrValue<string> | null,
-      operator?: PromiseOrValue<string> | null,
-      approved?: null
-    ): ApprovalForAllEventFilter;
-    ApprovalForAll(
-      owner?: PromiseOrValue<string> | null,
-      operator?: PromiseOrValue<string> | null,
-      approved?: null
-    ): ApprovalForAllEventFilter;
-
-    "Transfer(address,address,uint256)"(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      tokenId?: PromiseOrValue<BigNumberish> | null
-    ): TransferEventFilter;
-    Transfer(
-      from?: PromiseOrValue<string> | null,
-      to?: PromiseOrValue<string> | null,
-      tokenId?: PromiseOrValue<BigNumberish> | null
-    ): TransferEventFilter;
-  };
-
-  estimateGas: {
-    approve(
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    burn(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    burnWithSig(
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    collect(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    collectWithSig(
-      vars: DataTypes.CollectWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    comment(
-      vars: DataTypes.CommentDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    commentWithSig(
-      vars: DataTypes.CommentWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    createProfile(
-      vars: DataTypes.CreateProfileDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    defaultProfile(
-      wallet: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    emitCollectNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      collectNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    emitFollowNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    exists(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    follow(
-      profileIds: PromiseOrValue<BigNumberish>[],
-      datas: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    followWithSig(
-      vars: DataTypes.FollowWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCollectModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCollectNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCollectNFTImpl(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getContentURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getDomainSeparator(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFollowNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFollowNFTImpl(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getGovernance(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getHandle(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getProfileIdByHandle(
-      handle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPub(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPubCount(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPubPointer(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getPubType(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getReferenceModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getState(overrides?: CallOverrides): Promise<BigNumber>;
-
-    initialize(
-      name: PromiseOrValue<string>,
-      symbol: PromiseOrValue<string>,
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    isApprovedForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isCollectModuleWhitelisted(
-      collectModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isFollowModuleWhitelisted(
-      followModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isProfileCreatorWhitelisted(
-      profileCreator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isReferenceModuleWhitelisted(
-      referenceModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mintTimestampOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    mirror(
-      vars: DataTypes.MirrorDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    mirrorWithSig(
-      vars: DataTypes.MirrorWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    permit(
-      spender: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    permitForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    post(
-      vars: DataTypes.PostDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    postWithSig(
-      vars: DataTypes.PostWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setApprovalForAll(
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDefaultProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDefaultProfileWithSig(
-      vars: DataTypes.SetDefaultProfileWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      dispatcher: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setDispatcherWithSig(
-      vars: DataTypes.SetDispatcherWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setEmergencyAdmin(
-      newEmergencyAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      followModule: PromiseOrValue<string>,
-      followModuleInitData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFollowModuleWithSig(
-      vars: DataTypes.SetFollowModuleWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setFollowNFTURIWithSig(
-      vars: DataTypes.SetFollowNFTURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setGovernance(
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setProfileImageURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      imageURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setProfileImageURIWithSig(
-      vars: DataTypes.SetProfileImageURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    setState(
-      newState: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    sigNonces(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenDataOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenOfOwnerByIndex(
-      owner: PromiseOrValue<string>,
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    whitelistCollectModule(
-      collectModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    whitelistFollowModule(
-      followModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    whitelistProfileCreator(
-      profileCreator: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    whitelistReferenceModule(
-      referenceModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
-
-  populateTransaction: {
-    approve(
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    balanceOf(
-      owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    burn(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    burnWithSig(
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    collect(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    collectWithSig(
-      vars: DataTypes.CollectWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    comment(
-      vars: DataTypes.CommentDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    commentWithSig(
-      vars: DataTypes.CommentWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    createProfile(
-      vars: DataTypes.CreateProfileDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    defaultProfile(
-      wallet: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    emitCollectNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      collectNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    emitFollowNFTTransferEvent(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTId: PromiseOrValue<BigNumberish>,
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    exists(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    follow(
-      profileIds: PromiseOrValue<BigNumberish>[],
-      datas: PromiseOrValue<BytesLike>[],
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    followWithSig(
-      vars: DataTypes.FollowWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getApproved(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCollectModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCollectNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCollectNFTImpl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getContentURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getDomainSeparator(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFollowNFT(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFollowNFTImpl(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getGovernance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getHandle(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getProfileIdByHandle(
-      handle: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPub(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPubCount(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPubPointer(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPubType(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getReferenceModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      pubId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getState(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    initialize(
-      name: PromiseOrValue<string>,
-      symbol: PromiseOrValue<string>,
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    isApprovedForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isCollectModuleWhitelisted(
-      collectModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isFollowModuleWhitelisted(
-      followModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isProfileCreatorWhitelisted(
-      profileCreator: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isReferenceModuleWhitelisted(
-      referenceModule: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    mintTimestampOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    mirror(
-      vars: DataTypes.MirrorDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mirrorWithSig(
-      vars: DataTypes.MirrorWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    ownerOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    permit(
-      spender: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    permitForAll(
-      owner: PromiseOrValue<string>,
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      sig: DataTypes.EIP712SignatureStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    post(
-      vars: DataTypes.PostDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    postWithSig(
-      vars: DataTypes.PostWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      _data: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setApprovalForAll(
-      operator: PromiseOrValue<string>,
-      approved: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDefaultProfile(
-      profileId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDefaultProfileWithSig(
-      vars: DataTypes.SetDefaultProfileWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDispatcher(
-      profileId: PromiseOrValue<BigNumberish>,
-      dispatcher: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDispatcherWithSig(
-      vars: DataTypes.SetDispatcherWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setEmergencyAdmin(
-      newEmergencyAdmin: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFollowModule(
-      profileId: PromiseOrValue<BigNumberish>,
-      followModule: PromiseOrValue<string>,
-      followModuleInitData: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFollowModuleWithSig(
-      vars: DataTypes.SetFollowModuleWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFollowNFTURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      followNFTURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setFollowNFTURIWithSig(
-      vars: DataTypes.SetFollowNFTURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setGovernance(
-      newGovernance: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setProfileImageURI(
-      profileId: PromiseOrValue<BigNumberish>,
-      imageURI: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setProfileImageURIWithSig(
-      vars: DataTypes.SetProfileImageURIWithSigDataStruct,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setState(
-      newState: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    sigNonces(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    supportsInterface(
-      interfaceId: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    tokenByIndex(
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    tokenDataOf(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    tokenOfOwnerByIndex(
-      owner: PromiseOrValue<string>,
-      index: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    tokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferFrom(
-      from: PromiseOrValue<string>,
-      to: PromiseOrValue<string>,
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    whitelistCollectModule(
-      collectModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    whitelistFollowModule(
-      followModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    whitelistProfileCreator(
-      profileCreator: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    whitelistReferenceModule(
-      referenceModule: PromiseOrValue<string>,
-      whitelist: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    "Approval(address,address,uint256)": TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+    Approval: TypedContractEvent<
+      ApprovalEvent.InputTuple,
+      ApprovalEvent.OutputTuple,
+      ApprovalEvent.OutputObject
+    >;
+
+    "ApprovalForAll(address,address,bool)": TypedContractEvent<
+      ApprovalForAllEvent.InputTuple,
+      ApprovalForAllEvent.OutputTuple,
+      ApprovalForAllEvent.OutputObject
+    >;
+    ApprovalForAll: TypedContractEvent<
+      ApprovalForAllEvent.InputTuple,
+      ApprovalForAllEvent.OutputTuple,
+      ApprovalForAllEvent.OutputObject
+    >;
+
+    "Transfer(address,address,uint256)": TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
+    Transfer: TypedContractEvent<
+      TransferEvent.InputTuple,
+      TransferEvent.OutputTuple,
+      TransferEvent.OutputObject
+    >;
   };
 }

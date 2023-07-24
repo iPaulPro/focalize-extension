@@ -1,8 +1,8 @@
 <script lang="ts">
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {logOut} from "../lib/user/lens-auth";
-    import {getAuthenticatedUser, UserError} from "../lib/user/user";
+    import {getOrRefreshAccessToken, logOut} from '../lib/user/lens-auth';
+    import {UserError} from "../lib/user/user";
     import {currentUser} from "../lib/stores/user-store";
     import {darkMode, pinPromptShown} from '../lib/stores/preferences-store';
 
@@ -13,6 +13,7 @@
     import {isOnToolbar} from '../lib/utils/utils';
     import {get} from '../lib/stores/chrome-storage-store';
     import Login from './components/Login.svelte';
+    import {getAccounts} from '../lib/evm/ethers-service';
 
     let loading = true;
     let noProfileDialog: HTMLDialogElement;
@@ -50,15 +51,12 @@
     const ensureUser = async () => {
         if (await get(currentUser)) return;
 
-        const {user, error} = await getAuthenticatedUser()
-        console.log('ensureUser: user', user, 'error', error);
-
-        if (error !== undefined) {
-            await onUserError(error);
-            return;
+        try {
+            await getOrRefreshAccessToken();
+        } catch (e) {
+            console.log('Error getting access token', e);
+            $currentUser = null;
         }
-
-        $currentUser = user;
     };
 
     $: {
@@ -90,7 +88,7 @@
         try {
             await ensureUser();
         } catch (e) {
-            console.error('Error ensuring user', e);
+            // expected if not logged in
         } finally {
             loading = false;
         }
@@ -110,7 +108,7 @@
   {#if $currentUser}
     <AllSettings />
   {:else}
-    <Login/>
+    <Login on:noProfile={() => onUserError(UserError.NO_PROFILE)}/>
   {/if}
 
 {/if}

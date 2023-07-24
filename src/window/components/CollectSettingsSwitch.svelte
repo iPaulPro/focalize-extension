@@ -2,7 +2,7 @@
     import {collectSettings} from '../../lib/stores/state-store';
     import {onMount} from 'svelte';
     import type {Writable} from 'svelte/store';
-    import type {CollectSettings} from '../../lib/publications/collect-settings';
+    import type {CollectSettings} from '../../lib/publications/CollectSettings';
 
     export let id: string;
     export let className: string = undefined;

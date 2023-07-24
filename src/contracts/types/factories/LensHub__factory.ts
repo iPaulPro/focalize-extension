@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
+import { Contract, Interface, type ContractRunner } from "ethers";
 import type { LensHub, LensHubInterface } from "../LensHub";
 
 const _abi = [
@@ -2496,12 +2495,9 @@ const _abi = [
 export class LensHub__factory {
   static readonly abi = _abi;
   static createInterface(): LensHubInterface {
-    return new utils.Interface(_abi) as LensHubInterface;
+    return new Interface(_abi) as LensHubInterface;
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): LensHub {
-    return new Contract(address, _abi, signerOrProvider) as LensHub;
+  static connect(address: string, runner?: ContractRunner | null): LensHub {
+    return new Contract(address, _abi, runner) as unknown as LensHub;
   }
 }

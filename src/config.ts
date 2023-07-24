@@ -30,3 +30,5 @@ export const INFURA_GATEWAY_URL: string = getParamOrExit('VITE_INFURA_GATEWAY_UR
 export const LENS_PREVIEW_NODE: string = getParamOrExit('VITE_LENS_PREVIEW_NODE');
 
 export const GIPHY_KEY: string = getParamOrExit('VITE_GIPHY_KEY');
+
+export const WALLETCONNECT_PROJECT_ID: string = getParamOrExit('VITE_WALLETCONNECT_PROJECT_ID');

@@ -47,7 +47,7 @@
 
     <button type="button" on:click={onEnableClick} disabled={loading || success}
             class="w-auto mt-4 py-1.5 px-8 flex justify-center items-center
-            {success ? 'bg-green-700 dark:bg-green-500' : 'bg-orange-500 hover:bg-orange-600 disabled:bg-neutral-400 dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600 dark:disabled:text-gray-400'}
+            {success ? 'bg-green-700 dark:bg-green-500' : 'bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400 dark:bg-orange-600 dark:hover:bg-orange-700 dark:disabled:bg-gray-600 dark:disabled:text-gray-400'}
             rounded-lg shadow-md
             focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
             text-white text-center text-lg font-semibold

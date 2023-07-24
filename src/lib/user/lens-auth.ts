@@ -2,14 +2,23 @@ import {decodeJwt} from "jose";
 import {Duration} from "luxon";
 
 import lensApi from "../lens-api";
+import type WalletConnection from '../evm/WalletConnection';
 
-export const authenticateUser = async () => {
-    const {initEthers, getSigner, getAccounts, clearProvider} = await import('../evm/ethers-service');
+export class NoProfileError extends Error {
+    constructor() {
+        super('No profile found');
+        this.name = 'NoProfileError';
+        Object.setPrototypeOf(this, NoProfileError.prototype);
+    }
+}
+
+export const authenticateUser = async (walletConnection: WalletConnection) => {
+    const {initEthers, getSigner, getAccounts, clearProvider, ensureCorrectChain} = await import('../evm/ethers-service');
     const {getDefaultProfile} = await import('./lens-profile');
 
     let address: string | undefined;
     try {
-        const accounts = await initEthers();
+        const accounts = await initEthers(walletConnection);
         address = accounts[0];
     } catch (e) {
         console.warn('authenticateUser: Unable to get address from cached provider', e);
@@ -20,7 +29,7 @@ export const authenticateUser = async () => {
             const accounts = await getAccounts();
             address = accounts[0];
         } catch (e) {
-            clearProvider();
+            await clearProvider();
             console.error(e);
         }
     }
@@ -28,11 +37,13 @@ export const authenticateUser = async () => {
     if (!address) throw new Error('No address found');
     console.log('authenticate: Authenticating with address', address);
 
+    await ensureCorrectChain();
+
     // Getting the challenge from the server
     const {challenge} = await lensApi.challenge({request: {address}});
     console.log('authenticate: Lens challenge response', challenge);
 
-    const signer = getSigner();
+    const signer = await getSigner();
     const signature = await signer.signMessage(challenge.text);
     console.log('authenticate: Signed Lens challenge', signature);
 
@@ -50,8 +61,7 @@ export const authenticateUser = async () => {
     console.log('authenticate: Default profile', profile);
 
     if (!profile) {
-        // TODO Check if any profile, prompt to choose a default profile
-        throw new Error('No default Lens profile found');
+        throw new NoProfileError();
     }
 
     return profile;
@@ -97,12 +107,12 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     }
 };
 
-export const getSavedAccessToken = async (): Promise<string> => {
+export const getSavedAccessToken = async (): Promise<string | undefined> => {
     const storage = await chrome.storage.local.get(['accessToken']);
     return storage.accessToken;
 };
 
-export const getSavedRefreshToken = async (): Promise<string> => {
+export const getSavedRefreshToken = async (): Promise<string | undefined> => {
     const storage = await chrome.storage.local.get(['refreshToken']);
     return storage.refreshToken;
 };
@@ -127,6 +137,9 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
                     return reject(chrome.runtime.lastError);
                 }
                 const accessToken = await getSavedAccessToken();
+                if (!accessToken) {
+                    return reject('No access token saved');
+                }
                 // console.log('Saved new access token to local storage');
                 resolve(accessToken);
             }
@@ -134,15 +147,9 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
     })
 };
 
-export const isValidSession = async (accessToken: string | undefined) => {
-    if (!accessToken) {
-        accessToken = await getOrRefreshAccessToken();
-    }
-    const {verify} = await lensApi.verify({request: {accessToken}});
-    return verify;
-};
-
 export const logOut = async () => {
+    const {clearProvider} = await import('../evm/ethers-service');
     await chrome.storage.local.clear();
     await chrome.runtime.sendMessage({type: 'loggedOut'});
+    await clearProvider();
 };

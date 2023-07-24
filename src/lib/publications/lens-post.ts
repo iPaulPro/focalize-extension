@@ -236,7 +236,7 @@ const createPostTransaction = async (
         }
     }
 
-    const lensHub = getLensHub();
+    const lensHub = await getLensHub();
     const tx = await lensHub.post({
         profileId: typedData.value.profileId,
         contentURI: typedData.value.contentURI,
@@ -260,7 +260,14 @@ export const submitPost = async (
 ): Promise<string> => {
     const profileId = user.profileId;
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
-    const accessToken = await getOrRefreshAccessToken();
+    let accessToken: string;
+    try {
+        accessToken = await getOrRefreshAccessToken();
+    } catch (e) {
+        chrome.runtime.openOptionsPage();
+        window?.close();
+        throw new Error('submitPost: Failed to get access token');
+    }
 
     const validate = await validateMetadata(metadata);
     if (!validate.valid) {

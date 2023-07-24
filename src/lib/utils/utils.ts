@@ -5,8 +5,7 @@ import {fromEvent, Subject, takeUntil} from 'rxjs';
 import {debounceTime} from 'rxjs/operators';
 import {DateTime} from 'luxon';
 import type {DecodedMessage} from '@xmtp/xmtp-js';
-import type {Provider} from '@ethersproject/providers';
-import {ethers} from 'ethers';
+import {InfuraProvider, type Provider} from 'ethers';
 import {INFURA_PROJECT_ID} from '../../config';
 import {
     getPreference,
@@ -291,8 +290,7 @@ export const isPeerMessage = (message: DecodedMessage): boolean => {
     return message.senderAddress === message.conversation.peerAddress;
 };
 
-const getDefaultProvider = (): Provider =>
-    new ethers.providers.InfuraProvider('mainnet', INFURA_PROJECT_ID);
+const getDefaultProvider = (): Provider => new InfuraProvider('mainnet', INFURA_PROJECT_ID);
 
 export const getEnsFromAddress = async (address: string): Promise<string | null> => {
     const provider = await getDefaultProvider();

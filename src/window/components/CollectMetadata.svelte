@@ -3,7 +3,7 @@
     import tippy from 'sveltejs-tippy';
     import {author, description, collectSettings, title, attachments} from '../../lib/stores/state-store';
     import {currentUser} from '../../lib/stores/user-store';
-    import type {CollectSettings} from '../../lib/publications/collect-settings';
+    import type {CollectSettings} from '../../lib/publications/CollectSettings';
     import {DateTime} from 'luxon';
     import {COLLECT_DURATION_ITEMS} from '../../lib/publications/lens-modules';
     import {createEventDispatcher} from 'svelte';
