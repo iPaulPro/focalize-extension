@@ -81,6 +81,7 @@
     import {launchComposerWindow} from '../lib/utils/utils.js';
     import type {PostDraft} from '../lib/publications/PostDraft';
     import CollectMetadata from './components/CollectMetadata.svelte';
+    import TextEditor from './components/TextEditor.svelte';
 
     /**
      * Bound to the tag component
@@ -419,6 +420,13 @@
         draftSubject.next(draft);
     }
 
+    if ($draftId) {
+        const url = new URL(window.location.href);
+        const searchParams = url.searchParams;
+        url.search = searchParams.toString();
+        window.history.replaceState({}, '', url.toString());
+    }
+
     const openDraft = async () => {
         postDraft = await getDraft($draftId);
         console.log('openDraft: postDraft', postDraft);
@@ -446,7 +454,7 @@
         let md = '';
 
         if (currentTabData.title) md += `**${currentTabData.title}**`;
-        if (currentTabData.desc) md += `\n  > ${currentTabData.desc.replace('\n', '\n> ')}`;
+        if (currentTabData.desc) md += `\n\n> ${currentTabData.desc.replace('\n', '\n> ')}`;
         if (currentTabData.url) md += `\n\n${currentTabData.url}`;
         if (md.length > 0) $content = $content ? $content + '\n' + md : md;
     };
@@ -526,9 +534,10 @@
         <div class="min-h-[12rem] bg-white dark:bg-gray-800  {isSubmittingPost ? 'opacity-60' : ''}
              {isPopupWindow ? 'shadow p-2 rounded-b-2xl' : 'mx-2 rounded-2xl p-4 shadow-lg'}">
 
-          <PlainTextEditor disabled={isSubmittingPost} isCompact={isPopupWindow}
-                           on:fileSelected={(e) => setAttachment(e.detail)}
-                           on:selectGif={(e) => showGifSelectionDialog()}/>
+<!--          <PlainTextEditor disabled={isSubmittingPost} isCompact={isPopupWindow}-->
+<!--                           on:fileSelected={(e) => setAttachment(e.detail)}-->
+<!--                           on:selectGif={(e) => showGifSelectionDialog()}/>-->
+          <TextEditor {content}/>
 
           {#if isPopupWindow === true}
             <button type="button" on:click={openInNewTab} use:tippy={({delay: 400, content: 'Open in a new tab'})}

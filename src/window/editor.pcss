@@ -1,0 +1,142 @@
+.editor-placeholder {
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 15px;
+  left: 10px;
+  font-style: normal !important;
+  font-size: 1.5rem;
+  line-height: 1.75rem;
+  font-weight: 300;
+  color: rgb(107 114 128);
+  user-select: none;
+  display: inline-block;
+  pointer-events: none;
+}
+
+.editor-text-bold {
+  font-weight: bold;
+}
+
+.editor-text-italic {
+  font-style: italic;
+}
+
+.editor-text-underline {
+  text-decoration: underline;
+}
+
+.editor-text-strikethrough {
+  text-decoration: line-through;
+}
+
+.editor-text-underlineStrikethrough {
+  text-decoration: underline line-through;
+}
+
+.editor-text-code {
+  background-color: rgb(240, 242, 245);
+  padding: 1px 0.25rem;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 94%;
+}
+
+.editor-link {
+  color: rgb(107, 35, 0);
+  text-decoration: none;
+}
+
+.dark .editor-link {
+  color: rgba(255, 179, 142, 1);
+}
+
+.editor-code {
+  background-color: rgb(240, 242, 245);
+  font-family: Menlo, Consolas, Monaco, monospace;
+  display: block;
+  padding: 8px 8px 8px 52px;
+  line-height: 1.53;
+  margin: 8px 0;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+  position: relative;
+}
+
+.editor-code:before {
+  content: attr(data-gutter);
+  position: absolute;
+  background-color: #eee;
+  left: 0;
+  top: 0;
+  border-right: 1px solid #ccc;
+  padding: 8px;
+  color: #777;
+  white-space: pre-wrap;
+  text-align: right;
+  min-width: 25px;
+}
+.editor-code:after {
+  content: attr(data-highlight-language);
+  top: 2%;
+  right: 5px;
+  padding: 3px;
+  font-size: 10px;
+  text-transform: uppercase;
+  position: absolute;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.editor-tokenComment {
+  color: slategray;
+}
+
+.editor-tokenPunctuation {
+  color: #999;
+}
+
+.editor-tokenProperty {
+  color: #905;
+}
+
+.editor-tokenSelector {
+  color: #690;
+}
+
+.editor-tokenOperator {
+  color: #9a6e3a;
+}
+
+.editor-tokenAttr {
+  color: #07a;
+}
+
+.editor-tokenVariable {
+  color: #e90;
+}
+
+.editor-tokenFunction {
+  color: #dd4a68;
+}
+
+.editor-paragraph {
+  margin: 0 0 8px;
+  position: relative;
+}
+
+.editor-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.editor-quote {
+  margin: 0 0 0 20px;
+  color: rgb(81, 82, 86);
+  border-left-color: rgb(255, 96, 20, 1);
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding-left: 16px;
+}
+
+.dark .editor-quote {
+  color: #d1d5db;
+}
