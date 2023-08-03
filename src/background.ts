@@ -4,11 +4,6 @@ import {pollForPublicationId} from './lib/utils/has-transaction-been-indexed';
 
 import lensApi from './lib/lens-api';
 import type {
-    NewCollectNotification,
-    NewCommentNotification,
-    NewMentionNotification,
-    NewMirrorNotification,
-    NewReactionNotification,
     Notification,
     Profile,
     PublicationMetadataV2Input,

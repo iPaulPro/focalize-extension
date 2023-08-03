@@ -23,7 +23,7 @@
 
     let notifications: Notification[] = [];
     let newNotifications: Notification[] = [];
-    let cursor = null;
+    let cursor: any = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
@@ -42,7 +42,7 @@
     }
 
     const updateNotificationsTimestamp = async (isoDate?: string) => {
-        $notificationsTimestamp = isoDate ?? DateTime.now().toISO();
+        $notificationsTimestamp = isoDate ?? DateTime.now().toISO() ?? new Date().toISOString();
     };
 
     const addNewNotifications = async () => {
@@ -56,13 +56,11 @@
         scrollElement.scrollTop = 0;
     };
 
-    const onLatestNotificationSeen = async () => {
-        await updateNotificationsTimestamp(notifications[0]?.createdAt);
-    };
+    const onLatestNotificationSeen = async () => updateNotificationsTimestamp(notifications[0]?.createdAt);
 
     const checkForNewNotifications = async () => {
         const latestNotifications = await getLatestNotifications();
-        newNotifications = latestNotifications.notifications;
+        newNotifications = latestNotifications.notifications ?? [];
         console.log('checkForNewNotifications: newNotifications', newNotifications);
 
         if (scrollElement.scrollTop == 0 && newNotifications.length) {
@@ -100,7 +98,7 @@
         return notifications[firstVisibleListItemIndex];
     };
 
-    const onScrollEnd = async (node: HTMLElement) => {
+    const onScrollEnd = (node: HTMLElement) => {
         $notificationsScrollTop = node.scrollTop;
 
         const firstNotification = findFirstVisibleListItem();
@@ -108,11 +106,17 @@
             firstNotification && $notificationsTimestamp &&
             DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(firstNotification.createdAt)
         ) {
-            await onLatestNotificationSeen();
+            onLatestNotificationSeen().catch(console.error);
         }
     };
 
-    const infiniteHandler = async ({detail: {loaded, complete, error}}) => {
+    const infiniteHandler = async (
+        {
+            detail: {loaded, complete, error}
+        }: {
+            detail: { loaded: () => void, complete: () => void, error: () => void }
+        }
+    ) => {
         try {
             if (!cursor) {
                 const cachedNotifications = await get(notificationItemsCache);
@@ -156,42 +160,42 @@
 <div bind:this={scrollElement} use:scrollEndListener={{onScrollEnd}}
      class="w-full h-full overflow-y-auto">
 
-  <ul bind:this={listElement}
-      class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+    <ul bind:this={listElement}
+        class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
 
-    {#each notifications as notification}
-      <li>
-        <NotificationItem {notification} {lastUpdate}/>
-      </li>
-    {/each}
+        {#each notifications as notification}
+            <li>
+                <NotificationItem {notification} {lastUpdate}/>
+            </li>
+        {/each}
 
-    <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
-      <div slot="noMore"></div>
+        <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
+            <div slot="noMore"></div>
 
-      <div slot="spinner" class="p-10">
-        <LoadingSpinner/>
-      </div>
+            <div slot="spinner" class="p-10">
+                <LoadingSpinner/>
+            </div>
 
-      <div slot="error">
-        <div class="h-full flex flex-col justify-center items-center gap-1">
-          <div class="text-xl font-bold text-gray-900 dark:text-gray-100">Error</div>
-          <div class="text text-gray-600 dark:text-gray-400">There was an error loading notifications.</div>
-          <button type="button" on:click={reload} class="btn variant-ringed-error">Retry</button>
-        </div>
-      </div>
+            <div slot="error">
+                <div class="h-full flex flex-col justify-center items-center gap-1">
+                    <div class="text-xl font-bold text-gray-900 dark:text-gray-100">Error</div>
+                    <div class="text text-gray-600 dark:text-gray-400">There was an error loading notifications.</div>
+                    <button type="button" on:click={reload} class="btn variant-ringed-error">Retry</button>
+                </div>
+            </div>
 
-    </InfiniteLoading>
+        </InfiniteLoading>
 
-  </ul>
+    </ul>
 
 </div>
 
 {#if newNotifications.length > 0}
-  <div use:hideOnScroll={{scrollElement}}
-       class="absolute top-12 w-full flex justify-center">
-    <button type="button" on:click={addNewNotifications}
-            class="btn btn-sm variant-filled-surface mt-4 shadow-lg">
-      {newNotifications.length} new notification{newNotifications.length > 1 ? 's' : ''}
-    </button>
-  </div>
+    <div use:hideOnScroll={{scrollElement}}
+         class="absolute top-12 w-full flex justify-center">
+        <button type="button" on:click={addNewNotifications}
+                class="btn btn-sm variant-filled-surface mt-4 shadow-lg">
+            {newNotifications.length} new notification{newNotifications.length > 1 ? 's' : ''}
+        </button>
+    </div>
 {/if}

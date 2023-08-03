@@ -3,15 +3,17 @@
     import tippy from 'sveltejs-tippy';
     import {createEventDispatcher, onDestroy} from 'svelte';
     import {fade, scale} from 'svelte/transition';
-    import {autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig} from '@floating-ui/dom';
-    import {RangeSelection} from 'lexical';
-    import {DateTime} from 'luxon';
+    import {
+        autoUpdate, computePosition, flip, offset, shift,
+        type ComputePositionConfig, type VirtualElement, type ClientRectObject
+    } from '@floating-ui/dom';
+    import type {RangeSelection} from 'lexical';
 
     export let isVisible = false;
 
-    export let anchor: DOMRect;
-    export let selection: RangeSelection;
-    export let blockType: string;
+    export let anchor: DOMRect | undefined;
+    export let selection: RangeSelection | null | undefined;
+    export let blockType: string | undefined;
     export let config: ComputePositionConfig = {
         strategy: 'absolute',
         middleware: [offset(6), flip(), shift({padding: 5})],
@@ -20,13 +22,16 @@
     const dispatch = createEventDispatcher();
 
     let container: HTMLElement;
-    let autoUpdateDisposer: void;
+    let virtualElement: VirtualElement | undefined;
+    let autoUpdateDisposer: () => void;
 
-    $: virtualElement = {
-        getBoundingClientRect() {
-            return anchor;
-        },
-    };
+    $: if (anchor) {
+        virtualElement = {
+            getBoundingClientRect() {
+                return anchor as ClientRectObject;
+            },
+        };
+    }
 
     const updatePosition = async () => {
         if (!virtualElement || !container) return;

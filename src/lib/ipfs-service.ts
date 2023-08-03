@@ -10,7 +10,7 @@ export interface Web3File extends File {
     cid: string
 }
 
-export const uploadAndPin = async (file: File, cb?: (progress: number) => {}): Promise<string> => {
+export const uploadAndPin = async (file: File, cb?: (progress: number) => void): Promise<string> => {
     const auth = btoa(`${AUTH_TOKEN}`)
 
     const formData = new FormData();

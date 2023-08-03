@@ -1,6 +1,7 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
+    import {v4 as uuid} from 'uuid';
     import {ensureCorrectChain} from '../lib/evm/ethers-service';
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
 
@@ -45,28 +46,25 @@
     import type {
         CollectModuleParams,
         MetadataAttributeInput,
-        PublicationMetadataV2Input,
+        PublicationMetadataV2Input, ReferenceModuleParams,
     } from '../lib/graph/lens-service';
-    import {PublicationMainFocus, ReferenceModules} from '../lib/graph/lens-service';
+    import {PublicationMainFocus} from '../lib/graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte';
-    import PlainTextEditor from './components/PlainTextEditor.svelte';
     import PostTags from './components/PostTags.svelte';
     import CollectSettingsDialog from './components/CollectSettingsDialog.svelte';
     import MediaUploader from './components/MediaUploader.svelte';
-    import PostMethodChooser from './components/PostMethodChooser.svelte';
 
     import Select from 'svelte-select';
     import toast, {Toaster} from 'svelte-french-toast';
-    import tooltip from 'svelte-ktippy';
     import {beforeUpdate, onDestroy, onMount, tick} from 'svelte';
     import {fade} from 'svelte/transition';
 
     import tags from 'language-tags';
     import GifSelectionDialog from './components/GifSelectionDialog.svelte';
     import SetDispatcherDialog from './components/SetDispatcherDialog.svelte';
-    import {ensureUser, type User} from '../lib/user/user';
+    import {ensureUser} from '../lib/user/user';
     import {getDraft, postDrafts, saveDraft} from '../lib/stores/draft-store';
 
     import {Subject} from 'rxjs';
@@ -77,11 +75,14 @@
     import DialogOuter from '../lib/components/DialogOuter.svelte';
     import {throttle} from 'throttle-debounce';
     import {DateTime} from 'luxon';
-    import {getSearchParams, getSearchParamsMap, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils/utils';
+    import {getSearchParams, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils/utils';
     import {launchComposerWindow} from '../lib/utils/utils.js';
     import type {PostDraft} from '../lib/publications/PostDraft';
     import CollectMetadata from './components/CollectMetadata.svelte';
     import TextEditor from './components/TextEditor.svelte';
+    import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
+    import EditorActionsBar from './components/EditorActionsBar.svelte';
+    import type {Web3File} from '../lib/ipfs-service';
 
     /**
      * Bound to the tag component
@@ -90,10 +91,12 @@
 
     let onGifDialogShown: () => {};
 
+    let insertAtSelection: (text: string) => {};
+
     let mainFocus: PublicationMainFocus;
 
     let postContentWarning = CONTENT_WARNING_ITEMS[0];
-    let referenceItem: SelectOption<ReferenceModules> = REFERENCE_ITEMS[0];
+    let referenceItem: SelectOption<ReferenceModuleParams> = REFERENCE_ITEMS[0];
 
     let postId: string;
     let isSubmittingPost = false;
@@ -107,10 +110,9 @@
     let contentDiv: HTMLElement;
     let contentDivHeight: number;
     let showAdvanced = false;
-    let mainDiv: HTMLElement;
 
     const draftSubject: Subject<PostDraft> = new Subject();
-    let postDraft: PostDraft;
+    let postDraft: PostDraft | undefined;
     let postMetaData: PublicationMetadataV2Input;
     let currentTabData: {
         title: string,
@@ -164,7 +166,7 @@
         collectSettingsDialog?.showModal();
     };
 
-    const onCollectSettingsDialogDone = (e) => {
+    const onCollectSettingsDialogDone = () => {
         collectSettingsDialog?.close();
         showCollectDialog = false;
     };
@@ -178,7 +180,7 @@
         if (!$currentUser) throw new Error('No user found');
 
         if (!isMediaPostType) {
-            // TODO validate
+            if (!$content) throw new Error('No content found');
 
             let postType = PublicationMainFocus.TextOnly;
 
@@ -192,11 +194,13 @@
                 $content,
                 postType,
                 getTags(),
-                postContentWarning.value,
+                postContentWarning.value ?? undefined,
             );
         }
 
-        if ($cover) {
+        if (!$attachments?.length) throw new Error('No attachments found');
+
+        if ($cover && $attachments[0]) {
             $attachments[0].cover = `ipfs://${$cover.cid}`;
         }
 
@@ -205,7 +209,7 @@
 
         mainFocus = getMainFocusFromMimeType($attachments[0].type);
 
-        let metadata: PublicationMetadataV2Input;
+        let metadata: PublicationMetadataV2Input | undefined = undefined
 
         switch (mainFocus) {
             case PublicationMainFocus.Image:
@@ -214,8 +218,8 @@
                     $attachments,
                     $title,
                     $content,
-                    tags,
-                    postContentWarning.value,
+                    tags ?? undefined,
+                    postContentWarning.value ?? undefined,
                     $description,
                 );
                 break;
@@ -229,8 +233,8 @@
                     $cover?.type,
                     $content,
                     attributes,
-                    tags,
-                    postContentWarning.value,
+                    tags ?? undefined,
+                    postContentWarning.value ?? undefined,
                     $description,
                 );
                 break;
@@ -244,8 +248,8 @@
                     $cover?.type,
                     $content,
                     attributes,
-                    tags,
-                    postContentWarning.value,
+                    tags ?? undefined,
+                    postContentWarning.value ?? undefined,
                     $description,
                 );
                 break;
@@ -262,6 +266,11 @@
     const onSubmitClick = async () => {
         if (!$currentUser) throw new Error('No user found');
 
+        if ($useDispatcher && !$currentUser.canUseRelay) {
+            enableDispatcherDialog.showModal();
+            return;
+        }
+
         isSubmittingPost = true;
 
         await ensureDraft();
@@ -269,7 +278,9 @@
         try {
             await ensureCorrectChain();
         } catch (e) {
-            console.log(`Error ${e.code}: ${e.message}`);
+            if (e instanceof Error) {
+                console.error(`Error switching chains: ${e.message}`, e);
+            }
             toast.error('Error switching chains', {duration: 5000});
             return;
         }
@@ -279,18 +290,19 @@
             collectModuleParams = collectSettingsToModuleParams($currentUser.address, $collectSettings);
         } catch (e) {
             console.error(e);
-            toast.error(e.message, {duration: 5000});
+            if (e instanceof Error) {
+                toast.error(e.message, {duration: 5000});
+            }
             return;
         }
 
         try {
             postMetaData = buildMetadata();
-
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
 
             const publicationId = await submitPost(
                 $currentUser,
-                $draftId,
+                $draftId ?? uuid(),
                 postMetaData,
                 referenceModuleParams,
                 collectModuleParams,
@@ -310,7 +322,12 @@
         }
     };
 
-    const setAttachment = (f: File) => {
+    const setAttachment = (f: File | undefined) => {
+        if (!f) {
+            file.set(undefined);
+            return;
+        }
+
         if (f.type === 'image/heic') {
             toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.', {duration: 5000});
             isFileDragged = false;
@@ -326,38 +343,30 @@
             return;
         }
 
-        file.set(f);
+        file.set(f as Web3File);
         console.log('setAttachment: file', $file);
         isFileDragged = false;
     };
 
-    const onFileDropped = (ev) => {
+    const onFileDropped = (dragEvent: DragEvent) => {
         setFileIsDragged(false);
-        const dt = ev.dataTransfer;
-        const file: File = dt.files[0];
+        const dt = dragEvent.dataTransfer;
+        const file: File | undefined = dt?.files?.[0];
         console.log('File dropped', file);
         setAttachment(file);
     };
 
-    $: submitEnabled = !isSubmittingPost && ($content?.length > 0 || isMediaPostType);
+    $: submitEnabled = !isSubmittingPost && ($content?.length || isMediaPostType);
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
         label: tags(tag).language()?.descriptions().join(', ')
     }));
 
-    $: locale = navigator.languages[0];
+    $: locale = locales[0];
 
     const onGifSelected = () => {
         gifSelectionDialog?.close();
-    };
-
-    const onUseDispatcherSelected = () => {
-        if (!$currentUser) throw new Error('No user found');
-
-        if (!$currentUser.canUseRelay) {
-            enableDispatcherDialog.showModal();
-        }
     };
 
     const onDispatcherDialogClosed = () => {
@@ -398,7 +407,7 @@
     };
 
     const buildDraft = (): PostDraft => ({
-        id: $draftId,
+        id: $draftId ?? uuid(),
         title: $title,
         content: $content,
         description: $description,
@@ -420,14 +429,18 @@
         draftSubject.next(draft);
     }
 
-    if ($draftId) {
+    $: if ($draftId) {
         const url = new URL(window.location.href);
         const searchParams = url.searchParams;
+        searchParams.set('draft', $draftId);
         url.search = searchParams.toString();
+        console.log('onDraftChanged: url', url.toString());
         window.history.replaceState({}, '', url.toString());
     }
 
     const openDraft = async () => {
+        if (!$draftId) return;
+
         postDraft = await getDraft($draftId);
         console.log('openDraft: postDraft', postDraft);
         if (postDraft) {
@@ -440,7 +453,7 @@
     });
 
     const clearCurrentTabData = () => {
-        currentTabData = null;
+        currentTabData = undefined;
     };
 
     const onCurrentTabDataClicked = () => {
@@ -476,7 +489,7 @@
 
     const openInPopupWindow = async () => {
         await ensureDraft();
-        await launchComposerWindow(null, $draftId);
+        await launchComposerWindow(undefined, $draftId);
     };
 
     $: if ($draftId !== postDraft?.id) {
@@ -487,7 +500,7 @@
         clearCurrentTabData();
     }
 
-    $: if ($content?.length > 0) {
+    $: if ($content?.length) {
         clearCurrentTabData();
     }
 
@@ -496,14 +509,8 @@
     });
 
     onMount(async () => {
-        await ensureUser((user: User) => {
-            if (!user.canUseRelay && !$dispatcherDialogShown && !enableDispatcherDialog?.open) {
-                enableDispatcherDialog.showModal();
-            }
-        });
-
+        await ensureUser();
         parseSearchParams();
-
         if ($draftId) await openDraft();
     });
 
@@ -512,7 +519,7 @@
     });
 </script>
 
-<main bind:this={mainDiv} class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
+<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
       on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
@@ -534,94 +541,120 @@
         <div class="min-h-[12rem] bg-white dark:bg-gray-800  {isSubmittingPost ? 'opacity-60' : ''}
              {isPopupWindow ? 'shadow p-2 rounded-b-2xl' : 'mx-2 rounded-2xl p-4 shadow-lg'}">
 
-<!--          <PlainTextEditor disabled={isSubmittingPost} isCompact={isPopupWindow}-->
-<!--                           on:fileSelected={(e) => setAttachment(e.detail)}-->
-<!--                           on:selectGif={(e) => showGifSelectionDialog()}/>-->
-          <TextEditor {content}/>
+          <div class="flex">
 
-          {#if isPopupWindow === true}
-            <button type="button" on:click={openInNewTab} use:tippy={({delay: 400, content: 'Open in a new tab'})}
-                    class="absolute right-4 top-4 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
+
+            <div class="px-3 pt-3">
+              <div class="w-14 h-14">
+                <CurrentUserAvatar/>
+              </div>
+            </div>
+
+            <div class="w-full">
+
+              <div class="flex flex-col w-full py-4 pr-3 pl-2">
+
+                <TextEditor {content}
+                            disabled={isSubmittingPost}
+                            isCompact={isPopupWindow ?? false}
+                            bind:insertAtSelection/>
+
+                <EditorActionsBar disabled={isSubmittingPost}
+                                  isCompact={isPopupWindow ?? false}
+                                  on:emojiSelected={(e) => insertAtSelection(e.detail)}
+                                  on:fileSelected={(e) => setAttachment(e.detail)}
+                                  on:selectGif={(e) => showGifSelectionDialog()}/>
+
+              </div>
+
+              {#if isPopupWindow === true}
+                <button type="button" on:click={openInNewTab} use:tippy={({delay: 400, content: 'Open in a new tab'})}
+                        class="absolute right-4 top-4 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
-              <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
-                <path
-                    d="M160-114.5q-19.152 0-32.326-13.174T114.5-160v-240q0-19.152 13.174-32.326T160-445.5q19.152 0 32.326 13.174T205.5-400v130.608L690.608-754.5H560q-19.152 0-32.326-13.174T514.5-800q0-19.152 13.174-32.326T560-845.5h240q19.152 0 32.326 13.174T845.5-800v240q0 19.152-13.174 32.326T800-514.5q-19.152 0-32.326-13.174T754.5-560v-130.608L269.392-205.5H400q19.152 0 32.326 13.174T445.5-160q0 19.152-13.174 32.326T400-114.5H160Z"/>
-              </svg>
-            </button>
-          {:else if isPopupWindow === false}
-            <button type="button" on:click={openInPopupWindow}
-                    use:tippy={({delay: 400, content: 'Open in a popup window'})}
-                    class="absolute right-6 top-10 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
+                  <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
+                    <path
+                            d="M160-114.5q-19.152 0-32.326-13.174T114.5-160v-240q0-19.152 13.174-32.326T160-445.5q19.152 0 32.326 13.174T205.5-400v130.608L690.608-754.5H560q-19.152 0-32.326-13.174T514.5-800q0-19.152 13.174-32.326T560-845.5h240q19.152 0 32.326 13.174T845.5-800v240q0 19.152-13.174 32.326T800-514.5q-19.152 0-32.326-13.174T754.5-560v-130.608L269.392-205.5H400q19.152 0 32.326 13.174T445.5-160q0 19.152-13.174 32.326T400-114.5H160Z"/>
+                  </svg>
+                </button>
+              {:else if isPopupWindow === false}
+                <button type="button" on:click={openInPopupWindow}
+                        use:tippy={({delay: 400, content: 'Open in a popup window'})}
+                        class="absolute right-6 top-10 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
-              <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
-                <path
-                    d="M182.152-114.022q-27.599 0-47.865-20.265-20.265-20.266-20.265-47.865v-595.696q0-27.697 20.265-48.033 20.266-20.337 47.865-20.337h242.783q14.424 0 24.244 10.012Q459-826.194 459-811.717q0 14.478-9.821 24.174-9.82 9.695-24.244 9.695H182.152v595.696h595.696v-242.783q0-14.424 9.871-24.244Q797.59-459 812.068-459q14.477 0 24.313 9.821 9.837 9.82 9.837 24.244v242.783q0 27.599-20.337 47.865-20.336 20.265-48.033 20.265H182.152Zm181.609-250q-9.326-9.804-9.826-23.385-.5-13.581 9.695-23.963l366.718-366.478H553.065q-14.424 0-24.244-9.871Q519-797.59 519-812.068q0-14.477 9.821-24.313 9.82-9.837 24.244-9.837h258.848q14.394 0 24.349 9.956 9.956 9.955 9.956 24.349v258.848q0 14.424-10.012 24.244Q826.194-519 811.717-519q-14.478 0-24.174-9.821-9.695-9.82-9.695-24.244v-176.283L411.37-362.63q-9.638 9.195-23.591 9.076-13.953-.12-24.018-10.468Z"/>
-              </svg>
-            </button>
-          {/if}
+                  <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
+                    <path
+                            d="M182.152-114.022q-27.599 0-47.865-20.265-20.265-20.266-20.265-47.865v-595.696q0-27.697 20.265-48.033 20.266-20.337 47.865-20.337h242.783q14.424 0 24.244 10.012Q459-826.194 459-811.717q0 14.478-9.821 24.174-9.82 9.695-24.244 9.695H182.152v595.696h595.696v-242.783q0-14.424 9.871-24.244Q797.59-459 812.068-459q14.477 0 24.313 9.821 9.837 9.82 9.837 24.244v242.783q0 27.599-20.337 47.865-20.336 20.265-48.033 20.265H182.152Zm181.609-250q-9.326-9.804-9.826-23.385-.5-13.581 9.695-23.963l366.718-366.478H553.065q-14.424 0-24.244-9.871Q519-797.59 519-812.068q0-14.477 9.821-24.313 9.82-9.837 24.244-9.837h258.848q14.394 0 24.349 9.956 9.956 9.955 9.956 24.349v258.848q0 14.424-10.012 24.244Q826.194-519 811.717-519q-14.478 0-24.174-9.821-9.695-9.82-9.695-24.244v-176.283L411.37-362.63q-9.638 9.195-23.591 9.076-13.953-.12-24.018-10.468Z"/>
+                  </svg>
+                </button>
+              {/if}
 
-          {#if currentTabData}
+              {#if currentTabData}
 
-            <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
-                 class="flex w-fit max-w-[70%] ml-[5.5rem] mb-2 pt-1 pb-2 pr-2 truncate
+                <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
+                     class="flex w-fit max-w-[70%] ml-4 mb-2 pt-1 pb-2 pr-2 truncate
                         cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
 
-              <div class="flex justify-center items-center px-4">
-                <svg class="w-5 h-5 text-orange-600 dark:text-orange-200" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 10l6-6 6 6"/>
-                  <path d="M4 20h7a4 4 0 0 0 4-4V5"/>
-                </svg>
-              </div>
-
-              <div class="flex flex-col truncate">
-                <div class="flex justify-between items-end gap-24">
-                  <div
-                      class="flex gap-0.5 text-orange-600 dark:text-orange-200 font-semibold items-center">
-                    <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
-                      <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
-                      <path
-                          d="M63.413 94.97a1.907 1.907 0 0 1-1.746-1.144l-4.186-9.6A19.329 19.329 0 0 0 47.455 74.2l-9.6-4.185a1.906 1.906 0 0 1 0-3.493l9.6-4.187a19.324 19.324 0 0 0 10.026-10.029l4.186-9.6a1.9 1.9 0 0 1 3.492 0l4.186 9.6A19.322 19.322 0 0 0 79.37 62.331l9.6 4.187a1.905 1.905 0 0 1 0 3.493l-9.6 4.185a19.322 19.322 0 0 0-10.025 10.026l-4.186 9.6a1.907 1.907 0 0 1-1.746 1.148ZM44.163 37.924a1.528 1.528 0 0 1-1.4-.917l-2.519-5.777a11.247 11.247 0 0 0-5.833-5.83l-5.777-2.517a1.528 1.528 0 0 1 0-2.8l5.778-2.518a11.247 11.247 0 0 0 5.833-5.833l2.518-5.778a1.527 1.527 0 0 1 2.8 0l2.518 5.777a11.247 11.247 0 0 0 5.834 5.834l5.778 2.518a1.528 1.528 0 0 1 0 2.8L53.914 25.4a11.251 11.251 0 0 0-5.833 5.835l-2.518 5.777a1.528 1.528 0 0 1-1.4.912ZM21.47 59.915a1.271 1.271 0 0 1-1.164-.762l-1.742-4a7.57 7.57 0 0 0-3.925-3.925l-3.995-1.74a1.27 1.27 0 0 1 0-2.328l4-1.742a7.568 7.568 0 0 0 3.92-3.918l1.742-4a1.271 1.271 0 0 1 1.164-.762 1.272 1.272 0 0 1 1.165.762l1.741 4a7.564 7.564 0 0 0 3.924 3.92l4 1.742a1.27 1.27 0 0 1 0 2.328l-4 1.741a7.566 7.566 0 0 0-3.924 3.924l-1.741 4a1.272 1.272 0 0 1-1.165.76Z"/>
+                  <div class="flex justify-center items-center px-4">
+                    <svg class="w-5 h-5 text-orange-600 dark:text-orange-200" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 10l6-6 6 6"/>
+                      <path d="M4 20h7a4 4 0 0 0 4-4V5"/>
                     </svg>
-                    <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
                   </div>
 
-                  <button type="button" on:click={clearCurrentTabData}
-                          class="p-1 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
+                  <div class="flex flex-col truncate">
+                    <div class="flex justify-between items-end gap-24">
+                      <div
+                              class="flex gap-0.5 text-orange-600 dark:text-orange-200 font-semibold items-center">
+                        <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
+                          <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
+                          <path
+                                  d="M63.413 94.97a1.907 1.907 0 0 1-1.746-1.144l-4.186-9.6A19.329 19.329 0 0 0 47.455 74.2l-9.6-4.185a1.906 1.906 0 0 1 0-3.493l9.6-4.187a19.324 19.324 0 0 0 10.026-10.029l4.186-9.6a1.9 1.9 0 0 1 3.492 0l4.186 9.6A19.322 19.322 0 0 0 79.37 62.331l9.6 4.187a1.905 1.905 0 0 1 0 3.493l-9.6 4.185a19.322 19.322 0 0 0-10.025 10.026l-4.186 9.6a1.907 1.907 0 0 1-1.746 1.148ZM44.163 37.924a1.528 1.528 0 0 1-1.4-.917l-2.519-5.777a11.247 11.247 0 0 0-5.833-5.83l-5.777-2.517a1.528 1.528 0 0 1 0-2.8l5.778-2.518a11.247 11.247 0 0 0 5.833-5.833l2.518-5.778a1.527 1.527 0 0 1 2.8 0l2.518 5.777a11.247 11.247 0 0 0 5.834 5.834l5.778 2.518a1.528 1.528 0 0 1 0 2.8L53.914 25.4a11.251 11.251 0 0 0-5.833 5.835l-2.518 5.777a1.528 1.528 0 0 1-1.4.912ZM21.47 59.915a1.271 1.271 0 0 1-1.164-.762l-1.742-4a7.57 7.57 0 0 0-3.925-3.925l-3.995-1.74a1.27 1.27 0 0 1 0-2.328l4-1.742a7.568 7.568 0 0 0 3.92-3.918l1.742-4a1.271 1.271 0 0 1 1.164-.762 1.272 1.272 0 0 1 1.165.762l1.741 4a7.564 7.564 0 0 0 3.924 3.92l4 1.742a1.27 1.27 0 0 1 0 2.328l-4 1.741a7.566 7.566 0 0 0-3.924 3.924l-1.741 4a1.272 1.272 0 0 1-1.165.76Z"/>
+                        </svg>
+                        <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
+                      </div>
 
-                <div class="flex text-sm font-medium pt-0.5 pr-4 truncate items-center gap-1">
-                  {#if currentTabData.icon}
-                    <img src={currentTabData.icon} alt="Favicon" class="h-4">
-                  {/if}
-                  <span class="truncate">{currentTabData.title}</span>
-                </div>
+                      <button type="button" on:click={clearCurrentTabData}
+                              class="p-1 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    </div>
 
-                {#if currentTabData.desc}
-                  <div class="opacity-60 pr-4 truncate whitespace-pre-wrap">
-                    {currentTabData.desc}
+                    <div class="flex text-sm font-medium pt-0.5 pr-4 truncate items-center gap-1">
+                      {#if currentTabData.icon}
+                        <img src={currentTabData.icon} alt="Favicon" class="h-4">
+                      {/if}
+                      <span class="truncate">{currentTabData.title}</span>
+                    </div>
+
+                    {#if currentTabData.desc}
+                      <div class="opacity-60 pr-4 truncate whitespace-pre-wrap">
+                        {currentTabData.desc}
+                      </div>
+                    {/if}
                   </div>
-                {/if}
-              </div>
+
+                </div>
+
+              {/if}
 
             </div>
 
-          {/if}
+          </div>
+
 
           {#if $collectSettings.isCollectible || isMediaPostType || $file}
 
-            <div class="flex w-full justify-center px-4 pt-6 pb-4 bg-gray-100 dark:bg-gray-700 rounded-xl shadow">
+            <div class="flex w-full justify-center px-4 pt-6 pb-4 gap-4 bg-gray-100 dark:bg-gray-700 rounded-xl shadow">
 
               {#if isMediaPostType || $file}
                 <div class="{$collectSettings.isCollectible ? 'w-1/2' : 'w-full'}">
-                  <MediaUploader isCollectable={$collectSettings.isCollectible}/>
+                  <MediaUploader isCollectable={$collectSettings.isCollectible ?? false}/>
                 </div>
               {/if}
 
@@ -636,7 +669,7 @@
 
           {/if}
 
-          <div class="flex flex-wrap gap-6 ml-[4.5rem]
+          <div class="flex flex-wrap gap-6 ml-[5rem]
                {isPopupWindow ? 'pt-2' : 'pt-3'}
                {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
                   : 'border-t border-t-gray-200 dark:border-t-gray-700'}">
@@ -665,7 +698,7 @@
                     class="!w-fit hover:!bg-gray-100 dark:hover:!bg-gray-600 !rounded-full !border-none !ring-0
                     focus:!outline-none !focus:ring-0 focus:!border-none !bg-none">
 
-              <div slot="item" let:item let:index>
+              <div slot="item" let:item>
                 <ModuleChoiceItem {item}/>
               </div>
 
@@ -785,7 +818,7 @@
               </div>
             </Select>
 
-            <PostTags bind:getTags disabled={isSubmittingPost} isCompact={isPopupWindow}/>
+            <PostTags bind:getTags disabled={isSubmittingPost} isCompact={isPopupWindow ?? false}/>
 
           </div>
 
@@ -815,7 +848,7 @@
 
             <button type="button" on:click={() => postDraftsDialog.showModal()}
                     class="text-sm text-gray-400 dark:text-gray-500 hover:text-orange dark:hover:text-orange-300 transition-none">
-              {#if postDraft}
+              {#if postDraft?.timestamp}
                 <span
                     use:tippy={({delay: 500, content: DateTime.fromMillis(postDraft.timestamp).toLocaleString(DateTime.DATETIME_MED)})}>
                   Draft saved
@@ -829,17 +862,16 @@
             <div class="flex items-stretch {isPopupWindow ? 'py-2' : 'py-4'}">
 
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
-                      class="group w-fit py-2 {$useDispatcher ? 'pl-8 pr-7' : 'pl-7 pr-6'} flex justify-center items-center
-                    rounded-l-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
-                    disabled:bg-neutral-400 dark:disabled:bg-gray-600
+                      class="group w-fit py-2 px-10 flex justify-center items-center
+                    rounded-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
+                    disabled:bg-neutral-400 dark:disabled:bg-gray-600 disabled:text-opacity-50 disabled:cursor-not-allowed
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
                     transition ease-in duration-200 font-semibold shadow-md disabled:shadow-none">
 
                 {#if isSubmittingPost}
                   <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"
-                       fill="none" xmlns="http://www.w3.org/2000/svg"
-                  >
+                       fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
                         fill="#E5E7EB"/>
@@ -847,51 +879,10 @@
                         d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
                         fill="currentColor"/>
                   </svg>
-                  Creating post...
+                  <span>Creating post...</span>
                 {:else}
                   <span>Post</span>
-                  {#if $useRelay && !$useDispatcher}
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                         class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2">
-                      <polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon>
-                      <line x1="3" y1="22" x2="21" y2="22"></line>
-                    </svg>
-                  {:else if !$useDispatcher}
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="currentColor"
-                         class="w-5 text-white dark:text-orange-200 group-disabled:text-gray-100 ml-2"
-                         use:tippy={({content: 'Pay for your own gas', delay: 200})}>
-                      <path
-                          d="M32.6 27.2q1.25 0 2.225-.975.975-.975.975-2.275 0-1.25-.975-2.2-.975-.95-2.225-.95t-2.225.95q-.975.95-.975 2.2 0 1.3.975 2.275.975.975 2.225.975ZM9 36.35V39 9 36.35ZM9 42q-1.15 0-2.075-.9Q6 40.2 6 39V9q0-1.15.925-2.075Q7.85 6 9 6h30q1.2 0 2.1.925Q42 7.85 42 9v6.7h-3V9H9v30h30v-6.65h3V39q0 1.2-.9 2.1-.9.9-2.1.9Zm17.9-8.65q-1.7 0-2.7-1-1-1-1-2.65V18.35q0-1.7 1-2.675 1-.975 2.7-.975h13.5q1.7 0 2.7.975 1 .975 1 2.675V29.7q0 1.65-1 2.65t-2.7 1Zm14.2-3V17.7H26.2v12.65Z"/>
-                    </svg>
-                  {/if}
                 {/if}
-              </button>
-
-              <button type="button" disabled={!submitEnabled}
-                      class="pl-3 pr-4 flex justify-center items-center rounded-r-full tooltip
-                    border-l border-orange-400 dark:border-orange-700 disabled:border-neutral-300 dark:disabled:border-gray-700
-                    bg-orange-600 hover:bg-orange-700
-                    disabled:bg-neutral-400 dark:disabled:bg-gray-600
-                    focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                    text-white text-center text-lg dark:disabled:text-gray-400
-                    transition ease-in duration-200 shadow-md disabled:shadow-none"
-                      use:tooltip={{
-                      component: PostMethodChooser,
-                      props: {},
-                      trigger: 'click',
-                      interactive: true,
-                      placement: 'bottom-end',
-                      offset: [0, 5]
-                    }}
-                      on:useDispatcher={onUseDispatcherSelected}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="w-4 h-4" fill="currentColor">
-                  <!--! Font Awesome Pro 6.2.1 by @fontawesome - https://fontawesome.com
-                  License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
-                  <path
-                      d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/>
-                </svg>
               </button>
 
             </div>
@@ -928,7 +919,7 @@
 <dialog id="selectGif" bind:this={gifSelectionDialog}
         class="w-2/3 max-w-md min-h-[18rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0 overflow-hidden
         border border-gray-200 dark:border-gray-600"
-        on:click={(event) => {if (event.target.id === 'selectGif') gifSelectionDialog?.close()}}>
+        on:click={(event) => {if (event?.target?.id === 'selectGif') gifSelectionDialog?.close()}}>
   <DialogOuter title="Attach a GIF">
     <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown isCompact={isPopupWindow}/>
   </DialogOuter>
@@ -937,14 +928,14 @@
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
   <DialogOuter title="Enable Dispatcher">
-    <SetDispatcherDialog on:success={enableDispatcherDialog?.close()}/>
+    <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()}/>
   </DialogOuter>
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}
         class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
         dark:border-gray-600 overflow-hidden"
-        on:click={(event) => {if (event.target.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
+        on:click={(event) => {if (event?.target?.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
   <DialogOuter title="Post drafts">
     <PostDraftsList on:dismiss={() => postDraftsDialog.close()}/>
   </DialogOuter>

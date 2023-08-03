@@ -15,7 +15,7 @@
     };
 
     let component: HTMLElement;
-    let autoUpdateDisposer: void;
+    let autoUpdateDisposer: () => void;
     let activeAnchor: HTMLElement;
 
     let initialized = false;

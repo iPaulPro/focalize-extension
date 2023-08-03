@@ -3,12 +3,9 @@
     import tippy from 'sveltejs-tippy';
     import {z} from 'zod';
     import {debounce} from 'throttle-debounce';
-    import {createEventDispatcher} from 'svelte';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {derived, type Readable} from 'svelte/store';
     import type {CollectSettings} from '../../lib/publications/CollectSettings';
-
-    const dispatch = createEventDispatcher();
 
     const splitSchema = z
         .number({

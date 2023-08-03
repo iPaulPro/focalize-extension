@@ -3,7 +3,7 @@
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {getAvatarForLensHandle, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils/utils';
-    import {getPeerName, isUnread, type Thread} from '../../lib/xmtp-service';
+    import {type CompactMessage, getPeerName, isUnread, type Thread} from '../../lib/xmtp-service';
     import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';
     import FloatingComponent from '../../lib/components/FloatingComponent.svelte';
@@ -17,17 +17,17 @@
 
     let avatarElement: HTMLImageElement;
 
-    let ens: string = thread?.peer?.wallet?.ens;
+    let ens: string | null | undefined = thread?.peer?.wallet?.ens;
 
     $: peerProfile = thread?.peer?.profile;
     $: peerAddress = thread?.peer?.profile?.ownedBy ?? thread?.peer?.wallet?.address;
     $: unread = thread?.unread;
     $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(peerAddress);
-    $: peerName = thread && getPeerName(thread.peer, ens);
+    $: peerName = thread?.peer && getPeerName(thread.peer, thread?.peer?.wallet?.ens);
 
     const latestMessage = getLatestMessage(thread?.conversation?.topic);
 
-    const checkIfUnread = async (message) => {
+    const checkIfUnread = async (message: CompactMessage) => {
         thread.unread = await isUnread(message);
     };
 

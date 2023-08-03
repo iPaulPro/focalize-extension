@@ -1,8 +1,17 @@
 <script lang="ts">
-    import {autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig} from '@floating-ui/dom';
+    import {
+        autoUpdate,
+        computePosition,
+        flip,
+        offset,
+        shift,
+        type ComputePositionConfig,
+        type VirtualElement,
+        type ClientRectObject
+    } from '@floating-ui/dom';
     import {
         type LexicalEditor, type RangeSelection, type GridSelection, type NodeSelection,
-        $getSelection as getSelection
+        $getSelection as getSelection, $isRangeSelection as isRangeSelection,
     } from 'lexical';
     import {$isLinkNode as isLinkNode, toggleLink} from '@lexical/link';
     import {onDestroy} from 'svelte';
@@ -12,7 +21,7 @@
 
     export let isVisible = false;
     export let editor: LexicalEditor;
-    export let anchor: DOMRect;
+    export let anchor: DOMRect | undefined;
     export let config: ComputePositionConfig = {
         strategy: 'absolute',
         middleware: [offset(6), flip(), shift({padding: 5})],
@@ -21,11 +30,22 @@
     let container: HTMLElement;
     let linkUrl: string | undefined;
     let isEditing = false;
-    let autoUpdateDisposer: void;
+    let virtualElement: VirtualElement | undefined;
+    let autoUpdateDisposer: () => void;
+
+    $: if (anchor) {
+        virtualElement = {
+            getBoundingClientRect() {
+                return anchor as ClientRectObject;
+            },
+        };
+    }
 
     const checkForLinkSelection = () => {
         editor.update(() => {
-            const selection: RangeSelection | NodeSelection | GridSelection = getSelection(editor);
+            const selection: RangeSelection | NodeSelection | GridSelection | null = getSelection();
+            if (!selection || !isRangeSelection(selection)) return;
+
             const node = getSelectedNode(selection);
             const parent = node.getParent();
             if (isLinkNode(parent)) {
@@ -51,16 +71,10 @@
 
     const onSubmit = () => {
         editor.update(() => {
-            toggleLink(linkUrl);
+            toggleLink(linkUrl ?? null);
             isEditing = false;
             isVisible = false;
         });
-    };
-
-    $: virtualElement = {
-        getBoundingClientRect() {
-            return anchor;
-        },
     };
 
     $: if (virtualElement && container) {

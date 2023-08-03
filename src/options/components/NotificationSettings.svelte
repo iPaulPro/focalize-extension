@@ -24,7 +24,7 @@
         {value: 60, label: '1 hr'},
     ];
 
-    let selectedInterval;
+    let selectedInterval: RefreshInterval | undefined = undefined;
 
     $: if (!selectedInterval && $notificationsRefreshInterval) {
         selectedInterval = $notificationsRefreshInterval;
@@ -38,8 +38,11 @@
         chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: $messagesRefreshEnabled}).catch(console.error);
     }
 
-    const onIntervalChange = (event) => {
-        $notificationsRefreshInterval = event.detail;
+    const onIntervalChange = () => {
+      if (selectedInterval) {
+        $notificationsRefreshInterval = selectedInterval;
+        chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true}).catch(console.error);
+      }
     }
 </script>
 

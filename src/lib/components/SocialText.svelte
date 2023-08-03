@@ -3,7 +3,7 @@
     import DOMPurify from 'isomorphic-dompurify';
 
     export let text: string = '';
-    export let maxLength: number = undefined;
+    export let maxLength: number | undefined = undefined;
     export let classNames: string = 'leading-tight whitespace-pre-wrap break-keep ![overflow-wrap:anywhere]';
     export let anchorClass: string = '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
 

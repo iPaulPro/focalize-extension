@@ -2,11 +2,11 @@
     import {DateTime} from 'luxon';
     import InfiniteLoading from 'svelte-infinite-loading';
     import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
-    import {type DecodedMessage} from '@xmtp/xmtp-js';
+    import type {DecodedMessage} from '@xmtp/xmtp-js';
     import {getMessagesStream, type Thread} from '../../../../lib/xmtp-service';
     import {messageTimestamps} from '../../../../lib/stores/cache-store';
     import {createEventDispatcher, onDestroy, onMount, tick} from 'svelte';
-    import {Subscription} from 'rxjs';
+    import type {Subscription} from 'rxjs';
     import {get} from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
     import {isPeerMessage} from '../../../../lib/utils/utils';
@@ -18,7 +18,7 @@
 
     let messages: DecodedMessage[] = [];
     let messageStream: Subscription;
-    let newMessagesTimestamp: number;
+    let newMessagesTimestamp: number | undefined;
 
     let scrollElement: HTMLElement;
 
@@ -38,16 +38,23 @@
         chrome.notifications.clear(thread.conversation.topic);
     };
 
-    const infiniteHandler = async ({detail: {loaded, complete, error}}) => {
+    const infiniteHandler = async (
+        {
+            detail: {loaded, complete, error}
+        }: {
+            detail: { loaded: () => void, complete: () => void, error: () => void }
+        }
+    ) => {
         if (!thread) {
             console.error('infiniteHandler: No thread found');
             error();
             return;
         }
 
-        const endTime = messages.length > 0 ? messages[0].sent - 1 : undefined;
         let prevMessages: DecodedMessage[] = [];
+        const firstMessageSentTime: number | undefined = messages.length ? messages[0].sent.getTime() - 1 : undefined;
         try {
+            const endTime: Date | undefined = firstMessageSentTime ? new Date(firstMessageSentTime) : undefined;
             prevMessages = await thread.conversation.messages({endTime});
             console.log('infiniteHandler: loaded', prevMessages?.length, 'messages');
         } catch (e) {
@@ -117,20 +124,20 @@
 
 <div bind:this={scrollElement} class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
 
-  <InfiniteLoading on:infinite={infiniteHandler} direction="top">
-    <div slot="noMore"></div>
+    <InfiniteLoading on:infinite={infiniteHandler} direction="top">
+        <div slot="noMore"></div>
 
-    <div slot="spinner" class="p-10">
-      <LoadingSpinner/>
-    </div>
-  </InfiniteLoading>
+        <div slot="spinner" class="p-10">
+            <LoadingSpinner/>
+        </div>
+    </InfiniteLoading>
 
-  {#each messages as message, i (message.id)}
+    {#each messages as message, i (message.id)}
 
-    {@const previousMessage = messages[i - 1]}
+        {@const previousMessage = messages[i - 1]}
 
-    <MessageItem {message} {previousMessage} {newMessagesTimestamp}/>
+        <MessageItem {message} {previousMessage} {newMessagesTimestamp}/>
 
-  {/each}
+    {/each}
 
 </div>

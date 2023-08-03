@@ -2,6 +2,7 @@ import {type RangeSelection, $isRangeSelection as isRangeSelection} from 'lexica
 import {getSelectedNode} from './get-selected-node';
 import {$isQuoteNode as isQuoteNode} from '@lexical/rich-text';
 import {$isLinkNode as isLinkMode} from '@lexical/link';
+import type {TextFormatType} from 'lexical/nodes/LexicalTextNode';
 
 export const isSelectionQuoteNode = (selection: RangeSelection): boolean => {
     if (selection && isRangeSelection(selection)) {
@@ -13,7 +14,7 @@ export const isSelectionQuoteNode = (selection: RangeSelection): boolean => {
     }
 
     return false;
-}
+};
 
 export const isSelectionLinkNode = (selection: RangeSelection): boolean => {
     if (selection && isRangeSelection(selection)) {
@@ -25,4 +26,7 @@ export const isSelectionLinkNode = (selection: RangeSelection): boolean => {
     }
 
     return false;
-}
+};
+
+export const isTextFormatType = (value: string): value is TextFormatType =>
+    ['bold', 'underline', 'strikethrough', 'italic', 'highlight', 'code', 'subscript', 'superscript'].includes(value);

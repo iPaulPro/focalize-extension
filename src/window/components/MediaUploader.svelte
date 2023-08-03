@@ -11,6 +11,7 @@
     import * as id3 from "id3js";
     import InlineSVG from "svelte-inline-svg";
     import {INFURA_GATEWAY_URL} from "../../config";
+    import type {ID3Tag, ID3TagV2} from 'id3js/lib/id3Tag';
 
     export let disabled: boolean = false;
     export let isCollectable: boolean;
@@ -26,15 +27,18 @@
     $: isAttachmentAudio = attachmentType?.startsWith('audio/');
     $: isAttachmentVideo = attachmentType?.startsWith('video/');
 
-    let fileInput;
-    let coverInput;
+    let coverInput: HTMLInputElement;
     let loading = false;
     let coverLoading = false;
     let uploadedPct = 0;
     let isFileDragged = false;
 
+    const isID3TagV2 = (tag: ID3Tag): tag is ID3TagV2 => {
+        return (tag as ID3TagV2).kind === 'v2';
+    };
+
     const processId3Tags = async (file: File) => {
-        const tags = await id3.fromFile(file);
+        const tags: ID3Tag | null = await id3.fromFile(file);
         if (!tags) return;
 
         console.log('processId3Tags: got tags from file', tags)
@@ -48,14 +52,15 @@
             author.set(tags.artist);
         }
 
-        if (tags.images) {
+        if (isID3TagV2(tags) && tags.images.length) {
             const imageBuffer = tags.images[0].data;
-            const id3Cover = new File([imageBuffer], 'cover.jpeg', {type: tags.images[0].mime});
+            if (!imageBuffer) return;
+            const id3Cover = new File([imageBuffer], 'cover.jpeg', {type: tags.images[0].mime ?? undefined});
             await upload(id3Cover, true);
         }
     };
 
-    const upload = async (fileToUpload: Web3File, isCover: boolean = false) => {
+    const upload = async (fileToUpload: File, isCover: boolean = false) => {
         console.log('upload: ', fileToUpload.name);
         if (isCover) {
             coverLoading = true;
@@ -63,34 +68,35 @@
             loading = true;
         }
 
+        let web3File: Web3File = fileToUpload as Web3File
         try {
-            fileToUpload.cid = await uploadAndPin(fileToUpload, pct => {
-                console.log('upload: Uploading...', pct.toFixed(2))
-                uploadedPct = pct;
+            web3File.cid = await uploadAndPin(fileToUpload, (progress: number) => {
+                console.log('upload: Uploading...', progress.toFixed(2))
+                uploadedPct = progress;
             });
         } catch (e) {
             console.error(e)
 
             if (isCover) {
-                cover.set(null);
+                cover.set(undefined);
                 coverLoading = false;
             } else {
-                $attachments = null;
+                $attachments = [];
                 loading = false;
             }
 
             uploadedPct = 0;
-            $file = null;
+            $file = undefined;
 
             toast.error('upload: Error uploading file', {duration: 5000});
 
             return;
         }
 
-        console.log('upload: Uploaded file at', fileToUpload.cid);
+        console.log('upload: Uploaded file at', web3File.cid);
 
         if (isCover) {
-            cover.set(fileToUpload);
+            cover.set(web3File);
             return;
         }
 
@@ -99,7 +105,7 @@
         }
 
         $attachments[0] = {
-            item: 'ipfs://' + fileToUpload.cid,
+            item: 'ipfs://' + web3File.cid,
             type: fileToUpload.type,
         };
 
@@ -113,11 +119,13 @@
             }
         }
 
-        $file = null;
+        $file = undefined;
     };
 
-    const onFileSelected = async (e, isCover: boolean = false) => {
-        const file = e.target.files[0];
+    const onFileSelected = async (e: Event, isCover: boolean = false) => {
+        if (!e.target) return;
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
         const maxSize = isCover ? MAX_FILE_SIZE / 10 : MAX_FILE_SIZE;
 
         if (!file || file.size > maxSize) {
@@ -140,11 +148,11 @@
             }
         }
 
-        cover.set(null);
+        cover.set(undefined);
         coverLoading = false;
     };
 
-    const deleteAttachment = async (notify: boolean = false) => {
+    const deleteAttachment = async () => {
         if ($attachments?.[0]?.item?.startsWith('ipfs://')) {
             const cid = getCidFromIpfsUrl($attachments?.[0]?.item);
             if (cid) {
@@ -156,18 +164,19 @@
             }
         }
 
-        $attachments = null;
+        $attachments = [];
         loading = false;
     }
 
-    const onDeleteMedia = async (notify: boolean = false) => {
-        await deleteAttachment(notify);
+    const onDeleteMedia = async () => {
+        await deleteAttachment();
         await onDeleteCover();
         uploadedPct = 0;
     };
 
-    const onCoverFileDropped = async (ev) => {
+    const onCoverFileDropped = async (ev: DragEvent) => {
         const dt = ev.dataTransfer;
+        if (!dt) return;
         const file: File = dt.files[0];
         console.log('Cover file dropped', file);
 
@@ -180,7 +189,6 @@
             return;
         }
 
-        cover.set(file);
         isFileDragged = false;
 
         await onDeleteCover();
@@ -202,9 +210,9 @@
 
 <div class="w-full h-full flex flex-col justify-center items-center gap-4 pb-2">
 
-  {#if attachmentPath && attachmentType}
+  {#if attachmentPath &&attachmentType}
 
-    <div class="flex flex-col w-full items-center justify-center bg-gray-100 dark:bg-gray-700 pr-4 pt-1 rounded-xl">
+    <div class="flex flex-col w-full items-center justify-center bg-gray-100 dark:bg-gray-700 pt-1 rounded-xl">
 
       {#if isAttachmentImage}
 
@@ -213,11 +221,11 @@
         {/if}
 
         <div class="relative">
-          <img src={attachmentPath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin
+          <img src={attachmentPath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin=""
                on:load={onAttachmentLoaded}>
 
           <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
-            <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={() => onDeleteMedia(true)}>
+            <button type="button" class="mt-2 mr-2 hidden group-hover:block" on:click={onDeleteMedia}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor"
                    class="w-8 h-8 text-white drop-shadow-darker">
                 <!--! Font Awesome Pro 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc.-->
@@ -248,7 +256,7 @@
 
               <div class="w-full relative flex justify-center items-center
                      {isAttachmentVideo ? 'aspect-video' : ''}">
-                <img src={coverPath} alt="Cover" crossorigin
+                <img src={coverPath} alt="Cover" crossorigin=""
                      class="w-full h-full object-cover rounded-xl bg-gray-200 rounded-xl
                            {isCollectable ? '' : 'max-w-[50%]'}
                            {isFileDragged ? 'border border-orange-500' : 'border-none'}"
@@ -304,17 +312,15 @@
           </div>
 
           {#if isAttachmentAudio}
-            <audio crossorigin src={attachmentPath} type={attachmentType}
+            <audio src={attachmentPath} preload="metadata" controls controlslist="nodownload"
                    on:load={() => loading = false}
-                   preload="metadata" controls controlslist="nodownload"
                    class="border border-gray-300 dark:border-gray-500 dark:bg-gray-600 rounded-full
                          {isCollectable ? 'w-full' : 'w-1/2'}"></audio>
           {:else if isAttachmentVideo}
             <!-- svelte-ignore a11y-media-has-caption -->
-            <video crossorigin src={attachmentPath} type={attachmentType}
-                   on:load={() => loading = false}
-                   preload="metadata" controls controlslist="nodownload"
-                   class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'}" ></video>
+            <video src={attachmentPath}
+                   on:load={() => loading = false} preload="metadata" controls controlslist="nodownload"
+                   class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'} aspect-video bg-black" ></video>
           {/if}
         </div>
 
@@ -339,7 +345,7 @@
           </div>
 
           <button type="button" class="text-red-700 dark:text-white opacity-60 hover:opacity-100"
-                  on:click={() => onDeleteMedia(true)}>
+                  on:click={onDeleteMedia}>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>

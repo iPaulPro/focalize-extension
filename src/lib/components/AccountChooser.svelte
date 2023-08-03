@@ -11,7 +11,7 @@
     import type {Profile} from '../graph/lens-service';
     import {clearNotificationCache} from '../stores/cache-store';
 
-    export let anchorNode;
+    export let anchorNode: Node;
     export let showSettings = true;
 
     let avatarError: Number[] = [];
@@ -60,15 +60,17 @@
 
         {#each profiles as p, index}
 
+          {@const avatarUrl = getAvatarForLensHandle(p.handle)}
+
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={() => switchProfiles(p)} on:keydown={() => this.click()}>
+               on:click={() => switchProfiles(p)}>
 
-            {#if !p.picture?.original || avatarError[index]}
+            {#if !avatarUrl || avatarError[index]}
               <InlineSVG src={ImageAvatar}
                          class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
             {:else}
-              <img src={getAvatarForLensHandle(p.handle)} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
+              <img src={avatarUrl} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
                    on:error={() => {avatarError.push(index)}}>
             {/if}
 
@@ -107,7 +109,7 @@
               <path
                   d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
-            <div class="text-sm text-black dark:text-white">Settings</div>
+            <span class="text-sm text-black dark:text-white">Settings</span>
           </button>
         {/if}
 
@@ -119,7 +121,7 @@
                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
           </svg>
-          <div class="text-sm text-black dark:text-white">Log out</div>
+          <span class="text-sm text-black dark:text-white">Log out</span>
         </button>
       </div>
 

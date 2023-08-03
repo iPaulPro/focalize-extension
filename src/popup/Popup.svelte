@@ -33,8 +33,8 @@
             return;
         }
 
-        const url = tab.url;
-        const title = tab.title;
+        const url: string = tab.url;
+        const title: string | undefined = tab.title;
 
         // If the current tab is a chrome page, update the current tab with the extension page
         if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
@@ -49,16 +49,21 @@
                 func: getOpenGraphTags
             });
 
-            const tags = injected[0]?.result ?? {};
+            const openGraphTags = injected[0]?.result ?? {};
 
-            if (!tags?.title) tags.title = title;
-            tags.icon = tab.favIconUrl;
-            tags.url = url;
+            const tags = {
+                title: openGraphTags.title ?? title,
+                url: url,
+                icon: tab.favIconUrl,
+                description: openGraphTags.description ?? undefined,
+            };
 
             return launchComposerWindow(tags);
+
         } catch (e) {
             console.error(e);
         }
+
         return launchComposerWindow({title, url});
     };
 

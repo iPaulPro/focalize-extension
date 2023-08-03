@@ -49,7 +49,7 @@
 
             if (thread) {
                 thread.latestMessage = toCompactMessage(message);
-                thread.unread = await isUnread(message);
+                thread.unread = await isUnread(thread.latestMessage);
             }
 
             threads = threads;
@@ -67,7 +67,9 @@
                 break;
             case 1:
                 threads = unfilteredThreads.filter(thread =>
-                    isLensThread(thread) && isProfileThread(thread, $currentUser?.profileId)
+                        $currentUser?.profileId
+                        && isLensThread(thread)
+                        && isProfileThread(thread, $currentUser?.profileId)
                 );
                 break;
             case 2:

@@ -36,8 +36,10 @@
 
     const saveWindowId = () => {
         chrome.windows.getCurrent().then((window) => {
+          if (window.id) {
             $windowTopicMap[thread.conversation.topic] = window.id;
             console.log('saveWindowId: saved window id', window.id, 'for topic', thread.conversation.topic);
+          }
         });
     };
 
@@ -55,7 +57,7 @@
             toastStore.trigger({
                 message: 'Error sending message',
                 background: 'variant-filled-error',
-                duration: 5000,
+                timeout: 5000,
             });
             loading = false;
         };
@@ -114,7 +116,7 @@
 
     $: peerProfile = thread?.peer?.profile;
     $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
-    $: peerName = thread && getPeerName(thread.peer);
+    $: peerName = thread?.peer && getPeerName(thread.peer);
     $: peerHandle = thread && getPeerHandle();
 
     $: if ($darkMode) {

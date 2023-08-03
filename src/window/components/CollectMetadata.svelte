@@ -25,12 +25,10 @@
         dispatch('settingsClick');
     };
 
-    $: hasAttachments = $attachments?.length > 0;
+    $: hasAttachments = $attachments?.length !== undefined;
     $: attachmentType = $attachments?.[0]?.type;
 
-    $: isAttachmentImage = attachmentType?.startsWith('image/');
     $: isAttachmentAudio = attachmentType?.startsWith('audio/');
-    $: isAttachmentVideo = attachmentType?.startsWith('video/');
 
     $: saleEndString = $collectSettings && getSaleEndString($collectSettings);
 
@@ -52,7 +50,7 @@
            use:tippy={{
               content: 'Collection price',
            }}>
-        {#if $collectSettings.price}
+        {#if $collectSettings.price && $collectSettings.token}
           <span>{$collectSettings.price}</span>
           <span class="opacity-60 text-lg pt-0.5">${$collectSettings.token.symbol}</span>
         {:else}
@@ -107,7 +105,7 @@
           </div>
         {/if}
 
-        {#if $collectSettings.price && $collectSettings.recipients?.length > 1}
+        {#if $collectSettings.price && $collectSettings.recipients?.length && $collectSettings.recipients?.length > 1}
           <div class="flex items-center gap-2 text-sm cursor-pointer"
                on:click={onSettingsClick}
                use:tippy={{
@@ -154,7 +152,7 @@
            bind:value={$author} disabled={disabled}>
   {/if}
 
-  <textarea placeholder="Description (optional)" rows={useContentAsDescription ? '3' : '5'}
+  <textarea placeholder="Description (optional)" rows={useContentAsDescription ? 3 : 5}
             class="mt-1 input {useContentAsDescription ? 'opacity-50 focus:opacity-100' : 'opacity-100'}"
             bind:value={$description} disabled={disabled}></textarea>
 

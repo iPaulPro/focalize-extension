@@ -11,7 +11,7 @@
 
     const dispatch = createEventDispatcher();
 
-    $: items = [...$postDrafts.values()].sort((a, b) => b.timestamp - a.timestamp);
+    $: items = [...$postDrafts.values()].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     const onDraftClick = (draft: PostDraft) => {
         $draftId = draft.id;
@@ -41,11 +41,13 @@
                 {item.title ?? item.content ?? '(no content)'}
               </div>
 
-              <AutoRelativeTimeView className="dark:text-white opacity-60"
-                                    timestamp={item.timestamp} capitalize={true} />
+              {#if item.timestamp}
+                <AutoRelativeTimeView className="dark:text-white opacity-60"
+                                      timestamp={item.timestamp} capitalize={true} />
+              {/if}
 
               <div class="w-full truncate dark:text-white opacity-70">
-                {#if item.attachments?.length > 0}
+                {#if item.attachments?.length}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4 inline"
                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path

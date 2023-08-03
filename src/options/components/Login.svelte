@@ -11,7 +11,7 @@
     import {createEventDispatcher} from 'svelte';
     import {fade} from 'svelte/transition';
     import type {Profile} from '../../lib/graph/lens-service';
-    import WalletConnection from '../../lib/evm/WalletConnection';
+    import type WalletConnection from '../../lib/evm/WalletConnection';
 
     const dispatch = createEventDispatcher();
 

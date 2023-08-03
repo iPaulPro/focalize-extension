@@ -36,7 +36,6 @@ export const getAvatarFromAddress = (address: string, size: number = 128): strin
 
 export const htmlFromMarkdown = (markdown: string | undefined): string | undefined => {
     if (!markdown) return undefined;
-    // showdown.setFlavor('github');
     const converter = new showdown.Converter({
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
@@ -179,20 +178,20 @@ export const launchThreadWindow = async (topic?: string) => {
 
 interface ScrollEndListenerOptions {
     delay?: number;
-    onScrollEnd?: () => void;
+    onScrollEnd?: (node: HTMLElement) => void;
 }
 
 export const scrollEndListener = (
     node: HTMLElement,
     options: ScrollEndListenerOptions = {}
 ): { destroy: () => void } => {
-    const { delay = 200, onScrollEnd = (element: HTMLElement) => {} } = options;
+    const { delay = 200, onScrollEnd } = options;
     const destroy = new Subject<void>();
 
     fromEvent(node, "scroll")
         .pipe(debounceTime(delay), takeUntil(destroy))
         .subscribe(() => {
-            onScrollEnd(node);
+            onScrollEnd?.(node);
         });
 
     return {
@@ -207,7 +206,7 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
     let targetElement: HTMLElement = parameters.scrollElement;
     let lastScrollTop = targetElement?.scrollTop;
 
-    let reversed = parameters.reversed ?? false;
+    const reversed = parameters.reversed ?? false;
 
     const handleScroll = () => {
         const direction = targetElement.scrollTop > lastScrollTop ? 'down' : 'up';
@@ -229,9 +228,9 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
     }
 
     return {
-        update(parameters: any) {
+        update(params: any) {
             targetElement?.removeEventListener('scroll', handleScroll);
-            targetElement = parameters.scrollElement;
+            targetElement = params.scrollElement;
             lastScrollTop = targetElement.scrollTop
             targetElement?.addEventListener('scroll', handleScroll);
         },
@@ -292,13 +291,14 @@ export const isPeerMessage = (message: DecodedMessage): boolean => {
 
 const getDefaultProvider = (): Provider => new InfuraProvider('mainnet', INFURA_PROJECT_ID);
 
-export const getEnsFromAddress = async (address: string): Promise<string | null> => {
-    const provider = await getDefaultProvider();
-    return provider.lookupAddress(address);
+export const getEnsFromAddress = async (address: string): Promise<string | undefined> => {
+    const provider = getDefaultProvider();
+    const ens = await provider.lookupAddress(address);
+    return ens ?? undefined;
 };
 
 export const getAddressFromEns = async (ens: string): Promise<string | null> => {
-    const provider = await getDefaultProvider();
+    const provider = getDefaultProvider();
     return provider.resolveName(ens);
 };
 
@@ -364,7 +364,7 @@ export const isPopup = async (): Promise<boolean> => {
     return window.type === 'popup'
 };
 
-export const resizeTextarea = async (textarea: HTMLTextAreaElement) => {
+export const resizeTextarea = async (textarea: HTMLTextAreaElement | undefined) => {
     if (!textarea) return;
 
     await tick();

@@ -2,10 +2,11 @@
     import {onMount, createEventDispatcher, onDestroy} from 'svelte';
     import {debounce} from 'throttle-debounce';
     import {searchHandles} from '../../../../lib/user/search-handles';
-    import Tribute from 'tributejs';
+    import Tribute, {type TributeItem} from 'tributejs';
     import {resizeTextarea} from '../../../../lib/utils/utils';
     import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
-    import {buildLoadingItemTemplate} from '../../../../lib/user/tribute-loading-template';
+    import type {Action} from 'svelte/types/runtime/action';
+    import type {Profile} from '../../../../lib/graph/lens-service';
 
     export let text: string = '';
     export let className: string = '';
@@ -39,11 +40,10 @@
         focusTextArea();
     };
 
-    const tribute = async (node) => {
+    const tribute: Action = (node: HTMLElement) => {
         const t = new Tribute({
             values: (text, cb) => searchHandles(text, 4, cb),
-            menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
-            loadingItemTemplate: buildLoadingItemTemplate(),
+            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
         })

@@ -2,7 +2,7 @@
     import {onMount} from 'svelte';
     import {isPopup} from '../utils/utils';
 
-    export let title: string = undefined;
+    export let title: string | undefined = undefined;
     let isCompact: boolean = false;
 
     onMount(async () => {

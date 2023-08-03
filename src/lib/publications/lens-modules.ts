@@ -14,8 +14,6 @@ import {DateTime} from "luxon";
 
 import type {CollectSettings} from './CollectSettings';
 
-export type ContentWarning = string | PublicationContentWarning.Nsfw | PublicationContentWarning.Spoiler | PublicationContentWarning.Sensitive | null;
-
 export type SelectOption<Type> = {
     value: Type,
     label: string,
@@ -78,7 +76,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
     },
 ];
 
-export const CONTENT_WARNING_ITEMS: SelectOption<ContentWarning>[] = [
+export const CONTENT_WARNING_ITEMS: SelectOption<PublicationContentWarning | null>[] = [
     {value: null, label: 'No content warning'},
     {value: PublicationContentWarning.Nsfw, label: 'NSFW'},
     {value: PublicationContentWarning.Spoiler, label: 'Spoiler'},

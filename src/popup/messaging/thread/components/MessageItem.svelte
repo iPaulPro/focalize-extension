@@ -10,14 +10,14 @@
 
     export let message: DecodedMessage;
     export let previousMessage: DecodedMessage;
-    export let newMessagesTimestamp: number;
+    export let newMessagesTimestamp: number | undefined;
 
     $: isPeer = message && isPeerMessage(message);
     $: sentDate = message && DateTime.fromJSDate(message.sent);
     $: sameSenderAsPrevious = previousMessage && (isPeerMessage(previousMessage) === isPeer);
     $: showDate = message && (!previousMessage || (!isToday(sentDate, DateTime.fromJSDate(previousMessage.sent))));
-    $: showNewMessagesLabel = message && isPeer && newMessagesTimestamp && message.sent > newMessagesTimestamp &&
-        (!previousMessage || previousMessage.sent < newMessagesTimestamp);
+    $: showNewMessagesLabel = message && isPeer && newMessagesTimestamp && message.sent.getTime() > newMessagesTimestamp &&
+        (!previousMessage || previousMessage.sent.getTime() < newMessagesTimestamp);
 </script>
 
 {#if message}
@@ -36,7 +36,7 @@
     </div>
   {/if}
 
-  <div class="flex {isPeer ? 'justify-start' : 'justify-end'}
+  <div class="flex {isPeer ? 'justify-start' : 'justify-end dark'}
              {sameSenderAsPrevious && !showDate ? 'pt-0' : showDate ? 'pt-2' : 'pt-3' }">
 
     <div class="flex flex-col w-fit max-w-[80%] md:max-w-[60%] lg:max-w-[40%] px-3 pt-2 pb-1 text-[0.95rem]
@@ -45,7 +45,7 @@
       <SocialText text={message.content}
                   anchorClass="!no-underline
                   {isPeer ? '!text-orange-800 dark:!text-orange-100 hover:!text-orange-400 dark:hover:!text-orange-300'
-                  : '!text-orange-100 hover:!text-orange-300'}"
+                  : 'self !text-orange-100 hover:!text-orange-300'}"
       />
 
       <div class="flex {isPeer ? 'justify-start' : 'justify-end'} text-xs pt-0.5">

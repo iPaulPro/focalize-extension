@@ -4,12 +4,20 @@
     import {releaseDismissed} from '../../lib/stores/preferences-store';
     import {getLatestRelease} from "../../lib/github-service";
     import {createEventDispatcher, getContext} from "svelte";
+    import type {Writable} from 'svelte/store';
 
-    const activeTab = getContext('activeTab');
+    const activeTab: Writable<number> = getContext('activeTab');
 
     const dispatch = createEventDispatcher();
 
-    const tabs = [
+    type Tab = {
+        name: string,
+        enabled: boolean,
+        event: string,
+        icon: string
+    }
+
+    const tabs: Tab[] = [
         {
             name: 'General settings',
             enabled: true,
@@ -42,7 +50,7 @@
         window.open('https://github.com/FocalizeApp/focalize-extension/issues', '_blank');
     };
 
-    const onTabClick = (tab, index) => {
+    const onTabClick = (tab: Tab, index: number) => {
         if (tab.name === 'Share feedback') {
             onShareFeedbackClick();
             return;

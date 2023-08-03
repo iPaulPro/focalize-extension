@@ -9,7 +9,7 @@
 
     export let showSettings = true;
 
-    let avatarError;
+    let avatarError = false;
     let logoutDialog: HTMLDialogElement;
 
     const showLogoutDialog = () => {
@@ -39,7 +39,7 @@
 </div>
 
 <dialog id="logoutDialog" bind:this={logoutDialog}
-        on:click={(event) => {if (event.target.id === 'logoutDialog') logoutDialog?.close()}}
+        on:click={(event) => {if (event.target?.id === 'logoutDialog') logoutDialog?.close()}}
         class="rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
   <DialogOuter title="Log out">
     <ConfirmLogoutDialog />

@@ -10,8 +10,9 @@
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
     import IconSettings from '../../assets/ic_settings.svg'
     import {compactMode} from "../../lib/stores/preferences-store";
+    import type {SelectOption} from '../../lib/publications/lens-modules';
 
-    export let item = undefined;
+    export let item: SelectOption<any>;
 </script>
 
 <div class="flex items-center px-5 {$compactMode ? 'py-2' : 'py-3'} cursor-pointer dark:text-gray-100 hover:bg-orange-300 dark:hover:bg-gray-800 active:bg-orange">
@@ -40,13 +41,5 @@
     <div class="font-semibold text-sm">{item.label}</div>
     <div class="pt-1 text-xs whitespace-pre-line">{item.summary}</div>
   </div>
-
-  {#if item.btn}
-    <div class="h-full flex grow items-center justify-end">
-      <button type="button" class="hover:bg-orange-700 bg-opacity-50 rounded-full p-2">
-        <InlineSVG src={IconSettings} class="w-5 h-5" on:click={item.btn} />
-      </button>
-    </div>
-  {/if}
 
 </div>

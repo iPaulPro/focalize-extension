@@ -5,7 +5,7 @@
 
     export let timestamp: number;
     export let className: string = '';
-    export let capitalize: string = false;
+    export let capitalize: boolean = false;
     export let shortRelativeCutoff = 15;
     export let suffix = false;
 
@@ -24,17 +24,17 @@
         return date >= startOfYesterday && date < startOfToday;
     };
 
-    const toShortRelative = (dateTime) => {
+    const toShortRelative = (dateTime: DateTime) => {
         const now = DateTime.local();
         const diff = now.diff(dateTime, ['years', 'months', 'days', 'hours', 'minutes', 'seconds']).toObject();
 
-        if (diff.years >= 1) return `${Math.floor(diff.years)}y`;
-        if (diff.months >= 1) return `${Math.floor(diff.months)}mo`;
-        if (diff.days >= 1) return `${Math.floor(diff.days)}d`;
-        if (diff.hours >= 1) return `${Math.floor(diff.hours)}h`;
-        if (diff.minutes >= 1) return `${Math.floor(diff.minutes)}m`;
+        if (diff.years && diff.years >= 1) return `${Math.floor(diff.years)}y`;
+        if (diff.months && diff.months >= 1) return `${Math.floor(diff.months)}mo`;
+        if (diff.days && diff.days >= 1) return `${Math.floor(diff.days)}d`;
+        if (diff.hours && diff.hours >= 1) return `${Math.floor(diff.hours)}h`;
+        if (diff.minutes && diff.minutes >= 1) return `${Math.floor(diff.minutes)}m`;
 
-        return `${Math.floor(diff.seconds)}s`;
+        return diff.seconds ? `${Math.floor(diff.seconds)}s` : (capitalize ? 'Just now' : 'just now');
     };
 
     const getTimeString = (date: DateTime) => {

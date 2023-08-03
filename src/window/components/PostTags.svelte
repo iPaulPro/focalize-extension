@@ -13,7 +13,7 @@
         const tags = document.querySelectorAll('.tag');
         tags.forEach(tag => {
             const input = tag.querySelector('.tag-edit');
-            if (input?.value === '') {
+            if (input instanceof HTMLInputElement && input?.value === '') {
                 input.focus();
             }
         })
@@ -39,13 +39,13 @@
         focusEmptyTagInput();
     });
 
-    const onKeyPress = (e) => {
+    const onKeyPress = (e: KeyboardEvent) => {
         if (e.code === 'Enter') {
             addTag();
         }
     };
 
-    const removeTagIfEmpty = (tag) => {
+    const removeTagIfEmpty = (tag: string) => {
         if (tag.length === 0) tags = tags.filter(value => value !== tag)
     };
 </script>

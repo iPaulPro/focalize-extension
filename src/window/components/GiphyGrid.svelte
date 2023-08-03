@@ -43,8 +43,9 @@
                     fetchGifs,
                     columns: 2,
                     noLink: true,
-                    borderRadius: '8',
-                    onGifClick: onClick
+                    borderRadius: 8,
+                    onGifClick: onClick,
+                    gutter: 6,
                 },
                 grid
             )
@@ -56,13 +57,13 @@
         render(node, params);
 
         return {
-            update(params) {
+            update(query: string) {
                 throttle(200, () => {
                     while (node.firstChild) {
                         node.removeChild(node.firstChild);
                     }
-                    render(node, params);
-                }).call();
+                    render(node, query);
+                }).call(params);
             }
         }
     };

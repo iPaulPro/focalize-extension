@@ -21,7 +21,7 @@ export interface Peer {
     profile?: Profile;
     wallet?: {
         address: string;
-        ens?: string | null;
+        ens?: string;
     };
 }
 
@@ -515,9 +515,9 @@ export const getConversation = async (conversationId: string, xmtpClient?: Clien
     return conversations.find((conversation) => conversation.topic === conversationId);
 };
 
-export const getThread = async (conversationId: string, xmtpClient?: Client): Promise<Thread | undefined> => {
+export const getThread = async (conversationId: string, xmtpClient?: Client): Promise<Thread> => {
     const conversation: Conversation | undefined = await getConversation(conversationId, xmtpClient);
-    if (!conversation) return undefined;
+    if (!conversation) throw new Error(`Conversation ${conversationId} not found`);
 
     const peer: Peer = await buildPeer(conversation);
     return {conversation, peer} satisfies Thread;

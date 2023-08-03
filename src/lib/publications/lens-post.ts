@@ -43,7 +43,7 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uui
 
 export const generateTextPostMetadata = (
     handle: string,
-    content: string,
+    content: string | undefined,
     mainContentFocus: PublicationMainFocus,
     tags?: string[],
     contentWarning?: PublicationContentWarning,

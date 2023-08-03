@@ -1,16 +1,13 @@
 <script lang="ts">
-    import {type Profile} from '../graph/lens-service';
+    import type {Profile} from '../graph/lens-service';
     import {formatFollowerCount, getAvatarForLensHandle, truncate} from '../utils/utils';
     import {onMount} from 'svelte';
     import {getMutualFollows, getProfileById} from '../user/lens-profile';
-    import {createEventDispatcher} from 'svelte';
     import FollowButton from './FollowButton.svelte';
     import SocialText from './SocialText.svelte';
     import {currentUser} from '../stores/user-store';
     import {getProfileUrl} from '../publications/lens-nodes';
     import {nodeSearch} from '../stores/preferences-store';
-
-    const dispatch = createEventDispatcher();
 
     export let profile: Profile;
 

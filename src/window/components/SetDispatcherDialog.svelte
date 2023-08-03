@@ -9,7 +9,7 @@
     const dispatch = createEventDispatcher();
 
     let loading = false;
-    let success;
+    let success = false;
 
     const onEnableClick = async () => {
         if (!$currentUser) throw new Error('No user found');

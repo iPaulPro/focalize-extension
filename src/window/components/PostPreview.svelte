@@ -12,12 +12,12 @@
     import type {User} from "../../lib/user/user";
     import {getNodeForPublicationMainFocus, getPublicationUrl} from "../../lib/publications/lens-nodes";
 
-    export let currentUser: User;
-    export let publicationState: PublicationState;
+    export let currentUser: User | null;
+    export let publicationState: PublicationState | undefined;
     export let postMetaData: PublicationMetadataV2Input;
     export let postId: string;
 
-    let avatarError;
+    let avatarError = false;
     let now = DateTime.now();
     let imageLoading = true;
 
@@ -122,7 +122,7 @@
             </div>
           {/if}
 
-          {#if postMetaData.media?.length > 0}
+          {#if postMetaData.media?.length}
             {@const media = postMetaData.media[0]}
 
             {#if media.item && media.type?.startsWith('image')}

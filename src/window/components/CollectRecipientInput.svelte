@@ -1,14 +1,14 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import Tribute from 'tributejs';
+    import Tribute, {type TributeItem} from 'tributejs';
     import {searchHandles} from '../../lib/user/search-handles';
     import {getAddressFromEns, getEnsFromAddress, isEthereumAddress, validateRecipient} from '../../lib/utils/utils';
     import {createEventDispatcher, onMount} from 'svelte';
     import {getProfileByAddress, getProfileByHandle} from '../../lib/user/lens-profile';
-    import type {Recipient} from '../../lib/stores/state-store';
     import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
-    import {buildLoadingItemTemplate} from '../../lib/user/tribute-loading-template';
+    import type {Profile} from "../../lib/graph/lens-service";
+    import type {Action} from "svelte/types/runtime/action";
 
     export let menuContainer: HTMLElement;
 
@@ -19,11 +19,10 @@
 
     const dispatch = createEventDispatcher();
 
-    const tribute = async (node) => {
+    const tribute: Action = (node: HTMLElement) => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, 5, cb),
-            menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
-            loadingItemTemplate: buildLoadingItemTemplate(),
+            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             autocompleteMode: true,

@@ -9,8 +9,9 @@
     import IconCollectPaid from '../../assets/ic_collect_paid.svg'
     import IconCollectDisabled from '../../assets/ic_collect_disabled.svg'
     import {compactMode} from "../../lib/stores/preferences-store";
+    import type {SelectOption} from '../../lib/publications/lens-modules';
 
-    export let selection = undefined;
+    export let selection: SelectOption<any>;
 </script>
 
 <div class="flex items-center {$compactMode ? 'py-0' : 'py-2'} text-orange-700 hover:text-orange-900 dark:text-orange-200">

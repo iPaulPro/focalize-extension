@@ -12,7 +12,7 @@
         usePopupComposer,
         richTextComposer
     } from '../../lib/stores/preferences-store';
-    import LensNodeSelect from "./LensNodeSelect.svelte";
+    import LensNodeSelect from './LensNodeSelect.svelte';
 </script>
 
 <div class="h-screen px-4 pb-24 pt-6 overflow-auto md:px-8">
@@ -195,12 +195,24 @@
             Omnibox Search
           </div>
           <div class="text-base text-neutral-400">
-            Search for Lens profiles directly from the URL bar by typing "lens" then pressing tab. Choose the app to open when selecting a user.
+            Search for Lens profiles directly from the URL bar by typing "lens" then pressing tab.
           </div>
         </div>
       </div>
 
-      <LensNodeSelect preference={nodeSearch}/>
+      <div class="w-full md:w-2/3 xl:w-1/2 2xl:w-2/5 flex flex-col gap-6">
+        <div class="w-full flex gap-4 justify-between">
+          <div class="flex flex-col">
+            <div class="text-base font-medium dark:text-white">
+              Launch
+            </div>
+            <div class="text-base text-neutral-400">
+              Choose the app to open when selecting a user.
+            </div>
+          </div>
+          <LensNodeSelect preference={nodeSearch}/>
+        </div>
+      </div>
     </div>
 
     <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700"></div>
