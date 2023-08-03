@@ -35,18 +35,23 @@
 }
 
 .editor-text-code {
-  background-color: rgb(240, 242, 245);
-  padding: 1px 0.25rem;
+  background-color: #e2e8f0;
+  padding: 0.25rem;
   font-family: Menlo, Consolas, Monaco, monospace;
   font-size: 94%;
+  border-radius: 0.25rem;
 }
 
-.editor-link {
+.dark .editor-text-code {
+  background-color: #475569;
+}
+
+.editor-link, .editor-text-hashtag {
   color: rgb(107, 35, 0);
   text-decoration: none;
 }
 
-.dark .editor-link {
+.dark .editor-link, .dark .editor-text-hashtag {
   color: rgba(255, 179, 142, 1);
 }
 
@@ -120,12 +125,12 @@
 }
 
 .editor-paragraph {
-  margin: 0 0 8px;
   position: relative;
+  color: black;
 }
 
-.editor-paragraph:last-child {
-  margin-bottom: 0;
+.dark .editor-paragraph {
+  color: white;
 }
 
 .editor-quote {

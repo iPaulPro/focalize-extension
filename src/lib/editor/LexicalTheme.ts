@@ -19,13 +19,13 @@ const focalizeTheme = {
         ul: "editor-list-ul",
         listitem: "editor-listitem"
     },
+    hashtag: "editor-text-hashtag",
     image: "editor-image",
     link: "editor-link",
     text: {
         bold: "editor-text-bold",
         italic: "editor-text-italic",
         overflowed: "editor-text-overflowed",
-        hashtag: "editor-text-hashtag",
         underline: "editor-text-underline",
         strikethrough: "editor-text-strikethrough",
         underlineStrikethrough: "editor-text-underlineStrikethrough",

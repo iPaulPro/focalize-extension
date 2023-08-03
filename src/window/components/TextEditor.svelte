@@ -1,25 +1,42 @@
 <script lang="ts">
     import {
-        type CreateEditorArgs,
-        LexicalEditor, RangeSelection, NodeSelection, GridSelection, LineBreakNode, ParagraphNode, TextNode,
-        createEditor, $getSelection as getSelection, $isRangeSelection as isRangeSelection,
         $createParagraphNode as createParagraphNode,
-        SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, COMMAND_PRIORITY_CRITICAL, COMMAND_PRIORITY_NORMAL,
-        KEY_MODIFIER_COMMAND, UNDO_COMMAND, REDO_COMMAND
+        $getRoot as getRoot,
+        $getSelection as getSelection,
+        $isRangeSelection as isRangeSelection,
+        createEditor,
+        LineBreakNode,
+        ParagraphNode,
+        TextNode,
+        COMMAND_PRIORITY_CRITICAL,
+        COMMAND_PRIORITY_NORMAL,
+        FORMAT_TEXT_COMMAND,
+        KEY_MODIFIER_COMMAND,
+        REDO_COMMAND,
+        SELECTION_CHANGE_COMMAND,
+        UNDO_COMMAND,
+        type CreateEditorArgs,
+        type GridSelection,
+        type LexicalEditor,
+        type NodeSelection,
+        type RangeSelection,
+        type EditorState,
     } from 'lexical';
     import {
-        $convertFromMarkdownString as convertFromMarkdownString, $convertToMarkdownString as convertToMarkdownString,
+        $convertFromMarkdownString as convertFromMarkdownString,
+        $convertToMarkdownString as convertToMarkdownString,
         registerMarkdownShortcuts,
-        TEXT_FORMAT_TRANSFORMERS, TEXT_MATCH_TRANSFORMERS, CODE, QUOTE,
+        CODE,
+        QUOTE,
+        TEXT_FORMAT_TRANSFORMERS,
+        TEXT_MATCH_TRANSFORMERS,
     } from '@lexical/markdown';
-    import {
-        QuoteNode,
-        registerRichText, $createQuoteNode as createQuoteNode
-    } from '@lexical/rich-text';
-    import {LinkNode, AutoLinkNode} from '@lexical/link';
+    import {$createQuoteNode as createQuoteNode, QuoteNode, registerRichText} from '@lexical/rich-text';
+    import {AutoLinkNode, LinkNode} from '@lexical/link';
     import {CodeNode} from '@lexical/code';
     import {$setBlocksType as setBlocksType} from '@lexical/selection';
     import {createEmptyHistoryState, registerHistory} from '@lexical/history';
+    import {$canShowPlaceholder as canShowPlaceholder} from '@lexical/text';
 
     import {onMount} from 'svelte';
 
@@ -27,18 +44,39 @@
     import type {Writable} from 'svelte/store';
 
     import FloatingEditorToolbar from './FloatingEditorToolbar.svelte';
-    import {isSelectionLinkNode, isSelectionQuoteNode} from '../../lib/utils/lexical-utils';
-    import LexicalTheme from './LexicalTheme';
+    import {isSelectionLinkNode, isSelectionQuoteNode, isTextFormatType} from '../../lib/utils/lexical-utils';
+    import LexicalTheme from '../../lib/editor/LexicalTheme';
     import FloatingLinkEditor from './FloatingLinkEditor.svelte';
-    import {getSelectedNode} from '../../lib/utils/get-selected-node';
-    import Tribute from 'tributejs';
+    import Tribute, {type TributeItem} from 'tributejs';
     import {searchHandles} from '../../lib/user/search-handles';
     import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
-    import {buildLoadingItemTemplate} from '../../lib/user/tribute-loading-template';
+    import {registerAutoLink} from '../../lib/editor/LexicalAutoLinkPlugin';
+    import {HashtagNode} from '../../lib/editor/HashtagNode';
+    import {registerHashtagPlugin} from '../../lib/editor/LexicalHashtagPlugin';
+    import {MentionNode} from '../../lib/editor/MentionNode';
+    import type {TextFormatType} from 'lexical/nodes/LexicalTextNode';
+    import type {Profile} from '../../lib/graph/lens-service';
+    import type {Action} from 'svelte/action';
+    import Mention from 'svelte-mention'
 
-    export let content: Writable<string>;
+    export let content: Writable<string | undefined>;
     export let disabled: boolean = false;
     export let isCompact: boolean;
+
+    export const insertAtSelection = (text: string) => {
+        editor.update(() => {
+            const selection = getSelection();
+            if (isRangeSelection(selection)) {
+                selection.insertText(text);
+            } else if (!selection) {
+                const root = getRoot();
+                const paragraphNode = createParagraphNode();
+                const textNode = new TextNode(text);
+                paragraphNode.append(textNode);
+                root.append(paragraphNode);
+            }
+        });
+    };
 
     const config: CreateEditorArgs = {
         namespace: 'Focalize',
@@ -52,6 +90,8 @@
             QuoteNode,
             CodeNode,
             AutoLinkNode,
+            HashtagNode,
+            MentionNode,
         ]
     };
 
@@ -59,17 +99,24 @@
 
     let editor: LexicalEditor;
     let editorElement: HTMLDivElement;
-    let removeUpdateListener: UpdateListener;
     let toolbarVisible = false;
     let linkEditorVisible = false;
     let selectionAnchor: DOMRect | undefined;
-    let editorSelection: RangeSelection | undefined;
-    let selectedBlockType: string;
-    let selectedNode: TextNode | undefined;
+    let editorSelection: RangeSelection | undefined | null;
+    let selectedBlockType: string | undefined;
+    let showPlaceholder = true;
 
-    const onCommand = (command: string) => {
+    const onCommand = (command: TextFormatType | string) => {
         editor.update(() => {
             const selection = getSelection();
+            if (!selection || !isRangeSelection(selection)) {
+                return;
+            }
+
+            if (isTextFormatType(command)) {
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, command);
+                return;
+            }
 
             switch (command) {
                 case 'quote':
@@ -86,15 +133,15 @@
                     break;
 
                 default:
-                    editor.dispatchCommand(FORMAT_TEXT_COMMAND, command);
+                    throw new Error(`Unknown command: ${command}`);
             }
 
             editorSelection = selection;
         });
     };
 
-    const onSelectionChange = () => {
-        const selection: RangeSelection | NodeSelection | GridSelection = getSelection(editor);
+    const onSelectionChange = (): boolean => {
+        const selection: RangeSelection | NodeSelection | GridSelection | null = getSelection();
 
         const hideToolbarAndClearSelection = () => {
             toolbarVisible = false;
@@ -105,18 +152,17 @@
 
         if (!isRangeSelection(selection)) {
             hideToolbarAndClearSelection();
-            return;
+            return false;
         }
 
         editorSelection = selection;
-        selectedNode = getSelectedNode(selection);
 
         if (selection.isCollapsed()) {
             hideToolbarAndClearSelection();
         } else {
             const nativeSelection = window.getSelection();
             const activeElement = document.activeElement;
-            if (activeElement === editorElement) {
+            if (nativeSelection?.anchorNode && nativeSelection?.focusNode && activeElement === editorElement) {
                 const range = document.createRange();
                 range.setStart(nativeSelection.anchorNode, nativeSelection.anchorOffset);
                 range.setEnd(nativeSelection.focusNode, nativeSelection.focusOffset);
@@ -139,6 +185,8 @@
         } else {
             selectedBlockType = 'paragraph';
         }
+
+        return false;
     };
 
     $: if ($content) {
@@ -152,32 +200,31 @@
     }
 
     const registerHistoryKeyboardShortcuts = () => {
-        editor.registerCommand(KEY_MODIFIER_COMMAND, (payload) => {
+        editor.registerCommand(KEY_MODIFIER_COMMAND, (payload: KeyboardEvent) => {
             const event: KeyboardEvent = payload;
             const {code, ctrlKey, metaKey, shiftKey} = event;
             if (code === 'KeyZ' && (ctrlKey || metaKey)) {
                 event.preventDefault();
                 if (shiftKey) {
-                    editor.dispatchCommand(REDO_COMMAND);
+                    editor.dispatchCommand(REDO_COMMAND, undefined);
                 } else {
-                    editor.dispatchCommand(UNDO_COMMAND);
+                    editor.dispatchCommand(UNDO_COMMAND, undefined);
                 }
             } else if (code === 'KeyY' && (ctrlKey || metaKey)) {
                 event.preventDefault();
-                editor.dispatchCommand(REDO_COMMAND);
+                editor.dispatchCommand(REDO_COMMAND, undefined);
             }
+            return false;
         }, COMMAND_PRIORITY_NORMAL);
     };
 
-    const tribute = async (node) => {
-        const plainTextTribute = new Tribute({
+    const tribute: Action = (node: HTMLElement) => {
+        const plainTextTribute = new Tribute<Profile>({
             values: (text, cb) => searchHandles(text, isCompact ? 4 : 5, cb),
-            menuItemTemplate: (item) => buildTributeUsernameMenuTemplate(item),
-            loadingItemTemplate: buildLoadingItemTemplate(),
+            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
-
-        })
+        });
 
         plainTextTribute.attach(node);
 
@@ -188,37 +235,42 @@
         }
     };
 
+    const onEditorStateUpdate = ({editorState}: {editorState: EditorState}): UpdateListener => {
+        editorState.read(() => {
+            $content = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
+            showPlaceholder = canShowPlaceholder(editor.isComposing());
+        });
+        return () => {};
+    }
+
     onMount(() => {
         editor = createEditor(config);
 
-        removeUpdateListener = editor.registerUpdateListener(({editorState}) => {
-            editorState.read(() => {
-                const markdown = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
-                if (markdown && content) {
-                    $content = markdown;
-                }
-            });
-        });
-
         editor.registerCommand(SELECTION_CHANGE_COMMAND, onSelectionChange, COMMAND_PRIORITY_CRITICAL);
         editor.setRootElement(editorElement);
+        registerAutoLink(editor);
         registerMarkdownShortcuts(editor, MARKDOWN_TRANSFORMERS);
         registerRichText(editor);
+        registerHashtagPlugin(editor)
         registerHistory(editor, createEmptyHistoryState(), 1000);
         registerHistoryKeyboardShortcuts();
 
-        return {
-            destroy() {
-                removeUpdateListener?.();
-            }
-        };
+        return editor.registerUpdateListener(onEditorStateUpdate);
     });
 </script>
 
-<div bind:this={editorElement}
-     contenteditable="true" role="textbox"
-     use:tribute
-     class="text-editor">
+<div class="w-full relative {isCompact ? 'text-lg' : 'text-xl'}">
+  <div bind:this={editorElement}
+       contenteditable="true" role="textbox"
+       use:tribute
+       class="text-editor">
+  </div>
+
+  {#if showPlaceholder}
+    <div class="absolute top-0 text-gray-400 dark:text-gray-500 pointer-events-none">
+      What's happening...
+    </div>
+  {/if}
 </div>
 
 <FloatingEditorToolbar
@@ -235,9 +287,8 @@
 
 <style global>
   .text-editor {
-    @apply w-full min-h-[10rem] bg-transparent pt-4 pr-3 pl-2
+    @apply w-full min-h-[10rem] bg-transparent
     overflow-hidden break-keep [overflow-wrap:anywhere]
-    text-black dark:text-white text-lg
     border-none resize-none focus:outline-none focus:ring-0 focus:border-none
   }
 
