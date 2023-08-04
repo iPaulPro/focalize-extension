@@ -14,8 +14,9 @@
         $getSelection as getSelection, $isRangeSelection as isRangeSelection,
     } from 'lexical';
     import {$isLinkNode as isLinkNode, toggleLink} from '@lexical/link';
-    import {onDestroy} from 'svelte';
+    import {onDestroy, tick} from 'svelte';
     import {fade, scale} from 'svelte/transition';
+    import { z, ZodError } from 'zod';
 
     import {getSelectedNode} from '../../lib/utils/get-selected-node';
 
@@ -28,9 +29,11 @@
     };
 
     let container: HTMLElement;
+    let linkInput: HTMLInputElement;
     let linkUrl: string | undefined;
     let isEditing = false;
     let virtualElement: VirtualElement | undefined;
+    let linkError: string | undefined = 'Invalid URL';
     let autoUpdateDisposer: () => void;
 
     $: if (anchor) {
@@ -41,8 +44,23 @@
         };
     }
 
+    const UrlSchema = z.string().url("Invalid URL");
+
+    const validateURL = (url: string): boolean | ZodError => {
+      try {
+        UrlSchema.parse(url);
+        return true;
+      } catch (error) {
+        if (error instanceof ZodError) {
+          return error;
+        } else {
+          throw error;
+        }
+      }
+    };
+
     const checkForLinkSelection = () => {
-        editor.update(() => {
+        editor.update(async () => {
             const selection: RangeSelection | NodeSelection | GridSelection | null = getSelection();
             if (!selection || !isRangeSelection(selection)) return;
 
@@ -55,6 +73,10 @@
             }
             isEditing = linkUrl === undefined;
             console.log('checkForLinkSelection: linkUrl', linkUrl);
+            if (isEditing) {
+                await tick();
+                linkInput.focus();
+            }
         });
     };
 
@@ -77,6 +99,19 @@
         });
     };
 
+    const onEditClick = async () => {
+        isEditing = true;
+        await tick();
+        linkInput.focus();
+    };
+
+    const handleKeydown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onSubmit();
+        }
+    };
+
     $: if (virtualElement && container) {
         if (autoUpdateDisposer) autoUpdateDisposer();
 
@@ -91,6 +126,15 @@
         isEditing = false;
     }
 
+    $: if (linkUrl !== undefined) {
+        const validation = validateURL(linkUrl);
+        if (validation instanceof ZodError) {
+          linkError = validation.issues[0].message;
+        } else {
+          linkError = undefined;
+        }
+    }
+
     onDestroy(() => {
         if (autoUpdateDisposer) autoUpdateDisposer();
     });
@@ -103,10 +147,16 @@
 
     {#if isEditing}
 
-      <input type="text" placeholder="https://" bind:value={linkUrl}
+      <input type="text"
+             placeholder="https://"
+             bind:this={linkInput}
+             bind:value={linkUrl}
+             on:keydown={handleKeydown}
              class="input link-bg">
 
-      <button type="button" on:click={onSubmit}
+      <button type="button"
+              disabled={linkError !== undefined}
+              on:click={onSubmit}
               class="overlay-btn">
         <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,7 +171,9 @@
            class="text-orange-700 dark:text-orange-300">{linkUrl}</a>
       </div>
 
-      <button type="button" on:click={() => isEditing = true}
+      <button type="button"
+              disabled={linkError !== undefined}
+              on:click={onEditClick}
               class="overlay-btn">
         <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -137,12 +189,14 @@
 <style>
   .link-bg {
     @apply min-w-[18rem] py-2 px-4 text-base dark:text-gray-100 dark:placeholder-gray-400
-    shadow-sm rounded-full border border-gray-300 dark:border-gray-600
-    focus:ring-orange-500 focus:border-orange-500
-    dark:bg-gray-600
+      shadow-sm rounded-full border border-gray-300 dark:border-gray-600
+      focus:ring-orange-500 focus:border-orange-500 dark:focus:ring-orange-300 dark:focus:border-orange-300
+      dark:bg-gray-600
   }
 
   .overlay-btn {
-    @apply rounded-full absolute right-2 p-3 hover:bg-opacity-20 dark:hover:bg-opacity-30 hover:bg-black dark:hover:bg-white
+    @apply rounded-full absolute right-2.5 p-3
+      hover:bg-opacity-20 dark:hover:bg-opacity-30 hover:bg-black dark:hover:bg-white
+      disabled:bg-neutral-400 dark:disabled:bg-gray-600 dark:disabled:text-gray-400 disabled:cursor-not-allowed
   }
 </style>
