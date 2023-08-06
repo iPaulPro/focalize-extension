@@ -57,7 +57,9 @@
     import type {TextFormatType} from 'lexical/nodes/LexicalTextNode';
     import type {Profile} from '../../lib/graph/lens-service';
     import type {Action} from 'svelte/action';
-    import Mention from 'svelte-mention'
+    import {registerMentionPlugin} from '../../lib/editor/LexicalMentionPlugin';
+    import {registerEmojiShortcodePlugin} from '../../lib/editor/LexicalEmojiShortcodePlugin';
+    import {EmojiNode} from '../../lib/editor/EmojiNode';
 
     export let content: Writable<string | undefined>;
     export let disabled: boolean = false;
@@ -92,6 +94,7 @@
             AutoLinkNode,
             HashtagNode,
             MentionNode,
+            EmojiNode
         ]
     };
 
@@ -192,9 +195,8 @@
     $: if ($content) {
         editor.update(() => {
             const markdown = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
-            if ($content !== markdown) {
+            if ($content && $content !== markdown) {
                 convertFromMarkdownString($content, MARKDOWN_TRANSFORMERS);
-                console.log('content updated');
             }
         });
     }
@@ -253,6 +255,8 @@
         registerRichText(editor);
         registerHashtagPlugin(editor)
         registerHistory(editor, createEmptyHistoryState(), 1000);
+        registerMentionPlugin(editor);
+        registerEmojiShortcodePlugin(editor);
         registerHistoryKeyboardShortcuts();
 
         return editor.registerUpdateListener(onEditorStateUpdate);
@@ -262,7 +266,6 @@
 <div class="w-full relative {isCompact ? 'text-lg' : 'text-xl'}">
   <div bind:this={editorElement}
        contenteditable="true" role="textbox"
-       use:tribute
        class="text-editor">
   </div>
 

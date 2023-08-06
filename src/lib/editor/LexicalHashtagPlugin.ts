@@ -1,12 +1,12 @@
 import type {LexicalEditor, TextNode} from 'lexical';
-import {$createHashtagNode as createHashtagNode, HashtagNode} from './HashtagNode';
+import {createHashtagNode, HashtagNode} from './HashtagNode';
 import {registerLexicalTextEntity} from '@lexical/text';
 
-function getHashtagRegexStringChars(): Readonly<{
+const getHashtagRegexStringChars = (): Readonly<{
     alpha: string;
     alphanumeric: string;
     hashChars: string;
-}> {
+}> => {
     // Latin accented characters
     // Excludes 0xd7 from the range
     // (the multiplication sign, confusable with "x").
@@ -208,9 +208,9 @@ function getHashtagRegexStringChars(): Readonly<{
         alphanumeric,
         hashChars,
     };
-}
+};
 
-function getHashtagRegexString(): string {
+const getHashtagRegexString = (): string => {
     const {alpha, alphanumeric, hashChars} = getHashtagRegexStringChars();
 
     const hashtagAlpha = '[' + alpha + ']';
@@ -232,15 +232,13 @@ function getHashtagRegexString(): string {
         hashtagAlphanumeric +
         '*)'
     );
-}
+};
 
 const hashtagRegex = new RegExp(getHashtagRegexString(), 'i');
 
-function createHashtagNodeFromTextNode(textNode: TextNode): HashtagNode {
-    return createHashtagNode(textNode.getTextContent());
-}
+const createHashtagNodeFromTextNode = (textNode: TextNode): HashtagNode => createHashtagNode(textNode.getTextContent());
 
-function getHashtagMatch(text: string) {
+const getHashtagMatch = (text: string) => {
     const matchArr = hashtagRegex.exec(text);
     if (matchArr === null) {
         return null;
@@ -253,7 +251,7 @@ function getHashtagMatch(text: string) {
         end: endOffset,
         start: startOffset,
     };
-}
+};
 
 export const registerHashtagPlugin = (editor: LexicalEditor) => {
     if (!editor.hasNodes([HashtagNode])) {

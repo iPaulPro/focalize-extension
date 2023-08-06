@@ -41,12 +41,12 @@ const EMAIL_REGEX =
     /(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/;
 
 const MATCHERS = [
-  createLinkMatcherWithRegExp(URL_REGEX, (text) => {
-    return text.startsWith('http') ? text : `https://${text}`;
-  }),
-  createLinkMatcherWithRegExp(EMAIL_REGEX, (text) => {
-    return `mailto:${text}`;
-  }),
+    createLinkMatcherWithRegExp(URL_REGEX, (text) => {
+        return text.startsWith('http') ? text : `https://${text}`;
+    }),
+    createLinkMatcherWithRegExp(EMAIL_REGEX, (text) => {
+        return `mailto:${text}`;
+    }),
 ];
 
 export type LinkMatcher = (text: string) => LinkMatcherResult | null;
@@ -67,10 +67,10 @@ export function createLinkMatcherWithRegExp(
     };
 }
 
-function findFirstMatch(
+const findFirstMatch = (
     text: string,
     matchers: Array<LinkMatcher>,
-): LinkMatcherResult | null {
+): LinkMatcherResult | null => {
     for (const item of matchers) {
         const match = item(text);
 
@@ -80,23 +80,17 @@ function findFirstMatch(
     }
 
     return null;
-}
+};
 
 const PUNCTUATION_OR_SPACE = /[.,;\s]/;
 
-function isSeparator(char: string): boolean {
-    return PUNCTUATION_OR_SPACE.test(char);
-}
+const isSeparator = (char: string): boolean => PUNCTUATION_OR_SPACE.test(char);
 
-function endsWithSeparator(textContent: string): boolean {
-    return isSeparator(textContent[textContent.length - 1]);
-}
+const endsWithSeparator = (textContent: string): boolean => isSeparator(textContent[textContent.length - 1]);
 
-function startsWithSeparator(textContent: string): boolean {
-    return isSeparator(textContent[0]);
-}
+const startsWithSeparator = (textContent: string): boolean => isSeparator(textContent[0]);
 
-function isPreviousNodeValid(node: LexicalNode): boolean {
+const isPreviousNodeValid = (node: LexicalNode): boolean => {
     let previousNode = node.getPreviousSibling();
     if ($isElementNode(previousNode)) {
         previousNode = previousNode.getLastDescendant();
@@ -107,9 +101,9 @@ function isPreviousNodeValid(node: LexicalNode): boolean {
         ($isTextNode(previousNode) &&
             endsWithSeparator(previousNode.getTextContent()))
     );
-}
+};
 
-function isNextNodeValid(node: LexicalNode): boolean {
+const isNextNodeValid = (node: LexicalNode): boolean => {
     let nextNode = node.getNextSibling();
     if ($isElementNode(nextNode)) {
         nextNode = nextNode.getFirstDescendant();
@@ -119,14 +113,14 @@ function isNextNodeValid(node: LexicalNode): boolean {
         $isLineBreakNode(nextNode) ||
         ($isTextNode(nextNode) && startsWithSeparator(nextNode.getTextContent()))
     );
-}
+};
 
-function isContentAroundIsValid(
+const isContentAroundIsValid = (
     matchStart: number,
     matchEnd: number,
     text: string,
     node: TextNode,
-): boolean {
+): boolean => {
     const contentBeforeIsValid =
         matchStart > 0
             ? isSeparator(text[matchStart - 1])
@@ -140,13 +134,13 @@ function isContentAroundIsValid(
             ? isSeparator(text[matchEnd])
             : isNextNodeValid(node);
     return contentAfterIsValid;
-}
+};
 
-function handleLinkCreation(
+const handleLinkCreation = (
     node: TextNode,
     matchers: Array<LinkMatcher>,
     onChange: ChangeHandler,
-): void {
+): void => {
     const nodeText = node.getTextContent();
     let text = nodeText;
     let invalidMatchEnd = 0;
@@ -191,13 +185,25 @@ function handleLinkCreation(
 
         text = text.substring(matchEnd);
     }
-}
+};
 
-function handleLinkEdit(
+const replaceWithChildren = (node: ElementNode): Array<LexicalNode> => {
+    const children = node.getChildren();
+    const childrenLength = children.length;
+
+    for (let j = childrenLength - 1; j >= 0; j--) {
+        node.insertAfter(children[j]);
+    }
+
+    node.remove();
+    return children.map((child) => child.getLatest());
+};
+
+const handleLinkEdit = (
     linkNode: AutoLinkNode,
     matchers: Array<LinkMatcher>,
     onChange: ChangeHandler,
-): void {
+): void => {
     // Check children are simple text
     const children = linkNode.getChildren();
     const childrenLength = children.length;
@@ -245,15 +251,15 @@ function handleLinkEdit(
             onChange(match.attributes.target || null, target);
         }
     }
-}
-
+};
 // Bad neighbours are edits in neighbor nodes that make AutoLinks incompatible.
 // Given the creation preconditions, these can only be simple text nodes.
-function handleBadNeighbors(
+
+const handleBadNeighbors = (
     textNode: TextNode,
     matchers: Array<LinkMatcher>,
     onChange: ChangeHandler,
-): void {
+): void => {
     const previousSibling = textNode.getPreviousSibling();
     const nextSibling = textNode.getNextSibling();
     const text = textNode.getTextContent();
@@ -269,19 +275,7 @@ function handleBadNeighbors(
         handleLinkEdit(nextSibling, matchers, onChange);
         onChange(null, nextSibling.getURL());
     }
-}
-
-function replaceWithChildren(node: ElementNode): Array<LexicalNode> {
-    const children = node.getChildren();
-    const childrenLength = children.length;
-
-    for (let j = childrenLength - 1; j >= 0; j--) {
-        node.insertAfter(children[j]);
-    }
-
-    node.remove();
-    return children.map((child) => child.getLatest());
-}
+};
 
 export const registerAutoLink = (
     editor: LexicalEditor,

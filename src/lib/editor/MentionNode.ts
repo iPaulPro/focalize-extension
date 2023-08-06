@@ -16,7 +16,6 @@ import {
     type LexicalNode,
     type NodeKey,
     type SerializedTextNode,
-    $applyNodeReplacement,
     TextNode,
 } from 'lexical';
 
@@ -29,20 +28,28 @@ export type SerializedMentionNode = Spread<
     SerializedTextNode
 >;
 
-function convertMentionElement(
+export const createMentionNode = (mentionName: string): MentionNode => {
+    const mentionNode = new MentionNode(mentionName);
+    mentionNode.setMode('normal');
+    return mentionNode;
+};
+
+const convertMentionElement = (
     domNode: HTMLElement,
-): DOMConversionOutput | null {
+): DOMConversionOutput | null => {
     const textContent = domNode.textContent;
 
     if (textContent !== null) {
-        const node = $createMentionNode(textContent);
-        return {
-            node,
-        };
+        const node = createMentionNode(textContent);
+        return {node};
     }
 
     return null;
-}
+};
+
+export const isMentionNode = (
+    node: LexicalNode | null | undefined,
+): node is MentionNode => node instanceof MentionNode;
 
 export class MentionNode extends TextNode {
     // tslint:disable-next-line:variable-name
@@ -57,7 +64,7 @@ export class MentionNode extends TextNode {
     }
 
     static importJSON(serializedNode: SerializedMentionNode): MentionNode {
-        const node = $createMentionNode(serializedNode.mentionName);
+        const node = createMentionNode(serializedNode.mentionName);
         node.setTextContent(serializedNode.text);
         node.setFormat(serializedNode.format);
         node.setDetail(serializedNode.detail);
@@ -107,27 +114,15 @@ export class MentionNode extends TextNode {
         };
     }
 
-    isTextEntity(): true {
-        return true;
-    }
-
     canInsertTextBefore(): boolean {
         return false;
     }
 
     canInsertTextAfter(): boolean {
-        return false;
+        return true;
     }
-}
 
-export function $createMentionNode(mentionName: string): MentionNode {
-    const mentionNode = new MentionNode(mentionName);
-    mentionNode.setMode('segmented').toggleDirectionless();
-    return $applyNodeReplacement(mentionNode);
-}
-
-export function $isMentionNode(
-    node: LexicalNode | null | undefined,
-): node is MentionNode {
-    return node instanceof MentionNode;
+    isTextEntity(): true {
+        return true;
+    }
 }

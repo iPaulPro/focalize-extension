@@ -7,73 +7,71 @@
  */
 
 import type {
-  EditorConfig,
-  LexicalNode,
-  SerializedTextNode,
-  Spread,
+    EditorConfig,
+    LexicalNode,
+    SerializedTextNode,
+    Spread,
 } from 'lexical';
 
 import {TextNode} from 'lexical';
 
 export type SerializedHashtagNode = Spread<
-  {
-    type: 'hashtag';
-    version: 1;
-  },
-  SerializedTextNode
+    {
+        type: 'hashtag';
+        version: 1;
+    },
+    SerializedTextNode
 >;
 
+export const createHashtagNode = (hashtag: string): HashtagNode =>
+    new HashtagNode(hashtag).setMode('normal');
+
+export const isHashtagNode = (
+    node: LexicalNode | null | undefined,
+): boolean => node instanceof HashtagNode;
+
 export class HashtagNode extends TextNode {
-  static getType(): string {
-    return 'hashtag';
-  }
 
-  static clone(node: HashtagNode): HashtagNode {
-    return new HashtagNode(node.__text, node.__key);
-  }
+    static getType(): string {
+        return 'hashtag';
+    }
 
-  static importJSON(serializedNode: SerializedHashtagNode): HashtagNode {
-    const node = $createHashtagNode(serializedNode.text);
-    node.setFormat(serializedNode.format);
-    node.setDetail(serializedNode.detail);
-    node.setMode(serializedNode.mode);
-    node.setStyle(serializedNode.style);
-    return node;
-  }
+    static clone(node: HashtagNode): HashtagNode {
+        return new HashtagNode(node.__text, node.__key);
+    }
 
-  exportJSON(): SerializedHashtagNode {
-    return {
-      ...super.exportJSON(),
-      type: 'hashtag',
-      version: 1,
-    };
-  }
+    createDOM(config: EditorConfig): HTMLElement {
+        const dom = super.createDOM(config);
+        dom.classList.add(config.theme.hashtag!);
+        return dom;
+    }
 
-  createDOM(config: EditorConfig): HTMLElement {
-    const dom = super.createDOM(config);
-    dom.classList.add(config.theme.hashtag!);
-    return dom;
-  }
+    static importJSON(serializedNode: SerializedHashtagNode): HashtagNode {
+        const node = createHashtagNode(serializedNode.text);
+        node.setFormat(serializedNode.format);
+        node.setDetail(serializedNode.detail);
+        node.setMode(serializedNode.mode);
+        node.setStyle(serializedNode.style);
+        return node;
+    }
 
-  canInsertTextBefore(): boolean {
-    return false;
-  }
+    exportJSON(): SerializedHashtagNode {
+        return {
+            ...super.exportJSON(),
+            type: 'hashtag',
+            version: 1,
+        };
+    }
 
-  canInsertTextAfter(): boolean {
-    return true;
-  }
+    canInsertTextBefore(): boolean {
+        return false;
+    }
 
-  isTextEntity(): true {
-    return true;
-  }
-}
+    canInsertTextAfter(): boolean {
+        return true;
+    }
 
-export function $createHashtagNode(hashtag: string): HashtagNode {
-  return new HashtagNode(hashtag);
-}
-
-export function $isHashtagNode(
-  node: LexicalNode | null | undefined | undefined,
-): boolean {
-  return node instanceof HashtagNode;
+    isTextEntity(): true {
+        return true;
+    }
 }
