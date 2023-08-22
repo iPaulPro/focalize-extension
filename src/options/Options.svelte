@@ -114,7 +114,7 @@
 {/if}
 
 <dialog id="noProfileDialog" bind:this={noProfileDialog}
-        class="w-1/4 rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+        class="w-1/4 rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
   <DialogOuter title="⚠️ No profile found!">
     <div class="px-4 py-8 text-base">
       A Lens profile is required for using Focalize.
@@ -124,8 +124,8 @@
 
 {#if showPinPromptDialog}
   <dialog id="pinPromptDialog" bind:this={pinPromptDialog} on:close={() => showPinPromptDialog = false}
-          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
-          dark:border-gray-600">
+          class="w-2/3 lg:w-1/3 min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800
+          dark:border-gray-700">
     <DialogOuter title="⚠️ Focalize is meant to be pinned!">
       <PinPromptDialog on:dismiss={() => pinPromptDialog.close()}/>
     </DialogOuter>

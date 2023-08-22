@@ -915,7 +915,7 @@
 
 {#if showCollectDialog}
   <dialog id="collectFees" bind:this={collectSettingsDialog}
-          class="w-2/3 max-w-lg rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600
+          class="w-2/3 max-w-lg rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700
           p-0 overflow-hidden max-h-screen">
     <DialogOuter title="Digital collectible settings">
       <CollectSettingsDialog on:done={onCollectSettingsDialogDone} isCompact={isPopupWindow}/>
@@ -924,8 +924,8 @@
 {/if}
 
 <dialog id="selectGif" bind:this={gifSelectionDialog}
-        class="w-2/3 max-w-md min-h-[18rem] rounded-2xl shadow-2xl dark:bg-gray-700 p-0 overflow-hidden
-        border border-gray-200 dark:border-gray-600"
+        class="w-2/3 max-w-md min-h-[18rem] rounded-2xl shadow-2xl dark:bg-gray-800 p-0 overflow-hidden
+        border border-gray-200 dark:border-gray-700"
         on:click={(event) => {if (event?.target?.id === 'selectGif') gifSelectionDialog?.close()}}>
   <DialogOuter title="Attach a GIF">
     <GifSelectionDialog on:gifSelected={onGifSelected} bind:onGifDialogShown isCompact={isPopupWindow}/>
@@ -933,15 +933,15 @@
 </dialog>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
-        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
   <DialogOuter title="Enable Dispatcher">
     <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()}/>
   </DialogOuter>
 </dialog>
 
 <dialog id="postDraftsDialog" bind:this={postDraftsDialog}
-        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-700
-        dark:border-gray-600 overflow-hidden"
+        class="w-2/3 max-w-md min-h-[20rem] rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800
+        dark:border-gray-700 overflow-hidden"
         on:click={(event) => {if (event?.target?.id === 'postDraftsDialog') postDraftsDialog?.close()}}>
   <DialogOuter title="Post drafts">
     <PostDraftsList on:dismiss={() => postDraftsDialog.close()}/>

@@ -63,7 +63,7 @@
 </div>
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
-        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-0">
+        class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
   <DialogOuter title="Enable Dispatcher">
     <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()} />
   </DialogOuter>
