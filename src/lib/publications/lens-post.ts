@@ -32,8 +32,7 @@ const makeMetadataFile = (metadata: PublicationMetadataV2Input, id: string = uui
         ...metadata,
         version: '2.0.0',
         metadata_id: id,
-        appId: APP_ID,
-        locale: 'en',
+        appId: APP_ID
     }
     const o = Object.fromEntries(Object.entries(obj).filter(([_, v]) => v != null));
     console.log('makeMetadataFile: Creating metadata file for', o);
@@ -47,6 +46,7 @@ export const generateTextPostMetadata = (
     mainContentFocus: PublicationMainFocus,
     tags?: string[],
     contentWarning?: PublicationContentWarning,
+    locale: string = 'en',
     attributes: MetadataAttributeInput[] = [],
 ): PublicationMetadataV2Input => (
     {
@@ -55,7 +55,8 @@ export const generateTextPostMetadata = (
         mainContentFocus,
         tags,
         contentWarning,
-        attributes
+        attributes,
+        locale,
     } as PublicationMetadataV2Input
 )
 
@@ -67,6 +68,7 @@ export const generateImagePostMetadata = (
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
+    locale: string = 'en',
     image: string = media[0].item,
     imageMimeType: string = media[0].type,
     attributes: MetadataAttributeInput[] = [],
@@ -83,6 +85,7 @@ export const generateImagePostMetadata = (
         contentWarning,
         attributes,
         external_url: LENS_PREVIEW_NODE + 'u/'+ handle,
+        locale,
     } as PublicationMetadataV2Input
 )
 
@@ -107,6 +110,7 @@ export const generateVideoPostMetadata = (
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
+    locale: string = 'en',
     animationUrl: string = media[0].item,
 ): PublicationMetadataV2Input => (
     {
@@ -122,6 +126,7 @@ export const generateVideoPostMetadata = (
         tags,
         contentWarning,
         external_url: LENS_PREVIEW_NODE + 'u/'+ handle,
+        locale,
     } as PublicationMetadataV2Input
 );
 
@@ -151,6 +156,7 @@ export const generateAudioPostMetadata = (
     tags?: string[],
     contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
+    locale: string = 'en',
     animationUrl: string = media[0].item,
 ): PublicationMetadataV2Input => {
     const artistAttr = attributes?.find(attr => attr.traitType === 'author');
@@ -167,6 +173,7 @@ export const generateAudioPostMetadata = (
         tags,
         contentWarning,
         external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+        locale,
     } as PublicationMetadataV2Input;
 };
 

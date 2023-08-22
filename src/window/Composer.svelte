@@ -179,6 +179,8 @@
     const buildMetadata = (): PublicationMetadataV2Input => {
         if (!$currentUser) throw new Error('No user found');
 
+        const locale = selectedLocale?.value ?? navigator.languages[0];
+
         if (!isMediaPostType) {
             if (!$content) throw new Error('No content found');
 
@@ -195,6 +197,7 @@
                 postType,
                 getTags(),
                 postContentWarning.value ?? undefined,
+                locale,
             );
         }
 
@@ -221,6 +224,7 @@
                     tags ?? undefined,
                     postContentWarning.value ?? undefined,
                     $description,
+                    locale,
                 );
                 break;
             case PublicationMainFocus.Video:
@@ -236,6 +240,7 @@
                     tags ?? undefined,
                     postContentWarning.value ?? undefined,
                     $description,
+                    locale,
                 );
                 break;
             case PublicationMainFocus.Audio:
@@ -251,12 +256,12 @@
                     tags ?? undefined,
                     postContentWarning.value ?? undefined,
                     $description,
+                    locale,
                 );
                 break;
         }
 
         if (metadata) {
-            metadata.locale = locale?.value ?? navigator.languages[0];
             return metadata;
         }
 
@@ -319,6 +324,7 @@
             toast.error('Error creating post', {duration: 5000});
         } finally {
             isSubmittingPost = false;
+            await updateWindowHeight();
         }
     };
 
@@ -363,7 +369,7 @@
         label: tags(tag).language()?.descriptions().join(', ')
     }));
 
-    $: locale = locales[0];
+    $: selectedLocale = locales[0];
 
     const onGifSelected = () => {
         gifSelectionDialog?.close();
@@ -744,7 +750,7 @@
                {isSubmittingPost ? 'opacity-60' : ''}">
 
             {#if locales.length > 0}
-              <Select bind:value={locale}
+              <Select bind:value={selectedLocale}
                       items={locales}
                       disabled={isSubmittingPost}
                       listOffset={-48}
