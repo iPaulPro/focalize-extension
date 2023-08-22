@@ -234,8 +234,6 @@
             fillAttr: 'handle',
             lookup: 'handle',
             noMatchTemplate: () => '<span class="hidden"></span>',
-            menuContainer: containerElement,
-            positionMenu: false
         });
 
         plainTextTribute.attach(node);
