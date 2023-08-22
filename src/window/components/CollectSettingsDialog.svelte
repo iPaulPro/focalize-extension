@@ -63,11 +63,11 @@
     let currencies: Erc20[];
     let token: Erc20;
 
-    let priceError: string | null;
-    let limitError: string | null;
-    let referralError: string | null;
-    let splitError: string | null;
-    let timeError: string | null;
+    let priceError: string | null = null;
+    let limitError: string | null = null;
+    let referralError: string | null = null;
+    let splitError: string | null = null;
+    let timeError: string | null = null;
 
     const validatePrice = (price: number | undefined): number | undefined | null => {
         try {
@@ -141,7 +141,6 @@
     };
 
     const onDoneClick = async () => {
-        console.log('onDoneClick', $collectSettings);
         dispatch('done');
     };
 
@@ -237,12 +236,13 @@
         const iso = `${endDateValue}T${endTimeValue}`;
         const dateTime = DateTime.fromISO(iso).toISO() ?? new Date().toISOString(); // add timezone offset
         $collectSettings.endDate = validateTime(dateTime);
+    } else if ($collectSettings.durationInHours && $collectSettings.durationInHours > 0) {
+        timeError = null;
     }
 
     $: if ($collectSettings.recipients) {
         const total = $collectSettings.recipients?.filter((recipient: Recipient) => recipient.split)
             .reduce((acc: number, recipient: Recipient) => acc + recipient.split, 0) ?? 0;
-        console.log('determining split error', total);
         splitError = total !== 98 ? `Revenue shares must add up to 100%` : null;
     }
 
@@ -694,9 +694,9 @@
                                          stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                          stroke-linejoin="round"
                                          use:tippy={{
-                         content: timeError,
-                         appendTo: 'parent',
-                       }}>
+                                             content: timeError,
+                                             appendTo: 'parent',
+                                           }}>
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <line x1="12" y1="8" x2="12" y2="12"></line>
                                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
