@@ -12,6 +12,8 @@
     export let className: string = '';
     export let placeholder: string = '';
 
+    let tributeActive = false;
+
     const dispatch = createEventDispatcher();
 
     let textarea: HTMLTextAreaElement | undefined;
@@ -30,6 +32,8 @@
     };
 
     const handleKeydown = (e: KeyboardEvent) => {
+        if (tributeActive) return;
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             dispatch('enterPressed', {text});
@@ -65,6 +69,8 @@
         window.addEventListener('focus', focusHandler);
 
         if (textarea) {
+            textarea.addEventListener('tribute-active-true', () => tributeActive = true);
+            textarea.addEventListener('tribute-active-false', () => tributeActive = false);
             await resizeTextarea(textarea);
             focusTextArea();
         }

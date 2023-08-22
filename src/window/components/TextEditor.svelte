@@ -247,9 +247,7 @@
 
     const onTributeReplaced = (e: Event) => {
         const event = e as CustomEvent;
-        console.log('tribute-replaced: event', event);
         const handle = '@' + event.detail.item.original.handle as string;
-        console.log("tribute-replaced: Matched item:", handle);
         editor.update(() => {
             const selection = getSelection();
             if (!selection || !isRangeSelection(selection)) {
@@ -257,7 +255,6 @@
             }
 
             const nodes = selection.getNodes();
-            console.log('tribute-replaced: nodes', nodes);
             if (nodes.length && isMentionNode(nodes[0])) {
                 const mentionNode = nodes[0] as MentionNode;
                 const newNode = createMentionNode(handle);
