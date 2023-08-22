@@ -23,6 +23,7 @@
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {DateTime} from 'luxon';
+    import toast, {Toaster} from 'svelte-french-toast';
 
     export let isCompact: boolean = false;
 
@@ -153,6 +154,13 @@
 
     const addRecipient = (recipient: Recipient) => {
         console.log('addRecipient', recipient, $collectSettings.recipients);
+
+        const addressExisting = $collectSettings.recipients?.find(r => r.address === recipient.address);
+        if (addressExisting) {
+            toast.error('Address already in recipient list', {duration: 5000});
+            return;
+        }
+
         if (!$collectSettings.recipients) {
             $collectSettings.recipients = [];
         }
@@ -801,6 +809,8 @@
         </button>
     </div>
 {/if}
+
+<Toaster/>
 
 <style>
     #price::-webkit-outer-spin-button,
