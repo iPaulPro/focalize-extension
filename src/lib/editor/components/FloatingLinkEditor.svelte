@@ -18,7 +18,7 @@
     import {fade, scale} from 'svelte/transition';
     import { z, ZodError } from 'zod';
 
-    import {getSelectedNode} from '../../lib/utils/get-selected-node';
+    import {getSelectedNode} from '../../utils/get-selected-node';
 
     export let isVisible = false;
     export let editor: LexicalEditor;

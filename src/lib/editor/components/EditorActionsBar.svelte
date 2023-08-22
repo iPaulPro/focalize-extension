@@ -1,10 +1,10 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import {supportedMimeTypesJoined} from '../../lib/utils/file-utils';
+    import {supportedMimeTypesJoined} from '../../utils/file-utils';
     import {createEventDispatcher} from 'svelte';
     import {EmojiButton} from '@joeattardi/emoji-button';
-    import {darkMode} from '../../lib/stores/preferences-store';
+    import {darkMode} from '../../stores/preferences-store';
 
     export let disabled: boolean = false;
     export let isCompact: boolean;

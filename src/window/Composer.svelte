@@ -81,7 +81,7 @@
     import CollectMetadata from './components/CollectMetadata.svelte';
     import TextEditor from './components/TextEditor.svelte';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
-    import EditorActionsBar from './components/EditorActionsBar.svelte';
+    import EditorActionsBar from '../lib/editor/components/EditorActionsBar.svelte';
     import type {Web3File} from '../lib/ipfs-service';
 
     /**
