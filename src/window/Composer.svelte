@@ -322,6 +322,7 @@
         } catch (e) {
             console.error(e);
             toast.error('Error creating post', {duration: 5000});
+            $publicationState = PublicationState.ERROR;
         } finally {
             isSubmittingPost = false;
             await updateWindowHeight();
