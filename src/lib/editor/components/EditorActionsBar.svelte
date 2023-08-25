@@ -27,6 +27,7 @@
             rows: isCompact ? 4 : 5,
             emojiSize: isCompact? '24px' : '32px',
             showPreview: !isCompact,
+            zIndex: 100,
         });
 
         emojiPicker.on('emoji', (selection) => {

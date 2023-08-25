@@ -188,10 +188,10 @@
 
 <style>
   .link-bg {
-    @apply min-w-[18rem] py-2 px-4 text-base dark:text-gray-100 dark:placeholder-gray-400
+    @apply min-w-[18rem] max-w-xs py-2 pl-4 pr-12 text-base dark:text-gray-100 dark:placeholder-gray-400
       shadow-sm rounded-full border border-gray-300 dark:border-gray-600
       focus:ring-orange-500 focus:border-orange-500 dark:focus:ring-orange-300 dark:focus:border-orange-300
-      dark:bg-gray-600
+      dark:bg-gray-600 truncate
   }
 
   .overlay-btn {
