@@ -20,7 +20,7 @@ import {PublicationContentWarning, PublicationMainFocus, PublicationMetadataDisp
 import {getOrRefreshAccessToken} from "../user/lens-auth";
 import {uploadAndPin} from "../ipfs-service";
 import {getLensHub} from "../evm/lens-hub";
-import {signTypedData} from "../evm/ethers-service";
+import {ensureCorrectChain, signTypedData} from "../evm/ethers-service";
 import {deleteDraft} from "../stores/draft-store";
 
 import lensApi from "../lens-api";
@@ -210,11 +210,12 @@ const _createPostTypedData = async (
 const createPostTransaction = async (
     profileId: string,
     contentURI: string,
-    accessToken: string,
     useRelay: boolean,
     collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
     referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
 ): Promise<string> => {
+    await ensureCorrectChain();
+
     const postResult = await _createPostTypedData(
         profileId,
         contentURI,
@@ -267,9 +268,9 @@ export const submitPost = async (
 ): Promise<string> => {
     const profileId = user.profileId;
     console.log(`submitPost: profileId = ${profileId}, metadata = ${JSON.stringify(metadata)}, referenceModule = ${JSON.stringify(referenceModule)}, collectModule = ${JSON.stringify(collectModule)}`)
-    let accessToken: string;
+
     try {
-        accessToken = await getOrRefreshAccessToken();
+        await getOrRefreshAccessToken();
     } catch (e) {
         chrome.runtime.openOptionsPage();
         window?.close();
@@ -304,7 +305,7 @@ export const submitPost = async (
     }
 
     if (!txHash) {
-        txHash = await createPostTransaction(profileId, contentURI, accessToken, useRelay, collectModule, referenceModule);
+        txHash = await createPostTransaction(profileId, contentURI, useRelay, collectModule, referenceModule);
     }
 
     publicationState.set(PublicationState.SUCCESS);

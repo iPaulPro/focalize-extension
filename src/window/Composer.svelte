@@ -2,7 +2,6 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {v4 as uuid} from 'uuid';
-    import {ensureCorrectChain} from '../lib/evm/ethers-service';
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
 
     import type {SelectOption} from '../lib/publications/lens-modules';
@@ -279,16 +278,6 @@
         isSubmittingPost = true;
 
         await ensureDraft();
-
-        try {
-            await ensureCorrectChain();
-        } catch (e) {
-            if (e instanceof Error) {
-                console.error(`Error switching chains: ${e.message}`, e);
-            }
-            toast.error('Error switching chains', {duration: 5000});
-            return;
-        }
 
         let collectModuleParams: CollectModuleParams;
         try {
