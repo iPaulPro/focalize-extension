@@ -1,6 +1,6 @@
 import {APP_ID, CHAIN_ID, INFURA_PROJECT_ID, WALLETCONNECT_PROJECT_ID} from '../../config';
 import type {JsonRpcSigner, TypedDataDomain, TypedDataField} from 'ethers';
-import {BrowserProvider, ethers} from 'ethers';
+import {BrowserProvider, ethers, isError} from 'ethers';
 import omitDeep from 'omit-deep';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import ethProvider from 'eth-provider';
@@ -32,8 +32,8 @@ const networkMap = {
     },
     MUMBAI_TESTNET: {
         chainId: ethers.toQuantity(80001), // '0x13881'
-        chainName: "Polygon Mumbai Testnet",
-        nativeCurrency: { name: "tMATIC", symbol: "tMATIC", decimals: 18 },
+        chainName: "Mumbai",
+        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
         rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
         blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
     },
@@ -169,13 +169,13 @@ const switchChains = async (id: number) => {
         );
         console.log('switched to chain', id);
     } catch (error) {
-        // @ts-ignore
-        if (error.code === 4902) {
-            console.log("this network is not in the user's wallet")
+        console.error("switchChains: error switching chains", error);
+        if (isError(error, "UNKNOWN_ERROR")) {
             await provider.send(
                 "wallet_addEthereumChain",
                 [id === 80001 ? networkMap.MUMBAI_TESTNET : networkMap.POLYGON_MAINNET],
             );
+            return;
         }
         throw error;
     }
