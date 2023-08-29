@@ -544,7 +544,6 @@
 
           <div class="flex">
 
-
             <div class="px-3 pt-3">
               <div class="w-14 h-14">
                 <CurrentUserAvatar/>
@@ -590,7 +589,7 @@
               {#if currentTabData}
 
                 <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
-                     class="flex w-fit max-w-[70%] ml-4 mb-2 pt-1 pb-2 pr-2 truncate
+                     class="grid grid-cols-[auto,1fr] max-w-[70%] min-w-0 ml-4 mb-2 pt-1 pb-2 pr-2 truncate
                         cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
 
@@ -604,8 +603,7 @@
 
                   <div class="flex flex-col truncate">
                     <div class="flex justify-between items-end gap-24">
-                      <div
-                              class="flex gap-0.5 text-orange-600 dark:text-orange-300 font-semibold items-center">
+                      <div class="flex gap-0.5 text-orange-600 dark:text-orange-300 font-semibold items-center">
                         <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
                           <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
                           <path
@@ -632,7 +630,7 @@
                     </div>
 
                     {#if currentTabData.desc}
-                      <div class="opacity-60 pr-4 truncate whitespace-pre-wrap">
+                      <div class="opacity-60 pr-4 truncate whitespace-pre-wrap line-clamp-2	">
                         {currentTabData.desc}
                       </div>
                     {/if}
@@ -645,7 +643,6 @@
             </div>
 
           </div>
-
 
           {#if $collectSettings.isCollectible || isMediaPostType || $file}
 
