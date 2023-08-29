@@ -173,8 +173,8 @@
 <style>
   .input {
     @apply text-base dark:text-gray-100 placeholder-gray-400
-    bg-white dark:bg-gray-600
-    rounded-lg border border-gray-300 dark:border-gray-600 focus:border-orange-600 dark:focus:border-orange-300
+    bg-white dark:bg-gray-800
+    rounded-lg border border-gray-300 dark:border-gray-700 focus:border-orange-600 dark:focus:border-orange-300
     focus:outline-none
     disabled:opacity-40;
   }

@@ -212,7 +212,7 @@
 
   {#if attachmentPath &&attachmentType}
 
-    <div class="flex flex-col w-full items-center justify-center bg-gray-100 dark:bg-gray-700 pt-1 rounded-xl">
+    <div class="flex flex-col w-full items-center justify-center pt-1 rounded-xl">
 
       {#if isAttachmentImage}
 

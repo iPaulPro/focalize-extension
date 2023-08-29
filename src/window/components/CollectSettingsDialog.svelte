@@ -774,7 +774,7 @@
 
     </div>
 
-    <div class="flex-none flex items-center justify-between {isCompact ? 'p-2' : 'p-3'} border-t border-gray-200 dark:border-gray-600">
+    <div class="flex-none flex items-center justify-between {isCompact ? 'p-2' : 'p-3'} border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center text-xs px-2 text-neutral-800 dark:text-neutral-300 cursor-help"
              use:tippy={({
              content: 'A 2% fee is automatically collected when your NFT is sold',

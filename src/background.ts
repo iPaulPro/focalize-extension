@@ -271,7 +271,7 @@ const onSetNotificationsAlarmMessage = async (req: any, res: (response?: any) =>
     }
 }
 
-const onGetPublicationIdMessage = (sender: chrome.runtime.MessageSender, req: any, res: (response?: any) => void) => {
+const onGetPublicationIdMessage = async (sender: chrome.runtime.MessageSender, req: any, res: (response?: any) => void) => {
     let port: chrome.runtime.Port;
     if (sender.tab?.id) {
         port = chrome.tabs.connect(sender.tab.id, {name: 'getPublicationId'});
@@ -281,12 +281,13 @@ const onGetPublicationIdMessage = (sender: chrome.runtime.MessageSender, req: an
         port.postMessage({state});
     };
 
-    return pollForPublicationId(req.post.txHash, onPublicationStateChange)
-        .then(publicationId => {
-            res({publicationId});
-            return notifyOfPublishedPost(req.post.metadata.mainContentFocus, publicationId);
-        })
-        .catch(e => onMessageError(e, res));
+    try {
+        const publicationId = await pollForPublicationId(req.post.txHash, onPublicationStateChange);
+        res({publicationId});
+        return notifyOfPublishedPost(req.post.metadata.mainContentFocus, publicationId);
+    } catch (e) {
+        return onMessageError(e, res);
+    }
 };
 
 const getPendingProxyActions = async () => {

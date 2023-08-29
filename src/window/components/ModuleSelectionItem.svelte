@@ -14,7 +14,7 @@
     export let selection: SelectOption<any>;
 </script>
 
-<div class="flex items-center {$compactMode ? 'py-0' : 'py-2'} text-orange-700 hover:text-orange-900 dark:text-orange-200">
+<div class="flex items-center {$compactMode ? 'py-0' : 'py-2'} text-orange-700 hover:text-orange-900 dark:text-orange-300">
 
   {#if selection.icon === 'earth'}
     <InlineSVG src={IconEarth} class="w-5 h-5" />

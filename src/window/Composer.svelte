@@ -359,7 +359,7 @@
         label: tags(tag).language()?.descriptions().join(', ')
     }));
 
-    $: selectedLocale = locales[0];
+    let selectedLocale = locales?.[0];
 
     const onGifSelected = () => {
         gifSelectionDialog?.close();
@@ -388,6 +388,7 @@
     }
 
     const updateWindowHeight = async () => {
+        console.log('updateWindowHeight');
         await tick();
         if (!isPopupWindow || !contentDiv) return;
         const height = contentDiv.offsetHeight + (window.outerHeight - window.innerHeight);
@@ -506,8 +507,11 @@
 
     onMount(async () => {
         await ensureUser();
-        parseSearchParams();
-        if ($draftId) await openDraft();
+        if ($draftId) {
+            await openDraft();
+        } else {
+            parseSearchParams();
+        }
     });
 
     onDestroy(() => {
@@ -534,8 +538,9 @@
       <div id="content" bind:this={contentDiv} bind:offsetHeight={contentDivHeight}
            class="min-h-full container max-w-screen-md mx-auto {isPopupWindow ? '' : 'pt-6'}">
 
-        <div class="min-h-[12rem] bg-white dark:bg-gray-800  {isSubmittingPost ? 'opacity-60' : ''}
-             {isPopupWindow ? 'shadow p-2 rounded-b-2xl' : 'mx-2 rounded-2xl p-4 shadow-lg'}">
+        <div class="min-h-[12rem] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 dark:text-gray-100
+                  {isSubmittingPost ? 'opacity-60' : ''}
+                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl p-4 '}">
 
           <div class="flex">
 
@@ -565,21 +570,19 @@
 
               {#if isPopupWindow === true}
                 <button type="button" on:click={openInNewTab} use:tippy={({delay: 400, content: 'Open in a new tab'})}
-                        class="absolute right-4 top-4 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
+                        class="absolute right-3 top-3 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
                   <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
-                    <path
-                            d="M160-114.5q-19.152 0-32.326-13.174T114.5-160v-240q0-19.152 13.174-32.326T160-445.5q19.152 0 32.326 13.174T205.5-400v130.608L690.608-754.5H560q-19.152 0-32.326-13.174T514.5-800q0-19.152 13.174-32.326T560-845.5h240q19.152 0 32.326 13.174T845.5-800v240q0 19.152-13.174 32.326T800-514.5q-19.152 0-32.326-13.174T754.5-560v-130.608L269.392-205.5H400q19.152 0 32.326 13.174T445.5-160q0 19.152-13.174 32.326T400-114.5H160Z"/>
+                    <path d="M160-114.5q-19.152 0-32.326-13.174T114.5-160v-240q0-19.152 13.174-32.326T160-445.5q19.152 0 32.326 13.174T205.5-400v130.608L690.608-754.5H560q-19.152 0-32.326-13.174T514.5-800q0-19.152 13.174-32.326T560-845.5h240q19.152 0 32.326 13.174T845.5-800v240q0 19.152-13.174 32.326T800-514.5q-19.152 0-32.326-13.174T754.5-560v-130.608L269.392-205.5H400q19.152 0 32.326 13.174T445.5-160q0 19.152-13.174 32.326T400-114.5H160Z"/>
                   </svg>
                 </button>
               {:else if isPopupWindow === false}
                 <button type="button" on:click={openInPopupWindow}
                         use:tippy={({delay: 400, content: 'Open in a popup window'})}
-                        class="absolute right-6 top-10 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
+                        class="absolute right-4 top-8 opacity-40 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
                   <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
-                    <path
-                            d="M182.152-114.022q-27.599 0-47.865-20.265-20.265-20.266-20.265-47.865v-595.696q0-27.697 20.265-48.033 20.266-20.337 47.865-20.337h242.783q14.424 0 24.244 10.012Q459-826.194 459-811.717q0 14.478-9.821 24.174-9.82 9.695-24.244 9.695H182.152v595.696h595.696v-242.783q0-14.424 9.871-24.244Q797.59-459 812.068-459q14.477 0 24.313 9.821 9.837 9.82 9.837 24.244v242.783q0 27.599-20.337 47.865-20.336 20.265-48.033 20.265H182.152Zm181.609-250q-9.326-9.804-9.826-23.385-.5-13.581 9.695-23.963l366.718-366.478H553.065q-14.424 0-24.244-9.871Q519-797.59 519-812.068q0-14.477 9.821-24.313 9.82-9.837 24.244-9.837h258.848q14.394 0 24.349 9.956 9.956 9.955 9.956 24.349v258.848q0 14.424-10.012 24.244Q826.194-519 811.717-519q-14.478 0-24.174-9.821-9.695-9.82-9.695-24.244v-176.283L411.37-362.63q-9.638 9.195-23.591 9.076-13.953-.12-24.018-10.468Z"/>
+                    <path d="M182.152-114.022q-27.599 0-47.865-20.265-20.265-20.266-20.265-47.865v-595.696q0-27.697 20.265-48.033 20.266-20.337 47.865-20.337h242.783q14.424 0 24.244 10.012Q459-826.194 459-811.717q0 14.478-9.821 24.174-9.82 9.695-24.244 9.695H182.152v595.696h595.696v-242.783q0-14.424 9.871-24.244Q797.59-459 812.068-459q14.477 0 24.313 9.821 9.837 9.82 9.837 24.244v242.783q0 27.599-20.337 47.865-20.336 20.265-48.033 20.265H182.152Zm181.609-250q-9.326-9.804-9.826-23.385-.5-13.581 9.695-23.963l366.718-366.478H553.065q-14.424 0-24.244-9.871Q519-797.59 519-812.068q0-14.477 9.821-24.313 9.82-9.837 24.244-9.837h258.848q14.394 0 24.349 9.956 9.956 9.955 9.956 24.349v258.848q0 14.424-10.012 24.244Q826.194-519 811.717-519q-14.478 0-24.174-9.821-9.695-9.82-9.695-24.244v-176.283L411.37-362.63q-9.638 9.195-23.591 9.076-13.953-.12-24.018-10.468Z"/>
                   </svg>
                 </button>
               {/if}
@@ -588,11 +591,11 @@
 
                 <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
                      class="flex w-fit max-w-[70%] ml-4 mb-2 pt-1 pb-2 pr-2 truncate
-                        cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900
+                        cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
 
                   <div class="flex justify-center items-center px-4">
-                    <svg class="w-5 h-5 text-orange-600 dark:text-orange-200" viewBox="0 0 24 24" fill="none"
+                    <svg class="w-5 h-5 text-orange-600 dark:text-orange-300" viewBox="0 0 24 24" fill="none"
                          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M9 10l6-6 6 6"/>
                       <path d="M4 20h7a4 4 0 0 0 4-4V5"/>
@@ -602,7 +605,7 @@
                   <div class="flex flex-col truncate">
                     <div class="flex justify-between items-end gap-24">
                       <div
-                              class="flex gap-0.5 text-orange-600 dark:text-orange-200 font-semibold items-center">
+                              class="flex gap-0.5 text-orange-600 dark:text-orange-300 font-semibold items-center">
                         <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
                           <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
                           <path
@@ -646,7 +649,8 @@
 
           {#if $collectSettings.isCollectible || isMediaPostType || $file}
 
-            <div class="flex w-full justify-center px-4 pt-6 pb-4 gap-4 bg-gray-100 dark:bg-gray-700 rounded-xl shadow">
+            <div class="flex w-full justify-center px-4 pt-6 pb-4 gap-4 bg-neutral-50 dark:bg-gray-900 rounded-xl border
+                       border-gray-200 dark:border-gray-800">
 
               {#if isMediaPostType || $file}
                 <div class="{$collectSettings.isCollectible ? 'w-1/2' : 'w-full'}">
@@ -655,7 +659,7 @@
               {/if}
 
               {#if $collectSettings.isCollectible}
-                <div class:px-16={!isMediaPostType && !$file}
+                <div class:px-[4.5rem]={!isMediaPostType && !$file}
                      class="w-1/2 grow">
                   <CollectMetadata on:settingsClick={showCollectSettingsDialog}/>
                 </div>
@@ -665,10 +669,10 @@
 
           {/if}
 
-          <div class="flex flex-wrap gap-6 ml-[5rem]
+          <div class="flex flex-wrap gap-6 ml-[4.5rem]
                {isPopupWindow ? 'pt-2' : 'pt-3'}
                {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
-                  : 'border-t border-t-gray-200 dark:border-t-gray-700'}">
+                  : 'border-t border-t-gray-200 dark:border-t-gray-800'}">
 
             <Select bind:value={referenceItem}
                     items={REFERENCE_ITEMS}
@@ -713,7 +717,7 @@
 
             <button type="button" on:click={showCollectSettingsDialog}
                     class="py-3 px-4 text-orange-700 flex items-center gap-2
-                    dark:text-orange-200 font-semibold sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
+                    dark:text-orange-300 font-semibold sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
 
               <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

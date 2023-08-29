@@ -38,7 +38,7 @@
     }
 </script>
 
-<div class="flex gap-3 {isCompact ? '' : 'pt-1'}">
+<div class="flex gap-3 -ml-2 pb-2">
 
   <input type="file" class="hidden"
          accept={supportedMimeTypesJoined()}
