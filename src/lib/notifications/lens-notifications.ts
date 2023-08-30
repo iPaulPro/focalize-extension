@@ -138,7 +138,7 @@ export const getLatestNotifications = async (
     }
 
     const syncStorage = await chrome.storage.sync.get(
-        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions',
+        ['notificationsForFollows', 'notificationsForMentions', 'notificationsForReactions', "notificationsForMirrors",
             'notificationsForComments', 'notificationsForCollects', 'notificationsFiltered']
     );
 

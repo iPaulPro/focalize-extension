@@ -540,7 +540,7 @@
 
         <div class="min-h-[12rem] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 dark:text-gray-100
                   {isSubmittingPost ? 'opacity-60' : ''}
-                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl p-4 '}">
+                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-4 pb-2'}">
 
           <div class="flex">
 
@@ -666,8 +666,7 @@
 
           {/if}
 
-          <div class="flex flex-wrap gap-6 ml-[4.5rem]
-               {isPopupWindow ? 'pt-2' : 'pt-3'}
+          <div class="flex flex-wrap gap-6 ml-[4.5rem] pt-2 pb-1
                {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
                   : 'border-t border-t-gray-200 dark:border-t-gray-800'}">
 
