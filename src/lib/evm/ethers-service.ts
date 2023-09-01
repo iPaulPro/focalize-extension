@@ -25,7 +25,7 @@ const chainId = Number.parseInt(CHAIN_ID, 10);
 const networkMap = {
     POLYGON_MAINNET: {
         chainId: ethers.toQuantity(137), // '0x89'
-        chainName: "Polygon Mainnet",
+        chainName: "Polygon",
         nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
         rpcUrls: ["https://polygon-rpc.com"],
         blockExplorerUrls: ["https://www.polygonscan.com/"],
@@ -75,13 +75,13 @@ const createWalletConnectProvider = async () => {
 }
 
 const createInjectedProvider = async (): Promise<BrowserProvider> => {
-    const provider = await ethProvider(['injected']);
+    const provider = ethProvider(['injected']);
     console.log('createInjectedProvider: found provider', provider);
     return new ethers.BrowserProvider(provider, "any");
 }
 
 const createFrameProvider = async (): Promise<BrowserProvider> => {
-    const provider = await ethProvider(['frame']);
+    const provider = ethProvider(['frame']);
     console.log('createFrameProvider: found provider', provider);
     return new ethers.BrowserProvider(provider, "any");
 }
