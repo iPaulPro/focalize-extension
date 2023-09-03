@@ -17,7 +17,6 @@
 
     const dispatch = createEventDispatcher();
 
-    let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
 
     let messagesEnabled = false;
@@ -25,14 +24,17 @@
     let unfilteredThreads: Thread[];
     let conversationsSubscription: Subscription;
     let messagesSubscription: Subscription;
+    let loading = false;
 
     export const scrollToTop = () => {
         scrollElement.scrollTop = 0;
     };
 
     const reloadThreads = async () => {
+        if (loading) return;
+        loading = true;
         unfilteredThreads = await getAllThreads();
-        console.log('reloadThreads', unfilteredThreads);
+        loading = false;
     }
 
     const listenForCacheChanges = () => latestMessageMap.subscribe(reloadThreads);
@@ -108,7 +110,7 @@
         onMessageTabSwitch();
     }
 
-    $: if ($currentUser) {
+    $: if ($currentUser && !unfilteredThreads) {
         reloadThreads().catch(console.error);
     }
 
@@ -161,8 +163,7 @@
     </div>
 
     {#if threads.length > 0}
-      <ul bind:this={listElement}
-          class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+      <ul class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
         {#each threads as thread (thread.conversation.topic)}
           <ThreadItem {thread} on:select={onThreadSelected}/>
         {/each}

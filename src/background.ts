@@ -477,17 +477,53 @@ const searchProfiles = async (query: string, limit: number): Promise<Profile[]> 
     }
 
     return [];
-}
+};
+
+const getProfiles = async (address: string): Promise<Profile[]> => {
+    const storage = await chrome.storage.local.get('currentUser');
+    const userProfileId = storage.currentUser?.profileId;
+    const {profiles} = await lensApi.profiles({
+        request: {ownedBy: [address]}, userProfileId
+    });
+    return profiles.items;
+};
+
+const isEthereumAddress = (address: string): boolean => /^0x[a-fA-F0-9]{40}$/.test(address);
 
 chrome.omnibox.onInputEntered.addListener(async text => {
     const storage = await chrome.storage.sync.get('nodeSearch');
     const nodeSearch: LensNode = storage.nodeSearch;
-    const path = nodeSearch.profiles.replace('{$handle}', text);
+
+    let handle;
+
+    if (isEthereumAddress(text)) {
+        try {
+            const profiles = await getProfiles(text);
+            if (profiles.length) {
+                handle = profiles[0].handle;
+            }
+        } catch (e) {
+            console.warn('Error getting profiles for address', text, e);
+        }
+    }
+
+    if (!handle) {
+        handle = text;
+    }
+
+    const path = nodeSearch.profiles.replace('{$handle}', handle);
     await chrome.tabs.create({url: nodeSearch.baseUrl + path});
 });
 
 chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
-    const profiles = await searchProfiles(text, 10);
+    let profiles: Profile[] = [];
+
+    if (isEthereumAddress(text)) {
+        profiles = await getProfiles(text);
+    } else {
+        profiles = await searchProfiles(text, 10);
+    }
+
     if (!profiles) {
         suggest([]);
         return;
@@ -499,7 +535,7 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
 
         return {
             content: profile.handle,
-            description: `@${handle} <dim>${profile.name}</dim>`
+            description: `@${handle} <dim>${profile.name ?? ''}</dim>`
         }
     });
 
