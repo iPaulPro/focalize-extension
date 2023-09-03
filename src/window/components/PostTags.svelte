@@ -54,7 +54,7 @@
 
   {#if tags.length < 5}
     <button type="button" on:click={addTag} disabled={disabled}
-        class="px-4 {isCompact ? 'h-10 text-xs' : 'h-12 text-sm'} rounded-full bg-white enabled:hover:bg-gray-100 dark:bg-gray-800
+        class="px-4 {isCompact ? 'h-10 text-xs' : 'h-12 text-sm'} rounded-full bg-white enabled:hover:bg-gray-100 dark:bg-gray-900
         enabled:dark:hover:bg-gray-600 shadow flex justify-center items-center gap-2">
       <span class="px-1">Add tag</span>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-gray-600 dark:text-gray-200"
@@ -67,7 +67,7 @@
   {/if}
 
   {#each tags as tag}
-    <div class="tag px-2 py-1 flex items-center rounded-full text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-800 shadow">
+    <div class="tag px-2 py-1 flex items-center rounded-full text-gray-900 dark:text-gray-200 bg-white dark:bg-gray-900 shadow">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 ml-1" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <line x1="4" y1="9" x2="20" y2="9"></line>

@@ -13,7 +13,7 @@ import {getUser} from './stores/user-store';
 import type {User} from './user/user';
 import {getProfiles} from './user/lens-profile';
 
-const LENS_PREFIX = 'lens.dev/dm';
+export const LENS_PREFIX = 'lens.dev/dm';
 
 let client: Client;
 
@@ -267,8 +267,10 @@ export const updateLatestMessageCache = async (): Promise<LatestMessageMap> => {
     return cacheLatestMessages(conversationMessages);
 };
 
-export const isLensThread = (thread: Thread): boolean =>
-    thread.conversation.context?.conversationId.startsWith(LENS_PREFIX) ?? false;
+export const isLensConversation = (conversation: Conversation): boolean =>
+    conversation.context?.conversationId?.startsWith(LENS_PREFIX) ?? false;
+
+export const isLensThread = (thread: Thread): boolean => isLensConversation(thread.conversation);
 
 export const isProfileThread = (thread: Thread, userProfileId: string): boolean => {
     const conversationId = thread.conversation.context?.conversationId;
@@ -390,17 +392,29 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
 
-    const lensConversations = conversations.filter((conversation) =>
-        conversation.context?.conversationId?.startsWith(LENS_PREFIX)
-    );
+    const lensConversations = [];
+    const otherConversations = [];
 
+    for (const conversation of conversations) {
+        if (conversation.context?.conversationId?.startsWith(LENS_PREFIX)) {
+            lensConversations.push(conversation);
+        } else {
+            otherConversations.push(conversation);
+        }
+    }
+
+    // One address can hold multiple Lens profiles, so we need to fetch all profiles owned by the user
     const profilesOwnedByAddress = await getProfiles([user.address]);
     const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
     const profileIds = lensConversations.map((conversation) =>
         extractProfileId(conversation.context!!.conversationId, userProfileIds)
     );
 
+    const otherConversationAddresses = otherConversations.map((conversation) => conversation.peerAddress);
+    const nonLensConversationProfiles = await getProfiles(otherConversationAddresses);
+
     const profiles: Profile[] = await getProfilesBatch(profileIds);
+    profiles.push(...nonLensConversationProfiles);
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
@@ -423,10 +437,10 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         const peerProfile = profilesMap.get(conversation.peerAddress);
         const peer: Peer = {
             profile: peerProfile,
-            wallet: !peerProfile ? {
+            wallet: {
                 address: conversation.peerAddress,
                 // ENS will be fetched on mount
-            } : undefined,
+            },
         };
         const thread: Thread = {conversation, peer, latestMessage, unread};
         threads.push(thread);
@@ -449,15 +463,18 @@ const getPeerProfile = async (conversation: Conversation): Promise<Profile | und
     return profiles.items?.[0];
 };
 
-export const getPeerName = (peer: Peer, ens?: string): string | undefined => {
-    if (!peer) return undefined;
+export const getPeerName = (thread: Thread, ens?: string): string | undefined => {
+    if (!thread?.peer) return undefined;
 
+    const peer = thread.peer;
     const peerProfile = peer.profile;
-    if (!peerProfile) {
-        return ens ?? peer.wallet?.ens ?? (peer.wallet?.address && truncateAddress(peer.wallet?.address));
+
+    // Fallback to Lens Profile name if not a Lens conversation and there's no ENS
+    if ((isLensThread(thread) && peerProfile) || (peerProfile && !ens)) {
+        return peerProfile.name ?? peerProfile.handle ?? truncateAddress(peerProfile.ownedBy);
     }
 
-    return peerProfile.name ?? peerProfile.handle ?? truncateAddress(peerProfile.ownedBy);
+    return ens ?? peer.wallet?.ens ?? (peer.wallet?.address && truncateAddress(peer.wallet.address));
 };
 
 const buildPeer = async (conversation: Conversation) => {

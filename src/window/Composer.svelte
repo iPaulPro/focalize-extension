@@ -519,7 +519,7 @@
     });
 </script>
 
-<main class="w-full min-h-full dark:bg-gray-900 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
+<main class="w-full min-h-full dark:bg-gray-950 bg-neutral-50 {isPopupWindow ? 'compact' : ''}"
       on:drop|preventDefault|stopPropagation={onFileDropped}
       on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
       on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
@@ -538,7 +538,7 @@
       <div id="content" bind:this={contentDiv} bind:offsetHeight={contentDivHeight}
            class="min-h-full container max-w-screen-md mx-auto {isPopupWindow ? '' : 'pt-6'}">
 
-        <div class="min-h-[12rem] bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 dark:text-gray-100
+        <div class="min-h-[12rem] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 dark:text-gray-100
                   {isSubmittingPost ? 'opacity-60' : ''}
                   {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-4 pb-2'}">
 
@@ -736,7 +736,7 @@
 
         {#if showAdvanced || !isPopupWindow}
 
-          <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-800 {isPopupWindow ? 'py-2' : 'py-3'} px-2 gap-4
+          <div class="flex flex-wrap border-b border-gray-200 dark:border-gray-900 {isPopupWindow ? 'py-2' : 'py-3'} px-2 gap-4
                {isSubmittingPost ? 'opacity-60' : ''}">
 
             {#if locales.length > 0}
@@ -757,7 +757,7 @@
                       --selected-item-padding="{isPopupWindow ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
                       --background="transparent"
                       --list-background={$darkMode ? '#374354' : 'white'}
-                      class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
+                      class="!w-fit !h-fit !bg-white dark:!bg-gray-900 hover:!bg-gray-100 dark:!hover:bg-gray-600
                       !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
                       !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
                 <div slot="prepend" class="pr-1">
@@ -795,7 +795,7 @@
                     --list-border-radius="0.75rem"
                     --height="{isPopupWindow ? '2.5rem' : '3rem'}"
                     --item-height="{isPopupWindow ? '2.5rem' : '3rem'}"
-                    class="!w-fit !h-fit !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:!hover:bg-gray-600
+                    class="!w-fit !h-fit !bg-white dark:!bg-gray-900 hover:!bg-gray-100 dark:!hover:bg-gray-600
                       !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
                       !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
               <div slot="prepend" class="pr-1">
@@ -860,7 +860,7 @@
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
                       class="group w-fit py-2 px-10 flex justify-center items-center
                     rounded-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
-                    disabled:bg-neutral-400 dark:disabled:bg-gray-600 disabled:text-opacity-50 disabled:cursor-not-allowed
+                    disabled:bg-neutral-400 dark:disabled:bg-gray-700 disabled:text-opacity-50 disabled:cursor-not-allowed
                     focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
                     text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
                     transition ease-in duration-200 font-semibold shadow-md disabled:shadow-none">

@@ -116,7 +116,7 @@
 
     $: peerProfile = thread?.peer?.profile;
     $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
-    $: peerName = thread?.peer && getPeerName(thread.peer);
+    $: peerName = thread?.peer && getPeerName(thread);
     $: peerHandle = thread && getPeerHandle();
 
     $: if ($darkMode) {
