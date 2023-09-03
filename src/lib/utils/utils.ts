@@ -96,20 +96,22 @@ export const launchComposerWindow = async (
 
     if (usePopups) {
         const currentWindow = await chrome.windows.getCurrent();
-        console.log('currentWindow', currentWindow);
         const windowRight =
             currentWindow.left !== undefined && currentWindow.width !== undefined
                 ? currentWindow.left + currentWindow.width
                 : 0;
-        await chrome.windows.create({
+        const options: chrome.windows.CreateData = {
             url: url.toString(),
             focused: true,
             type: 'popup',
             width: 672,
             height: POPUP_MIN_HEIGHT,
-            top: currentWindow.top,
-            left: windowRight - 672,
-        });
+        };
+        if (windowRight > 0) {
+            options.top = currentWindow.top;
+            options.left = windowRight - 672;
+        }
+        await chrome.windows.create(options);
     } else {
         await chrome.tabs.create({url: url.toString()});
     }
@@ -161,15 +163,19 @@ export const launchThreadWindow = async (topic?: string) => {
 
     const currentWindow = await chrome.windows.getCurrent();
     const windowRight = currentWindow.left && currentWindow.width ? currentWindow.left + currentWindow.width : 0;
-    await chrome.windows.create({
+    const options: chrome.windows.CreateData = {
         url,
         focused: true,
         type: 'popup',
         width: 400,
         height: 600,
-        top: currentWindow.top,
-        left: windowRight - 400,
-    });
+    };
+    if (windowRight > 0) {
+        options.top = currentWindow.top;
+        options.left = windowRight - 400;
+    }
+
+    await chrome.windows.create(options);
 
     if (typeof window !== 'undefined') {
         window.close();
