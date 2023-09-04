@@ -27,6 +27,7 @@
     const authenticate = async (wallet: WalletConnection) => {
         console.log('authenticate: wallet', wallet);
         walletConnectDialog?.close();
+
         let authenticatedProfile: Profile;
         try {
             authenticatedProfile = await authenticateUser(wallet);
@@ -36,8 +37,16 @@
             }
             return;
         }
+
         $currentUser = userFromProfile(authenticatedProfile);
         console.log('Authenticated user', $currentUser);
+
+        try {
+            await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
+            await chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true});
+        } catch (e) {
+            console.error('Error setting alarms', e)
+        }
     };
 
     const onSignInClick = async () => {
@@ -46,14 +55,6 @@
         } catch (e) {
             console.error('Error logging in',e);
             toast.error('Error logging in', {duration: 5000});
-        }
-
-        if ($currentUser) {
-            try {
-                await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
-            } catch (e) {
-                console.error('Error setting alarm', e)
-            }
         }
     };
 

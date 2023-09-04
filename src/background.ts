@@ -44,6 +44,8 @@ import {Client} from '@xmtp/xmtp-js';
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
 const NOTIFICATION_ID = 'focalize-notifications-id';
+const NOTIFICATION_ID_ENABLE_XMTP = 'focalize-enable-xmtp';
+const STORAGE_KEY_ENABLE_XMTP_NOTIFICATION = 'focalize-enable-xmtp-notification';
 
 const XMTP_TOPIC_PREFIX = '/xmtp/';
 
@@ -173,6 +175,13 @@ chrome.notifications.onClicked.addListener(async notificationId => {
         return;
     }
 
+    if (notificationId === NOTIFICATION_ID_ENABLE_XMTP) {
+        const url = chrome.runtime.getURL('src/popup/messaging/login/index.html');
+        await chrome.tabs.create({url});
+        await chrome.storage.local.set({[STORAGE_KEY_ENABLE_XMTP_NOTIFICATION]: true});
+        return;
+    }
+
     const storage = await chrome.storage.local.get([KEY_NOTIFICATION_ITEMS_CACHE]);
     const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
     const notification = notifications.find((n: Notification) => n.notificationId === notificationId);
@@ -185,11 +194,19 @@ chrome.notifications.onClicked.addListener(async notificationId => {
 });
 
 chrome.notifications.onClosed.addListener(async (notificationId: string, byUser: boolean) => {
-    if (byUser && notificationId.startsWith(XMTP_TOPIC_PREFIX)) {
+    if (!byUser) return;
+
+    if (notificationId.startsWith(XMTP_TOPIC_PREFIX)) {
         const localStorage = await chrome.storage.local.get(KEY_MESSAGE_TIMESTAMPS);
         const timestamps = localStorage[KEY_MESSAGE_TIMESTAMPS] as MessageTimestampMap;
         timestamps[notificationId] = DateTime.now().toMillis();
         await chrome.storage.local.set({[KEY_MESSAGE_TIMESTAMPS]: timestamps});
+        return;
+    }
+
+    if (notificationId === NOTIFICATION_ID_ENABLE_XMTP) {
+        await chrome.storage.local.set({[STORAGE_KEY_ENABLE_XMTP_NOTIFICATION]: true});
+        return;
     }
 });
 
@@ -342,6 +359,15 @@ const checkProxyActionStatus = async (proxyActionId: string, handle: string) => 
 }
 
 const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
+    try {
+        // Check if the user has connected their XMTP account
+        await getXmtpClient();
+    } catch (e) {
+        await createEnableXmtpNotification();
+        res();
+        return;
+    }
+
     if (req.enabled) {
         const storage = await chrome.storage.sync.get(KEY_MESSAGES_REFRESH_INTERVAL);
         const alarmPeriodInMinutes = storage[KEY_MESSAGES_REFRESH_INTERVAL].value;
@@ -349,6 +375,22 @@ const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
     } else {
         clearAlarm(ALARM_ID_MESSAGES).then(() => res()).catch(e => onMessageError(e, res));
     }
+};
+
+const createEnableXmtpNotification = async () => {
+    const storage = await chrome.storage.local.get(STORAGE_KEY_ENABLE_XMTP_NOTIFICATION);
+    const enableXmtpNotification = storage[STORAGE_KEY_ENABLE_XMTP_NOTIFICATION];
+    console.log('createEnableXmtpNotification: enableXmtpNotification', enableXmtpNotification);
+    if (enableXmtpNotification) return;
+
+    chrome.notifications.create(NOTIFICATION_ID_ENABLE_XMTP, {
+        type: 'basic',
+        requireInteraction: true,
+        title: `Enable DMs`,
+        message: 'Sign into XMTP to enable direct messages',
+        contextMessage: 'Focalize',
+        iconUrl: getAppIconUrl(),
+    });
 };
 
 const onMessagesAlarm = async () => {
@@ -359,6 +401,7 @@ const onMessagesAlarm = async () => {
         threads = await getUnreadThreads(client);
     } catch (e) {
         console.error('onMessagesAlarm: error getting unread threads', e);
+        await createEnableXmtpNotification();
     }
 
     try {
