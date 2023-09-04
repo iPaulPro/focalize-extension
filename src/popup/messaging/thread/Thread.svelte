@@ -18,6 +18,7 @@
     import {windowTopicMap} from '../../../lib/stores/cache-store';
     import NewThreadRecipientInput from './components/NewThreadRecipientInput.svelte';
     import {newThread} from '../../../lib/xmtp-service.js';
+    import {getProfileByAddress} from "../../../lib/user/lens-profile";
 
     let loading = true;
     let thread: Thread;
@@ -133,30 +134,46 @@
         saveWindowId();
     }
 
+    const handleQueryParams = async () => {
+      const queryString = window.location.search;
+      const urlParams = getSearchParamsMap(queryString);
+      const topic = urlParams.topic;
+      const address = urlParams.address;
+
+      if (address) {
+        const existingThread = await findThread(address);
+        if (existingThread) {
+          thread = existingThread;
+        } else {
+          newMessagePeer = {
+            profile: await getProfileByAddress(address),
+            wallet: {
+              address: address,
+            },
+          };
+        }
+        return;
+      }
+
+      if (!topic) return;
+
+      thread = await getThread(topic);
+
+      if (!thread) {
+        window.close();
+        return;
+      }
+
+      chrome.notifications.clear(topic);
+    };
+
     onMount(async () => {
         storePopup.set({computePosition, autoUpdate, flip, shift, offset, arrow});
 
         window.addEventListener('focus', onFocus);
 
         await ensureUser();
-
-        const queryString = window.location.search;
-        const urlParams = getSearchParamsMap(queryString);
-        const topic = urlParams.topic;
-
-        if (!topic) {
-            loading = false;
-            return;
-        }
-
-        thread = await getThread(topic);
-
-        if (!thread) {
-            window.close();
-            return;
-        }
-
-        chrome.notifications.clear(topic);
+        await handleQueryParams();
         loading = false;
     });
 
@@ -242,7 +259,9 @@
     </div>
 
     <div class="flex-grow">
-      <NewThreadRecipientInput on:peerSelected={(e) => newMessagePeer = e.detail}/>
+      <NewThreadRecipientInput
+              recipient={newMessagePeer?.profile?.handle ?? newMessagePeer?.wallet?.ens ?? newMessagePeer?.wallet?.address}
+              on:peerSelected={(e) => newMessagePeer = e.detail}/>
     </div>
 
     {#if newMessagePeer}

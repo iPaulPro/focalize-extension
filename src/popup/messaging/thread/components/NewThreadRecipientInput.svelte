@@ -8,7 +8,8 @@
         validateRecipient,
         getAddressFromEns,
         getEnsFromAddress,
-        isEthereumAddress
+        isEthereumAddress,
+        addressOrDomainNameType
     } from '../../../../lib/utils/utils';
     import {getProfileByHandle} from '../../../../lib/user/lens-profile';
     import {canMessage} from '../../../../lib/xmtp-service';
@@ -19,8 +20,9 @@
 
     const dispatch = createEventDispatcher();
 
+    export let recipient: string;
+
     let input: HTMLInputElement;
-    let recipient: string;
     let validRecipient: boolean | undefined;
     let error: string | undefined;
     let validating: boolean;
@@ -112,6 +114,11 @@
 
     onMount(() => {
         input?.focus();
+
+        if (recipient) {
+            const result = addressOrDomainNameType.safeParse(recipient);
+            onValidated(result.success);
+        }
     });
 </script>
 

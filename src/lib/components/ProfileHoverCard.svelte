@@ -1,6 +1,6 @@
 <script lang="ts">
     import type {Profile} from '../graph/lens-service';
-    import {formatFollowerCount, getAvatarForLensHandle, truncate} from '../utils/utils';
+    import {formatFollowerCount, getAvatarForLensHandle, launchThreadWindow} from '../utils/utils';
     import {onMount} from 'svelte';
     import {getMutualFollows, getProfileById} from '../user/lens-profile';
     import FollowButton from './FollowButton.svelte';
@@ -8,15 +8,43 @@
     import {currentUser} from '../stores/user-store';
     import {getProfileUrl} from '../publications/lens-nodes';
     import {nodeSearch} from '../stores/preferences-store';
+    import {canMessage, findThread, isXmtpEnabled} from "../xmtp-service";
+    import LoadingSpinner from "./LoadingSpinner.svelte";
 
     export let profile: Profile;
 
     let loading = true;
     let mutualFollows: { profiles: Profile[], total: number } | undefined;
+    let isMessaging = false;
 
     $: avatarUrl = profile && getAvatarForLensHandle(profile.handle);
     $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
+
+    const canMessageProfile = async (): Promise<boolean> => {
+      if (!$currentUser || !profile) return false;
+      const xmtpEnabled = await isXmtpEnabled();
+      const available = canMessage(profile.ownedBy);
+      return xmtpEnabled && available;
+    };
+
+    const onMessageBtnClick = async () => {
+      const address = profile?.ownedBy;
+      if (!address) return;
+
+      isMessaging = true;
+
+      const existingThread = await findThread(address);
+      if (existingThread) {
+        const topic = existingThread.conversation.topic;
+        await launchThreadWindow({topic});
+        isMessaging = false;
+        return;
+      }
+
+      await launchThreadWindow({address})
+      isMessaging = false;
+    };
 
     onMount(async () => {
         try {
@@ -66,13 +94,34 @@
     class="w-80 flex flex-col text-base rounded-2xl p-5 bg-white dark:bg-gray-900 border border-gray-200
     dark:border-gray-700 shadow-lg">
 
-  <div class="flex justify-between items-start pb-2">
+  <div class="flex justify-between items-start pb-2 gap-2">
     <a href={userProfileUrl} target="_blank" rel="noreferrer">
       <img src={avatarUrl} alt="Avatar"
            class="w-16 aspect-square rounded-full object-cover bg-gray-300 text-white cursor-pointer hover:opacity-80">
     </a>
 
     {#if !loading && !isCurrentUserProfile}
+      {#await canMessageProfile() then dmsEnabled}
+        {#if dmsEnabled}
+          <div class="flex-grow flex justify-end h-full items-center">
+            <button type="button" on:click={onMessageBtnClick} disabled={isMessaging}
+                    class="flex items-center justify-center w-10 h-10 rounded-full
+                    border border-gray-200 dark:border-gray-700
+                    hover:bg-gray-200 dark:hover:bg-gray-700">
+              {#if isMessaging}
+                <LoadingSpinner size="w-5 h-5" />
+              {:else}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+              {/if}
+            </button>
+          </div>
+        {/if}
+      {/await}
+
       <FollowButton {profile}/>
     {/if}
   </div>

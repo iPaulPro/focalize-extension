@@ -136,16 +136,17 @@ export const launchComposerTab = async (draftId?: string) => {
     window.close();
 };
 
-export const launchThreadWindow = async (topic?: string) => {
+export const launchThreadWindow = async ({topic, address}: {topic?: string, address?: string} = {}) => {
     let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
     if (topic) {
         url += '?topic=' + encodeURIComponent(topic);
+    } else if (address) {
+        url += '?address=' + encodeURIComponent(address);
     }
 
-    const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
-    const windowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
-
     if (topic) {
+        const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
+        const windowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
         const existingWindow = windowTopicMap[topic];
         if (existingWindow) {
             try {
@@ -399,7 +400,7 @@ const domainNameTest = z.string().refine(value => /\.(lens|eth|test)$/.test(valu
     message: 'Invalid username',
 });
 
-const inputSchema: ZodType = z.union([ethereumAddressTest, domainNameTest]);
+export const addressOrDomainNameType: ZodType = z.union([ethereumAddressTest, domainNameTest]);
 
 export const validateRecipient = (node: HTMLElement, parameters: any) => {
     const onValidate: () => void = parameters.onValidate;
@@ -409,7 +410,7 @@ export const validateRecipient = (node: HTMLElement, parameters: any) => {
     subject.pipe(
         debounceTime(500),
     ).subscribe(value => {
-        const result = inputSchema.safeParse(value);
+        const result = addressOrDomainNameType.safeParse(value);
         onValidated(result.success);
     });
 

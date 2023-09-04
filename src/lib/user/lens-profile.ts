@@ -55,15 +55,8 @@ export const getProfileByHandle = async (handle: string): Promise<Profile> => {
 }
 
 export const getProfileByAddress = async (ethereumAddress: string): Promise<Profile> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    const userProfileId = storage.currentUser?.profileId;
-    const {profiles} = await lensApi.profiles({
-        request: {
-            ownedBy: [ethereumAddress]
-        },
-        userProfileId
-    });
-    const profile = profiles.items[0];
+    const profiles = await getProfiles([ethereumAddress]);
+    const profile = profiles[0];
     if (profile?.__typename === 'Profile') return profile;
     throw new Error('Unable to get profile');
 }

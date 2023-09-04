@@ -169,7 +169,7 @@ chrome.notifications.onClicked.addListener(async notificationId => {
     }
 
     if (notificationId.startsWith(XMTP_TOPIC_PREFIX)) {
-        await launchThreadWindow(notificationId);
+        await launchThreadWindow({topic: notificationId});
         return;
     }
 

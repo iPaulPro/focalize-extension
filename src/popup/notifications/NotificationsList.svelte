@@ -15,7 +15,7 @@
     import {hideOnScroll, scrollEndListener} from '../../lib/utils/utils';
     import {notificationsTimestamp} from '../../lib/stores/preferences-store';
 
-    export let lastUpdate: DateTime;
+    export let lastUpdate: DateTime | null;
 
     export const scrollToTop = () => {
         scrollElement.scrollTop = 0;

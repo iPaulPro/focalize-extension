@@ -23,7 +23,7 @@
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
 
     export let notification: Notification;
-    export let lastUpdate: DateTime;
+    export let lastUpdate: DateTime | null;
 
     let avatarElement: HTMLImageElement;
     let handleElement: HTMLElement;
