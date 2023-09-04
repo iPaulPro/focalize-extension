@@ -51,6 +51,12 @@ const storeKeys = async (address: string, keys: Uint8Array) => {
     await chrome.storage.local.set({[storageKey]: Buffer.from(keys).toString('binary')});
 };
 
+const registerAttachmentCodecs = async () => {
+    const {AttachmentCodec, RemoteAttachmentCodec} = await import("@xmtp/content-type-remote-attachment");
+    client.registerCodec(new AttachmentCodec());
+    client.registerCodec(new RemoteAttachmentCodec());
+}
+
 export const getXmtpClient = async (): Promise<Client> => {
     if (client) return client;
 
@@ -64,6 +70,9 @@ export const getXmtpClient = async (): Promise<Client> => {
                 env: import.meta.env.MODE === 'development' ? 'dev' : 'production',
                 privateKeyOverride: keys,
             });
+            if (typeof window !== 'undefined') {
+                await registerAttachmentCodecs();
+            }
             return client;
         }
     }

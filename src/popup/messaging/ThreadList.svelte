@@ -99,7 +99,7 @@
             }
         }
 
-        await launchThreadWindow(thread.conversation.topic);
+        await launchThreadWindow({topic: thread.conversation.topic});
     };
 
     $: if (messagesEnabled && !unfilteredThreads) {

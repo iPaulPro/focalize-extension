@@ -54,6 +54,7 @@
     "@types/uuid": "^9.0.1",
     "@walletconnect/ethereum-provider": "^2.9.1",
     "@walletconnect/modal": "^2.6.0",
+    "@xmtp/content-type-remote-attachment": "^1.0.7",
     "@xmtp/xmtp-js": "^8.2.1",
     "autolinker": "^4.0.0",
     "autoprefixer": "^10.4.14",

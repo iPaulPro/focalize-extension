@@ -136,6 +136,7 @@
 
     const handleQueryParams = async () => {
       const queryString = window.location.search;
+      console.log('handleQueryParams: query string', queryString);
       const urlParams = getSearchParamsMap(queryString);
       const topic = urlParams.topic;
       const address = urlParams.address;
