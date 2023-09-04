@@ -412,18 +412,28 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         }
     }
 
-    // One address can hold multiple Lens profiles, so we need to fetch all profiles owned by the user
-    const profilesOwnedByAddress = await getProfiles([user.address]);
-    const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
-    const profileIds = lensConversations.map((conversation) =>
-        extractProfileId(conversation.context!!.conversationId, userProfileIds)
-    );
+    const profiles: Profile[] = [];
 
-    const otherConversationAddresses = otherConversations.map((conversation) => conversation.peerAddress);
-    const nonLensConversationProfiles = await getProfiles(otherConversationAddresses);
+    if (lensConversations.length) {
+        // One address can hold multiple Lens profiles, so we need to fetch all profiles owned by the user
+        const profilesOwnedByAddress = await getProfiles([user.address]);
+        const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
+        const profileIds = lensConversations.map((conversation) =>
+            extractProfileId(conversation.context!!.conversationId, userProfileIds)
+        );
+        // Getting profiles by id is faster than getting them by address
+        const lensProfiles: Profile[] = await getProfilesBatch(profileIds);
+        profiles.push(...lensProfiles);
+    }
 
-    const profiles: Profile[] = await getProfilesBatch(profileIds);
-    profiles.push(...nonLensConversationProfiles);
+    if (otherConversations.length) {
+        const otherConversationAddresses = otherConversations.map((conversation) => conversation.peerAddress);
+        const nonLensConversationProfiles = await getProfiles(otherConversationAddresses);
+        if (nonLensConversationProfiles.length) {
+            profiles.push(...nonLensConversationProfiles);
+        }
+    }
+
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
