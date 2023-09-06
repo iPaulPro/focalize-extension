@@ -13,7 +13,7 @@ import type {
     Spread,
 } from 'lexical';
 
-import {TextNode} from 'lexical';
+import { TextNode } from 'lexical';
 
 export type SerializedHashtagNode = Spread<
     {
@@ -26,12 +26,10 @@ export type SerializedHashtagNode = Spread<
 export const createHashtagNode = (hashtag: string): HashtagNode =>
     new HashtagNode(hashtag).setMode('normal');
 
-export const isHashtagNode = (
-    node: LexicalNode | null | undefined,
-): boolean => node instanceof HashtagNode;
+export const isHashtagNode = (node: LexicalNode | null | undefined): boolean =>
+    node instanceof HashtagNode;
 
 export class HashtagNode extends TextNode {
-
     static getType(): string {
         return 'hashtag';
     }

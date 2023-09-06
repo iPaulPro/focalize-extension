@@ -6,22 +6,26 @@
  *
  */
 
-import type {LexicalEditor} from 'lexical';
+import type { LexicalEditor } from 'lexical';
 
-import type {TextNode} from 'lexical';
-import {createEmojiNode, EmojiNode} from './EmojiNode';
+import type { TextNode } from 'lexical';
+import { createEmojiNode, EmojiNode } from './EmojiNode';
 
 import emojis from './emoji-shortcodes.json';
-import {registerLexicalTextEntity} from '@lexical/text';
+import { registerLexicalTextEntity } from '@lexical/text';
 
 const emojiMap: Map<string, string> = new Map(Object.entries(emojis));
 
 // Matches :shortcode: with leading and trailing whitespace or punctuation.
 // (full match), (leading whitespace), (shortcode), (trailing whitespace/punctuation)
-const SHORTCODE_REGEX = /(^|\s):([a-zA-Z0-9_+-]+):(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/g;
+const SHORTCODE_REGEX =
+    /(^|\s):([a-zA-Z0-9_+-]+):(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/g;
 
 const createEmojiNodeFromShortcode = (textNode: TextNode): EmojiNode => {
-    const textContent: string = textNode.getTextContent().trim().replace(/:/g, '');
+    const textContent: string = textNode
+        .getTextContent()
+        .trim()
+        .replace(/:/g, '');
     const emoji: string | undefined = emojiMap.get(textContent);
     return createEmojiNode(emoji ?? textNode.getTextContent());
 };
@@ -61,6 +65,6 @@ export const registerEmojiShortcodePlugin = (editor: LexicalEditor) => {
         editor,
         getEmojiMatch,
         EmojiNode,
-        createEmojiNodeFromShortcode,
+        createEmojiNodeFromShortcode
     );
 };

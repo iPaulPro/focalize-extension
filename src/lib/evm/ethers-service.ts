@@ -1,6 +1,11 @@
-import {APP_ID, CHAIN_ID, INFURA_PROJECT_ID, WALLETCONNECT_PROJECT_ID} from '../../config';
-import type {JsonRpcSigner, TypedDataDomain, TypedDataField} from 'ethers';
-import {BrowserProvider, ethers, isError} from 'ethers';
+import {
+    APP_ID,
+    CHAIN_ID,
+    INFURA_PROJECT_ID,
+    WALLETCONNECT_PROJECT_ID,
+} from '../../config';
+import type { JsonRpcSigner, TypedDataDomain, TypedDataField } from 'ethers';
+import { BrowserProvider, ethers, isError } from 'ethers';
 import omitDeep from 'omit-deep';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import ethProvider from 'eth-provider';
@@ -9,14 +14,14 @@ import {
     getPreference,
     KEY_DARK_MODE,
     KEY_WALLET_CONNECTION,
-    savePreference
+    savePreference,
 } from '../stores/preferences-store';
-import {EthereumProvider} from '@walletconnect/ethereum-provider';
+import { EthereumProvider } from '@walletconnect/ethereum-provider';
 import createMetaMaskProvider from 'metamask-extension-provider';
 import focalizeIcon from '../../assets/focalize.svg';
 import WalletConnection from './WalletConnection';
 
-const walletConnectProjectId = WALLETCONNECT_PROJECT_ID
+const walletConnectProjectId = WALLETCONNECT_PROJECT_ID;
 
 let cachedProvider: BrowserProvider | undefined;
 
@@ -25,17 +30,17 @@ const chainId = Number.parseInt(CHAIN_ID, 10);
 const networkMap = {
     POLYGON_MAINNET: {
         chainId: ethers.toQuantity(137), // '0x89'
-        chainName: "Polygon",
-        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-        rpcUrls: ["https://polygon-rpc.com"],
-        blockExplorerUrls: ["https://www.polygonscan.com/"],
+        chainName: 'Polygon',
+        nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+        rpcUrls: ['https://polygon-rpc.com'],
+        blockExplorerUrls: ['https://www.polygonscan.com/'],
     },
     MUMBAI_TESTNET: {
         chainId: ethers.toQuantity(80001), // '0x13881'
-        chainName: "Mumbai",
-        nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-        rpcUrls: ["https://rpc-mumbai.maticvigil.com"],
-        blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
+        chainName: 'Mumbai',
+        nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+        rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
+        blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
     },
 };
 
@@ -72,19 +77,19 @@ const createWalletConnectProvider = async () => {
     console.log('ethereumProvider', ethereumProvider);
     await ethereumProvider.connect();
     return new ethers.BrowserProvider(ethereumProvider, 'any');
-}
+};
 
 const createInjectedProvider = async (): Promise<BrowserProvider> => {
     const provider = ethProvider(['injected']);
     console.log('createInjectedProvider: found provider', provider);
-    return new ethers.BrowserProvider(provider, "any");
-}
+    return new ethers.BrowserProvider(provider, 'any');
+};
 
 const createFrameProvider = async (): Promise<BrowserProvider> => {
     const provider = ethProvider(['frame']);
     console.log('createFrameProvider: found provider', provider);
-    return new ethers.BrowserProvider(provider, "any");
-}
+    return new ethers.BrowserProvider(provider, 'any');
+};
 
 const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
     const darkMode = await getPreference<boolean>(KEY_DARK_MODE);
@@ -92,21 +97,26 @@ const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
         appName: APP_ID,
         appLogoUrl: focalizeIcon,
         darkMode,
-        overrideIsMetaMask: false
+        overrideIsMetaMask: false,
     });
-    const provider = coinbaseWallet.makeWeb3Provider(rpcMap.get(chainId), chainId);
-    return new ethers.BrowserProvider(provider, "any");
-}
+    const provider = coinbaseWallet.makeWeb3Provider(
+        rpcMap.get(chainId),
+        chainId
+    );
+    return new ethers.BrowserProvider(provider, 'any');
+};
 
 const createSignerProvider = async (): Promise<BrowserProvider> => {
-    const walletConnection: WalletConnection | undefined = await getPreference(KEY_WALLET_CONNECTION);
+    const walletConnection: WalletConnection | undefined = await getPreference(
+        KEY_WALLET_CONNECTION
+    );
     if (!walletConnection) {
         throw new Error('No wallet connection');
     }
 
     switch (walletConnection) {
         case WalletConnection.METAMASK:
-            return new ethers.BrowserProvider(createMetaMaskProvider(), "any");
+            return new ethers.BrowserProvider(createMetaMaskProvider(), 'any');
         case WalletConnection.WALLET_CONNECT:
             return createWalletConnectProvider();
         case WalletConnection.INJECTED:
@@ -122,10 +132,10 @@ const normalizeChainId = (id: string | number | bigint) => {
     if (typeof id === 'string')
         return Number.parseInt(
             id,
-            id.trim().substring(0, 2) === '0x' ? 16 : 10,
-        )
-    if (typeof id === 'bigint') return Number(id)
-    return id
+            id.trim().substring(0, 2) === '0x' ? 16 : 10
+        );
+    if (typeof id === 'bigint') return Number(id);
+    return id;
 };
 
 const getProvider = async (): Promise<BrowserProvider> => {
@@ -134,59 +144,59 @@ const getProvider = async (): Promise<BrowserProvider> => {
         cachedProvider = await createSignerProvider();
     }
     return cachedProvider;
-}
+};
 
 export const clearProvider = async () => {
     cachedProvider = undefined;
     await deletePreference(KEY_WALLET_CONNECTION);
-}
+};
 
-export const initEthers = async(wallet: WalletConnection): Promise<any[]> => {
+export const initEthers = async (wallet: WalletConnection): Promise<any[]> => {
     console.log('initEthers: wallet connection', wallet);
     await clearProvider();
     await savePreference(KEY_WALLET_CONNECTION, wallet);
     return await getAccounts();
-}
+};
 
 export const getSigner = async (): Promise<JsonRpcSigner> => {
     const provider = await getProvider();
     return provider.getSigner();
-}
+};
 
 const getChainId = async (): Promise<number> => {
     const provider = await getProvider();
     return provider.send('eth_chainId', []).then(normalizeChainId);
-}
+};
 
 const switchChains = async (id: number) => {
     const stringId: string = ethers.toQuantity(id);
     const provider = await getProvider();
 
     try {
-        await provider.send(
-            'wallet_switchEthereumChain',
-            [{chainId: stringId}]
-        );
+        await provider.send('wallet_switchEthereumChain', [
+            { chainId: stringId },
+        ]);
         console.log('switched to chain', id);
     } catch (error) {
-        console.error("switchChains: error switching chains", error);
-        if (isError(error, "UNKNOWN_ERROR")) {
-            await provider.send(
-                "wallet_addEthereumChain",
-                [id === 80001 ? networkMap.MUMBAI_TESTNET : networkMap.POLYGON_MAINNET],
-            );
+        console.error('switchChains: error switching chains', error);
+        if (isError(error, 'UNKNOWN_ERROR')) {
+            await provider.send('wallet_addEthereumChain', [
+                id === 80001
+                    ? networkMap.MUMBAI_TESTNET
+                    : networkMap.POLYGON_MAINNET,
+            ]);
             return;
         }
         throw error;
     }
-}
+};
 
 export const ensureCorrectChain = async () => {
     const currentChainId = await getChainId();
     if (currentChainId !== chainId) {
         await switchChains(chainId);
     }
-}
+};
 
 export const getAccounts = async (): Promise<string[]> => {
     const provider = await getProvider();
@@ -195,11 +205,14 @@ export const getAccounts = async (): Promise<string[]> => {
         try {
             accounts = await provider.listAccounts();
         } catch (e) {
-            console.error('getAccounts: Unable to get accounts from provider', e)
+            console.error(
+                'getAccounts: Unable to get accounts from provider',
+                e
+            );
         }
     }
     return accounts;
-}
+};
 
 export const signTypedData = async (
     domain: TypedDataDomain,
@@ -213,4 +226,4 @@ export const signTypedData = async (
         omitDeep(types, ['__typename']),
         omitDeep(value, ['__typename'])
     );
-}
+};

@@ -6,7 +6,7 @@
  *
  */
 
-import type {Spread} from 'lexical';
+import type { Spread } from 'lexical';
 
 import {
     type DOMConversionMap,
@@ -22,8 +22,8 @@ import {
 export type SerializedMentionNode = Spread<
     {
         mentionName: string;
-        type: 'mention',
-        version: 1,
+        type: 'mention';
+        version: 1;
     },
     SerializedTextNode
 >;
@@ -35,20 +35,20 @@ export const createMentionNode = (mentionName: string): MentionNode => {
 };
 
 const convertMentionElement = (
-    domNode: HTMLElement,
+    domNode: HTMLElement
 ): DOMConversionOutput | null => {
     const textContent = domNode.textContent;
 
     if (textContent !== null) {
         const node = createMentionNode(textContent);
-        return {node};
+        return { node };
     }
 
     return null;
 };
 
 export const isMentionNode = (
-    node: LexicalNode | null | undefined,
+    node: LexicalNode | null | undefined
 ): node is MentionNode => node instanceof MentionNode;
 
 export class MentionNode extends TextNode {
@@ -97,7 +97,7 @@ export class MentionNode extends TextNode {
         const element = document.createElement('span');
         element.setAttribute('data-lexical-mention', 'true');
         element.textContent = this.__text;
-        return {element};
+        return { element };
     }
 
     static importDOM(): DOMConversionMap | null {

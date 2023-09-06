@@ -1,45 +1,45 @@
 name: Release
 
 on:
-  push:
-    tags:  
-      - 'v*'
+    push:
+        tags:
+            - 'v*'
 
 env:
-  VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
-  VITE_LENS_API: ${{ secrets.VITE_LENS_API }}
-  VITE_LENS_HUB_CONTRACT: ${{ secrets.VITE_LENS_HUB_CONTRACT }}
-  VITE_LENS_PREVIEW_NODE: ${{ secrets.VITE_LENS_PREVIEW_NODE }}
-  VITE_WEB3_STORAGE_TOKEN: ${{ secrets.VITE_WEB3_STORAGE_TOKEN }}
-  VITE_INFURA_PROJECT_ID: ${{ secrets.VITE_INFURA_PROJECT_ID }}
-  VITE_INFURA_IPFS_PROJECT_ID: ${{ secrets.VITE_INFURA_IPFS_PROJECT_ID }}
-  VITE_INFURA_IPFS_PROJECT_SECRET: ${{ secrets.VITE_INFURA_IPFS_PROJECT_SECRET }}
-  VITE_INFURA_GATEWAY_URL: ${{ secrets.VITE_INFURA_GATEWAY_URL }}
-  VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
+    VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
+    VITE_LENS_API: ${{ secrets.VITE_LENS_API }}
+    VITE_LENS_HUB_CONTRACT: ${{ secrets.VITE_LENS_HUB_CONTRACT }}
+    VITE_LENS_PREVIEW_NODE: ${{ secrets.VITE_LENS_PREVIEW_NODE }}
+    VITE_WEB3_STORAGE_TOKEN: ${{ secrets.VITE_WEB3_STORAGE_TOKEN }}
+    VITE_INFURA_PROJECT_ID: ${{ secrets.VITE_INFURA_PROJECT_ID }}
+    VITE_INFURA_IPFS_PROJECT_ID: ${{ secrets.VITE_INFURA_IPFS_PROJECT_ID }}
+    VITE_INFURA_IPFS_PROJECT_SECRET: ${{ secrets.VITE_INFURA_IPFS_PROJECT_SECRET }}
+    VITE_INFURA_GATEWAY_URL: ${{ secrets.VITE_INFURA_GATEWAY_URL }}
+    VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+    release:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
 
-      - name: Install and Build
-        env:
-          NODE_OPTIONS: "--max_old_space_size=4096"
-        run: |
-          npm ci
-          npm run build
+            - name: Install and Build
+              env:
+                  NODE_OPTIONS: '--max_old_space_size=4096'
+              run: |
+                  npm ci
+                  npm run build
 
-      - name: Create Zip
-        run: zip -r focalize-${{  github.ref_name }}.zip dist
+            - name: Create Zip
+              run: zip -r focalize-${{  github.ref_name }}.zip dist
 
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "focalize-${{  github.ref_name }}.zip"
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Create GitHub Release
+              uses: ncipollo/release-action@v1
+              with:
+                  artifacts: 'focalize-${{  github.ref_name }}.zip'
+                  token: ${{ secrets.GITHUB_TOKEN }}

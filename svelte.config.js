@@ -1,3 +1,3 @@
-import sveltepreprocess from 'svelte-preprocess'
+import sveltepreprocess from 'svelte-preprocess';
 
-export default {preprocess: sveltepreprocess({postcss: true})}
+export default { preprocess: sveltepreprocess({ postcss: true }) };

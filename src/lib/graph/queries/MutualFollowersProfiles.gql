@@ -18,7 +18,6 @@ fragment MediaFields on Media {
     mimeType
 }
 
-
 fragment ProfileFields on Profile {
     __typename
     isFollowedByMe

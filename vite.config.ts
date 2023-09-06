@@ -1,6 +1,6 @@
-import {defineConfig} from 'vite';
-import {svelte} from '@sveltejs/vite-plugin-svelte';
-import {crx} from '@crxjs/vite-plugin';
+import { defineConfig } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { crx } from '@crxjs/vite-plugin';
 import nodePolyfills from 'vite-plugin-node-stdlib-browser';
 import removeConsole from 'vite-plugin-remove-console';
 import resolve from '@rollup/plugin-node-resolve';
@@ -14,22 +14,26 @@ const commonPlugins = [
     nodePolyfills(),
     svelte({
         onwarn: (warning, handler) => {
-            if (warning.code === 'a11y-click-events-have-key-events' ||
-                warning.code === 'a11y-media-has-caption') {
+            if (
+                warning.code === 'a11y-click-events-have-key-events' ||
+                warning.code === 'a11y-media-has-caption'
+            ) {
                 return;
             }
             handler(warning);
         },
     }),
-    crx({manifest}),
-    removeConsole({includes: ['log', 'warn', 'info']}),
+    crx({ manifest }),
+    removeConsole({ includes: ['log', 'warn', 'info'] }),
 ];
 
 // vite-plugin-node-stdlib-browser only adds buffer to the global scope during optimization
 if (process.env.NODE_ENV !== 'production') {
-    commonPlugins.push(inject({
-        modules: {Buffer: ['buffer', 'Buffer']},
-    }));
+    commonPlugins.push(
+        inject({
+            modules: { Buffer: ['buffer', 'Buffer'] },
+        })
+    );
 }
 
 export default defineConfig({
@@ -45,5 +49,5 @@ export default defineConfig({
             transformMixedEsModules: true,
         },
     },
-    plugins: commonPlugins
+    plugins: commonPlugins,
 });

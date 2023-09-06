@@ -1,6 +1,6 @@
-import type {LexicalEditor, TextNode} from 'lexical';
-import {createHashtagNode, HashtagNode} from './HashtagNode';
-import {registerLexicalTextEntity} from '@lexical/text';
+import type { LexicalEditor, TextNode } from 'lexical';
+import { createHashtagNode, HashtagNode } from './HashtagNode';
+import { registerLexicalTextEntity } from '@lexical/text';
 
 const getHashtagRegexStringChars = (): Readonly<{
     alpha: string;
@@ -211,7 +211,7 @@ const getHashtagRegexStringChars = (): Readonly<{
 };
 
 const getHashtagRegexString = (): string => {
-    const {alpha, alphanumeric, hashChars} = getHashtagRegexStringChars();
+    const { alpha, alphanumeric, hashChars } = getHashtagRegexStringChars();
 
     const hashtagAlpha = '[' + alpha + ']';
     const hashtagAlphanumeric = '[' + alphanumeric + ']';
@@ -236,7 +236,8 @@ const getHashtagRegexString = (): string => {
 
 const hashtagRegex = new RegExp(getHashtagRegexString(), 'i');
 
-const createHashtagNodeFromTextNode = (textNode: TextNode): HashtagNode => createHashtagNode(textNode.getTextContent());
+const createHashtagNodeFromTextNode = (textNode: TextNode): HashtagNode =>
+    createHashtagNode(textNode.getTextContent());
 
 const getHashtagMatch = (text: string) => {
     const matchArr = hashtagRegex.exec(text);
@@ -262,6 +263,6 @@ export const registerHashtagPlugin = (editor: LexicalEditor) => {
         editor,
         getHashtagMatch,
         HashtagNode,
-        createHashtagNodeFromTextNode,
+        createHashtagNodeFromTextNode
     );
 };

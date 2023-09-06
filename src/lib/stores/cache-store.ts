@@ -1,9 +1,13 @@
-import {chromeStorageLocal} from "./chrome-storage-store";
-import type {Readable, Writable} from 'svelte/store';
+import { chromeStorageLocal } from './chrome-storage-store';
+import type { Readable, Writable } from 'svelte/store';
 
-import type {Notification, PaginatedResultInfo, Profile} from '../graph/lens-service';
-import type {CompactMessage} from '../xmtp-service';
-import {derived} from 'svelte/store';
+import type {
+    Notification,
+    PaginatedResultInfo,
+    Profile,
+} from '../graph/lens-service';
+import type { CompactMessage } from '../xmtp-service';
+import { derived } from 'svelte/store';
 
 /**
  * Cached data is saved to the `local` chrome storage area.
@@ -17,21 +21,26 @@ export const getCached = async <T>(key: string): Promise<T | undefined> => {
     return undefined;
 };
 
-export const saveToCache = async (key: string, value: any): Promise<void> => chrome.storage.local.set({[key]: value});
+export const saveToCache = async (key: string, value: any): Promise<void> =>
+    chrome.storage.local.set({ [key]: value });
 
 export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache';
 export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache';
 export const KEY_NOTIFICATION_SCROLL_TOP_CACHE = 'notificationsScrollTop';
 
-export const notificationItemsCache: Writable<Notification[]> = chromeStorageLocal(KEY_NOTIFICATION_ITEMS_CACHE);
-export const notificationPageInfoCache: Writable<PaginatedResultInfo> = chromeStorageLocal(KEY_NOTIFICATION_PAGE_INFO_CACHE);
-export const notificationsScrollTop: Writable<number> = chromeStorageLocal(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
+export const notificationItemsCache: Writable<Notification[]> =
+    chromeStorageLocal(KEY_NOTIFICATION_ITEMS_CACHE);
+export const notificationPageInfoCache: Writable<PaginatedResultInfo> =
+    chromeStorageLocal(KEY_NOTIFICATION_PAGE_INFO_CACHE);
+export const notificationsScrollTop: Writable<number> = chromeStorageLocal(
+    KEY_NOTIFICATION_SCROLL_TOP_CACHE
+);
 
 export const clearNotificationCache = async () => {
     await chrome.storage.local.remove(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_PAGE_INFO_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_ITEMS_CACHE);
-}
+};
 
 /**
  * A pending proxy action map from proxy action id to profile handle
@@ -45,8 +54,8 @@ export const KEY_PENDING_PROXY_ACTIONS = 'pendingProxyActions';
 /**
  * Pending proxy actions to check for
  */
-export const pendingProxyActions: Writable<PendingProxyActionMap> = chromeStorageLocal(KEY_PENDING_PROXY_ACTIONS);
-
+export const pendingProxyActions: Writable<PendingProxyActionMap> =
+    chromeStorageLocal(KEY_PENDING_PROXY_ACTIONS);
 
 /**
  * Map of conversation topic to last read message timestamp in milliseconds
@@ -56,14 +65,18 @@ export interface MessageTimestampMap {
 }
 
 export const KEY_MESSAGE_TIMESTAMPS = 'messageTimestamps';
-export const messageTimestamps: Writable<MessageTimestampMap> = chromeStorageLocal(KEY_MESSAGE_TIMESTAMPS, {});
+export const messageTimestamps: Writable<MessageTimestampMap> =
+    chromeStorageLocal(KEY_MESSAGE_TIMESTAMPS, {});
 
 export const KEY_SELECTED_MAIN_TAB = 'selectedMainTab';
-export const selectedMainTab: Writable<number> = chromeStorageLocal(KEY_SELECTED_MAIN_TAB, 0);
+export const selectedMainTab: Writable<number> = chromeStorageLocal(
+    KEY_SELECTED_MAIN_TAB,
+    0
+);
 
 export const KEY_SELECTED_MESSAGES_TAB = 'selectedMessagesTab';
-export const selectedMessagesTab: Writable<number | undefined> = chromeStorageLocal(KEY_SELECTED_MESSAGES_TAB, 0);
-
+export const selectedMessagesTab: Writable<number | undefined> =
+    chromeStorageLocal(KEY_SELECTED_MESSAGES_TAB, 0);
 
 /**
  * Map of conversation topic to window id
@@ -73,8 +86,10 @@ export interface WindowTopicMap {
 }
 
 export const KEY_WINDOW_TOPIC_MAP = 'windowTopicMap';
-export const windowTopicMap: Writable<WindowTopicMap> = chromeStorageLocal(KEY_WINDOW_TOPIC_MAP, {});
-
+export const windowTopicMap: Writable<WindowTopicMap> = chromeStorageLocal(
+    KEY_WINDOW_TOPIC_MAP,
+    {}
+);
 
 /**
  * Map of Lens profile id to profile
@@ -86,7 +101,6 @@ export interface ProfileMap {
 export const KEY_PROFILES = 'cachedProfiles';
 export const profiles: Writable<ProfileMap> = chromeStorageLocal(KEY_PROFILES);
 
-
 /**
  * Map of conversation topic to the latest decoded message
  */
@@ -95,7 +109,15 @@ export interface LatestMessageMap {
 }
 
 export const KEY_LATEST_MESSAGE_MAP = 'latestMessageMap';
-export const latestMessageMap: Writable<LatestMessageMap> = chromeStorageLocal(KEY_LATEST_MESSAGE_MAP, {});
+export const latestMessageMap: Writable<LatestMessageMap> = chromeStorageLocal(
+    KEY_LATEST_MESSAGE_MAP,
+    {}
+);
 
-export const getLatestMessage = (topic: string): Readable<CompactMessage | undefined> =>
-    derived(latestMessageMap, ($latestMessageMap) => $latestMessageMap?.[topic]);
+export const getLatestMessage = (
+    topic: string
+): Readable<CompactMessage | undefined> =>
+    derived(
+        latestMessageMap,
+        ($latestMessageMap) => $latestMessageMap?.[topic]
+    );

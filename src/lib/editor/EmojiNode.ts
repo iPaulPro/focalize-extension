@@ -7,7 +7,7 @@
  */
 
 import {
-    type  EditorConfig,
+    type EditorConfig,
     type LexicalNode,
     type SerializedTextNode,
     type Spread,
@@ -26,11 +26,10 @@ export const createEmojiNode = (emojiText: string): EmojiNode =>
     new EmojiNode(emojiText).setMode('token');
 
 export const isEmojiNode = (
-    node: LexicalNode | null | undefined,
+    node: LexicalNode | null | undefined
 ): node is EmojiNode => node instanceof EmojiNode;
 
 export class EmojiNode extends TextNode {
-
     static getType(): string {
         return 'emoji';
     }

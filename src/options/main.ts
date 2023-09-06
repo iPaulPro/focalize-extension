@@ -1,8 +1,8 @@
-import "../app.pcss";
-import App from "./Options.svelte";
+import '../app.pcss';
+import App from './Options.svelte';
 
 const app = new App({
-    target: document.getElementById("app")!!,
+    target: document.getElementById('app')!!,
 });
 
 export default app;

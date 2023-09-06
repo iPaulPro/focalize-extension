@@ -1,9 +1,9 @@
-import type {Writable} from 'svelte/store';
-import {writable} from 'svelte/store';
-import type {PublicationMetadataMediaInput} from '../graph/lens-service';
-import type {Web3File} from '../ipfs-service';
-import type {CollectSettings} from '../publications/CollectSettings';
-import type {PostDraft} from '../publications/PostDraft';
+import type { Writable } from 'svelte/store';
+import { writable } from 'svelte/store';
+import type { PublicationMetadataMediaInput } from '../graph/lens-service';
+import type { Web3File } from '../ipfs-service';
+import type { CollectSettings } from '../publications/CollectSettings';
+import type { PostDraft } from '../publications/PostDraft';
 
 export interface Recipient {
     address: string;
@@ -11,7 +11,7 @@ export interface Recipient {
     identity?: {
         lens?: string;
         ens?: string;
-    }
+    };
 }
 
 export enum PublicationState {
@@ -64,7 +64,9 @@ export const file: Writable<Web3File | undefined> = writable();
 /**
  * The main post attachment. Can represent an image, audio, or video file.
  */
-export const attachments: Writable<PublicationMetadataMediaInput[] | undefined> = writable();
+export const attachments: Writable<
+    PublicationMetadataMediaInput[] | undefined
+> = writable();
 
 /**
  * The cover image for audio and video attachments
@@ -84,7 +86,8 @@ export const collectSettings: Writable<CollectSettings> = writable({});
 /**
  * Used for optimistic display while waiting to be indexed
  */
-export const publicationState: Writable<PublicationState | undefined> = writable();
+export const publicationState: Writable<PublicationState | undefined> =
+    writable();
 
 /**
  * Clears all post-related stores
@@ -97,8 +100,8 @@ export const clearPostState = () => {
     attachments.set(undefined);
     cover.set(undefined);
     author.set(undefined);
-    collectSettings.set({})
-}
+    collectSettings.set({});
+};
 
 export const loadFromDraft = (postDraft: PostDraft) => {
     if (!postDraft) return;
@@ -109,4 +112,4 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     attachments.set(postDraft.attachments);
     author.set(postDraft.author);
     collectSettings.set(postDraft.collectFee ?? {});
-}
+};

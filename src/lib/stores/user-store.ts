@@ -1,12 +1,13 @@
-import {chromeStorageLocal} from "./chrome-storage-store";
-import type {Writable} from 'svelte/store';
-import type {User} from "../user/user";
+import { chromeStorageLocal } from './chrome-storage-store';
+import type { Writable } from 'svelte/store';
+import type { User } from '../user/user';
 
 export const KEY_CURRENT_USER = 'currentUser';
 /**
  * The authenticated Lens user
  */
-export const currentUser: Writable<User | null> = chromeStorageLocal(KEY_CURRENT_USER);
+export const currentUser: Writable<User | null> =
+    chromeStorageLocal(KEY_CURRENT_USER);
 
 export const clearUser = () => {
     currentUser.set(null);

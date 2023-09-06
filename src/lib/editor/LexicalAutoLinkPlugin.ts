@@ -6,8 +6,8 @@
  *
  */
 
-import type {LinkAttributes} from '@lexical/link';
-import type {ElementNode, LexicalEditor, LexicalNode} from 'lexical';
+import type { LinkAttributes } from '@lexical/link';
+import type { ElementNode, LexicalEditor, LexicalNode } from 'lexical';
 
 import {
     $createAutoLinkNode,
@@ -15,7 +15,7 @@ import {
     $isLinkNode,
     AutoLinkNode,
 } from '@lexical/link';
-import {mergeRegister} from '@lexical/utils';
+import { mergeRegister } from '@lexical/utils';
 import {
     $createTextNode,
     $isElementNode,
@@ -53,7 +53,7 @@ export type LinkMatcher = (text: string) => LinkMatcherResult | null;
 
 export function createLinkMatcherWithRegExp(
     regExp: RegExp,
-    urlTransformer: (text: string) => string = (text) => text,
+    urlTransformer: (text: string) => string = (text) => text
 ) {
     return (text: string) => {
         const match = regExp.exec(text);
@@ -69,7 +69,7 @@ export function createLinkMatcherWithRegExp(
 
 const findFirstMatch = (
     text: string,
-    matchers: Array<LinkMatcher>,
+    matchers: Array<LinkMatcher>
 ): LinkMatcherResult | null => {
     for (const item of matchers) {
         const match = item(text);
@@ -86,9 +86,11 @@ const PUNCTUATION_OR_SPACE = /[.,;\s]/;
 
 const isSeparator = (char: string): boolean => PUNCTUATION_OR_SPACE.test(char);
 
-const endsWithSeparator = (textContent: string): boolean => isSeparator(textContent[textContent.length - 1]);
+const endsWithSeparator = (textContent: string): boolean =>
+    isSeparator(textContent[textContent.length - 1]);
 
-const startsWithSeparator = (textContent: string): boolean => isSeparator(textContent[0]);
+const startsWithSeparator = (textContent: string): boolean =>
+    isSeparator(textContent[0]);
 
 const isPreviousNodeValid = (node: LexicalNode): boolean => {
     let previousNode = node.getPreviousSibling();
@@ -111,7 +113,8 @@ const isNextNodeValid = (node: LexicalNode): boolean => {
     return (
         nextNode === null ||
         $isLineBreakNode(nextNode) ||
-        ($isTextNode(nextNode) && startsWithSeparator(nextNode.getTextContent()))
+        ($isTextNode(nextNode) &&
+            startsWithSeparator(nextNode.getTextContent()))
     );
 };
 
@@ -119,7 +122,7 @@ const isContentAroundIsValid = (
     matchStart: number,
     matchEnd: number,
     text: string,
-    node: TextNode,
+    node: TextNode
 ): boolean => {
     const contentBeforeIsValid =
         matchStart > 0
@@ -139,7 +142,7 @@ const isContentAroundIsValid = (
 const handleLinkCreation = (
     node: TextNode,
     matchers: Array<LinkMatcher>,
-    onChange: ChangeHandler,
+    onChange: ChangeHandler
 ): void => {
     const nodeText = node.getTextContent();
     let text = nodeText;
@@ -148,7 +151,7 @@ const handleLinkCreation = (
     let match;
 
     // tslint:disable-next-line:no-conditional-assignment
-    while (match = findFirstMatch(text, matchers)) {
+    while ((match = findFirstMatch(text, matchers))) {
         const matchStart = match.index;
         const matchLength = match.length;
         const matchEnd = matchStart + matchLength;
@@ -156,20 +159,21 @@ const handleLinkCreation = (
             invalidMatchEnd + matchStart,
             invalidMatchEnd + matchEnd,
             nodeText,
-            node,
+            node
         );
 
         if (isValid) {
             let linkTextNode;
             if (invalidMatchEnd + matchStart === 0) {
                 [linkTextNode, remainingTextNode] = remainingTextNode.splitText(
-                    invalidMatchEnd + matchLength,
+                    invalidMatchEnd + matchLength
                 );
             } else {
-                [, linkTextNode, remainingTextNode] = remainingTextNode.splitText(
-                    invalidMatchEnd + matchStart,
-                    invalidMatchEnd + matchStart + matchLength,
-                );
+                [, linkTextNode, remainingTextNode] =
+                    remainingTextNode.splitText(
+                        invalidMatchEnd + matchStart,
+                        invalidMatchEnd + matchStart + matchLength
+                    );
             }
             const linkNode = $createAutoLinkNode(match.url, match.attributes);
             const textNode = $createTextNode(match.text);
@@ -202,7 +206,7 @@ const replaceWithChildren = (node: ElementNode): Array<LexicalNode> => {
 const handleLinkEdit = (
     linkNode: AutoLinkNode,
     matchers: Array<LinkMatcher>,
-    onChange: ChangeHandler,
+    onChange: ChangeHandler
 ): void => {
     // Check children are simple text
     const children = linkNode.getChildren();
@@ -258,7 +262,7 @@ const handleLinkEdit = (
 const handleBadNeighbors = (
     textNode: TextNode,
     matchers: Array<LinkMatcher>,
-    onChange: ChangeHandler,
+    onChange: ChangeHandler
 ): void => {
     const previousSibling = textNode.getPreviousSibling();
     const nextSibling = textNode.getNextSibling();
@@ -280,7 +284,7 @@ const handleBadNeighbors = (
 export const registerAutoLink = (
     editor: LexicalEditor,
     matchers: Array<LinkMatcher> = MATCHERS,
-    onChange?: ChangeHandler,
+    onChange?: ChangeHandler
 ) => {
     if (!editor.hasNodes([AutoLinkNode])) {
         throw new Error('AutoLinkNode not registered on editor');
@@ -309,6 +313,6 @@ export const registerAutoLink = (
 
                 handleBadNeighbors(textNode, matchers, onChangeWrapped);
             }
-        }),
+        })
     );
 };

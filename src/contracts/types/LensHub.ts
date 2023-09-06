@@ -2,2127 +2,2197 @@
 /* tslint:disable */
 /* eslint-disable */
 import type {
-  BaseContract,
-  BigNumberish,
-  BytesLike,
-  FunctionFragment,
-  Result,
-  Interface,
-  EventFragment,
-  AddressLike,
-  ContractRunner,
-  ContractMethod,
-  Listener,
-} from "ethers";
+    BaseContract,
+    BigNumberish,
+    BytesLike,
+    FunctionFragment,
+    Result,
+    Interface,
+    EventFragment,
+    AddressLike,
+    ContractRunner,
+    ContractMethod,
+    Listener,
+} from 'ethers';
 import type {
-  TypedContractEvent,
-  TypedDeferredTopicFilter,
-  TypedEventLog,
-  TypedLogDescription,
-  TypedListener,
-  TypedContractMethod,
-} from "./common";
+    TypedContractEvent,
+    TypedDeferredTopicFilter,
+    TypedEventLog,
+    TypedLogDescription,
+    TypedListener,
+    TypedContractMethod,
+} from './common';
 
 export declare namespace DataTypes {
-  export type EIP712SignatureStruct = {
-    v: BigNumberish;
-    r: BytesLike;
-    s: BytesLike;
-    deadline: BigNumberish;
-  };
+    export type EIP712SignatureStruct = {
+        v: BigNumberish;
+        r: BytesLike;
+        s: BytesLike;
+        deadline: BigNumberish;
+    };
 
-  export type EIP712SignatureStructOutput = [
-    v: bigint,
-    r: string,
-    s: string,
-    deadline: bigint
-  ] & { v: bigint; r: string; s: string; deadline: bigint };
+    export type EIP712SignatureStructOutput = [
+        v: bigint,
+        r: string,
+        s: string,
+        deadline: bigint,
+    ] & { v: bigint; r: string; s: string; deadline: bigint };
 
-  export type CollectWithSigDataStruct = {
-    collector: AddressLike;
-    profileId: BigNumberish;
-    pubId: BigNumberish;
-    data: BytesLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type CollectWithSigDataStruct = {
+        collector: AddressLike;
+        profileId: BigNumberish;
+        pubId: BigNumberish;
+        data: BytesLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type CollectWithSigDataStructOutput = [
-    collector: string,
-    profileId: bigint,
-    pubId: bigint,
-    data: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    collector: string;
-    profileId: bigint;
-    pubId: bigint;
-    data: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type CollectWithSigDataStructOutput = [
+        collector: string,
+        profileId: bigint,
+        pubId: bigint,
+        data: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        collector: string;
+        profileId: bigint;
+        pubId: bigint;
+        data: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type CommentDataStruct = {
-    profileId: BigNumberish;
-    contentURI: string;
-    profileIdPointed: BigNumberish;
-    pubIdPointed: BigNumberish;
-    referenceModuleData: BytesLike;
-    collectModule: AddressLike;
-    collectModuleInitData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-  };
+    export type CommentDataStruct = {
+        profileId: BigNumberish;
+        contentURI: string;
+        profileIdPointed: BigNumberish;
+        pubIdPointed: BigNumberish;
+        referenceModuleData: BytesLike;
+        collectModule: AddressLike;
+        collectModuleInitData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+    };
 
-  export type CommentDataStructOutput = [
-    profileId: bigint,
-    contentURI: string,
-    profileIdPointed: bigint,
-    pubIdPointed: bigint,
-    referenceModuleData: string,
-    collectModule: string,
-    collectModuleInitData: string,
-    referenceModule: string,
-    referenceModuleInitData: string
-  ] & {
-    profileId: bigint;
-    contentURI: string;
-    profileIdPointed: bigint;
-    pubIdPointed: bigint;
-    referenceModuleData: string;
-    collectModule: string;
-    collectModuleInitData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-  };
+    export type CommentDataStructOutput = [
+        profileId: bigint,
+        contentURI: string,
+        profileIdPointed: bigint,
+        pubIdPointed: bigint,
+        referenceModuleData: string,
+        collectModule: string,
+        collectModuleInitData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+    ] & {
+        profileId: bigint;
+        contentURI: string;
+        profileIdPointed: bigint;
+        pubIdPointed: bigint;
+        referenceModuleData: string;
+        collectModule: string;
+        collectModuleInitData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+    };
 
-  export type CommentWithSigDataStruct = {
-    profileId: BigNumberish;
-    contentURI: string;
-    profileIdPointed: BigNumberish;
-    pubIdPointed: BigNumberish;
-    referenceModuleData: BytesLike;
-    collectModule: AddressLike;
-    collectModuleInitData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type CommentWithSigDataStruct = {
+        profileId: BigNumberish;
+        contentURI: string;
+        profileIdPointed: BigNumberish;
+        pubIdPointed: BigNumberish;
+        referenceModuleData: BytesLike;
+        collectModule: AddressLike;
+        collectModuleInitData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type CommentWithSigDataStructOutput = [
-    profileId: bigint,
-    contentURI: string,
-    profileIdPointed: bigint,
-    pubIdPointed: bigint,
-    referenceModuleData: string,
-    collectModule: string,
-    collectModuleInitData: string,
-    referenceModule: string,
-    referenceModuleInitData: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    contentURI: string;
-    profileIdPointed: bigint;
-    pubIdPointed: bigint;
-    referenceModuleData: string;
-    collectModule: string;
-    collectModuleInitData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type CommentWithSigDataStructOutput = [
+        profileId: bigint,
+        contentURI: string,
+        profileIdPointed: bigint,
+        pubIdPointed: bigint,
+        referenceModuleData: string,
+        collectModule: string,
+        collectModuleInitData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        contentURI: string;
+        profileIdPointed: bigint;
+        pubIdPointed: bigint;
+        referenceModuleData: string;
+        collectModule: string;
+        collectModuleInitData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type CreateProfileDataStruct = {
-    to: AddressLike;
-    handle: string;
-    imageURI: string;
-    followModule: AddressLike;
-    followModuleInitData: BytesLike;
-    followNFTURI: string;
-  };
+    export type CreateProfileDataStruct = {
+        to: AddressLike;
+        handle: string;
+        imageURI: string;
+        followModule: AddressLike;
+        followModuleInitData: BytesLike;
+        followNFTURI: string;
+    };
 
-  export type CreateProfileDataStructOutput = [
-    to: string,
-    handle: string,
-    imageURI: string,
-    followModule: string,
-    followModuleInitData: string,
-    followNFTURI: string
-  ] & {
-    to: string;
-    handle: string;
-    imageURI: string;
-    followModule: string;
-    followModuleInitData: string;
-    followNFTURI: string;
-  };
+    export type CreateProfileDataStructOutput = [
+        to: string,
+        handle: string,
+        imageURI: string,
+        followModule: string,
+        followModuleInitData: string,
+        followNFTURI: string,
+    ] & {
+        to: string;
+        handle: string;
+        imageURI: string;
+        followModule: string;
+        followModuleInitData: string;
+        followNFTURI: string;
+    };
 
-  export type FollowWithSigDataStruct = {
-    follower: AddressLike;
-    profileIds: BigNumberish[];
-    datas: BytesLike[];
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type FollowWithSigDataStruct = {
+        follower: AddressLike;
+        profileIds: BigNumberish[];
+        datas: BytesLike[];
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type FollowWithSigDataStructOutput = [
-    follower: string,
-    profileIds: bigint[],
-    datas: string[],
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    follower: string;
-    profileIds: bigint[];
-    datas: string[];
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type FollowWithSigDataStructOutput = [
+        follower: string,
+        profileIds: bigint[],
+        datas: string[],
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        follower: string;
+        profileIds: bigint[];
+        datas: string[];
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type ProfileStructStruct = {
-    pubCount: BigNumberish;
-    followModule: AddressLike;
-    followNFT: AddressLike;
-    handle: string;
-    imageURI: string;
-    followNFTURI: string;
-  };
+    export type ProfileStructStruct = {
+        pubCount: BigNumberish;
+        followModule: AddressLike;
+        followNFT: AddressLike;
+        handle: string;
+        imageURI: string;
+        followNFTURI: string;
+    };
 
-  export type ProfileStructStructOutput = [
-    pubCount: bigint,
-    followModule: string,
-    followNFT: string,
-    handle: string,
-    imageURI: string,
-    followNFTURI: string
-  ] & {
-    pubCount: bigint;
-    followModule: string;
-    followNFT: string;
-    handle: string;
-    imageURI: string;
-    followNFTURI: string;
-  };
+    export type ProfileStructStructOutput = [
+        pubCount: bigint,
+        followModule: string,
+        followNFT: string,
+        handle: string,
+        imageURI: string,
+        followNFTURI: string,
+    ] & {
+        pubCount: bigint;
+        followModule: string;
+        followNFT: string;
+        handle: string;
+        imageURI: string;
+        followNFTURI: string;
+    };
 
-  export type PublicationStructStruct = {
-    profileIdPointed: BigNumberish;
-    pubIdPointed: BigNumberish;
-    contentURI: string;
-    referenceModule: AddressLike;
-    collectModule: AddressLike;
-    collectNFT: AddressLike;
-  };
+    export type PublicationStructStruct = {
+        profileIdPointed: BigNumberish;
+        pubIdPointed: BigNumberish;
+        contentURI: string;
+        referenceModule: AddressLike;
+        collectModule: AddressLike;
+        collectNFT: AddressLike;
+    };
 
-  export type PublicationStructStructOutput = [
-    profileIdPointed: bigint,
-    pubIdPointed: bigint,
-    contentURI: string,
-    referenceModule: string,
-    collectModule: string,
-    collectNFT: string
-  ] & {
-    profileIdPointed: bigint;
-    pubIdPointed: bigint;
-    contentURI: string;
-    referenceModule: string;
-    collectModule: string;
-    collectNFT: string;
-  };
+    export type PublicationStructStructOutput = [
+        profileIdPointed: bigint,
+        pubIdPointed: bigint,
+        contentURI: string,
+        referenceModule: string,
+        collectModule: string,
+        collectNFT: string,
+    ] & {
+        profileIdPointed: bigint;
+        pubIdPointed: bigint;
+        contentURI: string;
+        referenceModule: string;
+        collectModule: string;
+        collectNFT: string;
+    };
 
-  export type MirrorDataStruct = {
-    profileId: BigNumberish;
-    profileIdPointed: BigNumberish;
-    pubIdPointed: BigNumberish;
-    referenceModuleData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-  };
+    export type MirrorDataStruct = {
+        profileId: BigNumberish;
+        profileIdPointed: BigNumberish;
+        pubIdPointed: BigNumberish;
+        referenceModuleData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+    };
 
-  export type MirrorDataStructOutput = [
-    profileId: bigint,
-    profileIdPointed: bigint,
-    pubIdPointed: bigint,
-    referenceModuleData: string,
-    referenceModule: string,
-    referenceModuleInitData: string
-  ] & {
-    profileId: bigint;
-    profileIdPointed: bigint;
-    pubIdPointed: bigint;
-    referenceModuleData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-  };
+    export type MirrorDataStructOutput = [
+        profileId: bigint,
+        profileIdPointed: bigint,
+        pubIdPointed: bigint,
+        referenceModuleData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+    ] & {
+        profileId: bigint;
+        profileIdPointed: bigint;
+        pubIdPointed: bigint;
+        referenceModuleData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+    };
 
-  export type MirrorWithSigDataStruct = {
-    profileId: BigNumberish;
-    profileIdPointed: BigNumberish;
-    pubIdPointed: BigNumberish;
-    referenceModuleData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type MirrorWithSigDataStruct = {
+        profileId: BigNumberish;
+        profileIdPointed: BigNumberish;
+        pubIdPointed: BigNumberish;
+        referenceModuleData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type MirrorWithSigDataStructOutput = [
-    profileId: bigint,
-    profileIdPointed: bigint,
-    pubIdPointed: bigint,
-    referenceModuleData: string,
-    referenceModule: string,
-    referenceModuleInitData: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    profileIdPointed: bigint;
-    pubIdPointed: bigint;
-    referenceModuleData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type MirrorWithSigDataStructOutput = [
+        profileId: bigint,
+        profileIdPointed: bigint,
+        pubIdPointed: bigint,
+        referenceModuleData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        profileIdPointed: bigint;
+        pubIdPointed: bigint;
+        referenceModuleData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type PostDataStruct = {
-    profileId: BigNumberish;
-    contentURI: string;
-    collectModule: AddressLike;
-    collectModuleInitData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-  };
+    export type PostDataStruct = {
+        profileId: BigNumberish;
+        contentURI: string;
+        collectModule: AddressLike;
+        collectModuleInitData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+    };
 
-  export type PostDataStructOutput = [
-    profileId: bigint,
-    contentURI: string,
-    collectModule: string,
-    collectModuleInitData: string,
-    referenceModule: string,
-    referenceModuleInitData: string
-  ] & {
-    profileId: bigint;
-    contentURI: string;
-    collectModule: string;
-    collectModuleInitData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-  };
+    export type PostDataStructOutput = [
+        profileId: bigint,
+        contentURI: string,
+        collectModule: string,
+        collectModuleInitData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+    ] & {
+        profileId: bigint;
+        contentURI: string;
+        collectModule: string;
+        collectModuleInitData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+    };
 
-  export type PostWithSigDataStruct = {
-    profileId: BigNumberish;
-    contentURI: string;
-    collectModule: AddressLike;
-    collectModuleInitData: BytesLike;
-    referenceModule: AddressLike;
-    referenceModuleInitData: BytesLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type PostWithSigDataStruct = {
+        profileId: BigNumberish;
+        contentURI: string;
+        collectModule: AddressLike;
+        collectModuleInitData: BytesLike;
+        referenceModule: AddressLike;
+        referenceModuleInitData: BytesLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type PostWithSigDataStructOutput = [
-    profileId: bigint,
-    contentURI: string,
-    collectModule: string,
-    collectModuleInitData: string,
-    referenceModule: string,
-    referenceModuleInitData: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    contentURI: string;
-    collectModule: string;
-    collectModuleInitData: string;
-    referenceModule: string;
-    referenceModuleInitData: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type PostWithSigDataStructOutput = [
+        profileId: bigint,
+        contentURI: string,
+        collectModule: string,
+        collectModuleInitData: string,
+        referenceModule: string,
+        referenceModuleInitData: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        contentURI: string;
+        collectModule: string;
+        collectModuleInitData: string;
+        referenceModule: string;
+        referenceModuleInitData: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type SetDefaultProfileWithSigDataStruct = {
-    wallet: AddressLike;
-    profileId: BigNumberish;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type SetDefaultProfileWithSigDataStruct = {
+        wallet: AddressLike;
+        profileId: BigNumberish;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type SetDefaultProfileWithSigDataStructOutput = [
-    wallet: string,
-    profileId: bigint,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    wallet: string;
-    profileId: bigint;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type SetDefaultProfileWithSigDataStructOutput = [
+        wallet: string,
+        profileId: bigint,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        wallet: string;
+        profileId: bigint;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type SetDispatcherWithSigDataStruct = {
-    profileId: BigNumberish;
-    dispatcher: AddressLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type SetDispatcherWithSigDataStruct = {
+        profileId: BigNumberish;
+        dispatcher: AddressLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type SetDispatcherWithSigDataStructOutput = [
-    profileId: bigint,
-    dispatcher: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    dispatcher: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type SetDispatcherWithSigDataStructOutput = [
+        profileId: bigint,
+        dispatcher: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        dispatcher: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type SetFollowModuleWithSigDataStruct = {
-    profileId: BigNumberish;
-    followModule: AddressLike;
-    followModuleInitData: BytesLike;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type SetFollowModuleWithSigDataStruct = {
+        profileId: BigNumberish;
+        followModule: AddressLike;
+        followModuleInitData: BytesLike;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type SetFollowModuleWithSigDataStructOutput = [
-    profileId: bigint,
-    followModule: string,
-    followModuleInitData: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    followModule: string;
-    followModuleInitData: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type SetFollowModuleWithSigDataStructOutput = [
+        profileId: bigint,
+        followModule: string,
+        followModuleInitData: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        followModule: string;
+        followModuleInitData: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type SetFollowNFTURIWithSigDataStruct = {
-    profileId: BigNumberish;
-    followNFTURI: string;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type SetFollowNFTURIWithSigDataStruct = {
+        profileId: BigNumberish;
+        followNFTURI: string;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type SetFollowNFTURIWithSigDataStructOutput = [
-    profileId: bigint,
-    followNFTURI: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    followNFTURI: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type SetFollowNFTURIWithSigDataStructOutput = [
+        profileId: bigint,
+        followNFTURI: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        followNFTURI: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 
-  export type SetProfileImageURIWithSigDataStruct = {
-    profileId: BigNumberish;
-    imageURI: string;
-    sig: DataTypes.EIP712SignatureStruct;
-  };
+    export type SetProfileImageURIWithSigDataStruct = {
+        profileId: BigNumberish;
+        imageURI: string;
+        sig: DataTypes.EIP712SignatureStruct;
+    };
 
-  export type SetProfileImageURIWithSigDataStructOutput = [
-    profileId: bigint,
-    imageURI: string,
-    sig: DataTypes.EIP712SignatureStructOutput
-  ] & {
-    profileId: bigint;
-    imageURI: string;
-    sig: DataTypes.EIP712SignatureStructOutput;
-  };
+    export type SetProfileImageURIWithSigDataStructOutput = [
+        profileId: bigint,
+        imageURI: string,
+        sig: DataTypes.EIP712SignatureStructOutput,
+    ] & {
+        profileId: bigint;
+        imageURI: string;
+        sig: DataTypes.EIP712SignatureStructOutput;
+    };
 }
 
 export declare namespace IERC721Time {
-  export type TokenDataStruct = {
-    owner: AddressLike;
-    mintTimestamp: BigNumberish;
-  };
+    export type TokenDataStruct = {
+        owner: AddressLike;
+        mintTimestamp: BigNumberish;
+    };
 
-  export type TokenDataStructOutput = [owner: string, mintTimestamp: bigint] & {
-    owner: string;
-    mintTimestamp: bigint;
-  };
+    export type TokenDataStructOutput = [
+        owner: string,
+        mintTimestamp: bigint,
+    ] & {
+        owner: string;
+        mintTimestamp: bigint;
+    };
 }
 
 export interface LensHubInterface extends Interface {
-  getFunction(
-    nameOrSignature:
-      | "approve"
-      | "balanceOf"
-      | "burn"
-      | "burnWithSig"
-      | "collect"
-      | "collectWithSig"
-      | "comment"
-      | "commentWithSig"
-      | "createProfile"
-      | "defaultProfile"
-      | "emitCollectNFTTransferEvent"
-      | "emitFollowNFTTransferEvent"
-      | "exists"
-      | "follow"
-      | "followWithSig"
-      | "getApproved"
-      | "getCollectModule"
-      | "getCollectNFT"
-      | "getCollectNFTImpl"
-      | "getContentURI"
-      | "getDispatcher"
-      | "getDomainSeparator"
-      | "getFollowModule"
-      | "getFollowNFT"
-      | "getFollowNFTImpl"
-      | "getFollowNFTURI"
-      | "getGovernance"
-      | "getHandle"
-      | "getProfile"
-      | "getProfileIdByHandle"
-      | "getPub"
-      | "getPubCount"
-      | "getPubPointer"
-      | "getPubType"
-      | "getReferenceModule"
-      | "getState"
-      | "initialize"
-      | "isApprovedForAll"
-      | "isCollectModuleWhitelisted"
-      | "isFollowModuleWhitelisted"
-      | "isProfileCreatorWhitelisted"
-      | "isReferenceModuleWhitelisted"
-      | "mintTimestampOf"
-      | "mirror"
-      | "mirrorWithSig"
-      | "name"
-      | "ownerOf"
-      | "permit"
-      | "permitForAll"
-      | "post"
-      | "postWithSig"
-      | "safeTransferFrom(address,address,uint256)"
-      | "safeTransferFrom(address,address,uint256,bytes)"
-      | "setApprovalForAll"
-      | "setDefaultProfile"
-      | "setDefaultProfileWithSig"
-      | "setDispatcher"
-      | "setDispatcherWithSig"
-      | "setEmergencyAdmin"
-      | "setFollowModule"
-      | "setFollowModuleWithSig"
-      | "setFollowNFTURI"
-      | "setFollowNFTURIWithSig"
-      | "setGovernance"
-      | "setProfileImageURI"
-      | "setProfileImageURIWithSig"
-      | "setState"
-      | "sigNonces"
-      | "supportsInterface"
-      | "symbol"
-      | "tokenByIndex"
-      | "tokenDataOf"
-      | "tokenOfOwnerByIndex"
-      | "tokenURI"
-      | "totalSupply"
-      | "transferFrom"
-      | "whitelistCollectModule"
-      | "whitelistFollowModule"
-      | "whitelistProfileCreator"
-      | "whitelistReferenceModule"
-  ): FunctionFragment;
+    getFunction(
+        nameOrSignature:
+            | 'approve'
+            | 'balanceOf'
+            | 'burn'
+            | 'burnWithSig'
+            | 'collect'
+            | 'collectWithSig'
+            | 'comment'
+            | 'commentWithSig'
+            | 'createProfile'
+            | 'defaultProfile'
+            | 'emitCollectNFTTransferEvent'
+            | 'emitFollowNFTTransferEvent'
+            | 'exists'
+            | 'follow'
+            | 'followWithSig'
+            | 'getApproved'
+            | 'getCollectModule'
+            | 'getCollectNFT'
+            | 'getCollectNFTImpl'
+            | 'getContentURI'
+            | 'getDispatcher'
+            | 'getDomainSeparator'
+            | 'getFollowModule'
+            | 'getFollowNFT'
+            | 'getFollowNFTImpl'
+            | 'getFollowNFTURI'
+            | 'getGovernance'
+            | 'getHandle'
+            | 'getProfile'
+            | 'getProfileIdByHandle'
+            | 'getPub'
+            | 'getPubCount'
+            | 'getPubPointer'
+            | 'getPubType'
+            | 'getReferenceModule'
+            | 'getState'
+            | 'initialize'
+            | 'isApprovedForAll'
+            | 'isCollectModuleWhitelisted'
+            | 'isFollowModuleWhitelisted'
+            | 'isProfileCreatorWhitelisted'
+            | 'isReferenceModuleWhitelisted'
+            | 'mintTimestampOf'
+            | 'mirror'
+            | 'mirrorWithSig'
+            | 'name'
+            | 'ownerOf'
+            | 'permit'
+            | 'permitForAll'
+            | 'post'
+            | 'postWithSig'
+            | 'safeTransferFrom(address,address,uint256)'
+            | 'safeTransferFrom(address,address,uint256,bytes)'
+            | 'setApprovalForAll'
+            | 'setDefaultProfile'
+            | 'setDefaultProfileWithSig'
+            | 'setDispatcher'
+            | 'setDispatcherWithSig'
+            | 'setEmergencyAdmin'
+            | 'setFollowModule'
+            | 'setFollowModuleWithSig'
+            | 'setFollowNFTURI'
+            | 'setFollowNFTURIWithSig'
+            | 'setGovernance'
+            | 'setProfileImageURI'
+            | 'setProfileImageURIWithSig'
+            | 'setState'
+            | 'sigNonces'
+            | 'supportsInterface'
+            | 'symbol'
+            | 'tokenByIndex'
+            | 'tokenDataOf'
+            | 'tokenOfOwnerByIndex'
+            | 'tokenURI'
+            | 'totalSupply'
+            | 'transferFrom'
+            | 'whitelistCollectModule'
+            | 'whitelistFollowModule'
+            | 'whitelistProfileCreator'
+            | 'whitelistReferenceModule'
+    ): FunctionFragment;
 
-  getEvent(
-    nameOrSignatureOrTopic: "Approval" | "ApprovalForAll" | "Transfer"
-  ): EventFragment;
+    getEvent(
+        nameOrSignatureOrTopic: 'Approval' | 'ApprovalForAll' | 'Transfer'
+    ): EventFragment;
 
-  encodeFunctionData(
-    functionFragment: "approve",
-    values: [AddressLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "burnWithSig",
-    values: [BigNumberish, DataTypes.EIP712SignatureStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "collect",
-    values: [BigNumberish, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "collectWithSig",
-    values: [DataTypes.CollectWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "comment",
-    values: [DataTypes.CommentDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "commentWithSig",
-    values: [DataTypes.CommentWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createProfile",
-    values: [DataTypes.CreateProfileDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "defaultProfile",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "emitCollectNFTTransferEvent",
-    values: [BigNumberish, BigNumberish, BigNumberish, AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "emitFollowNFTTransferEvent",
-    values: [BigNumberish, BigNumberish, AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "exists",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "follow",
-    values: [BigNumberish[], BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "followWithSig",
-    values: [DataTypes.FollowWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getApproved",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCollectModule",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCollectNFT",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCollectNFTImpl",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getContentURI",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getDispatcher",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getDomainSeparator",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFollowModule",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFollowNFT",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFollowNFTImpl",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFollowNFTURI",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getGovernance",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getHandle",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getProfile",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getProfileIdByHandle",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPub",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPubCount",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPubPointer",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPubType",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getReferenceModule",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "getState", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isApprovedForAll",
-    values: [AddressLike, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isCollectModuleWhitelisted",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isFollowModuleWhitelisted",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isProfileCreatorWhitelisted",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isReferenceModuleWhitelisted",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mintTimestampOf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mirror",
-    values: [DataTypes.MirrorDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mirrorWithSig",
-    values: [DataTypes.MirrorWithSigDataStruct]
-  ): string;
-  encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "ownerOf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "permit",
-    values: [AddressLike, BigNumberish, DataTypes.EIP712SignatureStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "permitForAll",
-    values: [AddressLike, AddressLike, boolean, DataTypes.EIP712SignatureStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "post",
-    values: [DataTypes.PostDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "postWithSig",
-    values: [DataTypes.PostWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "safeTransferFrom(address,address,uint256)",
-    values: [AddressLike, AddressLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
-    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setApprovalForAll",
-    values: [AddressLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDefaultProfile",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDefaultProfileWithSig",
-    values: [DataTypes.SetDefaultProfileWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDispatcher",
-    values: [BigNumberish, AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDispatcherWithSig",
-    values: [DataTypes.SetDispatcherWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setEmergencyAdmin",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFollowModule",
-    values: [BigNumberish, AddressLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFollowModuleWithSig",
-    values: [DataTypes.SetFollowModuleWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFollowNFTURI",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setFollowNFTURIWithSig",
-    values: [DataTypes.SetFollowNFTURIWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setGovernance",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setProfileImageURI",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setProfileImageURIWithSig",
-    values: [DataTypes.SetProfileImageURIWithSigDataStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setState",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "sigNonces",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "supportsInterface",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "tokenByIndex",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokenDataOf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokenOfOwnerByIndex",
-    values: [AddressLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokenURI",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferFrom",
-    values: [AddressLike, AddressLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "whitelistCollectModule",
-    values: [AddressLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "whitelistFollowModule",
-    values: [AddressLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "whitelistProfileCreator",
-    values: [AddressLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "whitelistReferenceModule",
-    values: [AddressLike, boolean]
-  ): string;
+    encodeFunctionData(
+        functionFragment: 'approve',
+        values: [AddressLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'balanceOf',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'burn',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'burnWithSig',
+        values: [BigNumberish, DataTypes.EIP712SignatureStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'collect',
+        values: [BigNumberish, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'collectWithSig',
+        values: [DataTypes.CollectWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'comment',
+        values: [DataTypes.CommentDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'commentWithSig',
+        values: [DataTypes.CommentWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'createProfile',
+        values: [DataTypes.CreateProfileDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'defaultProfile',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'emitCollectNFTTransferEvent',
+        values: [
+            BigNumberish,
+            BigNumberish,
+            BigNumberish,
+            AddressLike,
+            AddressLike,
+        ]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'emitFollowNFTTransferEvent',
+        values: [BigNumberish, BigNumberish, AddressLike, AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'exists',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'follow',
+        values: [BigNumberish[], BytesLike[]]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'followWithSig',
+        values: [DataTypes.FollowWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getApproved',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getCollectModule',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getCollectNFT',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getCollectNFTImpl',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getContentURI',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getDispatcher',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getDomainSeparator',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getFollowModule',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getFollowNFT',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getFollowNFTImpl',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getFollowNFTURI',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getGovernance',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getHandle',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getProfile',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getProfileIdByHandle',
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getPub',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getPubCount',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getPubPointer',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getPubType',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getReferenceModule',
+        values: [BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'getState',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'initialize',
+        values: [string, string, AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'isApprovedForAll',
+        values: [AddressLike, AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'isCollectModuleWhitelisted',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'isFollowModuleWhitelisted',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'isProfileCreatorWhitelisted',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'isReferenceModuleWhitelisted',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'mintTimestampOf',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'mirror',
+        values: [DataTypes.MirrorDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'mirrorWithSig',
+        values: [DataTypes.MirrorWithSigDataStruct]
+    ): string;
+    encodeFunctionData(functionFragment: 'name', values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: 'ownerOf',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'permit',
+        values: [AddressLike, BigNumberish, DataTypes.EIP712SignatureStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'permitForAll',
+        values: [
+            AddressLike,
+            AddressLike,
+            boolean,
+            DataTypes.EIP712SignatureStruct,
+        ]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'post',
+        values: [DataTypes.PostDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'postWithSig',
+        values: [DataTypes.PostWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'safeTransferFrom(address,address,uint256)',
+        values: [AddressLike, AddressLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'safeTransferFrom(address,address,uint256,bytes)',
+        values: [AddressLike, AddressLike, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setApprovalForAll',
+        values: [AddressLike, boolean]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setDefaultProfile',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setDefaultProfileWithSig',
+        values: [DataTypes.SetDefaultProfileWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setDispatcher',
+        values: [BigNumberish, AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setDispatcherWithSig',
+        values: [DataTypes.SetDispatcherWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setEmergencyAdmin',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setFollowModule',
+        values: [BigNumberish, AddressLike, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setFollowModuleWithSig',
+        values: [DataTypes.SetFollowModuleWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setFollowNFTURI',
+        values: [BigNumberish, string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setFollowNFTURIWithSig',
+        values: [DataTypes.SetFollowNFTURIWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setGovernance',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setProfileImageURI',
+        values: [BigNumberish, string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setProfileImageURIWithSig',
+        values: [DataTypes.SetProfileImageURIWithSigDataStruct]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'setState',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'sigNonces',
+        values: [AddressLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'supportsInterface',
+        values: [BytesLike]
+    ): string;
+    encodeFunctionData(functionFragment: 'symbol', values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: 'tokenByIndex',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'tokenDataOf',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'tokenOfOwnerByIndex',
+        values: [AddressLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'tokenURI',
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'totalSupply',
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'transferFrom',
+        values: [AddressLike, AddressLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'whitelistCollectModule',
+        values: [AddressLike, boolean]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'whitelistFollowModule',
+        values: [AddressLike, boolean]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'whitelistProfileCreator',
+        values: [AddressLike, boolean]
+    ): string;
+    encodeFunctionData(
+        functionFragment: 'whitelistReferenceModule',
+        values: [AddressLike, boolean]
+    ): string;
 
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "burnWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "collect", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "collectWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "comment", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "commentWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createProfile",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "defaultProfile",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "emitCollectNFTTransferEvent",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "emitFollowNFTTransferEvent",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "exists", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "follow", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "followWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getApproved",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCollectModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCollectNFT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCollectNFTImpl",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getContentURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getDispatcher",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getDomainSeparator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFollowModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFollowNFT",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFollowNFTImpl",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFollowNFTURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGovernance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getHandle", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getProfile", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getProfileIdByHandle",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getPub", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPubCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPubPointer",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getPubType", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getReferenceModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getState", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isApprovedForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isCollectModuleWhitelisted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isFollowModuleWhitelisted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isProfileCreatorWhitelisted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isReferenceModuleWhitelisted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "mintTimestampOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "mirror", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "mirrorWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "permitForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "post", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "postWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "safeTransferFrom(address,address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "safeTransferFrom(address,address,uint256,bytes)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setApprovalForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDefaultProfile",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDefaultProfileWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDispatcher",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDispatcherWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setEmergencyAdmin",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFollowModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFollowModuleWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFollowNFTURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setFollowNFTURIWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setGovernance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setProfileImageURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setProfileImageURIWithSig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "setState", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sigNonces", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenDataOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenOfOwnerByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "whitelistCollectModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "whitelistFollowModule",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "whitelistProfileCreator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "whitelistReferenceModule",
-    data: BytesLike
-  ): Result;
+    decodeFunctionResult(functionFragment: 'approve', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'balanceOf',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'burn', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'burnWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'collect', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'collectWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'comment', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'commentWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'createProfile',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'defaultProfile',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'emitCollectNFTTransferEvent',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'emitFollowNFTTransferEvent',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'exists', data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: 'follow', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'followWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getApproved',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getCollectModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getCollectNFT',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getCollectNFTImpl',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getContentURI',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getDispatcher',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getDomainSeparator',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getFollowModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getFollowNFT',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getFollowNFTImpl',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getFollowNFTURI',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getGovernance',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getHandle',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getProfile',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getProfileIdByHandle',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'getPub', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'getPubCount',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getPubPointer',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getPubType',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'getReferenceModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'getState', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'initialize',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'isApprovedForAll',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'isCollectModuleWhitelisted',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'isFollowModuleWhitelisted',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'isProfileCreatorWhitelisted',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'isReferenceModuleWhitelisted',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'mintTimestampOf',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'mirror', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'mirrorWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'name', data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: 'ownerOf', data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: 'permit', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'permitForAll',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'post', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'postWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'safeTransferFrom(address,address,uint256)',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'safeTransferFrom(address,address,uint256,bytes)',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setApprovalForAll',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setDefaultProfile',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setDefaultProfileWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setDispatcher',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setDispatcherWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setEmergencyAdmin',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setFollowModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setFollowModuleWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setFollowNFTURI',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setFollowNFTURIWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setGovernance',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setProfileImageURI',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'setProfileImageURIWithSig',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'setState', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'sigNonces',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'supportsInterface',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'symbol', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'tokenByIndex',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'tokenDataOf',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'tokenOfOwnerByIndex',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: 'tokenURI', data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: 'totalSupply',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'transferFrom',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'whitelistCollectModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'whitelistFollowModule',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'whitelistProfileCreator',
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: 'whitelistReferenceModule',
+        data: BytesLike
+    ): Result;
 }
 
 export namespace ApprovalEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    approved: AddressLike,
-    tokenId: BigNumberish
-  ];
-  export type OutputTuple = [owner: string, approved: string, tokenId: bigint];
-  export interface OutputObject {
-    owner: string;
-    approved: string;
-    tokenId: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+    export type InputTuple = [
+        owner: AddressLike,
+        approved: AddressLike,
+        tokenId: BigNumberish,
+    ];
+    export type OutputTuple = [
+        owner: string,
+        approved: string,
+        tokenId: bigint,
+    ];
+    export interface OutputObject {
+        owner: string;
+        approved: string;
+        tokenId: bigint;
+    }
+    export type Event = TypedContractEvent<
+        InputTuple,
+        OutputTuple,
+        OutputObject
+    >;
+    export type Filter = TypedDeferredTopicFilter<Event>;
+    export type Log = TypedEventLog<Event>;
+    export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace ApprovalForAllEvent {
-  export type InputTuple = [
-    owner: AddressLike,
-    operator: AddressLike,
-    approved: boolean
-  ];
-  export type OutputTuple = [
-    owner: string,
-    operator: string,
-    approved: boolean
-  ];
-  export interface OutputObject {
-    owner: string;
-    operator: string;
-    approved: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+    export type InputTuple = [
+        owner: AddressLike,
+        operator: AddressLike,
+        approved: boolean,
+    ];
+    export type OutputTuple = [
+        owner: string,
+        operator: string,
+        approved: boolean,
+    ];
+    export interface OutputObject {
+        owner: string;
+        operator: string;
+        approved: boolean;
+    }
+    export type Event = TypedContractEvent<
+        InputTuple,
+        OutputTuple,
+        OutputObject
+    >;
+    export type Filter = TypedDeferredTopicFilter<Event>;
+    export type Log = TypedEventLog<Event>;
+    export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace TransferEvent {
-  export type InputTuple = [
-    from: AddressLike,
-    to: AddressLike,
-    tokenId: BigNumberish
-  ];
-  export type OutputTuple = [from: string, to: string, tokenId: bigint];
-  export interface OutputObject {
-    from: string;
-    to: string;
-    tokenId: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
+    export type InputTuple = [
+        from: AddressLike,
+        to: AddressLike,
+        tokenId: BigNumberish,
+    ];
+    export type OutputTuple = [from: string, to: string, tokenId: bigint];
+    export interface OutputObject {
+        from: string;
+        to: string;
+        tokenId: bigint;
+    }
+    export type Event = TypedContractEvent<
+        InputTuple,
+        OutputTuple,
+        OutputObject
+    >;
+    export type Filter = TypedDeferredTopicFilter<Event>;
+    export type Log = TypedEventLog<Event>;
+    export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface LensHub extends BaseContract {
-  connect(runner?: ContractRunner | null): LensHub;
-  waitForDeployment(): Promise<this>;
-
-  interface: LensHubInterface;
-
-  queryFilter<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-  queryFilter<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEventLog<TCEvent>>>;
-
-  on<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  on<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  once<TCEvent extends TypedContractEvent>(
-    event: TCEvent,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-  once<TCEvent extends TypedContractEvent>(
-    filter: TypedDeferredTopicFilter<TCEvent>,
-    listener: TypedListener<TCEvent>
-  ): Promise<this>;
-
-  listeners<TCEvent extends TypedContractEvent>(
-    event: TCEvent
-  ): Promise<Array<TypedListener<TCEvent>>>;
-  listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
-
-  approve: TypedContractMethod<
-    [to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
-
-  burn: TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
-
-  burnWithSig: TypedContractMethod<
-    [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  collect: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
-    [bigint],
-    "nonpayable"
-  >;
-
-  collectWithSig: TypedContractMethod<
-    [vars: DataTypes.CollectWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  comment: TypedContractMethod<
-    [vars: DataTypes.CommentDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  commentWithSig: TypedContractMethod<
-    [vars: DataTypes.CommentWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  createProfile: TypedContractMethod<
-    [vars: DataTypes.CreateProfileDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  defaultProfile: TypedContractMethod<[wallet: AddressLike], [bigint], "view">;
-
-  emitCollectNFTTransferEvent: TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      pubId: BigNumberish,
-      collectNFTId: BigNumberish,
-      from: AddressLike,
-      to: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  emitFollowNFTTransferEvent: TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      followNFTId: BigNumberish,
-      from: AddressLike,
-      to: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  exists: TypedContractMethod<[tokenId: BigNumberish], [boolean], "view">;
-
-  follow: TypedContractMethod<
-    [profileIds: BigNumberish[], datas: BytesLike[]],
-    [bigint[]],
-    "nonpayable"
-  >;
-
-  followWithSig: TypedContractMethod<
-    [vars: DataTypes.FollowWithSigDataStruct],
-    [bigint[]],
-    "nonpayable"
-  >;
-
-  getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-
-  getCollectModule: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getCollectNFT: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getCollectNFTImpl: TypedContractMethod<[], [string], "view">;
-
-  getContentURI: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getDispatcher: TypedContractMethod<
-    [profileId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getDomainSeparator: TypedContractMethod<[], [string], "view">;
-
-  getFollowModule: TypedContractMethod<
-    [profileId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getFollowNFT: TypedContractMethod<
-    [profileId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getFollowNFTImpl: TypedContractMethod<[], [string], "view">;
-
-  getFollowNFTURI: TypedContractMethod<
-    [profileId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getGovernance: TypedContractMethod<[], [string], "view">;
-
-  getHandle: TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-
-  getProfile: TypedContractMethod<
-    [profileId: BigNumberish],
-    [DataTypes.ProfileStructStructOutput],
-    "view"
-  >;
-
-  getProfileIdByHandle: TypedContractMethod<[handle: string], [bigint], "view">;
-
-  getPub: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [DataTypes.PublicationStructStructOutput],
-    "view"
-  >;
-
-  getPubCount: TypedContractMethod<[profileId: BigNumberish], [bigint], "view">;
-
-  getPubPointer: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [[bigint, bigint]],
-    "view"
-  >;
-
-  getPubType: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [bigint],
-    "view"
-  >;
-
-  getReferenceModule: TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-
-  getState: TypedContractMethod<[], [bigint], "view">;
-
-  initialize: TypedContractMethod<
-    [name: string, symbol: string, newGovernance: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  isApprovedForAll: TypedContractMethod<
-    [owner: AddressLike, operator: AddressLike],
-    [boolean],
-    "view"
-  >;
-
-  isCollectModuleWhitelisted: TypedContractMethod<
-    [collectModule: AddressLike],
-    [boolean],
-    "view"
-  >;
-
-  isFollowModuleWhitelisted: TypedContractMethod<
-    [followModule: AddressLike],
-    [boolean],
-    "view"
-  >;
-
-  isProfileCreatorWhitelisted: TypedContractMethod<
-    [profileCreator: AddressLike],
-    [boolean],
-    "view"
-  >;
-
-  isReferenceModuleWhitelisted: TypedContractMethod<
-    [referenceModule: AddressLike],
-    [boolean],
-    "view"
-  >;
-
-  mintTimestampOf: TypedContractMethod<
-    [tokenId: BigNumberish],
-    [bigint],
-    "view"
-  >;
-
-  mirror: TypedContractMethod<
-    [vars: DataTypes.MirrorDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  mirrorWithSig: TypedContractMethod<
-    [vars: DataTypes.MirrorWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  name: TypedContractMethod<[], [string], "view">;
-
-  ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-
-  permit: TypedContractMethod<
-    [
-      spender: AddressLike,
-      tokenId: BigNumberish,
-      sig: DataTypes.EIP712SignatureStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  permitForAll: TypedContractMethod<
-    [
-      owner: AddressLike,
-      operator: AddressLike,
-      approved: boolean,
-      sig: DataTypes.EIP712SignatureStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  post: TypedContractMethod<
-    [vars: DataTypes.PostDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  postWithSig: TypedContractMethod<
-    [vars: DataTypes.PostWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-
-  "safeTransferFrom(address,address,uint256)": TypedContractMethod<
-    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  "safeTransferFrom(address,address,uint256,bytes)": TypedContractMethod<
-    [
-      from: AddressLike,
-      to: AddressLike,
-      tokenId: BigNumberish,
-      _data: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  setApprovalForAll: TypedContractMethod<
-    [operator: AddressLike, approved: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  setDefaultProfile: TypedContractMethod<
-    [profileId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  setDefaultProfileWithSig: TypedContractMethod<
-    [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  setDispatcher: TypedContractMethod<
-    [profileId: BigNumberish, dispatcher: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setDispatcherWithSig: TypedContractMethod<
-    [vars: DataTypes.SetDispatcherWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  setEmergencyAdmin: TypedContractMethod<
-    [newEmergencyAdmin: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setFollowModule: TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      followModule: AddressLike,
-      followModuleInitData: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-
-  setFollowModuleWithSig: TypedContractMethod<
-    [vars: DataTypes.SetFollowModuleWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  setFollowNFTURI: TypedContractMethod<
-    [profileId: BigNumberish, followNFTURI: string],
-    [void],
-    "nonpayable"
-  >;
-
-  setFollowNFTURIWithSig: TypedContractMethod<
-    [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  setGovernance: TypedContractMethod<
-    [newGovernance: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setProfileImageURI: TypedContractMethod<
-    [profileId: BigNumberish, imageURI: string],
-    [void],
-    "nonpayable"
-  >;
-
-  setProfileImageURIWithSig: TypedContractMethod<
-    [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  setState: TypedContractMethod<[newState: BigNumberish], [void], "nonpayable">;
-
-  sigNonces: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
-
-  supportsInterface: TypedContractMethod<
-    [interfaceId: BytesLike],
-    [boolean],
-    "view"
-  >;
-
-  symbol: TypedContractMethod<[], [string], "view">;
-
-  tokenByIndex: TypedContractMethod<[index: BigNumberish], [bigint], "view">;
-
-  tokenDataOf: TypedContractMethod<
-    [tokenId: BigNumberish],
-    [IERC721Time.TokenDataStructOutput],
-    "view"
-  >;
-
-  tokenOfOwnerByIndex: TypedContractMethod<
-    [owner: AddressLike, index: BigNumberish],
-    [bigint],
-    "view"
-  >;
-
-  tokenURI: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-
-  totalSupply: TypedContractMethod<[], [bigint], "view">;
-
-  transferFrom: TypedContractMethod<
-    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  whitelistCollectModule: TypedContractMethod<
-    [collectModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  whitelistFollowModule: TypedContractMethod<
-    [followModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  whitelistProfileCreator: TypedContractMethod<
-    [profileCreator: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  whitelistReferenceModule: TypedContractMethod<
-    [referenceModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
-
-  getFunction(
-    nameOrSignature: "approve"
-  ): TypedContractMethod<
-    [to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "balanceOf"
-  ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "burn"
-  ): TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "burnWithSig"
-  ): TypedContractMethod<
-    [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "collect"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "collectWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.CollectWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "comment"
-  ): TypedContractMethod<
-    [vars: DataTypes.CommentDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "commentWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.CommentWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "createProfile"
-  ): TypedContractMethod<
-    [vars: DataTypes.CreateProfileDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "defaultProfile"
-  ): TypedContractMethod<[wallet: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "emitCollectNFTTransferEvent"
-  ): TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      pubId: BigNumberish,
-      collectNFTId: BigNumberish,
-      from: AddressLike,
-      to: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "emitFollowNFTTransferEvent"
-  ): TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      followNFTId: BigNumberish,
-      from: AddressLike,
-      to: AddressLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "exists"
-  ): TypedContractMethod<[tokenId: BigNumberish], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "follow"
-  ): TypedContractMethod<
-    [profileIds: BigNumberish[], datas: BytesLike[]],
-    [bigint[]],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "followWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.FollowWithSigDataStruct],
-    [bigint[]],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "getApproved"
-  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getCollectModule"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getCollectNFT"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getCollectNFTImpl"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getContentURI"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getDispatcher"
-  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getDomainSeparator"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getFollowModule"
-  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getFollowNFT"
-  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getFollowNFTImpl"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getFollowNFTURI"
-  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getGovernance"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getHandle"
-  ): TypedContractMethod<[profileId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getProfile"
-  ): TypedContractMethod<
-    [profileId: BigNumberish],
-    [DataTypes.ProfileStructStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getProfileIdByHandle"
-  ): TypedContractMethod<[handle: string], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getPub"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [DataTypes.PublicationStructStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPubCount"
-  ): TypedContractMethod<[profileId: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getPubPointer"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [[bigint, bigint]],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getPubType"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getReferenceModule"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, pubId: BigNumberish],
-    [string],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "getState"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "initialize"
-  ): TypedContractMethod<
-    [name: string, symbol: string, newGovernance: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "isApprovedForAll"
-  ): TypedContractMethod<
-    [owner: AddressLike, operator: AddressLike],
-    [boolean],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "isCollectModuleWhitelisted"
-  ): TypedContractMethod<[collectModule: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isFollowModuleWhitelisted"
-  ): TypedContractMethod<[followModule: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isProfileCreatorWhitelisted"
-  ): TypedContractMethod<[profileCreator: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "isReferenceModuleWhitelisted"
-  ): TypedContractMethod<[referenceModule: AddressLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "mintTimestampOf"
-  ): TypedContractMethod<[tokenId: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "mirror"
-  ): TypedContractMethod<
-    [vars: DataTypes.MirrorDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "mirrorWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.MirrorWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "ownerOf"
-  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "permit"
-  ): TypedContractMethod<
-    [
-      spender: AddressLike,
-      tokenId: BigNumberish,
-      sig: DataTypes.EIP712SignatureStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "permitForAll"
-  ): TypedContractMethod<
-    [
-      owner: AddressLike,
-      operator: AddressLike,
-      approved: boolean,
-      sig: DataTypes.EIP712SignatureStruct
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "post"
-  ): TypedContractMethod<
-    [vars: DataTypes.PostDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "postWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.PostWithSigDataStruct],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "safeTransferFrom(address,address,uint256)"
-  ): TypedContractMethod<
-    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "safeTransferFrom(address,address,uint256,bytes)"
-  ): TypedContractMethod<
-    [
-      from: AddressLike,
-      to: AddressLike,
-      tokenId: BigNumberish,
-      _data: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setApprovalForAll"
-  ): TypedContractMethod<
-    [operator: AddressLike, approved: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setDefaultProfile"
-  ): TypedContractMethod<[profileId: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setDefaultProfileWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setDispatcher"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, dispatcher: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setDispatcherWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.SetDispatcherWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setEmergencyAdmin"
-  ): TypedContractMethod<
-    [newEmergencyAdmin: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setFollowModule"
-  ): TypedContractMethod<
-    [
-      profileId: BigNumberish,
-      followModule: AddressLike,
-      followModuleInitData: BytesLike
-    ],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setFollowModuleWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.SetFollowModuleWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setFollowNFTURI"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, followNFTURI: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setFollowNFTURIWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setGovernance"
-  ): TypedContractMethod<[newGovernance: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setProfileImageURI"
-  ): TypedContractMethod<
-    [profileId: BigNumberish, imageURI: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setProfileImageURIWithSig"
-  ): TypedContractMethod<
-    [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setState"
-  ): TypedContractMethod<[newState: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "sigNonces"
-  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "supportsInterface"
-  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "symbol"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "tokenByIndex"
-  ): TypedContractMethod<[index: BigNumberish], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "tokenDataOf"
-  ): TypedContractMethod<
-    [tokenId: BigNumberish],
-    [IERC721Time.TokenDataStructOutput],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "tokenOfOwnerByIndex"
-  ): TypedContractMethod<
-    [owner: AddressLike, index: BigNumberish],
-    [bigint],
-    "view"
-  >;
-  getFunction(
-    nameOrSignature: "tokenURI"
-  ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "totalSupply"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "transferFrom"
-  ): TypedContractMethod<
-    [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "whitelistCollectModule"
-  ): TypedContractMethod<
-    [collectModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "whitelistFollowModule"
-  ): TypedContractMethod<
-    [followModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "whitelistProfileCreator"
-  ): TypedContractMethod<
-    [profileCreator: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "whitelistReferenceModule"
-  ): TypedContractMethod<
-    [referenceModule: AddressLike, whitelist: boolean],
-    [void],
-    "nonpayable"
-  >;
-
-  getEvent(
-    key: "Approval"
-  ): TypedContractEvent<
-    ApprovalEvent.InputTuple,
-    ApprovalEvent.OutputTuple,
-    ApprovalEvent.OutputObject
-  >;
-  getEvent(
-    key: "ApprovalForAll"
-  ): TypedContractEvent<
-    ApprovalForAllEvent.InputTuple,
-    ApprovalForAllEvent.OutputTuple,
-    ApprovalForAllEvent.OutputObject
-  >;
-  getEvent(
-    key: "Transfer"
-  ): TypedContractEvent<
-    TransferEvent.InputTuple,
-    TransferEvent.OutputTuple,
-    TransferEvent.OutputObject
-  >;
-
-  filters: {
-    "Approval(address,address,uint256)": TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
-    >;
-    Approval: TypedContractEvent<
-      ApprovalEvent.InputTuple,
-      ApprovalEvent.OutputTuple,
-      ApprovalEvent.OutputObject
+    connect(runner?: ContractRunner | null): LensHub;
+    waitForDeployment(): Promise<this>;
+
+    interface: LensHubInterface;
+
+    queryFilter<TCEvent extends TypedContractEvent>(
+        event: TCEvent,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined
+    ): Promise<Array<TypedEventLog<TCEvent>>>;
+    queryFilter<TCEvent extends TypedContractEvent>(
+        filter: TypedDeferredTopicFilter<TCEvent>,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined
+    ): Promise<Array<TypedEventLog<TCEvent>>>;
+
+    on<TCEvent extends TypedContractEvent>(
+        event: TCEvent,
+        listener: TypedListener<TCEvent>
+    ): Promise<this>;
+    on<TCEvent extends TypedContractEvent>(
+        filter: TypedDeferredTopicFilter<TCEvent>,
+        listener: TypedListener<TCEvent>
+    ): Promise<this>;
+
+    once<TCEvent extends TypedContractEvent>(
+        event: TCEvent,
+        listener: TypedListener<TCEvent>
+    ): Promise<this>;
+    once<TCEvent extends TypedContractEvent>(
+        filter: TypedDeferredTopicFilter<TCEvent>,
+        listener: TypedListener<TCEvent>
+    ): Promise<this>;
+
+    listeners<TCEvent extends TypedContractEvent>(
+        event: TCEvent
+    ): Promise<Array<TypedListener<TCEvent>>>;
+    listeners(eventName?: string): Promise<Array<Listener>>;
+    removeAllListeners<TCEvent extends TypedContractEvent>(
+        event?: TCEvent
+    ): Promise<this>;
+
+    approve: TypedContractMethod<
+        [to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
     >;
 
-    "ApprovalForAll(address,address,bool)": TypedContractEvent<
-      ApprovalForAllEvent.InputTuple,
-      ApprovalForAllEvent.OutputTuple,
-      ApprovalForAllEvent.OutputObject
-    >;
-    ApprovalForAll: TypedContractEvent<
-      ApprovalForAllEvent.InputTuple,
-      ApprovalForAllEvent.OutputTuple,
-      ApprovalForAllEvent.OutputObject
+    balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], 'view'>;
+
+    burn: TypedContractMethod<[tokenId: BigNumberish], [void], 'nonpayable'>;
+
+    burnWithSig: TypedContractMethod<
+        [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
+        [void],
+        'nonpayable'
     >;
 
-    "Transfer(address,address,uint256)": TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
+    collect: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
+        [bigint],
+        'nonpayable'
     >;
-    Transfer: TypedContractEvent<
-      TransferEvent.InputTuple,
-      TransferEvent.OutputTuple,
-      TransferEvent.OutputObject
+
+    collectWithSig: TypedContractMethod<
+        [vars: DataTypes.CollectWithSigDataStruct],
+        [bigint],
+        'nonpayable'
     >;
-  };
+
+    comment: TypedContractMethod<
+        [vars: DataTypes.CommentDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    commentWithSig: TypedContractMethod<
+        [vars: DataTypes.CommentWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    createProfile: TypedContractMethod<
+        [vars: DataTypes.CreateProfileDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    defaultProfile: TypedContractMethod<
+        [wallet: AddressLike],
+        [bigint],
+        'view'
+    >;
+
+    emitCollectNFTTransferEvent: TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            pubId: BigNumberish,
+            collectNFTId: BigNumberish,
+            from: AddressLike,
+            to: AddressLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    emitFollowNFTTransferEvent: TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            followNFTId: BigNumberish,
+            from: AddressLike,
+            to: AddressLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    exists: TypedContractMethod<[tokenId: BigNumberish], [boolean], 'view'>;
+
+    follow: TypedContractMethod<
+        [profileIds: BigNumberish[], datas: BytesLike[]],
+        [bigint[]],
+        'nonpayable'
+    >;
+
+    followWithSig: TypedContractMethod<
+        [vars: DataTypes.FollowWithSigDataStruct],
+        [bigint[]],
+        'nonpayable'
+    >;
+
+    getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+
+    getCollectModule: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getCollectNFT: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getCollectNFTImpl: TypedContractMethod<[], [string], 'view'>;
+
+    getContentURI: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getDispatcher: TypedContractMethod<
+        [profileId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getDomainSeparator: TypedContractMethod<[], [string], 'view'>;
+
+    getFollowModule: TypedContractMethod<
+        [profileId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getFollowNFT: TypedContractMethod<
+        [profileId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getFollowNFTImpl: TypedContractMethod<[], [string], 'view'>;
+
+    getFollowNFTURI: TypedContractMethod<
+        [profileId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getGovernance: TypedContractMethod<[], [string], 'view'>;
+
+    getHandle: TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+
+    getProfile: TypedContractMethod<
+        [profileId: BigNumberish],
+        [DataTypes.ProfileStructStructOutput],
+        'view'
+    >;
+
+    getProfileIdByHandle: TypedContractMethod<
+        [handle: string],
+        [bigint],
+        'view'
+    >;
+
+    getPub: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [DataTypes.PublicationStructStructOutput],
+        'view'
+    >;
+
+    getPubCount: TypedContractMethod<
+        [profileId: BigNumberish],
+        [bigint],
+        'view'
+    >;
+
+    getPubPointer: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [[bigint, bigint]],
+        'view'
+    >;
+
+    getPubType: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [bigint],
+        'view'
+    >;
+
+    getReferenceModule: TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+
+    getState: TypedContractMethod<[], [bigint], 'view'>;
+
+    initialize: TypedContractMethod<
+        [name: string, symbol: string, newGovernance: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+
+    isApprovedForAll: TypedContractMethod<
+        [owner: AddressLike, operator: AddressLike],
+        [boolean],
+        'view'
+    >;
+
+    isCollectModuleWhitelisted: TypedContractMethod<
+        [collectModule: AddressLike],
+        [boolean],
+        'view'
+    >;
+
+    isFollowModuleWhitelisted: TypedContractMethod<
+        [followModule: AddressLike],
+        [boolean],
+        'view'
+    >;
+
+    isProfileCreatorWhitelisted: TypedContractMethod<
+        [profileCreator: AddressLike],
+        [boolean],
+        'view'
+    >;
+
+    isReferenceModuleWhitelisted: TypedContractMethod<
+        [referenceModule: AddressLike],
+        [boolean],
+        'view'
+    >;
+
+    mintTimestampOf: TypedContractMethod<
+        [tokenId: BigNumberish],
+        [bigint],
+        'view'
+    >;
+
+    mirror: TypedContractMethod<
+        [vars: DataTypes.MirrorDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    mirrorWithSig: TypedContractMethod<
+        [vars: DataTypes.MirrorWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    name: TypedContractMethod<[], [string], 'view'>;
+
+    ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+
+    permit: TypedContractMethod<
+        [
+            spender: AddressLike,
+            tokenId: BigNumberish,
+            sig: DataTypes.EIP712SignatureStruct,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    permitForAll: TypedContractMethod<
+        [
+            owner: AddressLike,
+            operator: AddressLike,
+            approved: boolean,
+            sig: DataTypes.EIP712SignatureStruct,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    post: TypedContractMethod<
+        [vars: DataTypes.PostDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    postWithSig: TypedContractMethod<
+        [vars: DataTypes.PostWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+
+    'safeTransferFrom(address,address,uint256)': TypedContractMethod<
+        [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+
+    'safeTransferFrom(address,address,uint256,bytes)': TypedContractMethod<
+        [
+            from: AddressLike,
+            to: AddressLike,
+            tokenId: BigNumberish,
+            _data: BytesLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    setApprovalForAll: TypedContractMethod<
+        [operator: AddressLike, approved: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    setDefaultProfile: TypedContractMethod<
+        [profileId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+
+    setDefaultProfileWithSig: TypedContractMethod<
+        [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+
+    setDispatcher: TypedContractMethod<
+        [profileId: BigNumberish, dispatcher: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+
+    setDispatcherWithSig: TypedContractMethod<
+        [vars: DataTypes.SetDispatcherWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+
+    setEmergencyAdmin: TypedContractMethod<
+        [newEmergencyAdmin: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+
+    setFollowModule: TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            followModule: AddressLike,
+            followModuleInitData: BytesLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+
+    setFollowModuleWithSig: TypedContractMethod<
+        [vars: DataTypes.SetFollowModuleWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+
+    setFollowNFTURI: TypedContractMethod<
+        [profileId: BigNumberish, followNFTURI: string],
+        [void],
+        'nonpayable'
+    >;
+
+    setFollowNFTURIWithSig: TypedContractMethod<
+        [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+
+    setGovernance: TypedContractMethod<
+        [newGovernance: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+
+    setProfileImageURI: TypedContractMethod<
+        [profileId: BigNumberish, imageURI: string],
+        [void],
+        'nonpayable'
+    >;
+
+    setProfileImageURIWithSig: TypedContractMethod<
+        [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+
+    setState: TypedContractMethod<
+        [newState: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+
+    sigNonces: TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
+
+    supportsInterface: TypedContractMethod<
+        [interfaceId: BytesLike],
+        [boolean],
+        'view'
+    >;
+
+    symbol: TypedContractMethod<[], [string], 'view'>;
+
+    tokenByIndex: TypedContractMethod<[index: BigNumberish], [bigint], 'view'>;
+
+    tokenDataOf: TypedContractMethod<
+        [tokenId: BigNumberish],
+        [IERC721Time.TokenDataStructOutput],
+        'view'
+    >;
+
+    tokenOfOwnerByIndex: TypedContractMethod<
+        [owner: AddressLike, index: BigNumberish],
+        [bigint],
+        'view'
+    >;
+
+    tokenURI: TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+
+    totalSupply: TypedContractMethod<[], [bigint], 'view'>;
+
+    transferFrom: TypedContractMethod<
+        [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+
+    whitelistCollectModule: TypedContractMethod<
+        [collectModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    whitelistFollowModule: TypedContractMethod<
+        [followModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    whitelistProfileCreator: TypedContractMethod<
+        [profileCreator: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    whitelistReferenceModule: TypedContractMethod<
+        [referenceModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    getFunction<T extends ContractMethod = ContractMethod>(
+        key: string | FunctionFragment
+    ): T;
+
+    getFunction(
+        nameOrSignature: 'approve'
+    ): TypedContractMethod<
+        [to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'balanceOf'
+    ): TypedContractMethod<[owner: AddressLike], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'burn'
+    ): TypedContractMethod<[tokenId: BigNumberish], [void], 'nonpayable'>;
+    getFunction(
+        nameOrSignature: 'burnWithSig'
+    ): TypedContractMethod<
+        [tokenId: BigNumberish, sig: DataTypes.EIP712SignatureStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'collect'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish, data: BytesLike],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'collectWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.CollectWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'comment'
+    ): TypedContractMethod<
+        [vars: DataTypes.CommentDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'commentWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.CommentWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'createProfile'
+    ): TypedContractMethod<
+        [vars: DataTypes.CreateProfileDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'defaultProfile'
+    ): TypedContractMethod<[wallet: AddressLike], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'emitCollectNFTTransferEvent'
+    ): TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            pubId: BigNumberish,
+            collectNFTId: BigNumberish,
+            from: AddressLike,
+            to: AddressLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'emitFollowNFTTransferEvent'
+    ): TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            followNFTId: BigNumberish,
+            from: AddressLike,
+            to: AddressLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'exists'
+    ): TypedContractMethod<[tokenId: BigNumberish], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'follow'
+    ): TypedContractMethod<
+        [profileIds: BigNumberish[], datas: BytesLike[]],
+        [bigint[]],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'followWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.FollowWithSigDataStruct],
+        [bigint[]],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'getApproved'
+    ): TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getCollectModule'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getCollectNFT'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getCollectNFTImpl'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getContentURI'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getDispatcher'
+    ): TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getDomainSeparator'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getFollowModule'
+    ): TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getFollowNFT'
+    ): TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getFollowNFTImpl'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getFollowNFTURI'
+    ): TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getGovernance'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getHandle'
+    ): TypedContractMethod<[profileId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'getProfile'
+    ): TypedContractMethod<
+        [profileId: BigNumberish],
+        [DataTypes.ProfileStructStructOutput],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getProfileIdByHandle'
+    ): TypedContractMethod<[handle: string], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'getPub'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [DataTypes.PublicationStructStructOutput],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getPubCount'
+    ): TypedContractMethod<[profileId: BigNumberish], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'getPubPointer'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [[bigint, bigint]],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getPubType'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [bigint],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getReferenceModule'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, pubId: BigNumberish],
+        [string],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'getState'
+    ): TypedContractMethod<[], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'initialize'
+    ): TypedContractMethod<
+        [name: string, symbol: string, newGovernance: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'isApprovedForAll'
+    ): TypedContractMethod<
+        [owner: AddressLike, operator: AddressLike],
+        [boolean],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'isCollectModuleWhitelisted'
+    ): TypedContractMethod<[collectModule: AddressLike], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'isFollowModuleWhitelisted'
+    ): TypedContractMethod<[followModule: AddressLike], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'isProfileCreatorWhitelisted'
+    ): TypedContractMethod<[profileCreator: AddressLike], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'isReferenceModuleWhitelisted'
+    ): TypedContractMethod<[referenceModule: AddressLike], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'mintTimestampOf'
+    ): TypedContractMethod<[tokenId: BigNumberish], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'mirror'
+    ): TypedContractMethod<
+        [vars: DataTypes.MirrorDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'mirrorWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.MirrorWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'name'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'ownerOf'
+    ): TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'permit'
+    ): TypedContractMethod<
+        [
+            spender: AddressLike,
+            tokenId: BigNumberish,
+            sig: DataTypes.EIP712SignatureStruct,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'permitForAll'
+    ): TypedContractMethod<
+        [
+            owner: AddressLike,
+            operator: AddressLike,
+            approved: boolean,
+            sig: DataTypes.EIP712SignatureStruct,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'post'
+    ): TypedContractMethod<
+        [vars: DataTypes.PostDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'postWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.PostWithSigDataStruct],
+        [bigint],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'safeTransferFrom(address,address,uint256)'
+    ): TypedContractMethod<
+        [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'safeTransferFrom(address,address,uint256,bytes)'
+    ): TypedContractMethod<
+        [
+            from: AddressLike,
+            to: AddressLike,
+            tokenId: BigNumberish,
+            _data: BytesLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setApprovalForAll'
+    ): TypedContractMethod<
+        [operator: AddressLike, approved: boolean],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setDefaultProfile'
+    ): TypedContractMethod<[profileId: BigNumberish], [void], 'nonpayable'>;
+    getFunction(
+        nameOrSignature: 'setDefaultProfileWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.SetDefaultProfileWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setDispatcher'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, dispatcher: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setDispatcherWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.SetDispatcherWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setEmergencyAdmin'
+    ): TypedContractMethod<
+        [newEmergencyAdmin: AddressLike],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setFollowModule'
+    ): TypedContractMethod<
+        [
+            profileId: BigNumberish,
+            followModule: AddressLike,
+            followModuleInitData: BytesLike,
+        ],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setFollowModuleWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.SetFollowModuleWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setFollowNFTURI'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, followNFTURI: string],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setFollowNFTURIWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.SetFollowNFTURIWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setGovernance'
+    ): TypedContractMethod<[newGovernance: AddressLike], [void], 'nonpayable'>;
+    getFunction(
+        nameOrSignature: 'setProfileImageURI'
+    ): TypedContractMethod<
+        [profileId: BigNumberish, imageURI: string],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setProfileImageURIWithSig'
+    ): TypedContractMethod<
+        [vars: DataTypes.SetProfileImageURIWithSigDataStruct],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'setState'
+    ): TypedContractMethod<[newState: BigNumberish], [void], 'nonpayable'>;
+    getFunction(
+        nameOrSignature: 'sigNonces'
+    ): TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'supportsInterface'
+    ): TypedContractMethod<[interfaceId: BytesLike], [boolean], 'view'>;
+    getFunction(
+        nameOrSignature: 'symbol'
+    ): TypedContractMethod<[], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'tokenByIndex'
+    ): TypedContractMethod<[index: BigNumberish], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'tokenDataOf'
+    ): TypedContractMethod<
+        [tokenId: BigNumberish],
+        [IERC721Time.TokenDataStructOutput],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'tokenOfOwnerByIndex'
+    ): TypedContractMethod<
+        [owner: AddressLike, index: BigNumberish],
+        [bigint],
+        'view'
+    >;
+    getFunction(
+        nameOrSignature: 'tokenURI'
+    ): TypedContractMethod<[tokenId: BigNumberish], [string], 'view'>;
+    getFunction(
+        nameOrSignature: 'totalSupply'
+    ): TypedContractMethod<[], [bigint], 'view'>;
+    getFunction(
+        nameOrSignature: 'transferFrom'
+    ): TypedContractMethod<
+        [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'whitelistCollectModule'
+    ): TypedContractMethod<
+        [collectModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'whitelistFollowModule'
+    ): TypedContractMethod<
+        [followModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'whitelistProfileCreator'
+    ): TypedContractMethod<
+        [profileCreator: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+    getFunction(
+        nameOrSignature: 'whitelistReferenceModule'
+    ): TypedContractMethod<
+        [referenceModule: AddressLike, whitelist: boolean],
+        [void],
+        'nonpayable'
+    >;
+
+    getEvent(
+        key: 'Approval'
+    ): TypedContractEvent<
+        ApprovalEvent.InputTuple,
+        ApprovalEvent.OutputTuple,
+        ApprovalEvent.OutputObject
+    >;
+    getEvent(
+        key: 'ApprovalForAll'
+    ): TypedContractEvent<
+        ApprovalForAllEvent.InputTuple,
+        ApprovalForAllEvent.OutputTuple,
+        ApprovalForAllEvent.OutputObject
+    >;
+    getEvent(
+        key: 'Transfer'
+    ): TypedContractEvent<
+        TransferEvent.InputTuple,
+        TransferEvent.OutputTuple,
+        TransferEvent.OutputObject
+    >;
+
+    filters: {
+        'Approval(address,address,uint256)': TypedContractEvent<
+            ApprovalEvent.InputTuple,
+            ApprovalEvent.OutputTuple,
+            ApprovalEvent.OutputObject
+        >;
+        Approval: TypedContractEvent<
+            ApprovalEvent.InputTuple,
+            ApprovalEvent.OutputTuple,
+            ApprovalEvent.OutputObject
+        >;
+
+        'ApprovalForAll(address,address,bool)': TypedContractEvent<
+            ApprovalForAllEvent.InputTuple,
+            ApprovalForAllEvent.OutputTuple,
+            ApprovalForAllEvent.OutputObject
+        >;
+        ApprovalForAll: TypedContractEvent<
+            ApprovalForAllEvent.InputTuple,
+            ApprovalForAllEvent.OutputTuple,
+            ApprovalForAllEvent.OutputObject
+        >;
+
+        'Transfer(address,address,uint256)': TypedContractEvent<
+            TransferEvent.InputTuple,
+            TransferEvent.OutputTuple,
+            TransferEvent.OutputObject
+        >;
+        Transfer: TypedContractEvent<
+            TransferEvent.InputTuple,
+            TransferEvent.OutputTuple,
+            TransferEvent.OutputObject
+        >;
+    };
 }

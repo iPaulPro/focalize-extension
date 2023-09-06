@@ -1,10 +1,10 @@
-import {chromeStorageSync} from './chrome-storage-store';
-import {derived, type Readable, type Writable} from 'svelte/store';
-import type {LensNode} from '../publications/lens-nodes';
+import { chromeStorageSync } from './chrome-storage-store';
+import { derived, type Readable, type Writable } from 'svelte/store';
+import type { LensNode } from '../publications/lens-nodes';
 
 import nodes from './/nodes.json';
-import {getNotificationCountSinceLastOpened} from '../utils/utils';
-import type {RefreshInterval} from '../notifications/RefreshInterval';
+import { getNotificationCountSinceLastOpened } from '../utils/utils';
+import type { RefreshInterval } from '../notifications/RefreshInterval';
 import type WalletConnection from '../evm/WalletConnection';
 
 /**
@@ -19,9 +19,11 @@ export const getPreference = async <T>(key: string): Promise<T | undefined> => {
     return undefined;
 };
 
-export const savePreference = async (key: string, value: any): Promise<void> => chrome.storage.sync.set({[key]: value});
+export const savePreference = async (key: string, value: any): Promise<void> =>
+    chrome.storage.sync.set({ [key]: value });
 
-export const deletePreference = async (key: string): Promise<void> => chrome.storage.sync.remove(key);
+export const deletePreference = async (key: string): Promise<void> =>
+    chrome.storage.sync.remove(key);
 
 export const KEY_COMPACT_MODE = 'compactMode';
 export const KEY_DARK_MODE = 'darkMode';
@@ -38,7 +40,8 @@ export const KEY_NODE_ARTICLE = 'nodeArticle';
 export const KEY_NODE_NOTIFICATIONS = 'nodeNotifications';
 export const KEY_NODE_SEARCH = 'nodeSearch';
 export const KEY_NOTIFICATIONS_REFRESH_ENABLED = 'notificationsEnabled';
-export const KEY_NOTIFICATIONS_REFRESH_INTERVAL = 'notificationsRefreshInterval';
+export const KEY_NOTIFICATIONS_REFRESH_INTERVAL =
+    'notificationsRefreshInterval';
 export const KEY_NOTIFICATIONS_TIMESTAMP = 'notificationsTimestamp';
 export const KEY_NOTIFICATIONS_GROUPED = 'notificationsGrouped';
 export const KEY_NOTIFICATIONS_FILTERED = 'notificationsFiltered';
@@ -55,37 +58,123 @@ export const KEY_USE_POPUP_COMPOSER = 'usePopupComposer';
 export const KEY_RICH_TEXT = 'richTextComposer';
 export const KEY_WALLET_CONNECTION = 'walletConnection';
 
-export const compactMode: Writable<boolean> = chromeStorageSync(KEY_COMPACT_MODE, true);
-export const darkMode: Writable<boolean | undefined> = chromeStorageSync(KEY_DARK_MODE);
-export const usePopupComposer: Writable<boolean> = chromeStorageSync(KEY_USE_POPUP_COMPOSER, true);
-export const dispatcherDialogShown: Writable<boolean> = chromeStorageSync(KEY_DISPATCHER_DIALOG_SHOWN, false);
-export const useDispatcher: Writable<boolean> = chromeStorageSync(KEY_USE_DISPATCHER, true);
-export const useRelay: Writable<boolean> = chromeStorageSync(KEY_USE_RELAY, true);
-export const pinPromptShown: Writable<boolean> = chromeStorageSync(KEY_PIN_PROMPT_SHOWN, false);
-export const releaseDismissed: Writable<string> = chromeStorageSync(KEY_RELEASE_DISMISSED);
-export const nodePost: Writable<LensNode> = chromeStorageSync(KEY_NODE_POST, nodes[0]);
-export const nodeImage: Writable<LensNode> = chromeStorageSync(KEY_NODE_IMAGE, nodes[0]);
-export const nodeVideo: Writable<LensNode> = chromeStorageSync(KEY_NODE_VIDEO, nodes[0]);
-export const nodeAudio: Writable<LensNode> = chromeStorageSync(KEY_NODE_AUDIO, nodes[0]);
-export const nodeArticle: Writable<LensNode> = chromeStorageSync(KEY_NODE_ARTICLE, nodes[0]);
-export const nodeNotifications: Writable<LensNode> = chromeStorageSync(KEY_NODE_NOTIFICATIONS, nodes[0]);
-export const nodeSearch: Writable<LensNode> = chromeStorageSync(KEY_NODE_SEARCH, nodes[0]);
-export const notificationsEnabled: Writable<boolean | undefined> = chromeStorageSync(KEY_NOTIFICATIONS_REFRESH_ENABLED, true);
-export const notificationsRefreshInterval: Writable<RefreshInterval> = chromeStorageSync(KEY_NOTIFICATIONS_REFRESH_INTERVAL, {value: 15, label: '15 min'});
-export const notificationsTimestamp: Writable<string> = chromeStorageSync(KEY_NOTIFICATIONS_TIMESTAMP);
-export const notificationsGrouped: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_GROUPED, false);
-export const notificationsFiltered: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FILTERED, false);
-export const notificationsForFollows: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_FOLLOWS, true);
-export const notificationsForMirrors: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_MIRRORS, true);
-export const notificationsForCollects: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_COLLECTS, true);
-export const notificationsForComments: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_COMMENTS, true);
-export const notificationsForMentions: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_MENTIONS, true);
-export const notificationsForReactions: Writable<boolean> = chromeStorageSync(KEY_NOTIFICATIONS_FOR_REACTIONS, true);
-export const messagesRefreshEnabled: Writable<boolean | undefined> = chromeStorageSync(KEY_MESSAGES_REFRESH_ENABLED, true);
-export const messagesRefreshInterval: Writable<RefreshInterval> = chromeStorageSync(KEY_MESSAGES_REFRESH_INTERVAL, {value: 1, label: '1 min'});
-export const messagesUnreadTopics: Writable<string[]> = chromeStorageSync(KEY_MESSAGES_UNREAD_TOPICS, []);
-export const richTextComposer: Writable<boolean> = chromeStorageSync(KEY_RICH_TEXT, true);
-export const walletConnection: Writable<WalletConnection> = chromeStorageSync(KEY_WALLET_CONNECTION);
+export const compactMode: Writable<boolean> = chromeStorageSync(
+    KEY_COMPACT_MODE,
+    true
+);
+export const darkMode: Writable<boolean | undefined> =
+    chromeStorageSync(KEY_DARK_MODE);
+export const usePopupComposer: Writable<boolean> = chromeStorageSync(
+    KEY_USE_POPUP_COMPOSER,
+    true
+);
+export const dispatcherDialogShown: Writable<boolean> = chromeStorageSync(
+    KEY_DISPATCHER_DIALOG_SHOWN,
+    false
+);
+export const useDispatcher: Writable<boolean> = chromeStorageSync(
+    KEY_USE_DISPATCHER,
+    true
+);
+export const useRelay: Writable<boolean> = chromeStorageSync(
+    KEY_USE_RELAY,
+    true
+);
+export const pinPromptShown: Writable<boolean> = chromeStorageSync(
+    KEY_PIN_PROMPT_SHOWN,
+    false
+);
+export const releaseDismissed: Writable<string> = chromeStorageSync(
+    KEY_RELEASE_DISMISSED
+);
+export const nodePost: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_POST,
+    nodes[0]
+);
+export const nodeImage: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_IMAGE,
+    nodes[0]
+);
+export const nodeVideo: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_VIDEO,
+    nodes[0]
+);
+export const nodeAudio: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_AUDIO,
+    nodes[0]
+);
+export const nodeArticle: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_ARTICLE,
+    nodes[0]
+);
+export const nodeNotifications: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_NOTIFICATIONS,
+    nodes[0]
+);
+export const nodeSearch: Writable<LensNode> = chromeStorageSync(
+    KEY_NODE_SEARCH,
+    nodes[0]
+);
+export const notificationsEnabled: Writable<boolean | undefined> =
+    chromeStorageSync(KEY_NOTIFICATIONS_REFRESH_ENABLED, true);
+export const notificationsRefreshInterval: Writable<RefreshInterval> =
+    chromeStorageSync(KEY_NOTIFICATIONS_REFRESH_INTERVAL, {
+        value: 15,
+        label: '15 min',
+    });
+export const notificationsTimestamp: Writable<string> = chromeStorageSync(
+    KEY_NOTIFICATIONS_TIMESTAMP
+);
+export const notificationsGrouped: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_GROUPED,
+    false
+);
+export const notificationsFiltered: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FILTERED,
+    false
+);
+export const notificationsForFollows: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_FOLLOWS,
+    true
+);
+export const notificationsForMirrors: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_MIRRORS,
+    true
+);
+export const notificationsForCollects: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_COLLECTS,
+    true
+);
+export const notificationsForComments: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_COMMENTS,
+    true
+);
+export const notificationsForMentions: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_MENTIONS,
+    true
+);
+export const notificationsForReactions: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_REACTIONS,
+    true
+);
+export const messagesRefreshEnabled: Writable<boolean | undefined> =
+    chromeStorageSync(KEY_MESSAGES_REFRESH_ENABLED, true);
+export const messagesRefreshInterval: Writable<RefreshInterval> =
+    chromeStorageSync(KEY_MESSAGES_REFRESH_INTERVAL, {
+        value: 1,
+        label: '1 min',
+    });
+export const messagesUnreadTopics: Writable<string[]> = chromeStorageSync(
+    KEY_MESSAGES_UNREAD_TOPICS,
+    []
+);
+export const richTextComposer: Writable<boolean> = chromeStorageSync(
+    KEY_RICH_TEXT,
+    true
+);
+export const walletConnection: Writable<WalletConnection> = chromeStorageSync(
+    KEY_WALLET_CONNECTION
+);
 
 export const messagesUnreadCount: Readable<number> = derived(
     messagesUnreadTopics,
@@ -97,6 +186,8 @@ export const messagesUnreadCount: Readable<number> = derived(
 export const unreadNotificationsCount: Readable<number> = derived(
     notificationsTimestamp,
     ($notificationsTimestamp, set) => {
-        getNotificationCountSinceLastOpened($notificationsTimestamp).then(count => set(count));
+        getNotificationCountSinceLastOpened($notificationsTimestamp).then(
+            (count) => set(count)
+        );
     }
 );

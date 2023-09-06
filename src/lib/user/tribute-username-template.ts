@@ -1,7 +1,9 @@
-import type {TributeItem} from 'tributejs';
-import type {Profile} from '../graph/lens-service';
+import type { TributeItem } from 'tributejs';
+import type { Profile } from '../graph/lens-service';
 
-export const buildTributeUsernameMenuTemplate = (item: TributeItem<Profile>) => {
+export const buildTributeUsernameMenuTemplate = (
+    item: TributeItem<Profile>
+) => {
     const profile: Profile = item.original;
 
     const handleView = document.createElement('div');
@@ -10,7 +12,8 @@ export const buildTributeUsernameMenuTemplate = (item: TributeItem<Profile>) => 
 
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';
-    subtextView.innerText = profile.name || profile.onChainIdentity?.ens?.name || profile.ownedBy;
+    subtextView.innerText =
+        profile.name || profile.onChainIdentity?.ens?.name || profile.ownedBy;
 
     const textContainer = document.createElement('div');
     textContainer.className = 'flex-1 pl-1 mr-8 overflow-hidden';
@@ -23,7 +26,8 @@ export const buildTributeUsernameMenuTemplate = (item: TributeItem<Profile>) => 
     imageView.src = `https://cdn.stamp.fyi/avatar/${profile.ownedBy}?s=96`;
 
     const imageContainer = document.createElement('div');
-    imageContainer.className = 'flex flex-col w-10 h-10 justify-center items-center mr-3';
+    imageContainer.className =
+        'flex flex-col w-10 h-10 justify-center items-center mr-3';
     imageContainer.appendChild(imageView);
 
     const outerContainer = document.createElement('div');

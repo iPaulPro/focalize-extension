@@ -1,9 +1,9 @@
-import lensApi from "../lens-api";
-import type {TransactionReceipt} from "../graph/lens-service";
-import {PublicationMetadataStatusType, type Log} from "../graph/lens-service";
-import {sleep} from "./utils";
-import {AbiCoder, id} from "ethers";
-import {PublicationState} from "../stores/state-store";
+import lensApi from '../lens-api';
+import type { TransactionReceipt } from '../graph/lens-service';
+import { PublicationMetadataStatusType, type Log } from '../graph/lens-service';
+import { sleep } from './utils';
+import { AbiCoder, id } from 'ethers';
+import { PublicationState } from '../stores/state-store';
 
 const getPublicationId = (logs: Array<Log>) => {
     const topicId = id(
@@ -17,17 +17,24 @@ const getPublicationId = (logs: Array<Log>) => {
 
     const profileCreatedEventLog = log.topics;
 
-    const publicationId = AbiCoder.defaultAbiCoder().decode(['uint256'], profileCreatedEventLog[2])[0];
+    const publicationId = AbiCoder.defaultAbiCoder().decode(
+        ['uint256'],
+        profileCreatedEventLog[2]
+    )[0];
     return '0x' + BigInt(publicationId).toString(16);
-}
+};
 
 export const pollUntilIndexed = async (
     txHash: string,
     stateListener?: (state: PublicationState) => void
 ): Promise<TransactionReceipt | null | undefined> => {
     while (true) {
-        const {hasTxHashBeenIndexed} = await lensApi.hasTransactionBeenIndexed({request: {txHash}});
-        console.log('pollUntilIndexed: hasTxHashBeenIndexed', hasTxHashBeenIndexed);
+        const { hasTxHashBeenIndexed } =
+            await lensApi.hasTransactionBeenIndexed({ request: { txHash } });
+        console.log(
+            'pollUntilIndexed: hasTxHashBeenIndexed',
+            hasTxHashBeenIndexed
+        );
 
         if (hasTxHashBeenIndexed.__typename === 'TransactionError') {
             throw hasTxHashBeenIndexed.reason;
@@ -45,11 +52,15 @@ export const pollUntilIndexed = async (
                 case PublicationMetadataStatusType.Success:
                     return hasTxHashBeenIndexed.txReceipt;
                 case PublicationMetadataStatusType.MetadataValidationFailed:
-                    throw new Error(hasTxHashBeenIndexed.metadataStatus.reason!!);
+                    throw new Error(
+                        hasTxHashBeenIndexed.metadataStatus.reason!!
+                    );
             }
         }
 
-        console.log('pollUntilIndexed: sleep for 1500 milliseconds then try again');
+        console.log(
+            'pollUntilIndexed: sleep for 1500 milliseconds then try again'
+        );
         // sleep for a second before trying again
         await sleep(1500);
     }

@@ -1,6 +1,6 @@
-import {decodeJwt} from "jose";
+import { decodeJwt } from 'jose';
 
-import lensApi from "../lens-api";
+import lensApi from '../lens-api';
 import type WalletConnection from '../evm/WalletConnection';
 
 export class NoProfileError extends Error {
@@ -12,15 +12,24 @@ export class NoProfileError extends Error {
 }
 
 export const authenticateUser = async (walletConnection: WalletConnection) => {
-    const {initEthers, getSigner, getAccounts, clearProvider, ensureCorrectChain} = await import('../evm/ethers-service');
-    const {getDefaultProfile} = await import('./lens-profile');
+    const {
+        initEthers,
+        getSigner,
+        getAccounts,
+        clearProvider,
+        ensureCorrectChain,
+    } = await import('../evm/ethers-service');
+    const { getDefaultProfile } = await import('./lens-profile');
 
     let address: string | undefined;
     try {
         const accounts = await initEthers(walletConnection);
         address = accounts[0];
     } catch (e) {
-        console.warn('authenticateUser: Unable to get address from cached provider', e);
+        console.warn(
+            'authenticateUser: Unable to get address from cached provider',
+            e
+        );
     }
 
     if (!address) {
@@ -39,22 +48,22 @@ export const authenticateUser = async (walletConnection: WalletConnection) => {
     await ensureCorrectChain();
 
     // Getting the challenge from the server
-    const {challenge} = await lensApi.challenge({request: {address}});
+    const { challenge } = await lensApi.challenge({ request: { address } });
     console.log('authenticate: Lens challenge response', challenge);
 
     const signer = await getSigner();
     const signature = await signer.signMessage(challenge.text);
     console.log('authenticate: Signed Lens challenge', signature);
 
-    const {authenticate} = await lensApi.authenticate({request: {address, signature}});
+    const { authenticate } = await lensApi.authenticate({
+        request: { address, signature },
+    });
     console.log('authenticate: Lens auth response', authenticate);
 
-    await chrome.storage.local.set(
-        {
-            accessToken: authenticate.accessToken,
-            refreshToken: authenticate.refreshToken,
-        }
-    );
+    await chrome.storage.local.set({
+        accessToken: authenticate.accessToken,
+        refreshToken: authenticate.refreshToken,
+    });
 
     const profile = await getDefaultProfile(address);
     console.log('authenticate: Default profile', profile);
@@ -97,7 +106,8 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
     }
     // console.log('getOrRefreshAccessToken: found saved refresh token')
 
-    const refreshTokenExpiration = (decodeJwt(savedRefreshToken).exp ?? 0) * 1000; // convert to ms
+    const refreshTokenExpiration =
+        (decodeJwt(savedRefreshToken).exp ?? 0) * 1000; // convert to ms
     if (refreshTokenExpiration > now) {
         return refreshAccessToken(savedRefreshToken);
     } else {
@@ -116,20 +126,22 @@ export const getSavedRefreshToken = async (): Promise<string | undefined> => {
     return storage.refreshToken;
 };
 
-export const refreshAccessToken = async (refreshToken?: string): Promise<string> => {
+export const refreshAccessToken = async (
+    refreshToken?: string
+): Promise<string> => {
     if (!refreshToken) {
         refreshToken = await getSavedRefreshToken();
     }
 
     // console.log('refreshAccessToken: Refreshing access token with refresh token...');
 
-    const {refresh} = await lensApi.refresh({request: {refreshToken}});
+    const { refresh } = await lensApi.refresh({ request: { refreshToken } });
 
     return new Promise((resolve, reject) => {
         chrome.storage.local.set(
             {
                 accessToken: refresh.accessToken,
-                refreshToken: refresh.refreshToken
+                refreshToken: refresh.refreshToken,
             },
             async () => {
                 if (chrome.runtime.lastError) {
@@ -143,12 +155,12 @@ export const refreshAccessToken = async (refreshToken?: string): Promise<string>
                 resolve(accessToken);
             }
         );
-    })
+    });
 };
 
 export const logOut = async () => {
-    const {clearProvider} = await import('../evm/ethers-service');
+    const { clearProvider } = await import('../evm/ethers-service');
     await chrome.storage.local.clear();
-    await chrome.runtime.sendMessage({type: 'loggedOut'});
+    await chrome.runtime.sendMessage({ type: 'loggedOut' });
     await clearProvider();
 };

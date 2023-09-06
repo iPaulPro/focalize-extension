@@ -1,8 +1,8 @@
-import {LENS_HUB_CONTRACT} from '../../config';
-import {getSigner} from "./ethers-service";
-import {LensHub__factory} from "../../contracts/types";
+import { LENS_HUB_CONTRACT } from '../../config';
+import { getSigner } from './ethers-service';
+import { LensHub__factory } from '../../contracts/types';
 
-import type {LensHub} from "../../contracts/types";
+import type { LensHub } from '../../contracts/types';
 
 export const getLensHub = async (): Promise<LensHub> => {
     const signer = await getSigner();

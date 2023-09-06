@@ -14,10 +14,16 @@ export default class WindowBlinker {
      * @param originalTitle The original window title. If not provided, the current window title will be used.
      * @param howManyTimes How many times to blink the window title.
      */
-    start(newMsg: string, originalTitle?: string, howManyTimes: number = 20): void {
+    start(
+        newMsg: string,
+        originalTitle?: string,
+        howManyTimes: number = 20
+    ): void {
         this.stop();
 
-        chrome.windows.update(chrome.windows.WINDOW_ID_CURRENT, {drawAttention: true}).catch(console.error);
+        chrome.windows
+            .update(chrome.windows.WINDOW_ID_CURRENT, { drawAttention: true })
+            .catch(console.error);
 
         if (originalTitle) {
             this.originalTitle = originalTitle;
@@ -26,8 +32,11 @@ export default class WindowBlinker {
         this.subscription = timer(0, 2000)
             .pipe(
                 tap(() => {
-                    document.title = document.title === this.originalTitle ? newMsg : this.originalTitle;
-                }),
+                    document.title =
+                        document.title === this.originalTitle
+                            ? newMsg
+                            : this.originalTitle;
+                })
             )
             .subscribe({
                 next: () => {
@@ -47,6 +56,8 @@ export default class WindowBlinker {
             this.subscription = null;
         }
         document.title = this.originalTitle;
-        chrome.windows.update(chrome.windows.WINDOW_ID_CURRENT, {drawAttention: false}).catch(console.error);
+        chrome.windows
+            .update(chrome.windows.WINDOW_ID_CURRENT, { drawAttention: false })
+            .catch(console.error);
     }
 }

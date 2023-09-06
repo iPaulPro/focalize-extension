@@ -1,22 +1,28 @@
 import nodes from '../stores/nodes.json';
-import {PublicationMainFocus} from "../graph/lens-service";
+import { PublicationMainFocus } from '../graph/lens-service';
 
 export type LensNode = {
-    name: string,
-    baseUrl: string,
-    posts: string,
-    profiles: string,
-    hexIdentifier: boolean,
-    notifications: string | null,
-    focus: string[],
+    name: string;
+    baseUrl: string;
+    posts: string;
+    profiles: string;
+    hexIdentifier: boolean;
+    notifications: string | null;
+    focus: string[];
 };
 
-export const LENS_NODES: LensNode[] = [
-    ...nodes
-];
+export const LENS_NODES: LensNode[] = [...nodes];
 
-export const getNodeForPublicationMainFocus = async (postType: PublicationMainFocus): Promise<LensNode> => {
-    const storage = await chrome.storage.sync.get(['nodeImage', 'nodeVideo', 'nodeAudio', 'nodeArticle', 'nodePost'])
+export const getNodeForPublicationMainFocus = async (
+    postType: PublicationMainFocus
+): Promise<LensNode> => {
+    const storage = await chrome.storage.sync.get([
+        'nodeImage',
+        'nodeVideo',
+        'nodeAudio',
+        'nodeArticle',
+        'nodePost',
+    ]);
     switch (postType) {
         case PublicationMainFocus.Image:
             return storage.nodeImage;
@@ -47,7 +53,10 @@ export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {
     return node.baseUrl + node.posts.replace('{$id}', id);
 };
 
-export const getPublicationUrl = async (postType: PublicationMainFocus, postId: string) => {
+export const getPublicationUrl = async (
+    postType: PublicationMainFocus,
+    postId: string
+) => {
     const node = await getNodeForPublicationMainFocus(postType);
     return getPublicationUrlFromNode(node, postId);
 };

@@ -1,12 +1,14 @@
-import type { LexicalEditor, TextNode} from 'lexical';
-import {MentionNode, createMentionNode} from './MentionNode';
-import {registerLexicalTextEntity} from '@lexical/text';
+import type { LexicalEditor, TextNode } from 'lexical';
+import { MentionNode, createMentionNode } from './MentionNode';
+import { registerLexicalTextEntity } from '@lexical/text';
 
 // Matches @ mentions with domains and leading  and trailing whitespace or punctuation.
 // (full match), (leading whitespace), (name), (trailing whitespace/punctuation)
-const MENTION_REGEX = /(^|\s)@([a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*)(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/;
+const MENTION_REGEX =
+    /(^|\s)@([a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*)(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/;
 
-const createMentionNodeFromTextNode = (textNode: TextNode): MentionNode => createMentionNode(textNode.getTextContent());
+const createMentionNodeFromTextNode = (textNode: TextNode): MentionNode =>
+    createMentionNode(textNode.getTextContent());
 
 const getMentionMatch = (text: string) => {
     const matchArr = MENTION_REGEX.exec(text);
@@ -34,6 +36,6 @@ export const registerMentionPlugin = (editor: LexicalEditor) => {
         editor,
         getMentionMatch,
         MentionNode,
-        createMentionNodeFromTextNode,
+        createMentionNodeFromTextNode
     );
 };

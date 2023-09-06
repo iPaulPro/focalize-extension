@@ -1,4 +1,4 @@
-import {PublicationMainFocus} from "../graph/lens-service";
+import { PublicationMainFocus } from '../graph/lens-service';
 
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
@@ -21,7 +21,7 @@ export const SUPPORTED_MIME_TYPES = [
     'video/mp4',
     'video/webm',
     'video/x-m4v',
-    ...IMAGE_TYPES
+    ...IMAGE_TYPES,
 ];
 
 export const supportedMimeTypesJoined = () => {
@@ -32,7 +32,9 @@ export const imageMimeTypesJoined = () => {
     return IMAGE_TYPES.join(',');
 };
 
-export const getMainFocusFromMimeType = (type: string): PublicationMainFocus => {
+export const getMainFocusFromMimeType = (
+    type: string
+): PublicationMainFocus => {
     if (type.startsWith('image/')) {
         return PublicationMainFocus.Image;
     } else if (type.startsWith('video/')) {

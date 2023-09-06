@@ -1,8 +1,8 @@
-import {v4 as uuid} from 'uuid';
-import {DateTime} from 'luxon';
+import { v4 as uuid } from 'uuid';
+import { DateTime } from 'luxon';
 
-import {readable} from 'svelte/store';
-import type {PostDraft} from '../publications/PostDraft';
+import { readable } from 'svelte/store';
+import type { PostDraft } from '../publications/PostDraft';
 
 const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
     const storage = await chrome.storage.local.get('postDrafts');
@@ -10,10 +10,12 @@ const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
         return new Map(JSON.parse(storage.postDrafts));
     }
     return undefined;
-}
+};
 
-export const postDrafts = readable<Map<string, PostDraft>>(new Map(), set => {
-    const listener = (changes: { [p: string]: chrome.storage.StorageChange }) => {
+export const postDrafts = readable<Map<string, PostDraft>>(new Map(), (set) => {
+    const listener = (changes: {
+        [p: string]: chrome.storage.StorageChange;
+    }) => {
         if (changes.postDrafts) {
             set(new Map(JSON.parse(changes.postDrafts.newValue)));
         }
@@ -28,15 +30,15 @@ export const postDrafts = readable<Map<string, PostDraft>>(new Map(), set => {
     return () => {
         chrome.storage.onChanged.removeListener(listener);
     };
-})
+});
 
 export const getDraft = async (id: string): Promise<PostDraft | undefined> => {
-    const drafts = await getDrafts()
+    const drafts = await getDrafts();
     return drafts?.get(id);
 };
 
 export const saveDraft = async (draft: PostDraft) => {
-    const drafts: Map<string, PostDraft> = await getDrafts() ?? new Map();
+    const drafts: Map<string, PostDraft> = (await getDrafts()) ?? new Map();
 
     if (!draft.id) {
         draft.id = uuid();
@@ -46,7 +48,7 @@ export const saveDraft = async (draft: PostDraft) => {
 
     drafts.set(draft.id, draft);
 
-    await chrome.storage.local.set({postDrafts: JSON.stringify([...drafts])});
+    await chrome.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
 
     return draft;
 };
@@ -57,5 +59,5 @@ export const deleteDraft = async (id: string) => {
 
     drafts.delete(id);
 
-    await chrome.storage.local.set({postDrafts: JSON.stringify([...drafts])});
+    await chrome.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
 };
