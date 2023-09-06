@@ -606,7 +606,7 @@ export const newThread = async (peer: Peer): Promise<Thread> => {
 export const getMessagesStream = (conversation: Conversation): Observable<DecodedMessage> => new Observable((observer) => {
     let isObserverClosed = false;
 
-    getXmtpClient().then((xmtp) => {
+    getXmtpClient().then(() => {
         conversation.streamMessages().then((stream: Stream<DecodedMessage>) => {
             const onMessage = async () => {
                 for await (const message of stream) {

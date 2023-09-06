@@ -144,7 +144,7 @@
             {:else if media.type?.startsWith('video')}
 
               <video src={ipfsUrlToGatewayUrl(media.item)} type={media.type} poster={ipfsUrlToGatewayUrl(media.cover)}
-                     class="w-full lg:w-2/3 aspect-video rounded-lg bg-black mt-4 mb-2" crossorigin
+                     class="w-full lg:w-2/3 aspect-video rounded-lg bg-black mt-4 mb-2"
                      preload="metadata" controls controlslist="nodownload"></video>
 
             {:else if media.type?.startsWith('audio')}
@@ -166,7 +166,7 @@
                       {artist}
                     </div>
 
-                    <audio src={ipfsUrlToGatewayUrl(media.item)} type={media.type} crossorigin
+                    <audio src={ipfsUrlToGatewayUrl(media.item)} type={media.type}
                            class="w-full px-1" preload="metadata" controls controlslist="nodownload"></audio>
                   </div>
                 </div>

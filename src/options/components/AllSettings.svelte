@@ -1,7 +1,7 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
     import { setContext } from 'svelte';
-    import {darkMode, useDispatcher, dispatcherDialogShown} from '../../lib/stores/preferences-store';
+    import {useDispatcher, dispatcherDialogShown} from '../../lib/stores/preferences-store';
     import SetDispatcherDialog from "../../window/components/SetDispatcherDialog.svelte";
     import {currentUser} from "../../lib/stores/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";

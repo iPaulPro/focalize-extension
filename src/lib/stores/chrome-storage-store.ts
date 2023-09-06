@@ -74,22 +74,6 @@ export function chromeStorageSync<T>(key: string, defaultValue?: T): ChromeStora
     return new ChromeStorageStore('sync', key, defaultValue)
 }
 
-/**
- * Creates a new {@link ChromeStorageStore} for a given key.
- * Data will be read from chrome.storage.managed.
- * This is a {@link Writable} instance, and can be used in place of
- * svelte stores.
- *
- * NOTE: You cannot write to a managed storage area; it is read-only.
- * @param key The key to read from the `managed` chrome storage area.
- * @param defaultValue The default value to set upon creation.
- * @throws If the `storage` permission is not present in your manifest.
- * @throws If you try to write to this storage area.
- */
-export function chromeStorageManaged<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
-    return new ChromeStorageStore('managed', key)
-}
-
 export function get<T>(writable: Writable<T>): Promise<T> {
     return (writable as ChromeStorageStore<T>).get();
 }
@@ -104,11 +88,12 @@ class ChromeStorageStore<T> implements Writable<T> {
         private defaultValue?: T
     ) {
         this.storageArea = chrome.storage[this.area]
-        if (defaultValue !== undefined) {
+        const dv = this.defaultValue;
+        if (dv !== undefined) {
             this.storageArea.get(this.key, item => {
                 const value = item[this.key];
                 if (value === undefined) {
-                    this.set(defaultValue);
+                    this.set(dv);
                 }
             })
         }

@@ -15,7 +15,6 @@ import type {
     CreateUnfollowTypedDataMutation,
     Profile,
     ProxyActionMutation,
-    RelayerResult,
     SetDispatcherRequest,
 } from '../graph/lens-service';
 import type {User} from './user';

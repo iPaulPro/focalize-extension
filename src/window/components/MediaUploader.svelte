@@ -221,7 +221,7 @@
         {/if}
 
         <div class="relative">
-          <img src={attachmentPath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl" crossorigin=""
+          <img src={attachmentPath} alt="Uploaded file" class="max-w-full max-h-96 rounded-xl"
                on:load={onAttachmentLoaded}>
 
           <div class="absolute flex justify-end items-start top-0 left-0 z-10 w-full h-full group">
@@ -256,9 +256,8 @@
 
               <div class="w-full relative flex justify-center items-center
                      {isAttachmentVideo ? 'aspect-video' : ''}">
-                <img src={coverPath} alt="Cover" crossorigin=""
-                     class="w-full h-full object-cover rounded-xl bg-gray-200 rounded-xl
-                           {isCollectable ? '' : 'max-w-[50%]'}
+                <img src={coverPath} alt="Cover"
+                     class="w-full h-full object-cover rounded-xl bg-gray-200
                            {isFileDragged ? 'border border-orange-500' : 'border-none'}"
                      on:load={() => coverLoading = false}>
 

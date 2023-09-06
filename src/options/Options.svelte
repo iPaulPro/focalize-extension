@@ -13,7 +13,6 @@
     import {isOnToolbar} from '../lib/utils/utils';
     import {get} from '../lib/stores/chrome-storage-store';
     import Login from './components/Login.svelte';
-    import {getAccounts} from '../lib/evm/ethers-service';
 
     let loading = true;
     let noProfileDialog: HTMLDialogElement;

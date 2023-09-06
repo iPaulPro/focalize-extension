@@ -11,7 +11,7 @@ export interface Web3File extends File {
 }
 
 export const uploadAndPin = async (file: File, cb?: (progress: number) => void): Promise<string> => {
-    const auth = btoa(`${AUTH_TOKEN}`)
+    const auth = Buffer.from(`${AUTH_TOKEN}`, 'binary').toString('base64');
 
     const formData = new FormData();
     formData.append("file", file);
@@ -41,7 +41,7 @@ export const uploadAndPin = async (file: File, cb?: (progress: number) => void):
 export const unpin = async (cid: string): Promise<string[]> => {
     if (!cid) throw new Error('CID cannot be null');
 
-    const auth = btoa(`${AUTH_TOKEN}`)
+    const auth = Buffer.from(`${AUTH_TOKEN}`, 'binary').toString('base64');
 
     const res = await axios.post(
         "https://ipfs.infura.io:5001/api/v0/pin/rm?arg=" + cid,

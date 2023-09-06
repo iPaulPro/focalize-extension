@@ -1,5 +1,4 @@
 import {decodeJwt} from "jose";
-import {Duration} from "luxon";
 
 import lensApi from "../lens-api";
 import type WalletConnection from '../evm/WalletConnection';
@@ -85,7 +84,7 @@ export const getOrRefreshAccessToken = async (): Promise<string> => {
 
     const accessTokenExpiration = (decodeJwt(accessToken).exp ?? 0) * 1000; // convert to ms
     if (accessTokenExpiration > now) {
-        const duration = Duration.fromMillis(accessTokenExpiration - now).shiftTo('minutes');
+        // const duration = Duration.fromMillis(accessTokenExpiration - now).shiftTo('minutes');
         // console.log(`getOrRefreshAccessToken: saved access token expires in ${duration.toHuman()}`);
         return accessToken;
     }

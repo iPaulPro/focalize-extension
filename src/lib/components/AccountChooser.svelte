@@ -70,7 +70,7 @@
               <InlineSVG src={ImageAvatar}
                          class="w-8 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-300"/>
             {:else}
-              <img src={avatarUrl} alt="Profile avatar" class="w-8 rounded-full object-cover" crossorigin
+              <img src={avatarUrl} alt="Profile avatar" class="w-8 rounded-full object-cover"
                    on:error={() => {avatarError.push(index)}}>
             {/if}
 

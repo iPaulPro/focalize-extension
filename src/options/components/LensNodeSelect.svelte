@@ -24,11 +24,24 @@
     }
 </script>
 
-<Select items={nodes} itemId={'name'} label={'name'} clearable={false} searchable={false} listAutoWidth={false}
-        showChevron={true} bind:value={selectedNode} on:change={onNodeChange} {disabled}
-        --item-height="auto" --item-is-active-bg="#DB4700" --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
-        --font-size="0.875rem" --list-background={$darkMode ? '#374354' : 'white'}
-        --selected-item-padding="0rem" --list-border-radius="0.75rem" --list-max-height="fit-content"
+<Select items={nodes}
+        itemId={'name'}
+        label={'name'}
+        clearable={false}
+        searchable={false}
+        listAutoWidth={false}
+        showChevron={true}
+        disabled={disabled}
+        bind:value={selectedNode}
+        on:change={onNodeChange}
+        --item-height="auto"
+        --item-is-active-bg="#DB4700"
+        --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
+        --font-size="0.875rem"
+        --list-background={$darkMode ? '#374354' : 'white'}
+        --selected-item-padding="0rem"
+        --list-border-radius="0.75rem"
+        --list-max-height="fit-content"
         class="!w-fit !h-fit !shrink-0 !bg-white dark:!bg-gray-800 hover:!bg-gray-100 dark:hover:!bg-gray-600 !shadow
         !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
         !rounded-xl !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">

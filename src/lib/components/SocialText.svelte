@@ -14,7 +14,7 @@
         if (!truncatedText?.length) return;
 
         // First, strip the domain part from the @mentions
-        truncatedText = truncatedText.replace(/@([\w\.]+)/g, (match, handle) => {
+        truncatedText = truncatedText.replace(/@([\w\.]+)/g, (_, handle) => {
             const cleanHandle = handle.split('.')[0];
             return `@${cleanHandle}`;
         });
@@ -27,12 +27,12 @@
         });
 
         // Replace @mentions with anchors
-        formatted = formatted.replace(/@(\w+)/g, (match, handle) => {
+        formatted = formatted.replace(/@(\w+)/g, (_, handle) => {
             return `<a href="https://lenster.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
         });
 
         // Replace hashtags with anchors
-        formatted = formatted.replace(/(?<!\w)#(\w+)/g, (match, hashtag) => {
+        formatted = formatted.replace(/(?<!\w)#(\w+)/g, (_, hashtag) => {
             return `<a href="https://lenster.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
         });
 
