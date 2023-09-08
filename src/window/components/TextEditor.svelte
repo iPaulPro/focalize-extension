@@ -177,7 +177,7 @@
                 range.setStart(nativeSelection.anchorNode, nativeSelection.anchorOffset);
                 range.setEnd(nativeSelection.focusNode, nativeSelection.focusOffset);
                 const rects: DOMRectList = range.getClientRects();
-                selectionAnchor = rects[0];
+                selectionAnchor = rects[rects.length - 1];
 
                 if (isSelectionLinkNode(selection)) {
                     linkEditorVisible = true;
