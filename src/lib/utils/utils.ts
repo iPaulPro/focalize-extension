@@ -458,6 +458,7 @@ export const resizeTextarea = async (
 
     textarea.style.height = 'auto';
     const computedStyle = getComputedStyle(textarea);
+    const height = parseInt(computedStyle.height, 10);
     const lineHeight = parseInt(computedStyle.lineHeight, 10);
     const padding = parseInt(computedStyle.paddingTop, 10);
     const maxHeight = lineHeight * 10;
@@ -468,7 +469,7 @@ export const resizeTextarea = async (
         textarea.style.height = `${maxHeight + padding * 2}px`;
     } else {
         textarea.style.overflowY = 'hidden';
-        textarea.style.height = `${scrollHeight}px`;
+        textarea.style.height = `${Math.max(height, scrollHeight)}px`;
     }
 };
 
