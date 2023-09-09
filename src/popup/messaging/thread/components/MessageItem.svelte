@@ -15,6 +15,9 @@
     } from "@xmtp/content-type-remote-attachment";
     import {getXmtpClient} from "../../../../lib/xmtp-service";
     import LoadingSpinner from "../../../../lib/components/LoadingSpinner.svelte";
+    import {createEventDispatcher} from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     export let message: DecodedMessage;
     export let previousMessage: DecodedMessage;
@@ -133,6 +136,7 @@
             {:else if attachment?.mimeType?.startsWith('image/')}
               <img src={attachment.url} alt="Image attachment"
                    class="max-w-[100%] max-h-[20rem] rounded-xl pt-1"
+                   on:load={() => dispatch('imageLoaded')}
                    on:error={() => {attachmentLoadingError = true}}/>
             {:else}
               <div>Unsupported attachment</div>

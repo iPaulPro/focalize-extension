@@ -10,6 +10,8 @@
     import {nodeSearch} from '../stores/preferences-store';
     import {canMessage, findThread, isXmtpEnabled} from "../xmtp-service";
     import LoadingSpinner from "./LoadingSpinner.svelte";
+    import {slide, fade, scale} from 'svelte/transition';
+    import { cubicOut } from 'svelte/easing';
 
     export let profile: Profile;
 
@@ -90,7 +92,7 @@
     };
 </script>
 
-<div
+<div in:scale={{duration: 100, opacity: 0.5, easing: cubicOut}}
     class="w-80 flex flex-col text-base rounded-2xl p-5 bg-white dark:bg-gray-900 border border-gray-200
     dark:border-gray-700 shadow-lg">
 
@@ -101,28 +103,30 @@
     </a>
 
     {#if !loading && !isCurrentUserProfile}
-      {#await canMessageProfile() then dmsEnabled}
-        {#if dmsEnabled}
-          <div class="flex-grow flex justify-end h-full items-center">
-            <button type="button" on:click={onMessageBtnClick} disabled={isMessaging}
-                    class="flex items-center justify-center w-10 h-10 rounded-full
+      <div class="flex gap-2" in:fade={{duration: 100}}>
+        {#await canMessageProfile() then dmsEnabled}
+          {#if dmsEnabled}
+            <div class="flex-grow flex justify-end h-full items-center">
+              <button type="button" on:click={onMessageBtnClick} disabled={isMessaging}
+                      class="flex items-center justify-center w-10 h-10 rounded-full
                     border border-gray-200 dark:border-gray-700
                     hover:bg-gray-200 dark:hover:bg-gray-700">
-              {#if isMessaging}
-                <LoadingSpinner size="w-5 h-5" />
-              {:else}
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-              {/if}
-            </button>
-          </div>
-        {/if}
-      {/await}
+                {#if isMessaging}
+                  <LoadingSpinner size="w-5 h-5" />
+                {:else}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                {/if}
+              </button>
+            </div>
+          {/if}
+        {/await}
 
-      <FollowButton {profile}/>
+        <FollowButton {profile}/>
+      </div>
     {/if}
   </div>
 
@@ -167,7 +171,7 @@
 
     {#if mutualFollows.profiles.length > 0}
 
-      <div class="pt-3 flex gap-2">
+      <div class="pt-3 flex gap-2" in:slide={{duration: 200}}>
 
         <div class="flex flex-shrink-0 overlap">
           {#each mutualFollows.profiles as mutualFollow}

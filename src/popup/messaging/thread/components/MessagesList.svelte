@@ -9,7 +9,7 @@
     import type {Subscription} from 'rxjs';
     import {get} from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
-    import {isPeerMessage} from '../../../../lib/utils/utils';
+    import {isPeerMessage, scrollEndListener} from '../../../../lib/utils/utils';
     import {messagesUnreadTopics} from '../../../../lib/stores/preferences-store';
 
     const dispatch = createEventDispatcher();
@@ -21,12 +21,21 @@
     let newMessagesTimestamp: number | undefined;
 
     let scrollElement: HTMLElement;
+    let hasScrolled = false;
+    let previouslyScrolledToBottom: boolean = true;
 
     const isFullyScrolled = () => scrollElement.scrollTop === scrollElement.scrollHeight - scrollElement.clientHeight;
 
     const scrollToBottom = async () => {
         await tick();
         scrollElement.scrollTop = scrollElement.scrollHeight;
+    };
+
+    const onScrollEnd = async () => {
+        if (scrollElement.scrollTop + scrollElement.clientHeight !== scrollElement.scrollHeight) {
+            hasScrolled = true;
+        }
+        previouslyScrolledToBottom = isFullyScrolled();
     };
 
     const updateTimestamp = (timestamp: number = DateTime.now().toMillis()) => {
@@ -110,6 +119,12 @@
         clearNotification();
     };
 
+    const onImageLoaded = () => {
+        if (!hasScrolled && previouslyScrolledToBottom) {
+            scrollToBottom();
+        }
+    };
+
     onMount(async () => {
         window.addEventListener('focus', onFocus);
         window.addEventListener('blur', onBlur);
@@ -122,7 +137,9 @@
     });
 </script>
 
-<div bind:this={scrollElement} class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
+<div bind:this={scrollElement}
+     use:scrollEndListener={{onScrollEnd}}
+     class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
 
     <InfiniteLoading on:infinite={infiniteHandler} direction="top">
         <div slot="noMore"></div>
@@ -136,7 +153,12 @@
 
         {@const previousMessage = messages[i - 1]}
 
-        <MessageItem {message} {previousMessage} {newMessagesTimestamp}/>
+        <MessageItem
+            {message}
+            {previousMessage}
+            {newMessagesTimestamp}
+            on:imageLoaded={onImageLoaded}
+        />
 
     {/each}
 
