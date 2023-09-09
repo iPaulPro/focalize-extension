@@ -21,6 +21,7 @@
     let newMessagesTimestamp: number | undefined;
 
     let scrollElement: HTMLElement;
+    let scrollElementHeight: number;
     let hasScrolled = false;
     let previouslyScrolledToBottom: boolean = true;
 
@@ -32,6 +33,7 @@
     };
 
     const onScrollEnd = async () => {
+        console.log('onScrollEnd', scrollElement.scrollTop, scrollElement.scrollHeight);
         if (scrollElement.scrollTop + scrollElement.clientHeight !== scrollElement.scrollHeight) {
             hasScrolled = true;
         }
@@ -125,6 +127,12 @@
         }
     };
 
+    $: if (scrollElementHeight) {
+        if (previouslyScrolledToBottom) {
+            scrollToBottom();
+        }
+    }
+
     onMount(async () => {
         window.addEventListener('focus', onFocus);
         window.addEventListener('blur', onBlur);
@@ -138,6 +146,7 @@
 </script>
 
 <div bind:this={scrollElement}
+     bind:offsetHeight={scrollElementHeight}
      use:scrollEndListener={{onScrollEnd}}
      class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
 
