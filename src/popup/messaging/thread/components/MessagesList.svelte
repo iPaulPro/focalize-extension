@@ -1,16 +1,16 @@
 <script lang="ts">
-    import {DateTime} from 'luxon';
+    import { DateTime } from 'luxon';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
-    import type {DecodedMessage} from '@xmtp/xmtp-js';
-    import {getMessagesStream, type Thread} from '../../../../lib/xmtp-service';
-    import {messageTimestamps} from '../../../../lib/stores/cache-store';
-    import {createEventDispatcher, onDestroy, onMount, tick} from 'svelte';
-    import type {Subscription} from 'rxjs';
-    import {get} from '../../../../lib/stores/chrome-storage-store';
+    import type { DecodedMessage } from '@xmtp/xmtp-js';
+    import { getMessagesStream, type Thread } from '../../../../lib/xmtp-service';
+    import { messageTimestamps } from '../../../../lib/stores/cache-store';
+    import { createEventDispatcher, onDestroy, onMount, tick } from 'svelte';
+    import type { Subscription } from 'rxjs';
+    import { get } from '../../../../lib/stores/chrome-storage-store';
     import MessageItem from './MessageItem.svelte';
-    import {isPeerMessage, scrollEndListener} from '../../../../lib/utils/utils';
-    import {messagesUnreadTopics} from '../../../../lib/stores/preferences-store';
+    import { isPeerMessage } from '../../../../lib/utils/utils';
+    import { messagesUnreadTopics } from '../../../../lib/stores/preferences-store';
+    import { SortDirection } from '@xmtp/xmtp-js';
 
     const dispatch = createEventDispatcher();
 
@@ -27,18 +27,42 @@
 
     const isFullyScrolled = () => scrollElement.scrollTop === scrollElement.scrollHeight - scrollElement.clientHeight;
 
-    const scrollToBottom = async () => {
-        await tick();
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-    };
-
-    const onScrollEnd = async () => {
-        console.log('onScrollEnd', scrollElement.scrollTop, scrollElement.scrollHeight);
+    const onScroll = () => {
         if (scrollElement.scrollTop + scrollElement.clientHeight !== scrollElement.scrollHeight) {
             hasScrolled = true;
         }
         previouslyScrolledToBottom = isFullyScrolled();
     };
+
+    const smoothScroll = (amount: number, duration: number = 200) => {
+        const startTime = Date.now();
+
+        let scrollCount = 0;
+        let scrollInterval = amount / Math.ceil(duration / 1000 * 60);
+
+        const scrollStep = () => {
+            const now = Date.now();
+            const elapsedTime = now - startTime;
+
+            if (elapsedTime < duration) {
+                scrollElement.scrollBy(0, scrollInterval);
+                scrollCount += scrollInterval;
+                requestAnimationFrame(scrollStep);
+            }
+        };
+
+        requestAnimationFrame(scrollStep);
+    };
+
+    const scrollToBottom = async () => {
+        await tick();
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+    };
+
+    const smoothScrollToBottom = async (duration?: number) => {
+        await tick();
+        smoothScroll(scrollElement.scrollHeight, duration);
+    }
 
     const updateTimestamp = (timestamp: number = DateTime.now().toMillis()) => {
         $messageTimestamps[thread.conversation.topic] = timestamp;
@@ -63,11 +87,17 @@
         }
 
         let prevMessages: DecodedMessage[] = [];
-        const firstMessageSentTime: number | undefined = messages.length ? messages[0].sent.getTime() - 1 : undefined;
+        const lastMessageSentTime: number | undefined = messages.length ? messages[0].sent.getTime() - 1 : undefined;
         try {
-            const endTime: Date | undefined = firstMessageSentTime ? new Date(firstMessageSentTime) : undefined;
-            prevMessages = await thread.conversation.messages({endTime});
+            const endTime: Date | undefined = lastMessageSentTime ? new Date(lastMessageSentTime) : new Date();
+            prevMessages = await thread.conversation.messages({
+                startTime: new Date(0),
+                endTime,
+                limit: 50,
+                direction: SortDirection.SORT_DIRECTION_DESCENDING
+            });
             console.log('infiniteHandler: loaded', prevMessages?.length, 'messages');
+            prevMessages.reverse();
         } catch (e) {
             console.error('infiniteHandler: Error loading messages', e);
             error();
@@ -113,7 +143,7 @@
             messages = [...messages, message];
 
             if (!isPeerMessage(message) || isFullyScrolled()) {
-                await scrollToBottom();
+                await smoothScrollToBottom(500);
             }
         });
 
@@ -121,16 +151,21 @@
         clearNotification();
     };
 
-    const onImageLoaded = () => {
+    const onImageLoaded = (event: CustomEvent) => {
+        const element = event.detail.element as HTMLImageElement;
         if (!hasScrolled && previouslyScrolledToBottom) {
             scrollToBottom();
+        } else if (element.offsetTop > scrollElement.scrollTop) {
+            requestAnimationFrame(() => {
+                scrollElement.scrollTop += element.clientHeight;
+            });
         }
     };
 
-    $: if (scrollElementHeight) {
-        if (previouslyScrolledToBottom) {
-            scrollToBottom();
-        }
+    // When the scroll height changes, scroll to the bottom if we were previously scrolled to the bottom
+    // This typically happens when the input box grows or shrinks
+    $: if (scrollElementHeight && previouslyScrolledToBottom) {
+        scrollToBottom();
     }
 
     onMount(async () => {
@@ -147,14 +182,15 @@
 
 <div bind:this={scrollElement}
      bind:offsetHeight={scrollElementHeight}
-     use:scrollEndListener={{onScrollEnd}}
+     on:scroll={onScroll}
      class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
 
-    <InfiniteLoading on:infinite={infiniteHandler} direction="top">
-        <div slot="noMore"></div>
-
-        <div slot="spinner" class="p-10">
-            <LoadingSpinner/>
+    <InfiniteLoading on:infinite={infiniteHandler} direction="top" distance={200}>
+        <span slot="noMore"></span>
+        <span slot="spinner"></span>
+        <div slot="noResults" class='py-10 px-4 flex flex-col justify-center items-center'>
+            <div class="text-xl tracking-tight">Say hi!</div>
+            <div class="text-sm opacity-60">This conversation was started but no message has been sent yet</div>
         </div>
     </InfiniteLoading>
 
@@ -163,10 +199,10 @@
         {@const previousMessage = messages[i - 1]}
 
         <MessageItem
-            {message}
-            {previousMessage}
-            {newMessagesTimestamp}
-            on:imageLoaded={onImageLoaded}
+                {message}
+                {previousMessage}
+                {newMessagesTimestamp}
+                on:imageLoaded={onImageLoaded}
         />
 
     {/each}

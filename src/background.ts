@@ -52,8 +52,7 @@ import {
     KEY_NOTIFICATIONS_GROUPED,
 } from './lib/stores/preferences-store';
 import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
-import type { DecodedMessage } from '@xmtp/xmtp-js';
-import { Client } from '@xmtp/xmtp-js';
+import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';

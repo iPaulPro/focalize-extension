@@ -14,13 +14,12 @@
       type Attachment as RemoteAttachment,
     } from "@xmtp/content-type-remote-attachment";
     import {getXmtpClient} from "../../../../lib/xmtp-service";
-    import LoadingSpinner from "../../../../lib/components/LoadingSpinner.svelte";
     import {createEventDispatcher} from 'svelte';
 
     const dispatch = createEventDispatcher();
 
     export let message: DecodedMessage;
-    export let previousMessage: DecodedMessage;
+    export let previousMessage: DecodedMessage | undefined;
     export let newMessagesTimestamp: number | undefined;
 
     let loadingAttachment = false;
@@ -132,11 +131,12 @@
             {#if attachmentLoadingError}
               <div>Failed to load attachment</div>
             {:else if loadingAttachment}
-              <LoadingSpinner size="w-4 h-4" />
+              <div class="w-[80%] md:w-[60%] lg:w-[40%] placeholder animate-pulse"></div>
             {:else if attachment?.mimeType?.startsWith('image/')}
-              <img src={attachment.url} alt="Image attachment"
+              <img loading="lazy" decoding="async" alt="Image attachment"
+                   src={attachment.url}
                    class="max-w-[100%] max-h-[20rem] rounded-xl pt-1"
-                   on:load={() => dispatch('imageLoaded')}
+                   on:load={(e) => dispatch('imageLoaded', {element: e.target})}
                    on:error={() => {attachmentLoadingError = true}}/>
             {:else}
               <div>Unsupported attachment</div>
