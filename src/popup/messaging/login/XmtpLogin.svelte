@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import {getXmtpClient} from '../../../lib/xmtp-service';
+    import { getXmtpClient, isXmtpEnabled } from '../../../lib/xmtp-service';
     import {darkMode, messagesRefreshEnabled} from '../../../lib/stores/preferences-store';
     import {ensureUser} from '../../../lib/user/user';
     import {Toast, toastStore, storePopup} from '@skeletonlabs/skeleton';
@@ -50,6 +50,7 @@
         storePopup.set({computePosition, autoUpdate, flip, shift, offset, arrow});
 
         await ensureUser();
+        authenticated = await isXmtpEnabled();
     });
 </script>
 
