@@ -22,8 +22,9 @@
     export let previousMessage: DecodedMessage | undefined;
     export let newMessagesTimestamp: number | undefined;
 
-    let loadingAttachment = false;
+    let gettingAttachment = false;
     let attachmentLoadingError = false;
+    let attachmentLoaded = false;
 
     $: isPeer = message && isPeerMessage(message);
     $: sentDate = message && DateTime.fromJSDate(message.sent);
@@ -43,7 +44,7 @@
 
     const getAttachment = (message: DecodedMessage): Attachment | null => {
       console.log('Getting attachment', message);
-      loadingAttachment = true;
+      gettingAttachment = true;
 
       if (!isImageMimeType(message.content.mimeType)) {
         return null;
@@ -62,13 +63,13 @@
         attachmentLoadingError = true;
         return null;
       } finally {
-        loadingAttachment = false;
+        gettingAttachment = false;
       }
     };
 
     const getRemoteAttachment = async (message: DecodedMessage): Promise<Attachment | null> => {
       console.log('Getting remote attachment', message);
-      loadingAttachment = true;
+      gettingAttachment = true;
 
       const client = await getXmtpClient();
       try {
@@ -85,8 +86,13 @@
         attachmentLoadingError = true;
         return null;
       } finally {
-        loadingAttachment = false;
+        gettingAttachment = false;
       }
+    };
+
+    const onAttachmentLoaded = (e: Event) => {
+      attachmentLoaded = true;
+      dispatch('imageLoaded', {element: e.target});
     };
 </script>
 
@@ -130,14 +136,19 @@
           <div class="flex justify-center">
             {#if attachmentLoadingError}
               <div>Failed to load attachment</div>
-            {:else if loadingAttachment}
-              <div class="w-[80%] md:w-[60%] lg:w-[40%] placeholder animate-pulse"></div>
+            {:else if gettingAttachment}
+              <div class="h-[16rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
             {:else if attachment?.mimeType?.startsWith('image/')}
-              <img loading="lazy" decoding="async" alt="Image attachment"
-                   src={attachment.url}
-                   class="max-w-[100%] max-h-[20rem] rounded-xl pt-1"
-                   on:load={(e) => dispatch('imageLoaded', {element: e.target})}
-                   on:error={() => {attachmentLoadingError = true}}/>
+              <div class='min-h-[16rem]'>
+                {#if !attachmentLoaded}
+                  <div class="h-[16rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
+                {/if}
+                <img alt="Image attachment"
+                     src={attachment.url}
+                     class="max-w-[100%] max-h-[20rem] rounded-xl pt-1"
+                     on:load={onAttachmentLoaded}
+                     on:error={() => {attachmentLoadingError = true}}/>
+              </div>
             {:else}
               <div>Unsupported attachment</div>
             {/if}

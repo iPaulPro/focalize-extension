@@ -48,7 +48,7 @@
 
 <div class="h-screen px-4 pb-24 pt-6 overflow-auto md:px-8">
 
-  <h1 class="text-2xl font-semibold text-neutral-800 dark:text-white">
+  <h1 class="text-2xl font-semibold text-neutral-800 dark:text-white tracking-tight">
     Notification settings
   </h1>
 

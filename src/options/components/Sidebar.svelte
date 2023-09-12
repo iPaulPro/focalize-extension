@@ -133,7 +133,7 @@
               </svg>
 
               <a href="https://github.com/FocalizeApp/focalize-extension/releases/latest" target="_blank"
-                 rel="noreferrer" class="block">
+                 rel="noreferrer" class="block tracking-tight">
                 What's new in {release.name}?
               </a>
             </div>

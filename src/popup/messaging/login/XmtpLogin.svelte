@@ -8,7 +8,6 @@
     import {selectedMainTab} from '../../../lib/stores/cache-store';
     import Toolbar from '../../../options/components/Toolbar.svelte';
     import LoadingSpinner from '../../../lib/components/LoadingSpinner.svelte';
-    import {initEthers} from '../../../lib/evm/ethers-service';
 
     let authenticated = false;
     let waitingOnSignature = false;

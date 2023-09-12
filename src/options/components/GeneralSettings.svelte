@@ -17,12 +17,12 @@
 
 <div class="h-screen px-4 pb-24 pt-6 overflow-auto md:px-8">
 
-  <h1 class="text-2xl font-semibold text-neutral-800 dark:text-white">
+  <h1 class="text-2xl font-semibold text-neutral-800 dark:text-white tracking-tight">
     General settings
   </h1>
 
   <h2 class="text-neutral-400 text-lg pt-2">
-    These settings are automatically synced across installs if you have sync enabled in your browser.
+    These preferences are automatically synced across installs.
   </h2>
 
   <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 py-3 md:py-6"></div>

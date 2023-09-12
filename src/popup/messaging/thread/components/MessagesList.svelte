@@ -93,7 +93,7 @@
             prevMessages = await thread.conversation.messages({
                 startTime: new Date(0),
                 endTime,
-                limit: 50,
+                limit: 20,
                 direction: SortDirection.SORT_DIRECTION_DESCENDING
             });
             console.log('infiniteHandler: loaded', prevMessages?.length, 'messages');
