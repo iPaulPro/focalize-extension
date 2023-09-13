@@ -5,7 +5,7 @@ import {
     WALLETCONNECT_PROJECT_ID,
 } from '../../config';
 import type { JsonRpcSigner, TypedDataDomain, TypedDataField } from 'ethers';
-import { BrowserProvider, ethers, isError } from 'ethers';
+import { BrowserProvider, toQuantity, isError } from 'ethers';
 import omitDeep from 'omit-deep';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import ethProvider from 'eth-provider';
@@ -29,14 +29,14 @@ const chainId = Number.parseInt(CHAIN_ID, 10);
 
 const networkMap = {
     POLYGON_MAINNET: {
-        chainId: ethers.toQuantity(137), // '0x89'
+        chainId: toQuantity(137), // '0x89'
         chainName: 'Polygon',
         nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
         rpcUrls: ['https://polygon-rpc.com'],
         blockExplorerUrls: ['https://www.polygonscan.com/'],
     },
     MUMBAI_TESTNET: {
-        chainId: ethers.toQuantity(80001), // '0x13881'
+        chainId: toQuantity(80001), // '0x13881'
         chainName: 'Mumbai',
         nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
         rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
@@ -76,19 +76,19 @@ const createWalletConnectProvider = async () => {
     });
     console.log('ethereumProvider', ethereumProvider);
     await ethereumProvider.connect();
-    return new ethers.BrowserProvider(ethereumProvider, 'any');
+    return new BrowserProvider(ethereumProvider, 'any');
 };
 
 const createInjectedProvider = async (): Promise<BrowserProvider> => {
     const provider = ethProvider(['injected']);
     console.log('createInjectedProvider: found provider', provider);
-    return new ethers.BrowserProvider(provider, 'any');
+    return new BrowserProvider(provider, 'any');
 };
 
 const createFrameProvider = async (): Promise<BrowserProvider> => {
     const provider = ethProvider(['frame']);
     console.log('createFrameProvider: found provider', provider);
-    return new ethers.BrowserProvider(provider, 'any');
+    return new BrowserProvider(provider, 'any');
 };
 
 const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
@@ -103,7 +103,7 @@ const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
         rpcMap.get(chainId),
         chainId
     );
-    return new ethers.BrowserProvider(provider, 'any');
+    return new BrowserProvider(provider, 'any');
 };
 
 const createSignerProvider = async (): Promise<BrowserProvider> => {
@@ -116,7 +116,7 @@ const createSignerProvider = async (): Promise<BrowserProvider> => {
 
     switch (walletConnection) {
         case WalletConnection.METAMASK:
-            return new ethers.BrowserProvider(createMetaMaskProvider(), 'any');
+            return new BrowserProvider(createMetaMaskProvider(), 'any');
         case WalletConnection.WALLET_CONNECT:
             return createWalletConnectProvider();
         case WalletConnection.INJECTED:
@@ -169,7 +169,7 @@ const getChainId = async (): Promise<number> => {
 };
 
 const switchChains = async (id: number) => {
-    const stringId: string = ethers.toQuantity(id);
+    const stringId: string = toQuantity(id);
     const provider = await getProvider();
 
     try {

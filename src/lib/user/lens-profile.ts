@@ -1,9 +1,4 @@
-import { ethers } from 'ethers';
 import { LENS_FOLLOW_NFT_ABI } from '../../config';
-
-import { getLensHub } from '../evm/lens-hub';
-import { getSigner, signTypedData } from '../evm/ethers-service';
-import { pollUntilIndexed } from '../utils/has-transaction-been-indexed';
 
 import lensApi from '../lens-api';
 
@@ -96,9 +91,11 @@ export const setDispatcher = async (
         throw new Error('Error setting dispatcher');
     }
 
-    // @ts-ignore this function strips the __typename
+    const { signTypedData } = await import('../evm/ethers-service');
+
     const signature = await signTypedData(
         typedData.domain,
+        // @ts-ignore this function strips the __typename
         typedData.types,
         typedData.value
     );
@@ -118,8 +115,10 @@ export const setDispatcher = async (
             broadcast.reason
         );
 
-        const { v, r, s } = ethers.Signature.from(signature);
+        const { Signature } = await import('ethers');
+        const { v, r, s } = Signature.from(signature);
 
+        const { getLensHub } = await import('../evm/lens-hub');
         const lensHub = await getLensHub();
         const tx = await lensHub.setDispatcherWithSig({
             profileId: typedData.value.profileId,
@@ -143,6 +142,7 @@ export const setDispatcher = async (
         txHash = broadcast.txHash;
     }
 
+    const { pollUntilIndexed } = await import('../utils/has-transaction-been-indexed');
     await pollUntilIndexed(txHash);
     console.log('setDispatcher: transaction indexed');
 
@@ -199,9 +199,10 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
         throw new Error('Error creating follow typed data');
     }
 
-    // @ts-ignore this function strips the __typename
+    const { signTypedData } = await import('../evm/ethers-service');
     const signature = await signTypedData(
         typedData.domain,
+        // @ts-ignore this function strips the __typename
         typedData.types,
         typedData.value
     );
@@ -221,8 +222,10 @@ export const followProfile = async (profile: Profile): Promise<boolean> => {
             broadcast.reason
         );
 
-        const { v, r, s } = ethers.Signature.from(signature);
+        const { Signature } = await import('ethers');
+        const { v, r, s } = Signature.from(signature);
 
+        const { getLensHub } = await import('../evm/lens-hub');
         const lensHub = await getLensHub();
         const tx = await lensHub.followWithSig({
             follower: currentUser.address,
@@ -254,10 +257,12 @@ const burnFollowWithSig = async (
     signature: string,
     typedData: CreateBurnEip712TypedData
 ) => {
-    const { v, r, s } = ethers.Signature.from(signature);
+    const { Signature, Contract } = await import('ethers');
+    const { v, r, s } = Signature.from(signature);
 
+    const { getSigner } = await import('../evm/ethers-service');
     // load up the follower nft contract
-    const followNftContract = new ethers.Contract(
+    const followNftContract = new Contract(
         typedData.domain.verifyingContract,
         LENS_FOLLOW_NFT_ABI,
         await getSigner()
@@ -290,9 +295,10 @@ export const unfollowProfile = async (profile: Profile): Promise<boolean> => {
         throw new Error('Error creating unfollow typed data');
     }
 
-    // @ts-ignore this function strips the __typename
+    const { signTypedData } = await import('../evm/ethers-service');
     const signature = await signTypedData(
         typedData.domain,
+        // @ts-ignore this function strips the __typename
         typedData.types,
         typedData.value
     );
