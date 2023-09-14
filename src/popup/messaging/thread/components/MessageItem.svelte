@@ -67,7 +67,7 @@
       }
     };
 
-    const getRemoteAttachment = async (message: DecodedMessage): Promise<Attachment | null> => {
+    const getRemoteAttachment = async (message: DecodedMessage): Promise<Attachment> => {
       console.log('Getting remote attachment', message);
       gettingAttachment = true;
 
@@ -84,7 +84,7 @@
       } catch (e) {
         console.error('Failed to get remote attachment', e);
         attachmentLoadingError = true;
-        return null;
+        throw e;
       } finally {
         gettingAttachment = false;
       }
@@ -132,33 +132,33 @@
           </div>
         {/if}
       {:else if isRemoteAttachment}
-        {#await getRemoteAttachment(message) then attachment}
+        {#await getRemoteAttachment(message)}
+          <div class="h-[14rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
+        {:then attachment}
           <div class="flex justify-center">
             {#if attachmentLoadingError}
               <div>Failed to load attachment</div>
             {:else if gettingAttachment}
-              <div class="h-[16rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
+              <div class="h-[14rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
             {:else if attachment?.mimeType?.startsWith('image/')}
-              <div class='min-h-[16rem]'>
-                {#if !attachmentLoaded}
-                  <div class="h-[16rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
-                {/if}
+              {#if !attachmentLoaded}
+                <div class="h-[14rem] aspect-square placeholder animate-pulse rounded-2xl"></div>
+              {/if}
+              <a href={attachment.url} target="_blank" referrerpolicy='no-referrer'>
                 <img alt="Image attachment"
                      src={attachment.url}
-                     class="max-w-[100%] max-h-[20rem] rounded-xl pt-1"
+                     class="max-w-[100%] max-h-[20rem] rounded-xl pt-1 pb-0.5"
                      on:load={onAttachmentLoaded}
                      on:error={() => {attachmentLoadingError = true}}/>
-              </div>
+              </a>
             {:else}
               <div>Unsupported attachment</div>
             {/if}
-
-<!--          <button class="px-2 py-1 rounded-full bg-secondary-500 text-white"-->
-<!--                  on:click={getRemoteAttachment}>-->
-<!--            Get remote attachment-->
-<!--          </button>-->
           </div>
+        {:catch error}
+          <div>Failed to load attachment</div>
         {/await}
+
       {:else}
         <SocialText text={message.content}
                     anchorClass="!no-underline

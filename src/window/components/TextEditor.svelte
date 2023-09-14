@@ -107,7 +107,6 @@
 
     let editor: LexicalEditor;
     let editorElement: HTMLDivElement;
-    let containerElement: HTMLElement;
     let toolbarVisible = false;
     let linkEditorVisible = false;
     let selectionAnchor: DOMRect | undefined;
@@ -278,6 +277,8 @@
         return selection == null || !isRangeSelection(selection) || selection.isCollapsed();
     }
 
+    $: contentLength = $content?.length ?? 0;
+
     onMount(() => {
         editor = createEditor(config);
 
@@ -302,16 +303,16 @@
     });
 </script>
 
-<div bind:this={containerElement} class="w-full relative {isCompact ? 'text-lg' : 'text-xl'}">
+<div class="w-full relative {contentLength > 560 ? 'text-lg' : 'text-xl'}">
   <div bind:this={editorElement}
        use:tribute
        contenteditable="true" role="textbox"
-       class="text-editor">
+       class="text-editor {isCompact ? 'min-h-[8rem]' : 'min-h-[10rem]'}">
   </div>
 
   {#if showPlaceholder}
     <div class="absolute top-0 text-gray-400 dark:text-gray-500 pointer-events-none">
-      What's happening...
+      What's happening?
     </div>
   {/if}
 </div>
@@ -330,7 +331,7 @@
 
 <style global>
   .text-editor {
-    @apply w-full min-h-[10rem] bg-transparent
+    @apply w-full bg-transparent
     overflow-hidden break-keep [overflow-wrap:anywhere]
     border-none resize-none focus:outline-none focus:ring-0 focus:border-none
   }

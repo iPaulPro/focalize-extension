@@ -544,7 +544,7 @@
 
           <div class="flex">
 
-            <div class="px-3 pt-3">
+            <div class="px-3 pt-4">
               <div class="w-14 h-14">
                 <CurrentUserAvatar/>
               </div>
@@ -552,7 +552,7 @@
 
             <div class="w-full">
 
-              <div class="flex flex-col w-full py-4 pr-3 pl-2">
+              <div class="flex flex-col w-full pt-4 pb-4 pr-5 pl-2">
 
                 <TextEditor {content}
                             disabled={isSubmittingPost}
@@ -569,7 +569,7 @@
 
               {#if isPopupWindow === true}
                 <button type="button" on:click={openInNewTab} use:tippy={({delay: 400, content: 'Open in a new tab'})}
-                        class="absolute right-3 top-3 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
+                        class="absolute right-2 top-2 opacity-30 hover:opacity-100 p-2 hover:bg-gray-200
                     dark:hover:bg-gray-700 rounded-full">
                   <svg class="w-5 h-5" viewBox="0 -960 960 960" fill="currentColor">
                     <path d="M160-114.5q-19.152 0-32.326-13.174T114.5-160v-240q0-19.152 13.174-32.326T160-445.5q19.152 0 32.326 13.174T205.5-400v130.608L690.608-754.5H560q-19.152 0-32.326-13.174T514.5-800q0-19.152 13.174-32.326T560-845.5h240q19.152 0 32.326 13.174T845.5-800v240q0 19.152-13.174 32.326T800-514.5q-19.152 0-32.326-13.174T754.5-560v-130.608L269.392-205.5H400q19.152 0 32.326 13.174T445.5-160q0 19.152-13.174 32.326T400-114.5H160Z"/>
@@ -666,7 +666,7 @@
 
           {/if}
 
-          <div class="flex flex-wrap gap-6 ml-[4.5rem] pt-2 pb-1
+          <div class="flex flex-wrap gap-6 ml-[4.5rem] {isPopupWindow ? 'pt-2 pb-0' : 'pt-2 pb-1'}
                {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
                   : 'border-t border-t-gray-200 dark:border-t-gray-800'}">
 
@@ -713,7 +713,7 @@
 
             <button type="button" on:click={showCollectSettingsDialog}
                     class="py-3 px-4 text-orange-700 flex items-center gap-2
-                    dark:text-orange-300 font-semibold sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
+                    dark:text-orange-300 font-semibold text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full">
 
               <svg class="w-5 h-5 inline" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -855,15 +855,15 @@
               {/if}
             </button>
 
-            <div class="flex items-stretch {isPopupWindow ? 'py-2' : 'py-4'}">
+            <div class="flex items-stretch {isPopupWindow ? 'py-1.5' : 'py-4'}">
 
               <button type="button" on:click={onSubmitClick} disabled={!submitEnabled}
                       class="group w-fit py-2 px-10 flex justify-center items-center
-                    rounded-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
-                    disabled:bg-neutral-400 dark:disabled:bg-gray-700 disabled:text-opacity-50 disabled:cursor-not-allowed
-                    focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                    text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
-                    transition ease-in duration-200 font-semibold shadow-md disabled:shadow-none">
+                      rounded-full w-auto bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700
+                      disabled:bg-neutral-300 dark:disabled:bg-gray-700 disabled:text-opacity-70 disabled:cursor-not-allowed
+                      focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+                      text-white text-center {isPopupWindow ? 'text-base' : 'text-lg'}
+                      transition ease-in duration-200 font-semibold shadow-md disabled:shadow-none">
 
                 {#if isSubmittingPost}
                   <svg aria-hidden="true" class="inline mr-3 w-4 h-4 text-white animate-spin" viewBox="0 0 100 101"

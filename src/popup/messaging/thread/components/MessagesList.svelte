@@ -25,13 +25,26 @@
     let hasScrolled = false;
     let previouslyScrolledToBottom: boolean = true;
 
+    let isLoading = false;
+    let isLoadingComplete = false;
+    let loadingError = false;
+
     const isFullyScrolled = () => scrollElement.scrollTop === scrollElement.scrollHeight - scrollElement.clientHeight;
 
-    const onScroll = () => {
+    const onScroll = async () => {
         if (scrollElement.scrollTop + scrollElement.clientHeight !== scrollElement.scrollHeight) {
             hasScrolled = true;
         }
+
         previouslyScrolledToBottom = isFullyScrolled();
+
+        if (
+            !isLoadingComplete && !isLoading && !loadingError &&
+            scrollElement.scrollTop <= -(scrollElement.scrollHeight - scrollElement.clientHeight) + 200
+        ) {
+            console.log('onScroll: loading more messages');
+            await loadMessages();
+        }
     };
 
     const smoothScroll = (amount: number, duration: number = 200) => {
@@ -73,48 +86,40 @@
         chrome.notifications.clear(thread.conversation.topic);
     };
 
-    const infiniteHandler = async (
-        {
-            detail: {loaded, complete, error}
-        }: {
-            detail: { loaded: () => void, complete: () => void, error: () => void }
-        }
-    ) => {
-        if (!thread) {
-            console.error('infiniteHandler: No thread found');
-            error();
-            return;
-        }
-
+    const loadMessages = async () => {
+        if (isLoading || isLoadingComplete) return;
+        isLoading = true;
         let prevMessages: DecodedMessage[] = [];
-        const lastMessageSentTime: number | undefined = messages.length ? messages[0].sent.getTime() - 1 : undefined;
+
+        const lastMessageSentTime: number | undefined = messages.length ? messages[messages.length-1].sent.getTime() - 1 : undefined;
+        const endTime: Date | undefined = lastMessageSentTime ? new Date(lastMessageSentTime) : new Date();
+
         try {
-            const endTime: Date | undefined = lastMessageSentTime ? new Date(lastMessageSentTime) : new Date();
             prevMessages = await thread.conversation.messages({
                 startTime: new Date(0),
                 endTime,
-                limit: 20,
-                direction: SortDirection.SORT_DIRECTION_DESCENDING
+                limit: 40,
+                direction: SortDirection.SORT_DIRECTION_DESCENDING,
             });
-            console.log('infiniteHandler: loaded', prevMessages?.length, 'messages');
-            prevMessages.reverse();
+            console.log('loadMessages: loaded', prevMessages?.length, 'messages');
+
+            if (messages.length == 0 && document.hasFocus()) {
+                updateTimestamp();
+            }
+
+            if (!prevMessages.length) {
+                isLoadingComplete = true;
+                return;
+            }
+
+            prevMessages = prevMessages.filter(m => m.id !== messages[0]?.id);
+            messages = [...messages, ...prevMessages];
         } catch (e) {
-            console.error('infiniteHandler: Error loading messages', e);
-            error();
+            console.error('loadMessages: error loading messages', e);
+            loadingError = true;
+        } finally {
+            isLoading = false;
         }
-
-        if (messages.length == 0 && document.hasFocus()) {
-            updateTimestamp();
-        }
-
-        if (prevMessages.length == 0) {
-            complete();
-            return;
-        }
-
-        prevMessages = prevMessages.filter(m => m.id !== messages[0]?.id);
-        messages = [...prevMessages, ...messages];
-        loaded();
     };
 
     const onBlur = () => {
@@ -140,7 +145,7 @@
                 await chrome.runtime.sendMessage({type: 'checkForUnreadMessages'});
             }
 
-            messages = [...messages, message];
+            messages = [message, ...messages];
 
             if (!isPeerMessage(message) || isFullyScrolled()) {
                 await smoothScrollToBottom(500);
@@ -151,14 +156,9 @@
         clearNotification();
     };
 
-    const onImageLoaded = (event: CustomEvent) => {
-        const element = event.detail.element as HTMLImageElement;
+    const onImageLoaded = () => {
         if (!hasScrolled && previouslyScrolledToBottom) {
             scrollToBottom();
-        } else if (element.offsetTop > scrollElement.scrollTop) {
-            requestAnimationFrame(() => {
-                scrollElement.scrollTop += element.clientHeight;
-            });
         }
     };
 
@@ -173,6 +173,7 @@
         window.addEventListener('blur', onBlur);
 
         await init();
+        await loadMessages();
     });
 
     onDestroy(() => {
@@ -183,16 +184,7 @@
 <div bind:this={scrollElement}
      bind:offsetHeight={scrollElementHeight}
      on:scroll={onScroll}
-     class="flex flex-col flex-grow p-2 overflow-y-auto gap-1 pb-4">
-
-    <InfiniteLoading on:infinite={infiniteHandler} direction="top" distance={200}>
-        <span slot="noMore"></span>
-        <span slot="spinner"></span>
-        <div slot="noResults" class='py-10 px-4 flex flex-col justify-center items-center'>
-            <div class="text-xl tracking-tight">Say hi!</div>
-            <div class="text-sm opacity-60">This conversation was started but no message has been sent yet</div>
-        </div>
-    </InfiniteLoading>
+     class="flex flex-col-reverse flex-grow p-2 overflow-y-auto gap-1 pb-4">
 
     {#each messages as message, i (message.id)}
 
@@ -207,4 +199,7 @@
 
     {/each}
 
+    {#if loadingError}
+        <div class="text-center text-gray-500 px-3">Error loading messages</div>
+    {/if}
 </div>
