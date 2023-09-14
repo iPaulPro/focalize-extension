@@ -32,6 +32,7 @@
         publicationState,
         PublicationState,
         title,
+        tags as postTags,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
     import {
@@ -82,11 +83,6 @@
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
     import EditorActionsBar from '../lib/editor/components/EditorActionsBar.svelte';
     import type {Web3File} from '../lib/ipfs-service';
-
-    /**
-     * Bound to the tag component
-     */
-    let getTags: () => string[];
 
     let onGifDialogShown: () => {};
 
@@ -194,7 +190,7 @@
                 $currentUser.handle,
                 $content,
                 postType,
-                getTags(),
+                $postTags,
                 postContentWarning.value ?? undefined,
                 locale,
             );
@@ -206,7 +202,7 @@
             $attachments[0].cover = `ipfs://${$cover.cid}`;
         }
 
-        const tags = getTags().length === 0 ? null : getTags();
+        const tags = $postTags.length ? $postTags : undefined;
         let attributes: MetadataAttributeInput[] = [];
 
         mainFocus = getMainFocusFromMimeType($attachments[0].type);
@@ -220,7 +216,7 @@
                     $attachments,
                     $title,
                     $content,
-                    tags ?? undefined,
+                    tags,
                     postContentWarning.value ?? undefined,
                     $description,
                     locale,
@@ -410,7 +406,8 @@
         description: $description,
         attachments: $attachments,
         author: $author,
-        collectFee: $collectSettings
+        collectFee: $collectSettings,
+        tags: $postTags,
     });
 
     const onDraftChanged = async (draft: PostDraft) => {
@@ -421,7 +418,7 @@
 
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
-    $: if ($content || $title || $description || $attachments || $author || $collectSettings.isCollectible !== undefined) {
+    $: if ($content || $title || $description || $attachments || $author || $postTags || $collectSettings.isCollectible !== undefined) {
         const draft = buildDraft();
         draftSubject.next(draft);
     }
@@ -814,7 +811,7 @@
               </div>
             </Select>
 
-            <PostTags bind:getTags disabled={isSubmittingPost} isCompact={isPopupWindow ?? false}/>
+            <PostTags disabled={isSubmittingPost} isCompact={isPopupWindow ?? false}/>
 
           </div>
 

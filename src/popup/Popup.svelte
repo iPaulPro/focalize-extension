@@ -39,7 +39,6 @@
         // If the current tab is a chrome page, update the current tab with the extension page
         if (url.startsWith('chrome://') || url.startsWith('chrome-extension://') || url.startsWith('brave://')) {
             await launchComposerWindow();
-            window.close();
             return;
         }
 

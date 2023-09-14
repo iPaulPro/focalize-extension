@@ -144,15 +144,19 @@ export const launchComposerWindow = async (
             height: POPUP_MIN_HEIGHT,
         };
         if (windowRight > 0) {
-            options.top = currentWindow.top;
             options.left = windowRight - 672;
+        }
+        if (currentWindow.top) {
+            options.top = currentWindow.top;
         }
         await chrome.windows.create(options);
     } else {
         await chrome.tabs.create({ url: url.toString() });
     }
 
-    window.close();
+    if (typeof window !== 'undefined') {
+        window.close();
+    }
 };
 
 export const launchComposerTab = async (draftId?: string) => {
@@ -216,8 +220,10 @@ export const launchThreadWindow = async ({
         height: 600,
     };
     if (windowRight > 0) {
-        options.top = currentWindow.top;
         options.left = windowRight - 400;
+    }
+    if (currentWindow.top) {
+        options.top = currentWindow.top;
     }
 
     await chrome.windows.create(options);

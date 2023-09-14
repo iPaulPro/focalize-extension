@@ -90,6 +90,11 @@ export const publicationState: Writable<PublicationState | undefined> =
     writable();
 
 /**
+ * The content tags
+ */
+export const tags: Writable<string[] | undefined> = writable();
+
+/**
  * Clears all post-related stores
  */
 export const clearPostState = () => {
@@ -101,6 +106,7 @@ export const clearPostState = () => {
     cover.set(undefined);
     author.set(undefined);
     collectSettings.set({});
+    tags.set(undefined);
 };
 
 export const loadFromDraft = (postDraft: PostDraft) => {
@@ -112,4 +118,5 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     attachments.set(postDraft.attachments);
     author.set(postDraft.author);
     collectSettings.set(postDraft.collectFee ?? {});
+    tags.set(postDraft.tags);
 };

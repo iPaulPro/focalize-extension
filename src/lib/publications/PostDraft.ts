@@ -10,4 +10,5 @@ export type PostDraft = {
     author?: string;
     collectFee?: CollectSettings;
     timestamp?: number;
+    tags?: string[];
 };
