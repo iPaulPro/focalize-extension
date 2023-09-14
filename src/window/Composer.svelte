@@ -33,6 +33,7 @@
         PublicationState,
         title,
         tags as postTags,
+        contentWarning,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
     import {
@@ -119,6 +120,10 @@
     $: referenceModuleParams = referenceItem.value;
     $: isMediaPostType = $attachments && $attachments.length > 0;
 
+    $: if (postContentWarning) {
+        $contentWarning = postContentWarning.value;
+    }
+
     const getCurrentTabData = (): {
         title: string,
         desc: string,
@@ -191,7 +196,7 @@
                 $content,
                 postType,
                 $postTags,
-                postContentWarning.value ?? undefined,
+                $contentWarning,
                 locale,
             );
         }
@@ -217,7 +222,7 @@
                     $title,
                     $content,
                     tags,
-                    postContentWarning.value ?? undefined,
+                    $contentWarning,
                     $description,
                     locale,
                 );
@@ -233,7 +238,7 @@
                     $content,
                     attributes,
                     tags ?? undefined,
-                    postContentWarning.value ?? undefined,
+                    $contentWarning,
                     $description,
                     locale,
                 );
@@ -249,7 +254,7 @@
                     $content,
                     attributes,
                     tags ?? undefined,
-                    postContentWarning.value ?? undefined,
+                    $contentWarning,
                     $description,
                     locale,
                 );
@@ -408,6 +413,7 @@
         author: $author,
         collectFee: $collectSettings,
         tags: $postTags,
+        contentWarning: $contentWarning,
     });
 
     const onDraftChanged = async (draft: PostDraft) => {
@@ -418,7 +424,10 @@
 
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
-    $: if ($content || $title || $description || $attachments || $author || $postTags || $collectSettings.isCollectible !== undefined) {
+    $: if (
+        $content || $title || $description || $attachments || $author || $postTags || $contentWarning
+        || $collectSettings.isCollectible !== undefined
+    ) {
         const draft = buildDraft();
         draftSubject.next(draft);
     }
@@ -438,6 +447,7 @@
         postDraft = await getDraft($draftId);
         console.log('openDraft: postDraft', postDraft);
         if (postDraft) {
+            clearPostState();
             loadFromDraft(postDraft);
         }
     };
@@ -778,7 +788,7 @@
                     items={CONTENT_WARNING_ITEMS}
                     clearable={false}
                     searchable={false}
-                    listAutoWidth={true}
+                    listAutoWidth={false}
                     showChevron={true}
                     disabled={isSubmittingPost}
                     listOffset={-48}

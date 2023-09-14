@@ -33,36 +33,36 @@
         TEXT_FORMAT_TRANSFORMERS,
         TEXT_MATCH_TRANSFORMERS,
     } from '@lexical/markdown';
-    import {$createQuoteNode as createQuoteNode, QuoteNode, registerRichText} from '@lexical/rich-text';
-    import {AutoLinkNode, LinkNode} from '@lexical/link';
-    import {CodeNode} from '@lexical/code';
-    import {$setBlocksType as setBlocksType} from '@lexical/selection';
-    import {createEmptyHistoryState, registerHistory} from '@lexical/history';
-    import {$canShowPlaceholder as canShowPlaceholder} from '@lexical/text';
-    import type {UpdateListener} from 'lexical/LexicalEditor';
-    import type {TextFormatType} from 'lexical/nodes/LexicalTextNode';
+    import { $createQuoteNode as createQuoteNode, QuoteNode, registerRichText } from '@lexical/rich-text';
+    import { AutoLinkNode, LinkNode } from '@lexical/link';
+    import { CodeNode } from '@lexical/code';
+    import { $setBlocksType as setBlocksType } from '@lexical/selection';
+    import { createEmptyHistoryState, registerHistory } from '@lexical/history';
+    import { $canShowPlaceholder as canShowPlaceholder } from '@lexical/text';
+    import type { UpdateListener } from 'lexical/LexicalEditor';
+    import type { TextFormatType } from 'lexical/nodes/LexicalTextNode';
 
-    import {onMount} from 'svelte';
+    import { onMount } from 'svelte';
 
-    import type {Writable} from 'svelte/store';
-    import type {Action} from 'svelte/action';
+    import type { Writable } from 'svelte/store';
+    import type { Action } from 'svelte/action';
 
-    import Tribute, {type TributeItem} from 'tributejs';
+    import Tribute, { type TributeItem } from 'tributejs';
 
     import FloatingEditorToolbar from '../../lib/editor/components/FloatingEditorToolbar.svelte';
     import FloatingLinkEditor from '../../lib/editor/components/FloatingLinkEditor.svelte';
-    import {isSelectionLinkNode, isSelectionQuoteNode, isTextFormatType} from '../../lib/utils/lexical-utils';
+    import { isSelectionLinkNode, isSelectionQuoteNode, isTextFormatType } from '../../lib/utils/lexical-utils';
     import LexicalTheme from '../../lib/editor/LexicalTheme';
-    import {searchHandles} from '../../lib/user/search-handles';
-    import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
-    import {registerAutoLink} from '../../lib/editor/LexicalAutoLinkPlugin';
-    import {HashtagNode} from '../../lib/editor/HashtagNode';
-    import {registerHashtagPlugin} from '../../lib/editor/LexicalHashtagPlugin';
-    import {createMentionNode, isMentionNode, MentionNode} from '../../lib/editor/MentionNode';
-    import type {Profile} from '../../lib/graph/lens-service';
-    import {registerMentionPlugin} from '../../lib/editor/LexicalMentionPlugin';
-    import {registerEmojiShortcodePlugin} from '../../lib/editor/LexicalEmojiShortcodePlugin';
-    import {EmojiNode} from '../../lib/editor/EmojiNode';
+    import { searchHandles } from '../../lib/user/search-handles';
+    import { buildTributeUsernameMenuTemplate } from '../../lib/user/tribute-username-template';
+    import { registerAutoLink } from '../../lib/editor/LexicalAutoLinkPlugin';
+    import { HashtagNode } from '../../lib/editor/HashtagNode';
+    import { registerHashtagPlugin } from '../../lib/editor/LexicalHashtagPlugin';
+    import { createMentionNode, isMentionNode, MentionNode } from '../../lib/editor/MentionNode';
+    import type { Profile } from '../../lib/graph/lens-service';
+    import { registerMentionPlugin } from '../../lib/editor/LexicalMentionPlugin';
+    import { registerEmojiShortcodePlugin } from '../../lib/editor/LexicalEmojiShortcodePlugin';
+    import { EmojiNode } from '../../lib/editor/EmojiNode';
 
     export let content: Writable<string | undefined>;
     export let disabled: boolean = false;
@@ -88,7 +88,6 @@
         namespace: 'Focalize',
         theme: LexicalTheme,
         onError: console.error,
-        // disableEvents: true,
         nodes: [
             LineBreakNode,
             ParagraphNode,
@@ -99,11 +98,16 @@
             AutoLinkNode,
             HashtagNode,
             MentionNode,
-            EmojiNode
-        ]
+            EmojiNode,
+        ],
     };
 
-    const MARKDOWN_TRANSFORMERS = [CODE, QUOTE, ...TEXT_FORMAT_TRANSFORMERS, ...TEXT_MATCH_TRANSFORMERS];
+    const MARKDOWN_TRANSFORMERS = [
+        CODE,
+        QUOTE,
+        ...TEXT_FORMAT_TRANSFORMERS,
+        ...TEXT_MATCH_TRANSFORMERS
+    ];
 
     let editor: LexicalEditor;
     let editorElement: HTMLDivElement;
@@ -198,6 +202,20 @@
         return false;
     };
 
+    const clearEditor = () => {
+        editor?.update(() => {
+            const root = getRoot();
+            const selection = getSelection();
+            const paragraph = createParagraphNode();
+            root?.clear();
+            root?.append(paragraph);
+
+            if (selection) {
+                paragraph.select();
+            }
+        });
+    };
+
     $: if ($content) {
         editor.update(() => {
             const markdown = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
@@ -205,12 +223,14 @@
                 convertFromMarkdownString($content, MARKDOWN_TRANSFORMERS);
             }
         });
+    } else {
+        clearEditor();
     }
 
     const registerHistoryKeyboardShortcuts = () => {
         editor.registerCommand(KEY_MODIFIER_COMMAND, (payload: KeyboardEvent) => {
             const event: KeyboardEvent = payload;
-            const {code, ctrlKey, metaKey, shiftKey} = event;
+            const { code, ctrlKey, metaKey, shiftKey } = event;
             if (code === 'KeyZ' && (ctrlKey || metaKey)) {
                 event.preventDefault();
                 if (shiftKey) {
@@ -240,8 +260,8 @@
         return {
             destroy() {
                 plainTextTribute.detach(node);
-            }
-        }
+            },
+        };
     };
 
     const onTributeReplaced = (e: Event) => {
@@ -263,19 +283,20 @@
         });
     };
 
-    const onEditorStateUpdate = ({editorState}: {editorState: EditorState}): UpdateListener => {
+    const onEditorStateUpdate = ({ editorState }: { editorState: EditorState }): UpdateListener => {
         editorState.read(() => {
             $content = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
             showPlaceholder = canShowPlaceholder(editor.isComposing());
         });
-        return () => {};
-    }
+        return () => {
+        };
+    };
 
     const escapeOverride = (): boolean => {
         toolbarVisible = false;
         const selection = getSelection();
         return selection == null || !isRangeSelection(selection) || selection.isCollapsed();
-    }
+    };
 
     $: contentLength = $content?.length ?? 0;
 
@@ -289,7 +310,7 @@
         registerAutoLink(editor);
         registerMarkdownShortcuts(editor, MARKDOWN_TRANSFORMERS);
         registerRichText(editor);
-        registerHashtagPlugin(editor)
+        registerHashtagPlugin(editor);
         registerHistory(editor, createEmptyHistoryState(), 1000);
         registerMentionPlugin(editor);
         registerEmojiShortcodePlugin(editor);
@@ -297,24 +318,23 @@
 
         editorElement?.addEventListener('tribute-active-true', () => tributeActive = true);
         editorElement?.addEventListener('tribute-active-false', () => tributeActive = false);
-        editorElement?.addEventListener("tribute-replaced", onTributeReplaced);
+        editorElement?.addEventListener('tribute-replaced', onTributeReplaced);
 
         return editor.registerUpdateListener(onEditorStateUpdate);
     });
 </script>
 
 <div class="w-full relative {contentLength > 560 ? 'text-lg' : 'text-xl'}">
-  <div bind:this={editorElement}
-       use:tribute
-       contenteditable="true" role="textbox"
-       class="text-editor {isCompact ? 'min-h-[8rem]' : 'min-h-[10rem]'}">
-  </div>
-
-  {#if showPlaceholder}
-    <div class="absolute top-0 text-gray-400 dark:text-gray-500 pointer-events-none">
-      What's happening?
+    <div bind:this={editorElement}
+         use:tribute
+         class="text-editor {isCompact ? 'min-h-[8rem]' : 'min-h-[10rem]'}">
     </div>
-  {/if}
+
+    {#if showPlaceholder}
+        <div class='absolute top-0 text-gray-400 dark:text-gray-500 pointer-events-none'>
+            What's happening?
+        </div>
+    {/if}
 </div>
 
 <FloatingEditorToolbar
@@ -322,25 +342,25 @@
     anchor={selectionAnchor}
     selection={editorSelection}
     blockType={selectedBlockType}
-    on:command={(e) => onCommand(e.detail)}/>
+    on:command={(e) => onCommand(e.detail)} />
 
 <FloatingLinkEditor
     {editor}
     isVisible={linkEditorVisible}
-    anchor={selectionAnchor}/>
+    anchor={selectionAnchor} />
 
 <style global>
-  .text-editor {
-    @apply w-full bg-transparent
-    overflow-hidden break-keep [overflow-wrap:anywhere]
-    border-none resize-none focus:outline-none focus:ring-0 focus:border-none
-  }
+    .text-editor {
+        @apply w-full bg-transparent
+        overflow-hidden break-keep [overflow-wrap:anywhere]
+        border-none resize-none focus:outline-none focus:ring-0 focus:border-none
+    }
 
-  .text-editor > * {
-    margin-bottom: 1.75rem;
-  }
+    .text-editor > * {
+        margin-bottom: 1.75rem;
+    }
 
-  .compact .text-editor > * {
-    margin-bottom: 1.25rem;
-  }
+    .compact .text-editor > * {
+        margin-bottom: 1.25rem;
+    }
 </style>

@@ -1,4 +1,7 @@
-import type { PublicationMetadataMediaInput } from '../graph/lens-service';
+import {
+    PublicationContentWarning,
+    type PublicationMetadataMediaInput,
+} from '../graph/lens-service';
 import type { CollectSettings } from './CollectSettings';
 
 export type PostDraft = {
@@ -11,4 +14,5 @@ export type PostDraft = {
     collectFee?: CollectSettings;
     timestamp?: number;
     tags?: string[];
+    contentWarning?: PublicationContentWarning;
 };

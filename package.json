@@ -74,6 +74,7 @@
     "omit-deep": "^0.3.0",
     "postcss": "^8.4.29",
     "postcss-load-config": "^4.0.1",
+    "prettier": "^3.0.3",
     "rxjs": "^7.8.1",
     "showdown": "^2.1.0",
     "svelte": "^4.2.0",

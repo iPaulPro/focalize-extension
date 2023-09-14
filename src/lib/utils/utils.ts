@@ -17,7 +17,7 @@ import { KEY_WINDOW_TOPIC_MAP } from '../stores/cache-store';
 import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
 
-export const POPUP_MIN_HEIGHT = 330;
+export const POPUP_MIN_HEIGHT = 350;
 
 export const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
