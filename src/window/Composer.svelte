@@ -389,7 +389,6 @@
     }
 
     const updateWindowHeight = async () => {
-        console.log('updateWindowHeight');
         await tick();
         if (!isPopupWindow || !contentDiv) return;
         const height = contentDiv.offsetHeight + (window.outerHeight - window.innerHeight);
@@ -418,7 +417,7 @@
 
     const onDraftChanged = async (draft: PostDraft) => {
         postDraft = await saveDraft(draft);
-        $draftId = postDraft.id;
+        $draftId = postDraft?.id;
         console.log('onDraftChanged: saved draft', postDraft);
     };
 
@@ -480,7 +479,7 @@
         if (!$draftId && submitEnabled) {
             const draft = buildDraft();
             postDraft = await saveDraft(draft);
-            $draftId = postDraft.id;
+            $draftId = postDraft?.id;
         } else if ($draftId) {
             $draftId = $draftId;
         }
@@ -547,7 +546,7 @@
 
         <div class="min-h-[12rem] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 dark:text-gray-100
                   {isSubmittingPost ? 'opacity-60' : ''}
-                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-4 pb-2'}">
+                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-2 pb-2'}">
 
           <div class="flex">
 
@@ -596,7 +595,7 @@
               {#if currentTabData}
 
                 <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
-                     class="grid grid-cols-[auto,1fr] max-w-[70%] min-w-0 ml-4 mb-2 pt-1 pb-2 pr-2 truncate
+                     class="grid grid-cols-[auto,1fr] max-w-[70%] min-w-0 ml-2 mb-2 pt-1 pb-2 pr-2 truncate
                         cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900
                         rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
 

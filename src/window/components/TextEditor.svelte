@@ -331,7 +331,7 @@
     </div>
 
     {#if showPlaceholder}
-        <div class='absolute top-0 text-gray-400 dark:text-gray-500 pointer-events-none'>
+        <div class='absolute top-3 text-gray-400 dark:text-gray-500 pointer-events-none'>
             What's happening?
         </div>
     {/if}
@@ -351,7 +351,7 @@
 
 <style global>
     .text-editor {
-        @apply w-full bg-transparent
+        @apply w-full bg-transparent pt-3
         overflow-hidden break-keep [overflow-wrap:anywhere]
         border-none resize-none focus:outline-none focus:ring-0 focus:border-none
     }

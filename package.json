@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@coinbase/wallet-sdk": "^3.6.6",
-    "@crxjs/vite-plugin": "^2.0.0-beta.13",
+    "@crxjs/vite-plugin": "^2.0.0-beta.18",
     "@floating-ui/dom": "^1.2.9",
     "@giphy/js-components": "^5.12.1",
     "@giphy/js-fetch-api": "^4.9.2",
