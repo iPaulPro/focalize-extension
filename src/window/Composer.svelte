@@ -207,7 +207,6 @@
             $attachments[0].cover = `ipfs://${$cover.cid}`;
         }
 
-        const tags = $postTags.length ? $postTags : undefined;
         let attributes: MetadataAttributeInput[] = [];
 
         mainFocus = getMainFocusFromMimeType($attachments[0].type);
@@ -221,7 +220,7 @@
                     $attachments,
                     $title,
                     $content,
-                    tags,
+                    $postTags,
                     $contentWarning,
                     $description,
                     locale,
@@ -237,7 +236,7 @@
                     $cover?.type,
                     $content,
                     attributes,
-                    tags ?? undefined,
+                    $postTags,
                     $contentWarning,
                     $description,
                     locale,
@@ -253,7 +252,7 @@
                     $cover?.type,
                     $content,
                     attributes,
-                    tags ?? undefined,
+                    $postTags,
                     $contentWarning,
                     $description,
                     locale,

@@ -246,9 +246,9 @@ const createPostTransaction = async (
     console.log('createPostTransaction: Created post typed data', typedData);
 
     if (useRelay) {
-        // @ts-ignore This function strips the __typename
         const signature = await signTypedData(
             typedData.domain,
+            // @ts-ignore
             typedData.types,
             typedData.value
         );
