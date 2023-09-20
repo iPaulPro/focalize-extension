@@ -160,7 +160,8 @@ const getProfilesBatch = async (profileIds: string[]): Promise<Profile[]> => {
     const userProfileId = await getUserProfileId();
 
     const profiles: Profile[] = [];
-    let remainingIds = new Set(profileIds);
+    const ids = profileIds.filter((id) => id !== 'undefined'); // ¯\_(ツ)_/¯
+    let remainingIds = new Set(ids);
 
     // First check if we have any profiles cached
     const storage = await chrome.storage.local.get(KEY_PROFILES);
