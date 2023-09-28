@@ -47,6 +47,7 @@ import {
     type MessageTimestampMap,
 } from './lib/stores/cache-store';
 import {
+    KEY_MESSAGES_ALARM_HAS_RUN,
     KEY_MESSAGES_REFRESH_INTERVAL,
     KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NOTIFICATIONS_GROUPED,
@@ -510,9 +511,15 @@ const createEnableXmtpNotification = async () => {
 const onMessagesAlarm = async () => {
     let threads: Map<Thread, DecodedMessage[]> = new Map();
 
+    const localStorage = await chrome.storage.local.get(
+        KEY_MESSAGES_ALARM_HAS_RUN
+    );
+    const alarmHasRun: boolean = localStorage[KEY_MESSAGES_ALARM_HAS_RUN];
+    console.log('onMessagesAlarm: alarmHasRun', alarmHasRun);
+
     try {
         const client = await getXmtpClient();
-        threads = await getUnreadThreads(client);
+        threads = await getUnreadThreads(client, !alarmHasRun);
     } catch (e) {
         console.error('onMessagesAlarm: error getting unread threads', e);
         await createEnableXmtpNotification();
@@ -523,6 +530,7 @@ const onMessagesAlarm = async () => {
             (thread) => thread.conversation.topic
         );
         await chrome.storage.sync.set({ [KEY_MESSAGES_UNREAD_TOPICS]: topics });
+        await chrome.storage.local.set({ [KEY_MESSAGES_ALARM_HAS_RUN]: true });
         await updateBadge();
     } catch (e) {
         console.error('onMessagesAlarm: error updating badge', e);

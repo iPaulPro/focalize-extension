@@ -355,8 +355,10 @@ const getMessagesBatch = async (
     pageSize: number,
     unreadOnly: boolean = false,
     peerOnly: boolean = false,
+    isFirstRun: boolean = false,
     conversations?: Conversation[]
 ): Promise<Map<Conversation, DecodedMessage[]>> => {
+    console.log('getMessagesBatch: isFirstRun', isFirstRun);
     const readTimestamps = (await getReadTimestamps()) ?? {};
 
     if (!conversations) {
@@ -366,7 +368,8 @@ const getMessagesBatch = async (
     const getReadTimestamp = async (
         conversation: Conversation
     ): Promise<Date | undefined> => {
-        if (!readTimestamps[conversation.topic]) {
+        if (!readTimestamps[conversation.topic] && isFirstRun) {
+            console.log('getMessagesBatch: isFirstRun, setting read timestamp');
             readTimestamps[conversation.topic] = new Date().getTime();
             await chrome.storage.local.set({
                 [KEY_MESSAGE_TIMESTAMPS]: readTimestamps,
@@ -416,13 +419,21 @@ const getMessagesBatch = async (
 };
 
 export const getUnreadThreads = async (
-    xmtpClient: Client
+    xmtpClient: Client,
+    isFirstRun: boolean = false
 ): Promise<Map<Thread, DecodedMessage[]>> => {
     const user = await getUser();
     if (!user) throw new Error('User is not logged in');
 
     const conversationMessages: Map<Conversation, DecodedMessage[]> =
-        await getMessagesBatch(xmtpClient, user.address, 10, true, true);
+        await getMessagesBatch(
+            xmtpClient,
+            user.address,
+            10,
+            true,
+            true,
+            isFirstRun
+        );
 
     await cacheLatestMessages(conversationMessages);
 
@@ -537,6 +548,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
                 xmtpClient,
                 user.address,
                 1,
+                false,
                 false,
                 false,
                 conversations

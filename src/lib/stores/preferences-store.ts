@@ -54,6 +54,7 @@ export const KEY_NOTIFICATIONS_FOR_REACTIONS = 'notificationsForReactions';
 export const KEY_MESSAGES_REFRESH_ENABLED = 'messagesRefreshEnabled';
 export const KEY_MESSAGES_REFRESH_INTERVAL = 'messagesRefreshInterval';
 export const KEY_MESSAGES_UNREAD_TOPICS = 'messagesUnreadTopics';
+export const KEY_MESSAGES_ALARM_HAS_RUN = 'messagesNotFirstRun';
 export const KEY_USE_POPUP_COMPOSER = 'usePopupComposer';
 export const KEY_RICH_TEXT = 'richTextComposer';
 export const KEY_WALLET_CONNECTION = 'walletConnection';
