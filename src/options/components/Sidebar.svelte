@@ -160,7 +160,7 @@
         </a>
 
         <div class="flex gap-2 items-center">
-          <a href="https://lenster.xyz/u/focalize" title="Lenster" target="_blank" rel="noreferrer"
+          <a href="https://hey.xyz/u/focalize" title="Hey" target="_blank" rel="noreferrer"
              class="p-2.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-500">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="w-5 transition-none">
               <path

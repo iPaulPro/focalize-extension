@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {LensNode} from '../../lib/publications/lens-nodes';
 
-    import IconLenster from '../../assets/ic_lenster.webp';
+    import IconHey from '../../assets/ic_hey.webp';
     import IconLenstube from '../../assets/ic_lenstube.webp';
     import IconLensPort from '../../assets/ic_lensport.webp';
     import IconLensta from '../../assets/ic_lensta.webp';
@@ -17,8 +17,8 @@
 
     <div class="flex items-center py-3 cursor-pointer dark:text-gray-100 active:bg-orange">
 
-        {#if item.name === 'Lenster'}
-            <img src={IconLenster} alt="Lenster icon" class="w-5 h-5">
+        {#if item.name === 'Hey'}
+            <img src={IconHey} alt="Hey icon" class="w-5 h-5">
         {:else if item.name === 'Lenstube'}
             <img src={IconLenstube} alt="Lenstube icon" class="w-5 h-5">
         {:else if item.name === 'LensPort'}

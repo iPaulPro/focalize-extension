@@ -28,12 +28,12 @@
 
         // Replace @mentions with anchors
         formatted = formatted.replace(/@(\w+)/g, (_, handle) => {
-            return `<a href="https://lenster.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
+            return `<a href="https://hey.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
         });
 
         // Replace hashtags with anchors
         formatted = formatted.replace(/(?<!\w)#(\w+)/g, (_, hashtag) => {
-            return `<a href="https://lenster.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
+            return `<a href="https://hey.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
         });
 
         formattedText = DOMPurify.sanitize(formatted, {
