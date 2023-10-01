@@ -1,7 +1,7 @@
 [
   {
-    "name": "Lenster",
-    "baseUrl": "https://lenster.xyz",
+    "name": "Hey",
+    "baseUrl": "https://hey.xyz",
     "posts": "/posts/{$id}",
     "profiles": "/u/{$handle}",
     "hexIdentifier": true,

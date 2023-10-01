@@ -46,6 +46,6 @@ The `/dist` folder is the unpacked extension.
 
 Created by [Paul Burke](https://paulburke.co)
 
-[Follow on Lens](https://lenster.xyz/u/paulburke.lens)
+[Follow on Lens](https://hey.xyz/u/paulburke)
 
 [Follow on Twitter](https://twitter.com/FocalizeExt)
