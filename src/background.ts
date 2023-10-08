@@ -47,13 +47,23 @@ import {
     type MessageTimestampMap,
 } from './lib/stores/cache-store';
 import {
+    getPreference,
     KEY_MESSAGES_ALARM_HAS_RUN,
+    KEY_MESSAGES_NOTIF_FOLLOWING,
     KEY_MESSAGES_REFRESH_INTERVAL,
     KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NOTIFICATIONS_GROUPED,
 } from './lib/stores/preferences-store';
-import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
+import {
+    getMessagesBatch,
+    getPeerName,
+    getUnreadThreads,
+    isLensConversation,
+    type Thread,
+} from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
+import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
+import { getProfileByAddress } from './lib/user/lens-profile';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -61,6 +71,12 @@ const NOTIFICATION_ID = 'focalize-notifications-id';
 const NOTIFICATION_ID_ENABLE_XMTP = 'focalize-enable-xmtp';
 const STORAGE_KEY_ENABLE_XMTP_NOTIFICATION =
     'focalize-enable-xmtp-notification';
+const MESSAGE_LOGGED_OUT = 'loggedOut';
+const MESSAGE_GET_PUBLICATION_ID = 'getPublicationId';
+const MESSAGE_SET_NOTIFICATION_ALARM = 'setNotificationsAlarm';
+const MESSAGE_PROXY_ACTION = 'proxyAction';
+const MESSAGE_SET_MESSAGE_ALARM = 'setMessagesAlarm';
+const MESSAGE_CHECK_UNREAD_MESSAGES = 'checkForUnreadMessages';
 
 const XMTP_TOPIC_PREFIX = '/xmtp/';
 
@@ -272,6 +288,17 @@ chrome.notifications.onClosed.addListener(
     }
 );
 
+chrome.notifications.onButtonClicked.addListener(
+    (notificationId, buttonIndex) => {
+        console.log(
+            'onButtonClicked: notificationId',
+            notificationId,
+            'buttonIndex',
+            buttonIndex
+        );
+    }
+);
+
 chrome.runtime.onInstalled.addListener((details) => {
     if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
         chrome.runtime.openOptionsPage();
@@ -375,7 +402,9 @@ const onGetPublicationIdMessage = async (
 ) => {
     let port: chrome.runtime.Port;
     if (sender.tab?.id) {
-        port = chrome.tabs.connect(sender.tab.id, { name: 'getPublicationId' });
+        port = chrome.tabs.connect(sender.tab.id, {
+            name: MESSAGE_GET_PUBLICATION_ID,
+        });
     }
     const onPublicationStateChange = (state: PublicationState) => {
         if (!port) return;
@@ -511,11 +540,11 @@ const createEnableXmtpNotification = async () => {
 const onMessagesAlarm = async () => {
     let threads: Map<Thread, DecodedMessage[]> = new Map();
 
-    const localStorage = await chrome.storage.local.get(
-        KEY_MESSAGES_ALARM_HAS_RUN
-    );
+    const localStorage = await chrome.storage.local.get([
+        KEY_MESSAGES_ALARM_HAS_RUN,
+        KEY_KNOWN_SENDERS,
+    ]);
     const alarmHasRun: boolean = localStorage[KEY_MESSAGES_ALARM_HAS_RUN];
-    console.log('onMessagesAlarm: alarmHasRun', alarmHasRun);
 
     try {
         const client = await getXmtpClient();
@@ -525,52 +554,134 @@ const onMessagesAlarm = async () => {
         await createEnableXmtpNotification();
     }
 
-    try {
-        const topics = Array.from(threads.keys()).map(
-            (thread) => thread.conversation.topic
-        );
-        await chrome.storage.sync.set({ [KEY_MESSAGES_UNREAD_TOPICS]: topics });
-        await chrome.storage.local.set({ [KEY_MESSAGES_ALARM_HAS_RUN]: true });
-        await updateBadge();
-    } catch (e) {
-        console.error('onMessagesAlarm: error updating badge', e);
-    }
-
     console.log('onMessagesAlarm: unread threads', threads);
     if (threads.size === 0) {
         return;
     }
 
-    for (const [thread, messages] of threads.entries()) {
-        if (!thread.conversation.topic || !thread.peer) continue;
+    const knownSenders: string[] = localStorage[KEY_KNOWN_SENDERS];
 
-        const peerProfile = thread.peer?.profile;
-        const peerAddress = thread.conversation.peerAddress;
+    chrome.notifications.getAll(async (existingNotifications: any) => {
+        const unreadTopics: string[] = [];
 
-        const options: chrome.notifications.NotificationOptions<true> = {
-            type: 'basic',
-            requireInteraction: true,
-            title: getPeerName(thread) ?? truncateAddress(peerAddress),
-            message:
-                '✉️ ' +
-                (messages.length > 1
-                    ? `${messages.length} new messages`
-                    : messages[0].content),
-            contextMessage: 'Focalize',
-            iconUrl: peerProfile
-                ? getAvatarForLensHandle(peerProfile.handle)
-                : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
-            silent: false,
-        };
+        for (const [thread, messages] of threads.entries()) {
+            if (!thread.conversation.topic || !thread.peer) continue;
 
-        chrome.notifications.getAll((notifications: any) => {
-            if (notifications[thread.conversation.topic]) {
+            const peerProfile = thread.peer.profile;
+            let isFollowing = peerProfile?.isFollowedByMe ?? false;
+            console.log(
+                'onMessagesAlarm: peerProfile',
+                peerProfile,
+                'isFollowing',
+                isFollowing
+            );
+
+            const peerAddress = thread.conversation.peerAddress;
+            if (!peerProfile && peerAddress) {
+                try {
+                    const profile = await getProfileByAddress(peerAddress);
+                    isFollowing = profile?.isFollowedByMe ?? false;
+                    console.log(
+                        'onMessagesAlarm: found profile by address, isFollowing',
+                        isFollowing
+                    );
+                } catch (e) {}
+            }
+
+            if (!knownSenders.length) {
+                const update = await updateKnownSenders();
+                knownSenders.push(...update);
+            }
+
+            const onlyNotifyOfFollowing = await getPreference(
+                KEY_MESSAGES_NOTIF_FOLLOWING,
+                true
+            );
+
+            if (
+                onlyNotifyOfFollowing &&
+                (!isFollowing || !knownSenders.find((s) => s === peerAddress))
+            ) {
+                console.log('onMessagesAlarm: skipping notification');
+                continue;
+            }
+
+            unreadTopics.push(thread.conversation.topic);
+
+            const options: chrome.notifications.NotificationOptions<true> = {
+                type: 'basic',
+                requireInteraction: true,
+                title: getPeerName(thread) ?? truncateAddress(peerAddress),
+                message:
+                    '✉️ ' +
+                    (messages.length > 1
+                        ? `${messages.length} new messages`
+                        : messages[0].content),
+                contextMessage: 'Focalize',
+                iconUrl: peerProfile
+                    ? getAvatarForLensHandle(peerProfile.handle)
+                    : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
+                silent: false,
+            };
+
+            if (existingNotifications[thread.conversation.topic]) {
                 chrome.notifications.update(thread.conversation.topic, options);
             } else {
                 chrome.notifications.create(thread.conversation.topic, options);
             }
-        });
+        }
+
+        try {
+            await chrome.storage.sync.set({
+                [KEY_MESSAGES_UNREAD_TOPICS]: unreadTopics,
+            });
+            await chrome.storage.local.set({
+                [KEY_MESSAGES_ALARM_HAS_RUN]: true,
+            });
+            await updateBadge();
+        } catch (e) {
+            console.error('onMessagesAlarm: error updating badge', e);
+        }
+    });
+};
+
+const getKnownSenders = async (
+    currentUser: User,
+    xmtp: Client
+): Promise<string[]> => {
+    const knownPeers: Set<string> = new Set();
+    try {
+        const conversations = await xmtp.conversations.list();
+        for (const conversation of conversations) {
+            const messages = await conversation.messages({ limit: 20 });
+            const fromUser = messages.find(
+                (message) => message.senderAddress === currentUser.address
+            );
+            if (fromUser) {
+                knownPeers.add(conversation.peerAddress);
+            }
+        }
+    } catch (e) {
+        console.error(
+            'getKnownSenders: error getting peers from xmtp conversations',
+            e
+        );
     }
+
+    return Array.from(knownPeers);
+};
+
+const updateKnownSenders = async (): Promise<string[]> => {
+    const localStorage = await chrome.storage.local.get('currentUser');
+    const currentUser: User = localStorage.currentUser;
+    const xmtp = await getXmtpClient();
+
+    const knownSenders = await getKnownSenders(currentUser, xmtp);
+    await chrome.storage.local.set({
+        [KEY_KNOWN_SENDERS]: knownSenders,
+    });
+
+    return knownSenders;
 };
 
 const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {
@@ -579,6 +690,7 @@ const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {
     switch (alarm.name) {
         case ALARM_ID_NOTIFICATIONS:
             await onNotificationsAlarm();
+            await updateKnownSenders();
             break;
         case ALARM_ID_MESSAGES:
             await onMessagesAlarm();
@@ -609,24 +721,24 @@ const onMessage = (
     res: (response?: any) => void
 ): boolean => {
     switch (req.type) {
-        case 'loggedOut':
+        case MESSAGE_LOGGED_OUT:
             onLogoutMessage(res).catch(console.error);
             return true;
-        case 'getPublicationId':
+        case MESSAGE_GET_PUBLICATION_ID:
             onGetPublicationIdMessage(sender, req, res).catch(console.error);
             return true;
-        case 'setNotificationsAlarm':
+        case MESSAGE_SET_NOTIFICATION_ALARM:
             onSetNotificationsAlarmMessage(req, res).catch(console.error);
             return true;
-        case 'proxyAction':
+        case MESSAGE_PROXY_ACTION:
             checkProxyActionStatus(req.proxyActionId, req.profile.handle)
                 .then(() => res())
                 .catch(console.error);
             return true;
-        case 'setMessagesAlarm':
+        case MESSAGE_SET_MESSAGE_ALARM:
             onSetMessagesAlarm(req, res).catch(console.error);
             return true;
-        case 'checkForUnreadMessages':
+        case MESSAGE_CHECK_UNREAD_MESSAGES:
             onMessagesAlarm()
                 .then(() => res())
                 .catch(console.error);

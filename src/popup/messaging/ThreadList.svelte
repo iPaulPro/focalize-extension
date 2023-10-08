@@ -65,6 +65,7 @@
     const onMessageTabSwitch = () => {
         switch ($selectedMessagesTab) {
             case 0:
+            case 3:
                 threads = unfilteredThreads;
                 break;
             case 1:
@@ -145,21 +146,29 @@
         <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
       </RadioGroup>
 
-      <button type="button"
-              class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-              use:popup={{
+        <div class="flex gap-2 items-center">
+            <button type="button"
+                    class="text-xs font-light opacity-70 hover:opacity-100"
+                    on:click={() => {$selectedMessagesTab = 3}}>
+                3 requests
+            </button>
+            <button type="button"
+                    class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+                    use:popup={{
               event: 'click',
               closeQuery: '.btn',
               placement: 'bottom-end',
               target: 'examplePopup',
             }}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-             stroke-linejoin="round" class="w-5">
-          <circle cx="12" cy="12" r="1"></circle>
-          <circle cx="12" cy="5" r="1"></circle>
-          <circle cx="12" cy="19" r="1"></circle>
-        </svg>
-      </button>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                     stroke-linejoin="round" class="w-5">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="12" cy="5" r="1"></circle>
+                    <circle cx="12" cy="19" r="1"></circle>
+                </svg>
+            </button>
+        </div>
+
     </div>
 
     {#if threads.length > 0}

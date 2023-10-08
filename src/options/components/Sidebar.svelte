@@ -3,10 +3,8 @@
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import {releaseDismissed} from '../../lib/stores/preferences-store';
     import {getLatestRelease} from "../../lib/github-service";
-    import {createEventDispatcher, getContext} from "svelte";
-    import type {Writable} from 'svelte/store';
-
-    const activeTab: Writable<number> = getContext('activeTab');
+    import {createEventDispatcher} from "svelte";
+    import { queryParams } from '../../lib/stores/url-query-store';
 
     const dispatch = createEventDispatcher();
 
@@ -14,27 +12,38 @@
         name: string,
         enabled: boolean,
         event: string,
-        icon: string
+        icon: string,
+        tag?: string,
     }
 
     const tabs: Tab[] = [
         {
-            name: 'General settings',
+            name: 'General Settings',
             enabled: true,
             event: 'generalSettingsClick',
-            icon: '<line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>'
+            icon: '<line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>',
+            tag: 'general'
         },
         {
-            name: 'Edit profile',
+            name: 'Lens Profile',
             enabled: false,
             event: 'editProfileClick',
-            icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>'
+            icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>',
+            tag: 'profile'
         },
         {
-            name: 'Notification settings',
+            name: 'Lens Notifications',
             enabled: true,
             event: 'notificationSettingsClick',
-            icon: '<path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>'
+            icon: '<path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path>',
+            tag: 'notifications'
+        },
+        {
+            name: 'Messaging',
+            enabled: true,
+            event: 'messagingSettingsClick',
+            icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>',
+            tag: 'messaging'
         },
         {
             name: 'Share feedback',
@@ -43,6 +52,12 @@
             icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>'
         },
     ];
+
+    let activeTab: string = $queryParams.tab ?? tabs[0].tag;
+
+    $: if (activeTab) {
+        $queryParams.tab = activeTab;
+    }
 
     const getVersionName = () => chrome.runtime.getManifest().version_name;
 
@@ -55,7 +70,7 @@
             onShareFeedbackClick();
             return;
         }
-        if (tab.enabled) $activeTab = index;
+        if (tab.enabled && tab.tag) activeTab = tab.tag;
         dispatch('tabClick', index);
     }
 
@@ -81,7 +96,7 @@
           <button on:click={() => onTabClick(tab, index)} disabled={!tab.enabled}
                   class="flex items-center justify-start text-start w-auto p-2 pl-6 transition-colors duration-200 rounded-full gap-1
                   {tab.enabled ? 'hover:text-neutral-800 dark:hover:text-gray-200' : ''}
-                  {$activeTab === index ? 'text-neutral-800 dark:text-white' : 'border-transparent text-neutral-400'}">
+                  {activeTab === tab.tag ? 'text-neutral-800 dark:text-white' : 'border-transparent text-neutral-400'}">
 
             <span class="text-left">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="transition-none w-5 h-5"
@@ -103,7 +118,7 @@
               {/if}
             </span>
 
-            {#if $activeTab === index}
+            {#if activeTab === tab.tag}
               <div class="flex flex-grow justify-end pr-1">
                 <div class="p-1.5 rounded-full bg-orange"></div>
               </div>

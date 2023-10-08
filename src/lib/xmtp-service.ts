@@ -214,16 +214,7 @@ export const isUnread = async (
         readTimestamps = (await getReadTimestamps()) ?? {};
     }
 
-    const timestamp = readTimestamps[message.contentTopic];
-
-    if (!timestamp) {
-        readTimestamps[message.contentTopic] = message.timestamp;
-        await chrome.storage.local.set({
-            [KEY_MESSAGE_TIMESTAMPS]: readTimestamps,
-        });
-        return false;
-    }
-
+    const timestamp = readTimestamps[message.contentTopic] ?? 0;
     return message.timestamp > timestamp;
 };
 
@@ -349,7 +340,7 @@ export const isProfileThread = (
     return conversationId?.includes(userProfileId) ?? false;
 };
 
-const getMessagesBatch = async (
+export const getMessagesBatch = async (
     xmtpClient: Client,
     address: string,
     pageSize: number,
@@ -358,7 +349,6 @@ const getMessagesBatch = async (
     isFirstRun: boolean = false,
     conversations?: Conversation[]
 ): Promise<Map<Conversation, DecodedMessage[]>> => {
-    console.log('getMessagesBatch: isFirstRun', isFirstRun);
     const readTimestamps = (await getReadTimestamps()) ?? {};
 
     if (!conversations) {
@@ -369,7 +359,6 @@ const getMessagesBatch = async (
         conversation: Conversation
     ): Promise<Date | undefined> => {
         if (!readTimestamps[conversation.topic] && isFirstRun) {
-            console.log('getMessagesBatch: isFirstRun, setting read timestamp');
             readTimestamps[conversation.topic] = new Date().getTime();
             await chrome.storage.local.set({
                 [KEY_MESSAGE_TIMESTAMPS]: readTimestamps,
@@ -537,10 +526,6 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     let latestMessageMap: LatestMessageMap | undefined = await getCached(
         KEY_LATEST_MESSAGE_MAP
     );
-    console.log(
-        'getAllThreads: found cached latest messages',
-        latestMessageMap
-    );
 
     if (!latestMessageMap || Object.keys(latestMessageMap).length === 0) {
         const conversationMessages: Map<Conversation, DecodedMessage[]> =
@@ -557,6 +542,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     }
 
     const readTimestamps = (await getReadTimestamps()) ?? {};
+    console.log('getAllThreads: found read timestamps', readTimestamps);
 
     const threads: Thread[] = [];
     for (const conversation of conversations) {
@@ -574,6 +560,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             },
         };
         const thread: Thread = { conversation, peer, latestMessage, unread };
+        console.log('getAllThreads: adding thread', thread);
         threads.push(thread);
     }
 

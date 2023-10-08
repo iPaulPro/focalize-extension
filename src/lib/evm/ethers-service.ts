@@ -92,7 +92,7 @@ const createFrameProvider = async (): Promise<BrowserProvider> => {
 };
 
 const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
-    const darkMode = await getPreference<boolean>(KEY_DARK_MODE);
+    const darkMode = await getPreference<boolean>(KEY_DARK_MODE, false);
     const coinbaseWallet = new CoinbaseWalletSDK({
         appName: APP_ID,
         appLogoUrl: focalizeIcon,

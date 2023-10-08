@@ -1,19 +1,16 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
-    import { setContext } from 'svelte';
     import {useDispatcher, dispatcherDialogShown} from '../../lib/stores/preferences-store';
     import SetDispatcherDialog from "../../window/components/SetDispatcherDialog.svelte";
     import {currentUser} from "../../lib/stores/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";
     import Sidebar from "./Sidebar.svelte";
     import NotificationSettings from "./NotificationSettings.svelte";
-    import {writable} from "svelte/store";
     import DialogOuter from '../../lib/components/DialogOuter.svelte';
+    import MessagingSettings from './MessagingSettings.svelte';
+    import { queryParams } from '../../lib/stores/url-query-store';
 
     let enableDispatcherDialog: HTMLDialogElement;
-
-    const activeTab = writable(0);
-    setContext('activeTab', activeTab);
 
     const onDispatcherDialogClosed = () => {
         $dispatcherDialogShown = true
@@ -22,6 +19,8 @@
             $useDispatcher = false;
         }
     };
+
+    $: activeTab = $queryParams.tab;
 
     $: if ($currentUser) {
         if ($useDispatcher && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
@@ -48,10 +47,12 @@
           <Toolbar showIcon={false}/>
         </header>
 
-        {#if $activeTab === 0}
+        {#if !activeTab || activeTab === 'general'}
           <GeneralSettings/>
-        {:else if $activeTab === 2}
+        {:else if activeTab === 'notifications'}
           <NotificationSettings/>
+        {:else if activeTab === 'messaging'}
+          <MessagingSettings/>
         {/if}
 
       </div>

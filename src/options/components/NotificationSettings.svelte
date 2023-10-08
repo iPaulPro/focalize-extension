@@ -49,7 +49,7 @@
 <div class="h-screen px-4 pb-24 pt-6 overflow-auto md:px-8">
 
   <h1 class="text-2xl font-semibold text-neutral-800 dark:text-white tracking-tight">
-    Notification settings
+    Lens notification settings
   </h1>
 
   <h2 class="text-neutral-400 text-lg pt-2">
@@ -68,7 +68,7 @@
             Desktop notifications
           </div>
           <div class="text-base text-neutral-400">
-            Focalize can create system notifications for every notification and direct message you receive on Lens
+            Focalize can create system notifications for every notification you receive on Lens
           </div>
         </div>
       </div>
@@ -95,7 +95,7 @@
         </div>
 
         <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$notificationsEnabled ? 'opacity-40' : 'opacity-100'}">
-          <div class="flex flex-col pl-[4.5rem]">
+          <div class="flex flex-col pl-16">
             <div class="text-base font-medium dark:text-white">
               Refresh interval
             </div>
@@ -138,7 +138,7 @@
 
         <div class="w-full xl:w-4/5 2xl:w-3/5 flex gap-2 justify-between
              {!$notificationsEnabled || !$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
-          <div class="flex flex-col pl-[4.5rem]">
+          <div class="flex flex-col pl-16">
             <div class="text-base font-medium dark:text-white">
               App to launch
             </div>
@@ -186,26 +186,7 @@
               <span class="py-0.5 px-2 rounded-full bg-gray-200 dark:bg-gray-700 text-xs font-normal">Beta</span>
             </div>
             <div class="text-base text-neutral-400">
-              Only show me relevant notifications, filtered using AI
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full flex">
-          <div class="pt-1">
-            <label class="switch">
-              <input type="checkbox" bind:checked={$messagesRefreshEnabled}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
-
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Direct messages
-            </div>
-            <div class="text-base text-neutral-400">
-              Notify when someone sends me a direct message
+              Only show me relevant notifications
             </div>
           </div>
         </div>

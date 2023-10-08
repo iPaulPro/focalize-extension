@@ -127,7 +127,10 @@ export const launchComposerWindow = async (
         }
     }
 
-    const usePopups = await getPreference<boolean>(KEY_USE_POPUP_COMPOSER);
+    const usePopups = await getPreference<boolean>(
+        KEY_USE_POPUP_COMPOSER,
+        true
+    );
 
     if (usePopups) {
         const currentWindow = await chrome.windows.getCurrent();
