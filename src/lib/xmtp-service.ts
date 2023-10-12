@@ -470,12 +470,14 @@ export const getUnreadThreads = async (
 };
 
 export const getAllThreads = async (): Promise<Thread[]> => {
+    console.time('getAllThreads');
     const user = await getUser();
     if (!user) throw new Error('User is not logged in');
-
+    console.timeLog('getAllThreads', 'got user');
     const xmtpClient = await getXmtpClient();
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
+    console.timeLog('getAllThreads', 'got conversations');
 
     const lensConversations = [];
     const otherConversations = [];
@@ -506,6 +508,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         const lensProfiles: Profile[] = await getProfilesBatch(profileIds);
         profiles.push(...lensProfiles);
     }
+    console.timeLog('getAllThreads', 'got lens profiles');
 
     if (otherConversations.length) {
         const otherConversationAddresses = otherConversations.map(
@@ -518,6 +521,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             profiles.push(...nonLensConversationProfiles);
         }
     }
+    console.timeLog('getAllThreads', 'got non-lens profiles');
 
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
@@ -540,9 +544,9 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             );
         latestMessageMap = await cacheLatestMessages(conversationMessages);
     }
+    console.timeLog('getAllThreads', 'got latest messages');
 
     const readTimestamps = (await getReadTimestamps()) ?? {};
-    console.log('getAllThreads: found read timestamps', readTimestamps);
 
     const threads: Thread[] = [];
     for (const conversation of conversations) {
@@ -560,15 +564,16 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             },
         };
         const thread: Thread = { conversation, peer, latestMessage, unread };
-        console.log('getAllThreads: adding thread', thread);
         threads.push(thread);
     }
+    console.timeLog('getAllThreads', 'built threads');
 
     const sortByLatestMessage = (a: Thread, b: Thread): number => {
         if (!a.latestMessage) return 1;
         if (!b.latestMessage) return -1;
         return b.latestMessage.timestamp - a.latestMessage.timestamp;
     };
+    console.timeEnd('getAllThreads');
 
     return threads
         .filter((thread) => thread.latestMessage)

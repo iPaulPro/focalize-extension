@@ -42,28 +42,23 @@ import {
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_PENDING_PROXY_ACTIONS,
     KEY_WINDOW_TOPIC_MAP,
-    type WindowTopicMap,
-    type PendingProxyActionMap,
     type MessageTimestampMap,
+    type PendingProxyActionMap,
+    type WindowTopicMap,
 } from './lib/stores/cache-store';
 import {
     getPreference,
     KEY_MESSAGES_ALARM_HAS_RUN,
-    KEY_MESSAGES_NOTIF_FOLLOWING,
+    KEY_MESSAGES_HIDE_UNKNOWN,
     KEY_MESSAGES_REFRESH_INTERVAL,
     KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NOTIFICATIONS_GROUPED,
 } from './lib/stores/preferences-store';
-import {
-    getMessagesBatch,
-    getPeerName,
-    getUnreadThreads,
-    isLensConversation,
-    type Thread,
-} from './lib/xmtp-service';
+import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
 import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
 import { getProfileByAddress } from './lib/user/lens-profile';
+import { getKnownSenders } from './lib/utils/getKnownSenders';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -569,22 +564,12 @@ const onMessagesAlarm = async () => {
 
             const peerProfile = thread.peer.profile;
             let isFollowing = peerProfile?.isFollowedByMe ?? false;
-            console.log(
-                'onMessagesAlarm: peerProfile',
-                peerProfile,
-                'isFollowing',
-                isFollowing
-            );
 
             const peerAddress = thread.conversation.peerAddress;
             if (!peerProfile && peerAddress) {
                 try {
                     const profile = await getProfileByAddress(peerAddress);
                     isFollowing = profile?.isFollowedByMe ?? false;
-                    console.log(
-                        'onMessagesAlarm: found profile by address, isFollowing',
-                        isFollowing
-                    );
                 } catch (e) {}
             }
 
@@ -593,13 +578,13 @@ const onMessagesAlarm = async () => {
                 knownSenders.push(...update);
             }
 
-            const onlyNotifyOfFollowing = await getPreference(
-                KEY_MESSAGES_NOTIF_FOLLOWING,
+            const hideUnknown = await getPreference(
+                KEY_MESSAGES_HIDE_UNKNOWN,
                 true
             );
 
             if (
-                onlyNotifyOfFollowing &&
+                hideUnknown &&
                 (!isFollowing || !knownSenders.find((s) => s === peerAddress))
             ) {
                 console.log('onMessagesAlarm: skipping notification');
@@ -643,32 +628,6 @@ const onMessagesAlarm = async () => {
             console.error('onMessagesAlarm: error updating badge', e);
         }
     });
-};
-
-const getKnownSenders = async (
-    currentUser: User,
-    xmtp: Client
-): Promise<string[]> => {
-    const knownPeers: Set<string> = new Set();
-    try {
-        const conversations = await xmtp.conversations.list();
-        for (const conversation of conversations) {
-            const messages = await conversation.messages({ limit: 20 });
-            const fromUser = messages.find(
-                (message) => message.senderAddress === currentUser.address
-            );
-            if (fromUser) {
-                knownPeers.add(conversation.peerAddress);
-            }
-        }
-    } catch (e) {
-        console.error(
-            'getKnownSenders: error getting peers from xmtp conversations',
-            e
-        );
-    }
-
-    return Array.from(knownPeers);
 };
 
 const updateKnownSenders = async (): Promise<string[]> => {

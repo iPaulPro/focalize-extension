@@ -1,8 +1,7 @@
 <script lang='ts'>
     import {
-        darkMode, messagesHideEmptyThreads, messagesHideUnknownSenders,
-        messagesNotificationFromFollowing, messagesPlaySounds,
-        messagesRefreshEnabled, messagesRefreshInterval, messagesWalletToWallet,
+        darkMode, messagesHideUnknownSenders, messagesRefreshEnabled,
+        messagesRefreshInterval, messagesWalletToWallet,
     } from '../../lib/stores/preferences-store';
     import Select from 'svelte-select';
     import type { RefreshInterval } from '../../lib/notifications/RefreshInterval';
@@ -36,7 +35,7 @@
     </h1>
 
     <h2 class="text-neutral-400 text-lg pt-2">
-        Configure your messaging settings
+        Configure your messaging preferences and control how you receive notifications
     </h2>
 
     <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 py-3 md:py-6"></div>
@@ -44,6 +43,102 @@
     <section class="w-full flex flex-col py-6 md:py-10">
 
         <div class="flex flex-col md:flex-row md:gap-12 pb-4">
+
+            <div class="w-full md:w-1/3 grow-0 shrink-0">
+                <div class="flex flex-col pb-6 pr-6">
+                    <div class="text-lg font-medium text-neutral-800 dark:text-white">
+                        General
+                    </div>
+                    <div class="text-base text-neutral-400">
+                        Control what you'll see in the messaging tab and manage your messaging preferences
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full md:w-2/3 flex flex-col gap-6">
+
+                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input type="checkbox" bind:checked={$messagesWalletToWallet}>
+                            <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">
+                            Wallet-to-wallet messaging
+                        </div>
+                        <div class="text-base text-neutral-400">
+                            Display and notify for all messages delivered via XMTP, including those that are not from Lens users
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input type="checkbox" bind:checked={$messagesHideUnknownSenders}>
+                            <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">
+                            Hide unknown senders
+                        </div>
+                        <div class="text-base text-neutral-400">
+                            Hide messages from unknown senders, accessible from the "requests" tab
+                        </div>
+                    </div>
+                </div>
+
+                <!--                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">-->
+                <!--                    <div class="pt-1">-->
+                <!--                        <label class="switch">-->
+                <!--                            <input type="checkbox" bind:checked={$messagesHideEmptyThreads}>-->
+                <!--                            <span class="slider round flex justify-between items-center px-2-->
+                <!--                  shadow-none"></span>-->
+                <!--                        </label>-->
+                <!--                    </div>-->
+
+                <!--                    <div class="flex flex-col pl-4">-->
+                <!--                        <div class="text-base font-medium dark:text-white">-->
+                <!--                            Hide empty conversations-->
+                <!--                        </div>-->
+                <!--                        <div class="text-base text-neutral-400">-->
+                <!--                            Hide conversations that have no messages-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
+                <!--                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">-->
+                <!--                    <div class="pt-1">-->
+                <!--                        <label class="switch">-->
+                <!--                            <input type="checkbox" bind:checked={$messagesPlaySounds}>-->
+                <!--                            <span class="slider round flex justify-between items-center px-2-->
+                <!--                  shadow-none"></span>-->
+                <!--                        </label>-->
+                <!--                    </div>-->
+
+                <!--                    <div class="flex flex-col pl-4">-->
+                <!--                        <div class="text-base font-medium dark:text-white">-->
+                <!--                            New message sounds-->
+                <!--                        </div>-->
+                <!--                        <div class="text-base text-neutral-400">-->
+                <!--                            Play a sound when a new message is received-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+
+            </div>
+        </div>
+
+        <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
+
+        <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
 
             <div class="w-full md:w-1/3 grow-0 shrink-0">
                 <div class="flex flex-col pb-6 pr-6">
@@ -99,123 +194,8 @@
                                 !rounded-xl !border-none ring-0 !focus:outline-none focus:!ring-0 focus:!border-none"/>
                     </div>
                 </div>
-
-                <div class="w-full flex">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$messagesNotificationFromFollowing}>
-                            <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            Only known senders
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Only notify of messages from the profiles that you follow and wallets you have engaged with
-                        </div>
-                    </div>
-                </div>
             </div>
 
-        </div>
-
-        <div class="w-full border-b border-b-gray-200 dark:border-b-gray-700 pt-6"></div>
-
-        <div class="flex flex-col md:flex-row md:gap-12 pb-6 pt-10">
-
-            <div class="w-full md:w-1/3 grow-0 shrink-0">
-                <div class="flex flex-col pb-6 pr-6">
-                    <div class="text-lg font-medium text-neutral-800 dark:text-white">
-                        Options
-                    </div>
-                    <div class="text-base text-neutral-400">
-                        Configure the types of messages you'll see in the messaging tab and manage your messaging preferences
-                    </div>
-                </div>
-            </div>
-
-            <div class="w-full md:w-2/3 flex flex-col gap-6">
-
-                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$messagesWalletToWallet}>
-                            <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            Wallet-to-wallet messaging
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Display and notify for all messages delivered via XMTP, including those that are not from Lens users
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$messagesHideUnknownSenders}>
-                            <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            Hide unknown senders
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Hide messages from unknown senders, accessible from the "requests" tab
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$messagesHideEmptyThreads}>
-                            <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            Hide empty conversations
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Hide conversations that have no messages
-                        </div>
-                    </div>
-                </div>
-
-                <div class="w-full xl:w-4/5 2xl:w-3/5 flex">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$messagesPlaySounds}>
-                            <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            New message sounds
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Play a sound when a new message is received
-                        </div>
-                    </div>
-                </div>
-
-            </div>
         </div>
 
     </section>

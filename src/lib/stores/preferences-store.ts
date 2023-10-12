@@ -37,7 +37,6 @@ export const KEY_MESSAGES_REFRESH_ENABLED = 'messagesRefreshEnabled';
 export const KEY_MESSAGES_REFRESH_INTERVAL = 'messagesRefreshInterval';
 export const KEY_MESSAGES_UNREAD_TOPICS = 'messagesUnreadTopics';
 export const KEY_MESSAGES_ALARM_HAS_RUN = 'messagesNotFirstRun';
-export const KEY_MESSAGES_NOTIF_FOLLOWING = 'messagesNotificationsFollowing';
 export const KEY_MESSAGES_W2W = 'messagesWalletToWallet';
 export const KEY_MESSAGES_HIDE_UNKNOWN = 'messagesHideUnknownSenders';
 export const KEY_MESSAGES_HIDE_EMPTY = 'messagesHideEmptyThreads';
@@ -206,9 +205,6 @@ export const messagesUnreadTopics: Writable<string[]> = chromeStorageSync(
     KEY_MESSAGES_UNREAD_TOPICS,
     []
 );
-
-export const messagesNotificationFromFollowing: Writable<boolean> =
-    chromeStorageSync(KEY_MESSAGES_NOTIF_FOLLOWING, true);
 
 export const messagesWalletToWallet: Writable<boolean> = chromeStorageSync(
     KEY_MESSAGES_W2W,

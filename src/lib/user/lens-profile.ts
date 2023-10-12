@@ -30,11 +30,30 @@ export const getDefaultProfile = async (
 export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
     const storage = await chrome.storage.local.get('currentUser');
     const userProfileId = storage.currentUser?.profileId;
-    const { profiles } = await lensApi.profiles({
-        request: { ownedBy },
-        userProfileId,
-    });
-    return profiles.items;
+
+    const req = async (ownedBy: string[]) =>
+        await lensApi.profiles({
+            request: { ownedBy },
+            userProfileId,
+        });
+
+    const profiles: Profile[] = [];
+    if (ownedBy.length > 50) {
+        while (ownedBy.length) {
+            const chunk = ownedBy.splice(0, 50);
+            try {
+                const { profiles: res } = await req(chunk);
+                profiles.push(...res.items);
+            } catch (e) {}
+        }
+    } else {
+        try {
+            const { profiles: res } = await req(ownedBy);
+            profiles.push(...res.items);
+        } catch (e) {}
+    }
+
+    return profiles;
 };
 
 export const getProfileById = async (profileId: string): Promise<Profile> => {
@@ -142,7 +161,9 @@ export const setDispatcher = async (
         txHash = broadcast.txHash;
     }
 
-    const { pollUntilIndexed } = await import('../utils/has-transaction-been-indexed');
+    const { pollUntilIndexed } = await import(
+        '../utils/has-transaction-been-indexed'
+    );
     await pollUntilIndexed(txHash);
     console.log('setDispatcher: transaction indexed');
 

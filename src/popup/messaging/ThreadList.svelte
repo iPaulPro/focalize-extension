@@ -13,7 +13,9 @@
     import {latestMessageMap, selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
     import {launchThreadWindow} from '../../lib/utils/utils';
     import {createEventDispatcher} from 'svelte';
-    import {currentUser} from '../../lib/stores/user-store';
+    import { currentUser, KEY_KNOWN_SENDERS } from '../../lib/stores/user-store';
+    import { messagesHideUnknownSenders, messagesWalletToWallet } from '../../lib/stores/preferences-store';
+    import { isFollowingOrKnownSender } from '../../lib/utils/isFollowingOrKnownSender';
 
     const dispatch = createEventDispatcher();
 
@@ -62,23 +64,39 @@
         listenForCacheChanges();
     };
 
-    const onMessageTabSwitch = () => {
+    const onMessageTabSwitch = async () => {
+        const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
+        const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
+
         switch ($selectedMessagesTab) {
             case 0:
-            case 3:
-                threads = unfilteredThreads;
+                threads = $messagesHideUnknownSenders
+                    ? unfilteredThreads.filter(thread => isFollowingOrKnownSender(thread, knownSenders))
+                    : unfilteredThreads;
                 break;
             case 1:
                 threads = unfilteredThreads.filter(thread =>
-                        $currentUser?.profileId
-                        && isLensThread(thread)
-                        && isProfileThread(thread, $currentUser?.profileId)
+                    $currentUser?.profileId
+                    && isLensThread(thread)
+                    && isProfileThread(thread, $currentUser?.profileId)
+                    && $messagesHideUnknownSenders ? isFollowingOrKnownSender(thread, knownSenders) : false
                 );
                 break;
             case 2:
-                threads = unfilteredThreads.filter(thread => !isLensThread(thread));
+                threads = unfilteredThreads.filter(thread =>
+                    !isLensThread(thread)
+                    && $messagesHideUnknownSenders ? isFollowingOrKnownSender(thread, knownSenders) : false
+                );
                 break;
+            case 3:
+                threads = unfilteredThreads.filter(thread => !isFollowingOrKnownSender(thread, knownSenders));
         }
+    };
+
+    const getRequestsCount = async (): Promise<number> => {
+        const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
+        const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
+        return unfilteredThreads.filter(thread => !isFollowingOrKnownSender(thread, knownSenders) && thread.unread).length;
     };
 
     const onMarkAllAsReadClick = async () => {
@@ -108,11 +126,15 @@
     }
 
     $: if ($selectedMessagesTab !== undefined && unfilteredThreads) {
-        onMessageTabSwitch();
+        onMessageTabSwitch().catch(console.error);
     }
 
     $: if ($currentUser && !unfilteredThreads) {
         reloadThreads().catch(console.error);
+    }
+
+    $: if ($messagesWalletToWallet === false) {
+        $selectedMessagesTab = 1;
     }
 
     onMount(async () => {
@@ -139,19 +161,31 @@
 
     <div class="flex p-2 justify-between items-center bg-white dark:bg-gray-900 border-b border-gray-200
        dark:border-gray-700">
-      <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
-                  background="bg-none" border="border-none" class="gap-1">
-        <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
-        <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Lens</RadioItem>
-        <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
-      </RadioGroup>
+        {#if $messagesWalletToWallet === true}
+            <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
+                        background="bg-none" border="border-none" class="gap-1">
+                <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
+                <RadioItem name="lens-messages" bind:group={$selectedMessagesTab} value={1} class="text-sm">Lens</RadioItem>
+                <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
+            </RadioGroup>
+        {:else}
+            <div class='px-2 text-sm'>Lens DMs</div>
+        {/if}
 
-        <div class="flex gap-2 items-center">
-            <button type="button"
-                    class="text-xs font-light opacity-70 hover:opacity-100"
-                    on:click={() => {$selectedMessagesTab = 3}}>
-                3 requests
-            </button>
+        <div class="flex gap-1 items-center grow justify-end">
+            {#if $messagesHideUnknownSenders}
+                {@const isSelected = $selectedMessagesTab === 3}
+                {#await getRequestsCount() then requestsCount}
+                    {@const hasRequests = requestsCount > 0}
+                    <button type="button"
+                            class="text-xs hover:opacity-100 rounded-full px-2 py-1
+                                  {isSelected ? 'opacity-100' : 'opacity-70'} {hasRequests ? 'font-bold' : 'font-normal'}"
+                            class:variant-filled-surface={isSelected}
+                            on:click={() => {$selectedMessagesTab = 3}}>
+                        {hasRequests ? requestsCount + ' requests' : 'Requests'}
+                    </button>
+                {/await}
+            {/if}
             <button type="button"
                     class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                     use:popup={{
