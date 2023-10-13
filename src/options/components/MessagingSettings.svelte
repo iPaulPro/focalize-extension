@@ -151,7 +151,7 @@
                 </div>
             </div>
 
-            <div class="w-full md:w-2/3 flex flex-col gap-6 xl:pr-48">
+            <div class="w-full md:w-2/3 flex flex-col gap-6">
 
                 <div class="w-full flex">
                     <div class="pt-1">
@@ -172,7 +172,7 @@
                     </div>
                 </div>
 
-                <div class="w-full flex {!$messagesRefreshEnabled ? 'opacity-40' : 'opacity-100'}">
+                <div class="w-full xl:w-4/5 2xl:w-3/5 flex {!$messagesRefreshEnabled ? 'opacity-40' : 'opacity-100'}">
                     <div class="flex flex-col flex-grow pl-16">
                         <div class="text-base font-medium dark:text-white">
                             Refresh interval
