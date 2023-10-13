@@ -5,8 +5,8 @@ import { fromEvent, Subject, takeUntil } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import type { DecodedMessage } from '@xmtp/xmtp-js';
-import { InfuraProvider, type Provider } from 'ethers';
-import { INFURA_PROJECT_ID } from '../../config';
+import { AlchemyProvider, type Provider } from 'ethers';
+import { ALCHEMY_ETH_API_KEY } from '../../config';
 import {
     getPreference,
     KEY_MESSAGES_UNREAD_TOPICS,
@@ -368,7 +368,7 @@ export const isPeerMessage = (message: DecodedMessage): boolean => {
 };
 
 const getDefaultProvider = (): Provider =>
-    new InfuraProvider('mainnet', INFURA_PROJECT_ID);
+    new AlchemyProvider('mainnet', ALCHEMY_ETH_API_KEY);
 
 export const getEnsFromAddress = async (
     address: string

@@ -1,4 +1,5 @@
 import {
+    ALCHEMY_MATIC_API_KEY,
     APP_ID,
     CHAIN_ID,
     INFURA_PROJECT_ID,
@@ -45,7 +46,7 @@ const networkMap = {
 };
 
 const rpcMap = new Map<number, string>([
-    [137, 'https://polygon-mainnet.infura.io/v3/' + INFURA_PROJECT_ID],
+    [137, 'https://polygon-mainnet.g.alchemy.com/v2/' + ALCHEMY_MATIC_API_KEY],
     [80001, 'https://polygon-mumbai.infura.io/v3/' + INFURA_PROJECT_ID],
 ]);
 
@@ -70,7 +71,9 @@ const createWalletConnectProvider = async () => {
         ],
         events: ['chainChanged', 'accountsChanged'],
         rpcMap: {
-            137: 'https://polygon-mainnet.infura.io/v3/' + INFURA_PROJECT_ID,
+            137:
+                'https://polygon-mainnet.g.alchemy.com/v2/' +
+                ALCHEMY_MATIC_API_KEY,
             80001: 'https://polygon-mumbai.infura.io/v3/' + INFURA_PROJECT_ID,
         },
     });
