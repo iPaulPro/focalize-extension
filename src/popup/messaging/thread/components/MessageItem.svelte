@@ -98,20 +98,6 @@
 
 {#if message}
 
-  {#if showDate}
-    <div class="flex justify-center text-xs opacity-50 pt-2">
-      <span>{sentDate.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)}</span>
-    </div>
-  {/if}
-
-  {#if showNewMessagesLabel}
-    <div class="flex justify-center text-xs py-2" out:fade>
-      <span class="px-2 py-1 variant-soft-primary rounded-full">
-        New messages
-      </span>
-    </div>
-  {/if}
-
   <div class="flex {isPeer ? 'justify-start' : 'justify-end dark'}
              {sameSenderAsPrevious && !showDate ? 'pt-0' : showDate ? 'pt-2' : 'pt-3' }">
 
@@ -182,6 +168,19 @@
 
   </div>
 
+    {#if showNewMessagesLabel}
+        <div class="flex justify-center text-xs py-2" out:fade>
+      <span class="px-2 py-1 variant-soft-primary rounded-full">
+        New messages
+      </span>
+        </div>
+    {/if}
+
+    {#if showDate}
+        <div class="flex justify-center text-xs opacity-50 pt-2">
+            <span>{sentDate.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY)}</span>
+        </div>
+    {/if}
 {/if}
 
 <style>

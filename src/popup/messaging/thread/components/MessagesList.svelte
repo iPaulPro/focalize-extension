@@ -188,7 +188,7 @@
 
     {#each messages as message, i (message.id)}
 
-        {@const previousMessage = messages[i - 1]}
+        {@const previousMessage = messages[i + 1]}
 
         <MessageItem
                 {message}
