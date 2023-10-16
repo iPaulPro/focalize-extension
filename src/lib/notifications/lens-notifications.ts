@@ -7,7 +7,6 @@ import {
     type PaginatedResultInfo,
     type Profile,
 } from '../graph/lens-service';
-import { getOrRefreshAccessToken } from '../user/lens-auth';
 import lensApi from '../lens-api';
 import {
     getAvatarForLensHandle,
@@ -28,6 +27,7 @@ import {
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
 } from '../stores/cache-store';
+import { isAuthenticated } from '../lens-service';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
@@ -123,15 +123,14 @@ const getPaginatedNotificationResult = async (
         'limit',
         limit
     );
-    let accessToken;
-    try {
-        accessToken = await getOrRefreshAccessToken();
-    } catch (e) {
-        console.error('getNotifications: Error getting access token', e);
+
+    let authenticated = await isAuthenticated();
+    if (!authenticated) {
+        console.warn('getNotifications: User not authenticated');
         chrome.runtime.openOptionsPage();
         window?.close();
+        return null;
     }
-    if (!accessToken) return null;
 
     const localStorage = await chrome.storage.local.get('currentUser');
     if (!localStorage.currentUser) return null;

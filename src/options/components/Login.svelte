@@ -1,7 +1,6 @@
 <script lang="ts">
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import InlineSVG from 'svelte-inline-svg';
-    import {authenticateUser, NoProfileError} from '../../lib/user/lens-auth';
     import {currentUser} from '../../lib/stores/user-store';
     import {userFromProfile} from '../../lib/user/user';
     import toast from 'svelte-french-toast';
@@ -12,6 +11,7 @@
     import {fade} from 'svelte/transition';
     import type {Profile} from '../../lib/graph/lens-service';
     import type WalletConnection from '../../lib/evm/WalletConnection';
+    import { login, NoProfileError } from '../../lib/lens-service';
 
     const dispatch = createEventDispatcher();
 
@@ -30,7 +30,7 @@
 
         let authenticatedProfile: Profile;
         try {
-            authenticatedProfile = await authenticateUser(wallet);
+            authenticatedProfile = await login(wallet);
         } catch (e) {
             if (e instanceof NoProfileError) {
                 dispatch('noProfile');

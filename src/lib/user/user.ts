@@ -1,7 +1,7 @@
 import type { Profile } from '../graph/lens-service';
-import { getSavedAccessToken } from './lens-auth';
 import { getUser } from '../stores/user-store';
 import { getAvatarForLensHandle } from '../utils/utils';
+import { isAuthenticated } from '../lens-service';
 
 export type User = {
     address: string;
@@ -38,8 +38,8 @@ export const userFromProfile = (profile: Profile): User => {
 export const ensureUser = async () => {
     // Simply check for an existing access token as a signal that the user has logged in before
     // We don't need to know if it's valid right now
-    const accessToken = await getSavedAccessToken();
-    if (accessToken) {
+    const authenticated = await isAuthenticated();
+    if (authenticated) {
         const savedUser = await getUser();
         if (savedUser) {
             return { user: savedUser };

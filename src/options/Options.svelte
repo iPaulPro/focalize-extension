@@ -1,7 +1,6 @@
 <script lang="ts">
     import toast, {Toaster} from 'svelte-french-toast';
 
-    import {getOrRefreshAccessToken, logOut} from '../lib/user/lens-auth';
     import {UserError} from "../lib/user/user";
     import {currentUser} from "../lib/stores/user-store";
     import {darkMode, pinPromptShown} from '../lib/stores/preferences-store';
@@ -13,6 +12,7 @@
     import {isOnToolbar} from '../lib/utils/utils';
     import {get} from '../lib/stores/chrome-storage-store';
     import Login from './components/Login.svelte';
+    import { isAuthenticated, logOut } from '../lib/lens-service';
 
     let loading = true;
     let noProfileDialog: HTMLDialogElement;
@@ -50,10 +50,9 @@
     const ensureUser = async () => {
         if (await get(currentUser)) return;
 
-        try {
-            await getOrRefreshAccessToken();
-        } catch (e) {
-            console.log('Error getting access token', e);
+        const authenticated = await isAuthenticated();
+        if (!authenticated) {
+            console.warn('Error getting access token');
             $currentUser = null;
         }
     };

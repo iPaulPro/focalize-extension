@@ -24,7 +24,6 @@ import {
     PublicationMainFocus,
     PublicationMetadataDisplayTypes,
 } from '../graph/lens-service';
-import { getOrRefreshAccessToken } from '../user/lens-auth';
 import { uploadAndPin } from '../ipfs-service';
 import { getLensHub } from '../evm/lens-hub';
 import { ensureCorrectChain, signTypedData } from '../evm/ethers-service';
@@ -33,6 +32,7 @@ import { deleteDraft } from '../stores/draft-store';
 import lensApi from '../lens-api';
 import type { User } from '../user/user';
 import { PublicationState, publicationState } from '../stores/state-store';
+import { isAuthenticated } from '../lens-service';
 
 const makeMetadataFile = (
     metadata: PublicationMetadataV2Input,
@@ -304,9 +304,8 @@ export const submitPost = async (
         )}, collectModule = ${JSON.stringify(collectModule)}`
     );
 
-    try {
-        await getOrRefreshAccessToken();
-    } catch (e) {
+    const authenticated = await isAuthenticated();
+    if (!authenticated) {
         chrome.runtime.openOptionsPage();
         window?.close();
         throw new Error('submitPost: Failed to get access token');

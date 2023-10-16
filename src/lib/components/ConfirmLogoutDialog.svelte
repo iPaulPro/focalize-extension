@@ -1,6 +1,6 @@
 <script lang="ts">
     import {clearPostState} from '../stores/state-store';
-    import {logOut} from '../user/lens-auth';
+    import { logOut } from '../lens-service';
 
     const onConfirm = async () => {
         clearPostState();
