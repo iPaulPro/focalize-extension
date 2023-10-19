@@ -554,7 +554,7 @@ const onMessagesAlarm = async () => {
         return;
     }
 
-    const knownSenders: string[] = localStorage[KEY_KNOWN_SENDERS];
+    const knownSenders: string[] = localStorage[KEY_KNOWN_SENDERS] ?? [];
 
     chrome.notifications.getAll(async (existingNotifications: any) => {
         const unreadTopics: string[] = [];

@@ -1,5 +1,3 @@
-import followNft from './contracts/abis/lens-follow-nft-contract-abi.json';
-
 const getParamOrExit = (name: string) => {
     const param = import.meta.env[name];
     if (!param) {
@@ -16,8 +14,6 @@ export const LENS_API: string = getParamOrExit('VITE_LENS_API');
 export const LENS_HUB_CONTRACT: string = getParamOrExit(
     'VITE_LENS_HUB_CONTRACT'
 );
-
-export const LENS_FOLLOW_NFT_ABI = followNft;
 
 export const CHAIN_ID: string = getParamOrExit('VITE_CHAIN_ID');
 
@@ -53,4 +49,8 @@ export const ALCHEMY_ETH_API_KEY: string = getParamOrExit(
 
 export const ALCHEMY_MATIC_API_KEY: string = getParamOrExit(
     'VITE_ALCHEMY_MATIC_API_KEY'
+);
+
+export const ENS_REVERSE_RECORDS_ADDRESS: string = getParamOrExit(
+    'VITE_ENS_REVERSE_RECORDS'
 );

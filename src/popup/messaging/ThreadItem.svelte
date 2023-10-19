@@ -17,7 +17,7 @@
 
     let avatarElement: HTMLImageElement;
 
-    let ens: string | undefined = thread?.peer?.wallet?.ens;
+    let ens: string | undefined | null = thread?.peer?.wallet?.ens;
 
     $: peerProfile = thread?.peer?.profile;
     $: peerAddress = thread?.peer?.profile?.ownedBy ?? thread?.peer?.wallet?.address;
@@ -33,7 +33,7 @@
 
     $: $latestMessage && checkIfUnread($latestMessage);
 
-    $: if (!isLensThread(thread) && !ens) {
+    $: if (!isLensThread(thread) && ens === undefined) {
         getEnsFromAddress(peerAddress).then(result => {
             ens = result;
         });

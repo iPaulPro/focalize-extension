@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "generate-types": "typechain --target=ethers-v6 --out-dir src/contracts/types 'src/contracts/*.json'",
+    "generate-types": "typechain --target=ethers-v6 --out-dir src/contracts/types 'src/contracts/abis/*.json'",
     "codegen": "graphql-codegen --config codegen.yml"
   },
   "devDependencies": {
@@ -58,6 +58,7 @@
     "axios": "^1.4.0",
     "buffer": "^6.0.3",
     "cheerio": "^1.0.0-rc.12",
+    "eth-ens-namehash": "^2.0.8",
     "eth-provider": "^0.13.6",
     "ethers": "^6.6.4",
     "graphql": "^16.6.0",

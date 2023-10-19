@@ -15,7 +15,7 @@ import { derived } from 'svelte/store';
  */
 export const getCached = async <T>(key: string): Promise<T | undefined> => {
     const storage = await chrome.storage.local.get(key);
-    if (storage[key]) {
+    if (storage[key] !== undefined) {
         return storage[key] as T;
     }
     return undefined;
@@ -121,3 +121,11 @@ export const getLatestMessage = (
         latestMessageMap,
         ($latestMessageMap) => $latestMessageMap?.[topic]
     );
+
+export const KEY_ENS_NAME_MAP = 'ensNameMap';
+
+/**
+ * Map of wallet address to ENS name
+ */
+export const ensNameMap: Writable<{ [id: string]: string }> =
+    chromeStorageLocal(KEY_ENS_NAME_MAP, {});

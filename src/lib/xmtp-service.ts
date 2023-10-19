@@ -27,6 +27,7 @@ import type { InvitationContext } from '@xmtp/xmtp-js/dist/types/src/Invitation'
 import { getUser } from './stores/user-store';
 import type { User } from './user/user';
 import { getProfiles } from './user/lens-profile';
+import { lookupAddresses } from './evm/ethers-service';
 
 export const LENS_PREFIX = 'lens.dev/dm';
 
@@ -36,7 +37,7 @@ export interface Peer {
     profile?: Profile;
     wallet?: {
         address: string;
-        ens?: string;
+        ens?: string | null;
     };
 }
 
@@ -443,6 +444,11 @@ export const getUnreadThreads = async (
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
     );
 
+    const peerAddresses = unreadConversations.map(
+        (conversation) => conversation.peerAddress
+    );
+    const ensNames = await lookupAddresses(peerAddresses);
+
     const result: Map<Thread, DecodedMessage[]> = new Map();
     for (const conversation of unreadConversations) {
         const messages =
@@ -455,7 +461,7 @@ export const getUnreadThreads = async (
             wallet: !profile
                 ? {
                       address: conversation.peerAddress,
-                      ens: await getEnsFromAddress(conversation.peerAddress),
+                      ens: ensNames.get(conversation.peerAddress),
                   }
                 : undefined,
         };
@@ -510,18 +516,24 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     }
     console.timeLog('getAllThreads', 'got lens profiles');
 
+    let ensNames: Map<string, string | null> = new Map();
+
     if (otherConversations.length) {
         const otherConversationAddresses = otherConversations.map(
             (conversation) => conversation.peerAddress
         );
+
+        ensNames = await lookupAddresses(otherConversationAddresses);
+        console.timeLog('getAllThreads', 'got non-lens ens names');
+
         const nonLensConversationProfiles = await getProfiles(
             otherConversationAddresses
         );
+        console.timeLog('getAllThreads', 'got non-lens profiles');
         if (nonLensConversationProfiles.length) {
             profiles.push(...nonLensConversationProfiles);
         }
     }
-    console.timeLog('getAllThreads', 'got non-lens profiles');
 
     const profilesMap: Map<string, Profile> = new Map(
         profiles.map((profile: Profile) => [profile.ownedBy, profile])
@@ -560,7 +572,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             profile: peerProfile,
             wallet: {
                 address: conversation.peerAddress,
-                // ENS will be fetched on mount
+                ens: ensNames.get(conversation.peerAddress),
             },
         };
         const thread: Thread = { conversation, peer, latestMessage, unread };
@@ -593,7 +605,7 @@ const getPeerProfile = async (
 
 export const getPeerName = (
     thread: Thread,
-    ens?: string
+    ens?: string | null
 ): string | undefined => {
     if (!thread?.peer) return undefined;
 

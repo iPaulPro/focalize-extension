@@ -13,6 +13,10 @@ import type {
     SetDispatcherRequest,
 } from '../graph/lens-service';
 import type { User } from './user';
+import {
+    type LensFollowNft,
+    LensFollowNft__factory,
+} from '../../contracts/types';
 
 /**
  * Gets the default profile of the address supplied.
@@ -283,9 +287,8 @@ const burnFollowWithSig = async (
 
     const { getSigner } = await import('../evm/ethers-service');
     // load up the follower nft contract
-    const followNftContract = new Contract(
+    const followNftContract: LensFollowNft = LensFollowNft__factory.connect(
         typedData.domain.verifyingContract,
-        LENS_FOLLOW_NFT_ABI,
         await getSigner()
     );
 

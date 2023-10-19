@@ -5,17 +5,22 @@ import { fromEvent, Subject, takeUntil } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import type { DecodedMessage } from '@xmtp/xmtp-js';
-import { AlchemyProvider, type Provider } from 'ethers';
-import { ALCHEMY_ETH_API_KEY } from '../../config';
+
 import {
     getPreference,
     KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NOTIFICATIONS_TIMESTAMP,
     KEY_USE_POPUP_COMPOSER,
 } from '../stores/preferences-store';
-import { KEY_WINDOW_TOPIC_MAP } from '../stores/cache-store';
+import {
+    getCached,
+    KEY_ENS_NAME_MAP,
+    KEY_WINDOW_TOPIC_MAP,
+    saveToCache,
+} from '../stores/cache-store';
 import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
+import { getDefaultProvider } from '../evm/ethers-service';
 
 export const POPUP_MIN_HEIGHT = 350;
 
@@ -367,14 +372,24 @@ export const isPeerMessage = (message: DecodedMessage): boolean => {
     return message.senderAddress === message.conversation.peerAddress;
 };
 
-const getDefaultProvider = (): Provider =>
-    new AlchemyProvider('mainnet', ALCHEMY_ETH_API_KEY);
-
 export const getEnsFromAddress = async (
     address: string
 ): Promise<string | undefined> => {
+    const ensNameMap =
+        (await getCached<{ [id: string]: string }>(KEY_ENS_NAME_MAP)) ?? {};
+
+    if (ensNameMap[address]) {
+        return ensNameMap[address];
+    }
+
     const provider = getDefaultProvider();
     const ens = await provider.lookupAddress(address);
+
+    if (ens) {
+        ensNameMap[address] = ens;
+        await saveToCache(KEY_ENS_NAME_MAP, ensNameMap);
+    }
+
     return ens ?? undefined;
 };
 
