@@ -1,5 +1,3 @@
-import { LENS_FOLLOW_NFT_ABI } from '../../config';
-
 import lensApi from '../lens-api';
 
 import type {

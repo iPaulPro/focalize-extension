@@ -14,8 +14,11 @@ import {
     KEY_LATEST_MESSAGE_MAP,
     KEY_MESSAGE_TIMESTAMPS,
     KEY_PROFILES,
+    KEY_PROFILE_ID_BY_ADDRESS,
     type LatestMessageMap,
     type MessageTimestampMap,
+    type ProfileIdsByAddressMap,
+    type ProfileMap,
 } from './stores/cache-store';
 import {
     buildXmtpStorageKey,
@@ -165,8 +168,7 @@ const getProfilesBatch = async (profileIds: string[]): Promise<Profile[]> => {
     let remainingIds = new Set(ids);
 
     // First check if we have any profiles cached
-    const storage = await chrome.storage.local.get(KEY_PROFILES);
-    let savedProfiles = storage[KEY_PROFILES];
+    let savedProfiles = (await getCached<ProfileMap>(KEY_PROFILES)) ?? {};
     if (savedProfiles) {
         for (const profileId of profileIds) {
             const savedProfile = savedProfiles[profileId];
@@ -475,15 +477,23 @@ export const getUnreadThreads = async (
     return result;
 };
 
-export const getAllThreads = async (): Promise<Thread[]> => {
-    console.time('getAllThreads');
+export const getUserAddress = async (): Promise<string> => {
     const user = await getUser();
     if (!user) throw new Error('User is not logged in');
-    console.timeLog('getAllThreads', 'got user');
+    return user.address;
+};
+
+const sortByLatestMessage = (a: Thread, b: Thread): number => {
+    if (!a.latestMessage) return 1;
+    if (!b.latestMessage) return -1;
+    return b.latestMessage.timestamp - a.latestMessage.timestamp;
+};
+
+export const getAllThreads = async (): Promise<Thread[]> => {
+    const userAddress = await getUserAddress();
     const xmtpClient = await getXmtpClient();
 
     const conversations: Conversation[] = await xmtpClient.conversations.list();
-    console.timeLog('getAllThreads', 'got conversations');
 
     const lensConversations = [];
     const otherConversations = [];
@@ -496,14 +506,12 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         }
     }
 
-    const profiles: Profile[] = [];
+    const profiles: Set<Profile> = new Set();
 
     if (lensConversations.length) {
         // One address can hold multiple Lens profiles, so we need to fetch all profiles owned by the user
-        const profilesOwnedByAddress = await getProfiles([user.address]);
-        const userProfileIds = profilesOwnedByAddress.map(
-            (profile) => profile.id
-        );
+        const profilesOwnedByUser = await getProfiles([userAddress]);
+        const userProfileIds = profilesOwnedByUser.map((profile) => profile.id);
         const profileIds = lensConversations.map((conversation) =>
             extractProfileId(
                 conversation.context!!.conversationId,
@@ -512,31 +520,64 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         );
         // Getting profiles by id is faster than getting them by address
         const lensProfiles: Profile[] = await getProfilesBatch(profileIds);
-        profiles.push(...lensProfiles);
+        lensProfiles.forEach((profile) => profiles.add(profile));
     }
-    console.timeLog('getAllThreads', 'got lens profiles');
 
     let ensNames: Map<string, string | null> = new Map();
 
     if (otherConversations.length) {
-        const otherConversationAddresses = otherConversations.map(
+        let otherConversationAddresses = otherConversations.map(
             (conversation) => conversation.peerAddress
         );
 
         ensNames = await lookupAddresses(otherConversationAddresses);
-        console.timeLog('getAllThreads', 'got non-lens ens names');
+
+        const cachedProfileIdsMap =
+            (await getCached<ProfileIdsByAddressMap>(
+                KEY_PROFILE_ID_BY_ADDRESS
+            )) ?? {};
+
+        const savedProfiles = (await getCached<ProfileMap>(KEY_PROFILES)) ?? {};
+
+        const cachedProfileIds = otherConversationAddresses
+            .filter((address) => cachedProfileIdsMap[address])
+            .map((address) => cachedProfileIdsMap[address])
+            .flatMap((ids) => ids);
+
+        for (const profileId of cachedProfileIds) {
+            const savedProfile = savedProfiles[profileId];
+            if (savedProfile) {
+                profiles.add(savedProfile);
+                otherConversationAddresses = otherConversationAddresses.filter(
+                    (address) => address !== savedProfile.ownedBy
+                );
+            }
+        }
 
         const nonLensConversationProfiles = await getProfiles(
             otherConversationAddresses
         );
-        console.timeLog('getAllThreads', 'got non-lens profiles');
         if (nonLensConversationProfiles.length) {
-            profiles.push(...nonLensConversationProfiles);
+            nonLensConversationProfiles.forEach((profile) => {
+                profiles.add(profile);
+                savedProfiles[profile.id] = profile;
+                if (cachedProfileIdsMap[profile.ownedBy]) {
+                    cachedProfileIdsMap[profile.ownedBy].push(profile.id);
+                } else {
+                    cachedProfileIdsMap[profile.ownedBy] = [profile.id];
+                }
+            });
+
+            await saveToCache(KEY_PROFILES, savedProfiles);
+            await saveToCache(KEY_PROFILE_ID_BY_ADDRESS, cachedProfileIdsMap);
         }
     }
 
     const profilesMap: Map<string, Profile> = new Map(
-        profiles.map((profile: Profile) => [profile.ownedBy, profile])
+        Array.from(profiles).map((profile: Profile) => [
+            profile.ownedBy,
+            profile,
+        ])
     );
 
     let latestMessageMap: LatestMessageMap | undefined = await getCached(
@@ -547,7 +588,7 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         const conversationMessages: Map<Conversation, DecodedMessage[]> =
             await getMessagesBatch(
                 xmtpClient,
-                user.address,
+                userAddress,
                 1,
                 false,
                 false,
@@ -580,11 +621,6 @@ export const getAllThreads = async (): Promise<Thread[]> => {
     }
     console.timeLog('getAllThreads', 'built threads');
 
-    const sortByLatestMessage = (a: Thread, b: Thread): number => {
-        if (!a.latestMessage) return 1;
-        if (!b.latestMessage) return -1;
-        return b.latestMessage.timestamp - a.latestMessage.timestamp;
-    };
     console.timeEnd('getAllThreads');
 
     return threads

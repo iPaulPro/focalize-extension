@@ -123,9 +123,18 @@ export const getLatestMessage = (
     );
 
 export const KEY_ENS_NAME_MAP = 'ensNameMap';
-
 /**
  * Map of wallet address to ENS name
  */
 export const ensNameMap: Writable<{ [id: string]: string }> =
     chromeStorageLocal(KEY_ENS_NAME_MAP, {});
+
+export interface ProfileIdsByAddressMap {
+    [address: string]: string[];
+}
+export const KEY_PROFILE_ID_BY_ADDRESS = 'profileIdsByAddressMap';
+/**
+ * Map of wallet address to profile ID
+ */
+export const profileIdsByAddressMap: Writable<ProfileIdsByAddressMap> =
+    chromeStorageLocal(KEY_PROFILE_ID_BY_ADDRESS, {});
