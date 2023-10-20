@@ -1,14 +1,12 @@
 import {
-    ALCHEMY_ETH_API_KEY,
     ALCHEMY_MATIC_API_KEY,
     APP_ID,
     CHAIN_ID,
-    ENS_REVERSE_RECORDS_ADDRESS,
     INFURA_PROJECT_ID,
     WALLETCONNECT_PROJECT_ID,
 } from '../../config';
 import type { JsonRpcSigner, TypedDataDomain, TypedDataField } from 'ethers';
-import { BrowserProvider, toQuantity, isError } from 'ethers';
+import { BrowserProvider, isError, toQuantity } from 'ethers';
 import omitDeep from 'omit-deep';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import ethProvider from 'eth-provider';
@@ -23,13 +21,8 @@ import { EthereumProvider } from '@walletconnect/ethereum-provider';
 import createMetaMaskProvider from 'metamask-extension-provider';
 import focalizeIcon from '../../assets/focalize.svg';
 import WalletConnection from './WalletConnection';
-import {
-    type ReverseRecords,
-    ReverseRecords__factory,
-} from '../../contracts/types';
 // @ts-ignore
 import namehash from 'eth-ens-namehash';
-import { AlchemyProvider, type Provider } from 'ethers';
 
 const walletConnectProjectId = WALLETCONNECT_PROJECT_ID;
 
@@ -163,9 +156,6 @@ export const clearProvider = async () => {
     await deletePreference(KEY_WALLET_CONNECTION);
 };
 
-export const getDefaultProvider = (): Provider =>
-    new AlchemyProvider('mainnet', ALCHEMY_ETH_API_KEY);
-
 export const initEthers = async (wallet: WalletConnection): Promise<any[]> => {
     console.log('initEthers: wallet connection', wallet);
     await clearProvider();
@@ -241,28 +231,4 @@ export const signTypedData = async (
         omitDeep(types, ['__typename']),
         omitDeep(value, ['__typename'])
     );
-};
-
-export const lookupAddresses = async (
-    addresses: string[]
-): Promise<Map<string, string | null>> => {
-    console.log('lookupAddresses: looking up', addresses.length, 'addresses');
-    const reverseRecords: ReverseRecords = ReverseRecords__factory.connect(
-        ENS_REVERSE_RECORDS_ADDRESS,
-        getDefaultProvider()
-    );
-
-    const names = await reverseRecords.getNames(addresses);
-    console.log('lookupAddresses: got names', names);
-
-    const map = new Map<string, string | null>();
-    for (let i = 0; i < addresses.length; i++) {
-        const normalizedName: string | null = names[i]
-            ? namehash.normalize(names[i])
-            : null;
-        map.set(addresses[i], normalizedName);
-    }
-    console.log('lookupAddresses: returning map', map);
-
-    return map;
 };

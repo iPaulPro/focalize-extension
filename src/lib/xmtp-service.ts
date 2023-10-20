@@ -30,7 +30,7 @@ import type { InvitationContext } from '@xmtp/xmtp-js/dist/types/src/Invitation'
 import { getUser } from './stores/user-store';
 import type { User } from './user/user';
 import { getProfiles } from './user/lens-profile';
-import { lookupAddresses } from './evm/ethers-service';
+import { lookupAddresses } from './utils/lookup-addresses';
 
 export const LENS_PREFIX = 'lens.dev/dm';
 

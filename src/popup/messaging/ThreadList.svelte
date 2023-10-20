@@ -1,18 +1,27 @@
 <script lang="ts">
-    import {onDestroy, onMount} from 'svelte';
+    //@ts-ignore
+    import tippy from 'sveltejs-tippy';
+    import { createEventDispatcher, onDestroy, onMount } from 'svelte';
     import {
+        getAllMessagesStream,
+        getAllThreads,
+        getThreadStream,
+        isLensThread,
+        isProfileThread,
+        isUnread,
+        isXmtpEnabled,
+        markAllAsRead,
+        toCompactMessage,
+        updateLatestMessageCache,
         type Thread,
-        getAllThreads, getAllMessagesStream, getThreadStream, isUnread, markAllAsRead,
-        isLensThread, isXmtpEnabled, toCompactMessage, updateLatestMessageCache, isProfileThread
     } from '../../lib/xmtp-service';
-    import type {Subscription} from 'rxjs';
+    import type { Subscription } from 'rxjs';
     import ThreadItem from './ThreadItem.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
-    import {RadioGroup, RadioItem, popup} from '@skeletonlabs/skeleton';
+    import { popup, RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
     import FloatingActionButton from '../../lib/components/FloatingActionButton.svelte';
-    import {latestMessageMap, selectedMessagesTab, windowTopicMap} from '../../lib/stores/cache-store';
-    import {launchThreadWindow} from '../../lib/utils/utils';
-    import {createEventDispatcher} from 'svelte';
+    import { latestMessageMap, selectedMessagesTab, windowTopicMap } from '../../lib/stores/cache-store';
+    import { launchThreadWindow } from '../../lib/utils/utils';
     import { currentUser, KEY_KNOWN_SENDERS } from '../../lib/stores/user-store';
     import { messagesHideUnknownSenders, messagesWalletToWallet } from '../../lib/stores/preferences-store';
     import { isFollowingOrKnownSender } from '../../lib/utils/isFollowingOrKnownSender';
@@ -68,6 +77,7 @@
         const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
         const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
 
+        console.log('onMessageTabSwitch: selectedMessagesTab', $selectedMessagesTab, '', );
         switch ($selectedMessagesTab) {
             case 0:
                 threads = $messagesHideUnknownSenders
@@ -75,28 +85,36 @@
                     : unfilteredThreads;
                 break;
             case 1:
-                threads = unfilteredThreads.filter(thread =>
-                    $currentUser?.profileId
+                threads = unfilteredThreads.filter(thread => $currentUser?.profileId
                     && isLensThread(thread)
                     && isProfileThread(thread, $currentUser?.profileId)
-                    && $messagesHideUnknownSenders ? isFollowingOrKnownSender(thread, knownSenders) : false
+                    && ($messagesHideUnknownSenders
+                            ? isFollowingOrKnownSender(thread, knownSenders)
+                            : !$messagesWalletToWallet)
                 );
                 break;
             case 2:
                 threads = unfilteredThreads.filter(thread =>
                     !isLensThread(thread)
-                    && $messagesHideUnknownSenders ? isFollowingOrKnownSender(thread, knownSenders) : false
+                    && ($messagesHideUnknownSenders ? isFollowingOrKnownSender(thread, knownSenders) : false)
                 );
                 break;
             case 3:
-                threads = unfilteredThreads.filter(thread => !isFollowingOrKnownSender(thread, knownSenders));
+                threads = unfilteredThreads.filter(thread => $messagesWalletToWallet
+                    ? !isFollowingOrKnownSender(thread, knownSenders)
+                    : !isFollowingOrKnownSender(thread, knownSenders) && isLensThread(thread)
+                );
+                break;
         }
     };
 
     const getRequestsCount = async (): Promise<number> => {
         const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
         const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
-        return unfilteredThreads.filter(thread => !isFollowingOrKnownSender(thread, knownSenders) && thread.unread).length;
+        const requests = unfilteredThreads.filter(thread =>
+            !isFollowingOrKnownSender(thread, knownSenders) && thread.unread
+        );
+        return requests.length;
     };
 
     const onMarkAllAsReadClick = async () => {
@@ -105,7 +123,6 @@
 
     const onThreadSelected = async (event: CustomEvent) => {
         const thread: Thread = event.detail.thread;
-        console.log('onThreadSelected: thread', thread);
 
         const existingWindow = $windowTopicMap[thread.conversation.topic];
         if (existingWindow) {
@@ -161,7 +178,20 @@
 
     <div class="flex p-2 justify-between items-center bg-white dark:bg-gray-900 border-b border-gray-200
        dark:border-gray-700">
-        {#if $messagesWalletToWallet === true}
+        {#if $selectedMessagesTab === 3}
+            <div class='flex gap-2 items-center'>
+                <button type='button'
+                        class='flex items-center justify-center p-2 hover:variant-soft-surface rounded-full'
+                        on:click={() => $selectedMessagesTab = 0}>
+                    <svg viewBox='0 0 24 24' fill='none' class='w-5'
+                         stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                        <line x1='18' y1='6' x2='6' y2='18'></line>
+                        <line x1='6' y1='6' x2='18' y2='18'></line>
+                    </svg>
+                </button>
+                <div class='text-sm'>Requests</div>
+            </div>
+        {:else if $messagesWalletToWallet === true}
             <RadioGroup active="variant-filled-surface" hover="hover:variant-soft-surface"
                         background="bg-none" border="border-none" class="gap-1">
                 <RadioItem name="all-messages" bind:group={$selectedMessagesTab} value={0} class="text-sm">All</RadioItem>
@@ -169,19 +199,21 @@
                 <RadioItem name="wallet-to-wallet" bind:group={$selectedMessagesTab} value={2} class="text-sm">Other</RadioItem>
             </RadioGroup>
         {:else}
-            <div class='px-2 text-sm'>Lens DMs</div>
+            <div class='px-2 text-sm'>Lens Messages</div>
         {/if}
 
         <div class="flex gap-1 items-center grow justify-end">
-            {#if $messagesHideUnknownSenders}
-                {@const isSelected = $selectedMessagesTab === 3}
+            {#if $messagesHideUnknownSenders && $selectedMessagesTab !== 3}
                 {#await getRequestsCount() then requestsCount}
                     {@const hasRequests = requestsCount > 0}
                     <button type="button"
-                            class="text-xs hover:opacity-100 rounded-full px-2 py-1
-                                  {isSelected ? 'opacity-100' : 'opacity-70'} {hasRequests ? 'font-bold' : 'font-normal'}"
-                            class:variant-filled-surface={isSelected}
-                            on:click={() => {$selectedMessagesTab = 3}}>
+                            class="text-xs hover:opacity-100 rounded-full px-2 py-1 opacity-70
+                                  {hasRequests ? 'font-bold' : 'font-normal'}"
+                            on:click={() => {$selectedMessagesTab = 3}}
+                            use:tippy={{
+                              delay: 500,
+                              content: 'Requests are messages from addresses you\'ve never spoken with and Lens Profiles you\'re not following'
+                             }}>
                         {hasRequests ? requestsCount + ' requests' : 'Requests'}
                     </button>
                 {/await}
@@ -189,11 +221,11 @@
             <button type="button"
                     class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                     use:popup={{
-              event: 'click',
-              closeQuery: '.btn',
-              placement: 'bottom-end',
-              target: 'examplePopup',
-            }}>
+                      event: 'click',
+                      closeQuery: '.btn',
+                      placement: 'bottom-end',
+                      target: 'examplePopup',
+                    }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                      stroke-linejoin="round" class="w-5">
                     <circle cx="12" cy="12" r="1"></circle>

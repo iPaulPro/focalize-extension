@@ -20,7 +20,8 @@ import {
 } from '../stores/cache-store';
 import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
-import { getDefaultProvider } from '../evm/ethers-service';
+
+import { getDefaultProvider } from '../evm/get-default-provider';
 
 export const POPUP_MIN_HEIGHT = 350;
 
