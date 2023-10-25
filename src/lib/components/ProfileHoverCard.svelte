@@ -24,8 +24,8 @@
     let mutualFollows: PaginatedResult<ProfileFragment>;
     let isMessaging = false;
 
-    $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle);
-    $: userProfileUrl = profile.handle && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
+    $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle.fullHandle);
+    $: userProfileUrl = profile.handle && $nodeSearch && getProfileUrl($nodeSearch, profile.handle.fullHandle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     const canMessageProfile = async (): Promise<boolean> => {
@@ -76,7 +76,7 @@
         const usernames: string[] = mutualFollows.items
             .filter(profile => profile.handle)
             .slice(0, 3)
-            .map(profile => profile.handle!.split('.')[0]);
+            .map(profile => profile.handle!.localName.split('.')[0]);
 
         let includedNames = 0;
         for (let i = 0; i < usernames.length; i++) {
@@ -150,7 +150,7 @@
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
        class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
           dark:hover:!text-orange-400">
-        {profile.handle ? '@' + profile.handle.split('.')[0] : truncateAddress(profile.ownedBy.address)}
+        {profile.handle ? profile.handle.suggestedFormatted.localName : truncateAddress(profile.ownedBy.address)}
     </a>
 
     {#if profile.operations.isFollowingMe.value}
@@ -184,7 +184,7 @@
 
         <div class="flex flex-shrink-0 overlap">
           {#each mutualFollows.items as mutualFollow}
-            <img src={mutualFollow.handle ? getAvatarForLensHandle(mutualFollow.handle) : getAvatarFromAddress(mutualFollow.ownedBy.address)} alt="Avatar"
+            <img src={mutualFollow.handle ? getAvatarForLensHandle(mutualFollow.handle.fullHandle) : getAvatarFromAddress(mutualFollow.ownedBy.address)} alt="Avatar"
                  class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
           {/each}
         </div>

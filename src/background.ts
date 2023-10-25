@@ -605,7 +605,7 @@ const onMessagesAlarm = async () => {
                         : messages[0].content),
                 contextMessage: 'Focalize',
                 iconUrl: peerProfile?.handle
-                    ? getAvatarForLensHandle(peerProfile.handle)
+                    ? getAvatarForLensHandle(peerProfile.handle.localName)
                     : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
                 silent: false,
             };
@@ -730,7 +730,7 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
         try {
             const profiles = await getProfiles({ ownedBy: [text] });
             if (profiles.items.length) {
-                handle = profiles.items[0].handle;
+                handle = profiles.items[0].handle?.localName;
             }
         } catch (e) {
             console.warn('Error getting profiles for address', text, e);
@@ -762,10 +762,13 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
 
     const suggestions = profiles.map((profile) => {
         const regex = new RegExp(text, 'i');
-        const handle = profile.handle?.replace(regex, `<match>${text}</match>`);
+        const handle = profile.handle?.localName.replace(
+            regex,
+            `<match>${text}</match>`
+        );
 
         return {
-            content: profile.handle ?? '',
+            content: profile.handle?.localName ?? '',
             description: `@${handle} <dim>${
                 profile.metadata?.displayName ?? ''
             }</dim>`,

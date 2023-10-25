@@ -1,12 +1,12 @@
-import type { Profile } from '../graph/lens-service';
 import { getUser } from '../stores/user-store';
 import { getAvatarForLensHandle } from '../utils/utils';
 import { isAuthenticated } from '../lens-service';
+import type { ProfileFragment } from '@lens-protocol/client';
 
 export type User = {
     address: string;
     profileId: string;
-    handle: string;
+    handle: string | undefined;
     name: string | undefined | null;
     avatarUrl: string | undefined;
     canUseRelay: boolean;
@@ -19,16 +19,18 @@ export enum UserError {
     UNKNOWN,
 }
 
-export const userFromProfile = (profile: Profile): User => {
-    const avatarUrl = getAvatarForLensHandle(profile.handle);
+export const userFromProfile = (profile: ProfileFragment): User => {
+    const avatarUrl = profile.handle
+        ? getAvatarForLensHandle(profile.handle.fullHandle)
+        : undefined;
 
     return {
-        address: profile.ownedBy,
+        address: profile.ownedBy.address,
         profileId: profile.id,
-        handle: profile.handle,
-        name: profile.name,
+        handle: profile.handle?.fullHandle,
+        name: profile.metadata?.displayName,
         avatarUrl,
-        canUseRelay: profile.dispatcher?.canUseRelay ?? false,
+        canUseRelay: profile.signless,
     };
 };
 
@@ -36,8 +38,6 @@ export const userFromProfile = (profile: Profile): User => {
  * Ensures that the user is logged in, otherwise opens the options page
  */
 export const ensureUser = async () => {
-    // Simply check for an existing access token as a signal that the user has logged in before
-    // We don't need to know if it's valid right now
     const authenticated = await isAuthenticated();
     if (authenticated) {
         const savedUser = await getUser();

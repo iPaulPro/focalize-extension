@@ -8,7 +8,7 @@ export const buildTributeUsernameMenuTemplate = (
 
     const handleView = document.createElement('div');
     handleView.className = 'text-base font-medium dark:text-white truncate';
-    handleView.innerText = '@' + profile.handle;
+    handleView.innerText = profile.handle!.suggestedFormatted.localName;
 
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';

@@ -5,12 +5,12 @@
     import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user/user';
-    import {getAvatarForLensHandle} from "../utils/utils";
+    import { getAvatarForLensHandle, getAvatarFromAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
-    import type {Profile} from '../graph/lens-service';
     import {clearNotificationCache} from '../stores/cache-store';
     import { getProfiles } from '../lens-service';
+    import type { ProfileFragment } from '@lens-protocol/client';
 
     export let anchorNode: Node;
     export let showSettings = true;
@@ -26,7 +26,7 @@
         anchorNode.dispatchEvent(event);
     };
 
-    const switchProfiles = async (profile: Profile) => {
+    const switchProfiles = async (profile: ProfileFragment) => {
         await clearNotificationCache();
         $currentUser = userFromProfile(profile);
     }
@@ -59,9 +59,9 @@
 
       <div class="py-1">
 
-        {#each profiles as p, index}
+        {#each profiles.items as p, index}
 
-          {@const avatarUrl = getAvatarForLensHandle(p.handle)}
+          {@const avatarUrl = p.handle ? getAvatarForLensHandle(p.handle.fullHandle) : getAvatarFromAddress(p.ownedBy.address)}
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
@@ -76,11 +76,11 @@
             {/if}
 
             <div class="flex flex-col gap-0.5 grow">
-              <div class="font-semibold text-sm text-black dark:text-white">{p.name || p.handle}</div>
+              <div class="font-semibold text-sm text-black dark:text-white">{p.metadata?.displayName || p.handle}</div>
               <div class="text-xs text-gray-600 dark:text-gray-300">@{p.handle}</div>
             </div>
 
-            {#if $currentUser?.handle === p.handle}
+            {#if $currentUser?.handle === p.handle?.fullHandle}
               <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
             {/if}
 

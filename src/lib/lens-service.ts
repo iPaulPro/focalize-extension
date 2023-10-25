@@ -262,7 +262,7 @@ export const unfollowProfile = async (profileId: string): Promise<boolean> => {
 
 export const enableProfileManager = async (): Promise<boolean> => {
     const res = await lensClient.profile.createChangeProfileManagersTypedData({
-        approveLensManager: true,
+        approveSignless: true,
     });
 
     if (res.isFailure()) {

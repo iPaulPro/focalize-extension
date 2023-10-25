@@ -1,6 +1,7 @@
 <script lang="ts">
-    import focalizeLogo from '../../assets/focalize-logo-large.svg';
+    // @ts-ignore
     import InlineSVG from 'svelte-inline-svg';
+    import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import {currentUser} from '../../lib/stores/user-store';
     import {userFromProfile} from '../../lib/user/user';
     import toast from 'svelte-french-toast';
@@ -9,9 +10,9 @@
     import ConnectWalletDialog from './ConnectWalletDialog.svelte';
     import {createEventDispatcher} from 'svelte';
     import {fade} from 'svelte/transition';
-    import type {Profile} from '../../lib/graph/lens-service';
     import type WalletConnection from '../../lib/evm/WalletConnection';
     import { login, NoProfileError } from '../../lib/lens-service';
+    import type { ProfileFragment } from '@lens-protocol/client';
 
     const dispatch = createEventDispatcher();
 
@@ -28,7 +29,7 @@
         console.log('authenticate: wallet', wallet);
         walletConnectDialog?.close();
 
-        let authenticatedProfile: Profile;
+        let authenticatedProfile: ProfileFragment;
         try {
             authenticatedProfile = await login(wallet);
         } catch (e) {

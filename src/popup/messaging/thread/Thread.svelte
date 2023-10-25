@@ -95,7 +95,7 @@
 
     const getPeerUrl = (): string => {
         if (thread?.peer?.profile?.handle) {
-            return getProfileUrl($nodeSearch, thread.peer.profile.handle);
+            return getProfileUrl($nodeSearch, thread.peer.profile.handle.fullHandle);
         } else if (thread?.peer?.wallet?.ens) {
             return `https://app.ens.domains/${thread.peer.wallet?.ens}`;
         }
@@ -103,8 +103,11 @@
     };
 
     const getPeerHandle = (): string | null => {
-        if (isLensThread(thread) && thread?.peer?.profile && peerName !== thread.peer.profile.handle) {
-            return thread.peer.profile.handle;
+        if (isLensThread(thread)
+            && thread?.peer?.profile
+            && peerName !== thread.peer.profile.handle?.fullHandle
+        ) {
+            return thread.peer.profile.handle?.fullHandle ?? null;
         } else if (thread?.peer?.wallet?.ens && peerName !== thread.peer.wallet?.ens) {
             return thread.peer.wallet?.ens;
         }
@@ -116,7 +119,9 @@
     };
 
     $: peerProfile = thread?.peer?.profile;
-    $: avatarUrl = peerProfile?.handle ? getAvatarForLensHandle(peerProfile.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
+    $: avatarUrl = peerProfile?.handle
+        ? getAvatarForLensHandle(peerProfile.handle.fullHandle)
+        : getAvatarFromAddress(thread?.conversation?.peerAddress);
     $: peerName = thread?.peer && getPeerName(thread);
     $: peerHandle = thread && getPeerHandle();
 
@@ -262,7 +267,7 @@
 
     <div class="flex-grow">
       <NewThreadRecipientInput
-              recipient={newMessagePeer?.profile?.handle ?? newMessagePeer?.wallet?.ens ?? newMessagePeer?.wallet?.address ?? ''}
+              recipient={newMessagePeer?.profile?.handle?.localName ?? newMessagePeer?.wallet?.ens ?? newMessagePeer?.wallet?.address ?? ''}
               on:peerSelected={(e) => newMessagePeer = e.detail}/>
     </div>
 

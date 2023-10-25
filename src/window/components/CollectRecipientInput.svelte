@@ -54,9 +54,9 @@
                     console.log('checkForExistingRecipient: got profile', profile);
                     if (profile) {
                         dispatch('recipient', {
-                            address: profile.ownedBy,
+                            address: profile.ownedBy.address,
                             identity: {
-                                lens: profile.handle,
+                                lens: profile.handle?.fullHandle,
                             }
                         });
                     }
@@ -92,9 +92,9 @@
         if (profile) {
             console.log('checkForExistingRecipient: found profile', trimmed, profile);
             dispatch('recipient', {
-                address: profile.ownedBy,
+                address: profile.ownedBy.address,
                 identity: {
-                    lens: profile.handle,
+                    lens: profile.handle?.fullHandle,
                 }
             });
             return;
