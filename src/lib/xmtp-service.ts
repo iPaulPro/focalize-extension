@@ -6,8 +6,6 @@ import {
     Stream,
 } from '@xmtp/xmtp-js';
 import { Observable } from 'rxjs';
-import type { Profile, ProfilesQuery } from './graph/lens-service';
-import lensApi from './lens-api';
 import {
     getCached,
     saveToCache,
@@ -29,15 +27,16 @@ import {
 import type { InvitationContext } from '@xmtp/xmtp-js/dist/types/src/Invitation';
 import { getUser } from './stores/user-store';
 import type { User } from './user/user';
-import { getProfiles } from './user/lens-profile';
 import { lookupAddresses } from './utils/lookup-addresses';
+import { getAllProfiles, getProfiles } from './lens-service';
+import type { ProfileFragment } from '@lens-protocol/client';
 
 export const LENS_PREFIX = 'lens.dev/dm';
 
 let client: Client;
 
 export interface Peer {
-    profile?: Profile;
+    profile?: ProfileFragment;
     wallet?: {
         address: string;
         ens?: string | null;
@@ -131,39 +130,10 @@ const getUserProfileId = async (): Promise<string | undefined> => {
     return user?.profileId;
 };
 
-const fetchAllProfiles = async (
-    profileIds: string[],
-    userProfileId?: string
-): Promise<Array<Profile>> => {
-    const chunkSize = 50;
-    let profiles: Profile[] = [];
-    let cursor: any = null;
-    let hasMore = true;
-
-    while (hasMore) {
-        const currentIds = profileIds.slice(0, chunkSize);
-        profileIds = profileIds.slice(chunkSize);
-
-        const { profiles: currentProfilesResult }: ProfilesQuery =
-            await lensApi.profiles({
-                request: { profileIds: currentIds, limit: chunkSize, cursor },
-                userProfileId,
-            });
-
-        profiles = profiles.concat(currentProfilesResult.items);
-        cursor = currentProfilesResult.pageInfo.next;
-        hasMore =
-            currentProfilesResult.pageInfo.next !== null &&
-            profileIds.length > 0;
-    }
-
-    return profiles;
-};
-
-const getProfilesBatch = async (profileIds: string[]): Promise<Profile[]> => {
-    const userProfileId = await getUserProfileId();
-
-    const profiles: Profile[] = [];
+const getProfilesBatch = async (
+    profileIds: string[]
+): Promise<ProfileFragment[]> => {
+    const profiles: ProfileFragment[] = [];
     const ids = profileIds.filter((id) => id !== 'undefined'); // ¯\_(ツ)_/¯
     let remainingIds = new Set(ids);
 
@@ -184,17 +154,16 @@ const getProfilesBatch = async (profileIds: string[]): Promise<Profile[]> => {
 
     if (remainingIds.size === 0) return profiles;
 
-    const newProfiles = await fetchAllProfiles(
-        Array.from(remainingIds),
-        userProfileId
-    );
+    const newProfiles = await getAllProfiles({
+        profileIds: Array.from(remainingIds),
+    });
     console.log('getProfiles: new profiles to cache', newProfiles.length);
 
     if (!savedProfiles) {
         savedProfiles = {};
     }
 
-    newProfiles.forEach((profile: Profile) => {
+    newProfiles.forEach((profile: ProfileFragment) => {
         savedProfiles[profile.id] = profile;
     });
 
@@ -435,15 +404,22 @@ export const getUnreadThreads = async (
             conversation.context?.conversationId?.startsWith(LENS_PREFIX)
     );
 
-    const profilesOwnedByAddress = await getProfiles([user.address]);
-    const userProfileIds = profilesOwnedByAddress.map((profile) => profile.id);
+    const profilesOwnedByAddress = await getProfiles({
+        ownedBy: [user.address],
+    });
+    const userProfileIds = profilesOwnedByAddress.items.map(
+        (profile: ProfileFragment) => profile.id
+    );
     const profileIds = lensConversations.map((conversation) =>
         extractProfileId(conversation.context!!.conversationId, userProfileIds)
     );
 
-    const profiles: Profile[] = await getProfilesBatch(profileIds);
-    const profilesMap: Map<string, Profile> = new Map(
-        profiles.map((profile: Profile) => [profile.ownedBy, profile])
+    const profiles: ProfileFragment[] = await getProfilesBatch(profileIds);
+    const profilesMap: Map<string, ProfileFragment> = new Map(
+        profiles.map((profile: ProfileFragment) => [
+            profile.ownedBy.address,
+            profile,
+        ])
     );
 
     const peerAddresses = unreadConversations.map(
@@ -506,12 +482,16 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         }
     }
 
-    const profiles: Set<Profile> = new Set();
+    const profiles: Set<ProfileFragment> = new Set();
 
     if (lensConversations.length) {
         // One address can hold multiple Lens profiles, so we need to fetch all profiles owned by the user
-        const profilesOwnedByUser = await getProfiles([userAddress]);
-        const userProfileIds = profilesOwnedByUser.map((profile) => profile.id);
+        const profilesOwnedByUser = await getProfiles({
+            ownedBy: [userAddress],
+        });
+        const userProfileIds = profilesOwnedByUser.items.map(
+            (profile) => profile.id
+        );
         const profileIds = lensConversations.map((conversation) =>
             extractProfileId(
                 conversation.context!!.conversationId,
@@ -519,7 +499,8 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             )
         );
         // Getting profiles by id is faster than getting them by address
-        const lensProfiles: Profile[] = await getProfilesBatch(profileIds);
+        const lensProfiles: ProfileFragment[] =
+            await getProfilesBatch(profileIds);
         lensProfiles.forEach((profile) => profiles.add(profile));
     }
 
@@ -549,22 +530,23 @@ export const getAllThreads = async (): Promise<Thread[]> => {
             if (savedProfile) {
                 profiles.add(savedProfile);
                 otherConversationAddresses = otherConversationAddresses.filter(
-                    (address) => address !== savedProfile.ownedBy
+                    (address) => address !== savedProfile.ownedBy.address
                 );
             }
         }
 
-        const nonLensConversationProfiles = await getProfiles(
-            otherConversationAddresses
-        );
+        const nonLensConversationProfiles = await getAllProfiles({
+            ownedBy: otherConversationAddresses,
+        });
         if (nonLensConversationProfiles.length) {
             nonLensConversationProfiles.forEach((profile) => {
                 profiles.add(profile);
                 savedProfiles[profile.id] = profile;
-                if (cachedProfileIdsMap[profile.ownedBy]) {
-                    cachedProfileIdsMap[profile.ownedBy].push(profile.id);
+                const address = profile.ownedBy.address;
+                if (cachedProfileIdsMap[address]) {
+                    cachedProfileIdsMap[address].push(profile.id);
                 } else {
-                    cachedProfileIdsMap[profile.ownedBy] = [profile.id];
+                    cachedProfileIdsMap[address] = [profile.id];
                 }
             });
 
@@ -573,9 +555,9 @@ export const getAllThreads = async (): Promise<Thread[]> => {
         }
     }
 
-    const profilesMap: Map<string, Profile> = new Map(
-        Array.from(profiles).map((profile: Profile) => [
-            profile.ownedBy,
+    const profilesMap: Map<string, ProfileFragment> = new Map(
+        Array.from(profiles).map((profile: ProfileFragment) => [
+            profile.ownedBy.address,
             profile,
         ])
     );
@@ -630,13 +612,11 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 
 const getPeerProfile = async (
     conversation: Conversation
-): Promise<Profile | undefined> => {
-    const userProfileId = await getUserProfileId();
-    const { profiles }: ProfilesQuery = await lensApi.profiles({
-        request: { ownedBy: [conversation.peerAddress] },
-        userProfileId,
+): Promise<ProfileFragment | undefined> => {
+    const res = await getProfiles({
+        ownedBy: [conversation.peerAddress],
     });
-    return profiles.items?.[0];
+    return res.items?.[0];
 };
 
 export const getPeerName = (
@@ -651,9 +631,9 @@ export const getPeerName = (
     // Fallback to Lens Profile name if not a Lens conversation and there's no ENS
     if ((isLensThread(thread) && peerProfile) || (peerProfile && !ens)) {
         return (
-            peerProfile.name ??
+            peerProfile.metadata?.displayName ??
             peerProfile.handle ??
-            truncateAddress(peerProfile.ownedBy)
+            truncateAddress(peerProfile.ownedBy.address)
         );
     }
 
@@ -665,7 +645,8 @@ export const getPeerName = (
 };
 
 const buildPeer = async (conversation: Conversation) => {
-    const profile: Profile | undefined = await getPeerProfile(conversation);
+    const profile: ProfileFragment | undefined =
+        await getPeerProfile(conversation);
     const wallet = {
         address: conversation.peerAddress,
         ens: await getEnsFromAddress(conversation.peerAddress),
@@ -775,7 +756,7 @@ const buildConversationId = (profileIdA: string, profileIdB: string) => {
 };
 
 export const newThread = async (peer: Peer): Promise<Thread> => {
-    const address = peer.wallet?.address || peer.profile?.ownedBy;
+    const address = peer.wallet?.address || peer.profile?.ownedBy.address;
     if (!address) throw new Error('Cannot create thread without peer address');
 
     const userProfileId = await getUserProfileId();

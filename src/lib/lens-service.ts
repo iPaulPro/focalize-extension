@@ -2,6 +2,7 @@ import {
     development,
     LensClient,
     LimitType,
+    type PaginatedResult,
     type ProfileFragment,
 } from '@lens-protocol/client';
 import type {
@@ -71,20 +72,6 @@ export const generateChallenge = (
         signedBy: address,
     });
 
-export const getProfiles = async (
-    ownedBy: string[]
-): Promise<ProfileFragment[]> => {
-    const res = await lensClient.profile.fetchAll({
-        where: { ownedBy },
-        limit: LimitType.Fifty,
-    });
-    if (res.pageInfo.next) {
-        // TODO handle getProfiles pagination
-        console.warn('getProfiles: Pagination not implemented');
-    }
-    return res.items;
-};
-
 export const login = async (walletConnection: WalletConnection) => {
     const {
         initEthers,
@@ -120,11 +107,12 @@ export const login = async (walletConnection: WalletConnection) => {
 
     await ensureCorrectChain();
 
-    const profiles = await getProfiles([address]);
-    console.log('authenticate: Profiles', profiles);
+    const ownedBy = [address];
+    const res = await getProfiles({ ownedBy });
+    console.log('authenticate: Profiles', res);
 
     // TODO handle multiple profiles
-    const profile = profiles[0];
+    const profile = res.items[0];
     if (!profile) {
         throw new NoProfileError();
     }
@@ -152,4 +140,162 @@ export const logOut = async () => {
     await chrome.runtime.sendMessage({ type: 'loggedOut' });
     const { clearProvider } = await import('./evm/ethers-service');
     await clearProvider();
+};
+
+export const getProfile = async ({
+    profileId,
+    handle,
+}: {
+    profileId?: string;
+    handle?: string;
+}): Promise<ProfileFragment | null> =>
+    lensClient.profile.fetch({ forProfileId: profileId, forHandle: handle });
+
+export const getProfiles = async ({
+    ownedBy,
+    profileIds,
+    cursor,
+}: {
+    ownedBy?: string[];
+    profileIds?: string[];
+    cursor?: any;
+}): Promise<PaginatedResult<ProfileFragment>> =>
+    lensClient.profile.fetchAll({
+        where: { ownedBy, profileIds },
+        limit: LimitType.Fifty,
+        cursor,
+    });
+
+export const getAllProfiles = async ({
+    ownedBy,
+    profileIds,
+}: {
+    ownedBy?: string[];
+    profileIds?: string[];
+}): Promise<ProfileFragment[]> => {
+    const chunkSize = 50;
+    let profiles: ProfileFragment[] = [];
+    let cursor: any = null;
+    let hasMore = true;
+    while (hasMore) {
+        let currentPointers: string[] = [];
+
+        if (profileIds) {
+            currentPointers = profileIds.slice(0, chunkSize);
+        } else if (ownedBy) {
+            currentPointers = ownedBy.slice(0, chunkSize);
+        }
+
+        const res = await getProfiles({
+            ownedBy: ownedBy ? currentPointers : undefined,
+            profileIds: profileIds ? currentPointers : undefined,
+            cursor,
+        });
+
+        profiles = profiles.concat(res.items);
+
+        cursor = res.pageInfo.next;
+        hasMore =
+            res.pageInfo.next !== null &&
+            (profileIds?.length !== undefined || ownedBy?.length != undefined);
+    }
+
+    return profiles;
+};
+
+export const searchProfiles = async (
+    query: string,
+    limit: LimitType = LimitType.Ten
+): Promise<ProfileFragment[]> => {
+    const searchProfiles = await lensClient.search.profiles({
+        where: {},
+        query,
+        limit: LimitType.Ten,
+    });
+
+    return searchProfiles.items;
+};
+
+export const getMutualFollowers = async (
+    profileId: string
+): Promise<PaginatedResult<ProfileFragment>> => {
+    const userProfileId = await lensClient.authentication.getProfileId();
+    if (!userProfileId) throw new Error('No authenticated profile found');
+    return lensClient.profile.mutualFollowers({
+        observer: userProfileId,
+        viewing: profileId,
+        limit: LimitType.Fifty,
+    });
+};
+
+export const followProfile = async (profileId: string): Promise<boolean> => {
+    const res = await lensClient.profile.follow({ follow: [{ profileId }] });
+
+    if (res.isFailure()) {
+        console.error(
+            'unfollowProfile: Error following profile',
+            profileId,
+            res.error
+        );
+        // TODO submit follow transaction directly on broadcast failure
+        return false;
+    }
+
+    return true;
+};
+
+export const unfollowProfile = async (profileId: string): Promise<boolean> => {
+    const res = await lensClient.profile.unfollow({ unfollow: [profileId] });
+
+    if (res.isFailure()) {
+        console.error(
+            'unfollowProfile: Error unfollowing profile',
+            profileId,
+            res.error
+        );
+        // TODO submit unfollow transaction directly on broadcast failure
+        return false;
+    }
+
+    return true;
+};
+
+export const enableProfileManager = async (): Promise<boolean> => {
+    const res = await lensClient.profile.createChangeProfileManagersTypedData({
+        approveLensManager: true,
+    });
+
+    if (res.isFailure()) {
+        console.error(
+            'enableProfileManager: Error creating typed data',
+            res.error
+        );
+        return false;
+    }
+
+    const { id, typedData } = res.unwrap();
+
+    const { signTypedData } = await import('./evm/ethers-service');
+
+    const signedTypedData = await signTypedData(
+        typedData.domain,
+        typedData.types,
+        typedData.value
+    );
+
+    const broadcastOnchainResult =
+        await lensClient.transaction.broadcastOnchain({
+            id,
+            signature: signedTypedData,
+        });
+
+    const onchainRelayResult = broadcastOnchainResult.unwrap();
+
+    if (onchainRelayResult.__typename === 'RelayError') {
+        console.log(`Something went wrong`);
+        // TODO submit enableProfileManager transaction directly on broadcast failure
+        return false;
+    }
+
+    return true;
 };

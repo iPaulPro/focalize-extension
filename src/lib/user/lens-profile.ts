@@ -16,92 +16,7 @@ import {
     LensFollowNft__factory,
 } from '../../contracts/types';
 
-/**
- * Gets the default profile of the address supplied.
- */
-export const getDefaultProfile = async (
-    ethereumAddress: string
-): Promise<Profile> => {
-    const { defaultProfile } = await lensApi.defaultProfile({
-        request: { ethereumAddress },
-    });
-    if (defaultProfile?.__typename === 'Profile') return defaultProfile;
-    throw new Error('Unable to get default profile');
-};
-
-export const getProfiles = async (ownedBy: string[]): Promise<Profile[]> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    const userProfileId = storage.currentUser?.profileId;
-
-    const req = async (ownedBy: string[]) =>
-        await lensApi.profiles({
-            request: { ownedBy },
-            userProfileId,
-        });
-
-    const profiles: Profile[] = [];
-    if (ownedBy.length > 50) {
-        while (ownedBy.length) {
-            const chunk = ownedBy.splice(0, 50);
-            try {
-                const { profiles: res } = await req(chunk);
-                profiles.push(...res.items);
-            } catch (e) {}
-        }
-    } else {
-        try {
-            const { profiles: res } = await req(ownedBy);
-            profiles.push(...res.items);
-        } catch (e) {}
-    }
-
-    return profiles;
-};
-
-export const getProfileById = async (profileId: string): Promise<Profile> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    const userProfileId = storage.currentUser?.profileId;
-    const { profile } = await lensApi.getProfile({
-        request: { profileId },
-        userProfileId,
-    });
-    if (profile?.__typename === 'Profile') return profile;
-    throw new Error('Unable to get profile');
-};
-
-export const getProfileByHandle = async (handle: string): Promise<Profile> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    const userProfileId = storage.currentUser?.profileId;
-    const { profile } = await lensApi.getProfile({
-        request: { handle },
-        userProfileId,
-    });
-    if (profile?.__typename === 'Profile') return profile;
-    throw new Error('Unable to get profile');
-};
-
-export const getProfileByAddress = async (
-    ethereumAddress: string
-): Promise<Profile> => {
-    const profiles = await getProfiles([ethereumAddress]);
-    const profile = profiles[0];
-    if (profile?.__typename === 'Profile') return profile;
-    throw new Error('Unable to get profile');
-};
-
-export const canUseRelay = async (profileId: string): Promise<boolean> => {
-    let profile;
-
-    try {
-        profile = await getProfileById(profileId);
-    } catch (e) {
-        return false;
-    }
-
-    return profile.dispatcher?.canUseRelay ?? false;
-};
-
-export const setDispatcher = async (
+const setDispatcher = async (
     request: SetDispatcherRequest
 ): Promise<string> => {
     const { createSetDispatcherTypedData } =
@@ -172,7 +87,7 @@ export const setDispatcher = async (
     return txHash;
 };
 
-export const followProfile = async (profile: Profile): Promise<boolean> => {
+const followProfile = async (profile: Profile): Promise<boolean> => {
     console.log(
         'followProfile: handle, followModule',
         profile.handle,
@@ -301,9 +216,7 @@ const burnFollowWithSig = async (
     return await followNftContract.burnWithSig(typedData.value.tokenId, sig);
 };
 
-export const unfollowProfile = async (profile: Profile): Promise<boolean> => {
-    console.log('unfollowProfile', profile);
-
+const unfollowProfile = async (profile: Profile): Promise<boolean> => {
     const { createUnfollowTypedData }: CreateUnfollowTypedDataMutation =
         await lensApi.createUnfollowTypedData({
             request: {
@@ -351,28 +264,4 @@ export const unfollowProfile = async (profile: Profile): Promise<boolean> => {
     }
 
     return txHash !== undefined;
-};
-
-export const getMutualFollows = async (
-    viewingProfileId: string,
-    yourProfileId: string,
-    limit?: number
-): Promise<{ profiles: Profile[]; total: number }> => {
-    const { mutualFollowersProfiles } = await lensApi.mutualFollowersProfiles({
-        request: { viewingProfileId, yourProfileId },
-    });
-    console.log(
-        'getMutualFollows: mutualFollowersProfiles',
-        mutualFollowersProfiles,
-        'items',
-        mutualFollowersProfiles.items,
-        'total',
-        mutualFollowersProfiles.pageInfo.totalCount ?? 'none'
-    );
-    return {
-        profiles: limit
-            ? mutualFollowersProfiles.items.slice(0, 3)
-            : mutualFollowersProfiles.items,
-        total: mutualFollowersProfiles.pageInfo.totalCount ?? 0,
-    };
 };

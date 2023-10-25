@@ -1,61 +1,59 @@
 <script lang="ts">
-    import type {
-        Profile,
-        ProfileFollowModuleSettings
-    } from '../graph/lens-service';
-    import {followProfile, unfollowProfile} from '../user/lens-profile';
+    import type { ProfileFollowModuleSettings } from '../graph/lens-service';
     import toast from 'svelte-french-toast';
+    import type { ProfileFragment } from '@lens-protocol/client';
+    import { followProfile, getProfile, unfollowProfile } from '../lens-service';
 
-    export let profile: Profile;
+    export let profile: ProfileFragment;
 
     let hovering = false;
 
     const unfollow = async () => {
-        profile.isFollowedByMe = false;
-
-        const unfollowed = await unfollowProfile(profile);
+        const unfollowed = await unfollowProfile(profile.id);
         if (!unfollowed) {
-            profile.isFollowedByMe = true;
             toast.error('Unable to unfollow profile', {duration: 5000});
+            return;
         }
+        const updated = await getProfile({profileId: profile.id});
+        if (updated) profile = updated;
     };
 
     const follow = async () => {
-        profile.isFollowedByMe = true;
-
-        const followed = await followProfile(profile);
+        const followed = await followProfile(profile.id);
         if (!followed) {
-            profile.isFollowedByMe = false;
             toast.error('Unable to follow profile', {duration: 5000});
+            return;
         }
+        const updated = await getProfile({profileId: profile.id});
+        if (updated) profile = updated;
     };
 
     const isProfileFollowModuleSettings = (obj: any): obj is ProfileFollowModuleSettings =>
         obj.__typename === 'ProfileFollowModuleSettings';
 
-    $: isFollowSupported = profile && (!profile.followModule || profile.isFollowedByMe || isProfileFollowModuleSettings(profile.followModule));
+    $: isFollowSupported = profile && (!profile.followModule || profile.operations.isFollowedByMe.value || isProfileFollowModuleSettings(profile.followModule));
 </script>
 
 <button disabled={!isFollowSupported}
         class="btn btn-soft font-semibold text-sm
-        {profile.isFollowedByMe ? (hovering ? 'variant-ghost-error' : 'variant-ringed') : 'variant-filled-secondary'}"
+        {profile.operations.isFollowedByMe.value ? (hovering ? 'variant-ghost-error' : 'variant-ringed') : 'variant-filled-secondary'}"
         on:mouseenter={() => hovering = true}
         on:mouseleave={() => hovering = false}
         on:click={() => {
-          if (profile.isFollowedByMe) {
+          if (profile.operations.isFollowedByMe.value) {
             unfollow();
           } else {
             follow();
           }
         }}>
-  {#if profile.isFollowedByMe}
+  {#if profile.operations.isFollowedByMe.value}
     {#if hovering}
       <span>Unfollow</span>
     {:else}
       <span>Following</span>
     {/if}
   {:else}
-    {#if profile.isFollowing}
+    {#if profile.operations.isFollowingMe.value}
       <span>Follow back</span>
     {:else}
       <span>Follow</span>

@@ -1,10 +1,10 @@
 import type { TributeItem } from 'tributejs';
-import type { Profile } from '../graph/lens-service';
+import type { ProfileFragment } from '@lens-protocol/client';
 
 export const buildTributeUsernameMenuTemplate = (
-    item: TributeItem<Profile>
+    item: TributeItem<ProfileFragment>
 ) => {
-    const profile: Profile = item.original;
+    const profile: ProfileFragment = item.original;
 
     const handleView = document.createElement('div');
     handleView.className = 'text-base font-medium dark:text-white truncate';
@@ -13,7 +13,9 @@ export const buildTributeUsernameMenuTemplate = (
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';
     subtextView.innerText =
-        profile.name || profile.onChainIdentity?.ens?.name || profile.ownedBy;
+        profile.metadata?.displayName ||
+        profile.onchainIdentity?.ens?.name ||
+        profile.ownedBy.address;
 
     const textContainer = document.createElement('div');
     textContainer.className = 'flex-1 pl-1 mr-8 overflow-hidden';

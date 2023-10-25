@@ -5,6 +5,7 @@
     import {currentUser} from "../../lib/stores/user-store";
     import {setDispatcher} from "../../lib/user/lens-profile";
     import {useDispatcher} from "../../lib/stores/preferences-store";
+    import { enableProfileManager } from '../../lib/lens-service';
 
     const dispatch = createEventDispatcher();
 
@@ -13,24 +14,18 @@
 
     const onEnableClick = async () => {
         if (!$currentUser) throw new Error('No user found');
-
         loading = true;
-
         try {
-            const txHash = await setDispatcher({
-                profileId: $currentUser.profileId,
-            });
-
-            if (txHash) {
+            success = await enableProfileManager();
+            if (success) {
                 $currentUser.canUseRelay = true;
                 $useDispatcher = true;
-                success = true;
-                toast.success('Dispatcher set!');
+                toast.success('Profile Manager set!');
                 dispatch('success');
             }
         } catch (e) {
             console.error(e);
-            toast.error('Error setting dispatcher', {duration: 5000});
+            toast.error('Error enabling Profile Manager', {duration: 5000});
         } finally {
             loading = false;
         }

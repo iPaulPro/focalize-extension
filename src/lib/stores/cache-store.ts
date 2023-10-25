@@ -8,6 +8,7 @@ import type {
 } from '../graph/lens-service';
 import type { CompactMessage } from '../xmtp-service';
 import { derived } from 'svelte/store';
+import type { ProfileFragment } from '@lens-protocol/client';
 
 /**
  * Cached data is saved to the `local` chrome storage area.
@@ -95,10 +96,10 @@ export const windowTopicMap: Writable<WindowTopicMap> = chromeStorageLocal(
  * Map of Lens profile id to profile
  */
 export interface ProfileMap {
-    [id: string]: Profile;
+    [id: string]: ProfileFragment;
 }
 
-export const KEY_PROFILES = 'cachedProfiles';
+export const KEY_PROFILES = 'cachedProfilesv2';
 export const profiles: Writable<ProfileMap> = chromeStorageLocal(KEY_PROFILES);
 
 /**

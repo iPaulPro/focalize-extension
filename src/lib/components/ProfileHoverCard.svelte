@@ -1,8 +1,11 @@
 <script lang="ts">
-    import type {Profile} from '../graph/lens-service';
-    import {formatFollowerCount, getAvatarForLensHandle, launchThreadWindow} from '../utils/utils';
+    import {
+        formatFollowerCount,
+        getAvatarForLensHandle,
+        getAvatarFromAddress,
+        launchThreadWindow, truncateAddress,
+    } from '../utils/utils';
     import {onMount} from 'svelte';
-    import {getMutualFollows, getProfileById} from '../user/lens-profile';
     import FollowButton from './FollowButton.svelte';
     import SocialText from './SocialText.svelte';
     import {currentUser} from '../stores/user-store';
@@ -12,26 +15,28 @@
     import LoadingSpinner from "./LoadingSpinner.svelte";
     import {slide, fade, scale} from 'svelte/transition';
     import { cubicOut } from 'svelte/easing';
+    import { getMutualFollowers, getProfile } from '../lens-service';
+    import type { ProfileFragment, PaginatedResult } from '@lens-protocol/client';
 
-    export let profile: Profile;
+    export let profile: ProfileFragment;
 
     let loading = true;
-    let mutualFollows: { profiles: Profile[], total: number } | undefined;
+    let mutualFollows: PaginatedResult<ProfileFragment>;
     let isMessaging = false;
 
-    $: avatarUrl = profile && getAvatarForLensHandle(profile.handle);
-    $: userProfileUrl = profile && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
+    $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle);
+    $: userProfileUrl = profile.handle && $nodeSearch && getProfileUrl($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     const canMessageProfile = async (): Promise<boolean> => {
       if (!$currentUser || !profile) return false;
       const xmtpEnabled = await isXmtpEnabled();
-      const available = canMessage(profile.ownedBy);
+      const available = canMessage(profile.ownedBy.address);
       return xmtpEnabled && available;
     };
 
     const onMessageBtnClick = async () => {
-      const address = profile?.ownedBy;
+      const address = profile?.ownedBy.address;
       if (!address) return;
 
       isMessaging = true;
@@ -50,12 +55,12 @@
 
     onMount(async () => {
         try {
-            const updatedProfile = await getProfileById(profile.id);
+            const updatedProfile = await getProfile({profileId: profile.id});
             if (updatedProfile) {
                 profile = updatedProfile;
             }
             if ($currentUser && profile) {
-                mutualFollows = await getMutualFollows(profile.id, $currentUser.profileId, 3);
+                mutualFollows = await getMutualFollowers(profile.id);
             }
         } catch (e) {
             console.error(e);
@@ -67,8 +72,11 @@
     /**
      * Returns a string describing the mutual follows between the current user and the given profile.
      */
-    const getMutualFollowsText = (mutualFollows: { profiles: Profile[], total: number }): string => {
-        const usernames: string[] = mutualFollows.profiles.slice(0, 3).map(profile => profile.handle.split('.')[0]);
+    const getMutualFollowsText = (mutualFollows: PaginatedResult<ProfileFragment>): string => {
+        const usernames: string[] = mutualFollows.items
+            .filter(profile => profile.handle)
+            .slice(0, 3)
+            .map(profile => profile.handle!.split('.')[0]);
 
         let includedNames = 0;
         for (let i = 0; i < usernames.length; i++) {
@@ -82,10 +90,11 @@
         }
 
         const nameText = usernames.slice(0, includedNames).join(', ');
-        const remaining = mutualFollows.total - includedNames;
+        const remaining = mutualFollows.items.length - includedNames;
+        const text = mutualFollows.items.length == 50 ? '50+' : `${remaining}`;
 
         if (remaining > 0) {
-            return `Followed by ${nameText} and ${remaining} other${remaining > 1 ? 's' : ''} you follow`;
+            return `Followed by ${nameText} and ${text} other${remaining > 1 ? 's' : ''} you follow`;
         } else {
             return `Followed by ${nameText}`;
         }
@@ -130,10 +139,10 @@
     {/if}
   </div>
 
-  {#if profile.name}
+  {#if profile.metadata?.displayName}
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
        class="!no-underline !text-black dark:!text-white text-lg font-semibold hover:!underline">
-      {profile.name}
+      {profile.metadata.displayName}
     </a>
   {/if}
 
@@ -141,41 +150,41 @@
     <a href={userProfileUrl} target="_blank" rel="noreferrer"
        class="!no-underline !text-base !text-orange-600 dark:!text-orange-300 hover:!text-orange-400
           dark:hover:!text-orange-400">
-      @{profile.handle.split('.')[0]}
+        {profile.handle ? '@' + profile.handle.split('.')[0] : truncateAddress(profile.ownedBy.address)}
     </a>
 
-    {#if profile.isFollowing}
+    {#if profile.operations.isFollowingMe.value}
       <span class="badge variant-soft">Follows you</span>
     {/if}
   </div>
 
-  {#if profile.bio}
+  {#if profile.metadata?.bio}
     <div class="pt-3 text-base">
-      <SocialText text={profile.bio} maxLength={150}/>
+      <SocialText text={profile.metadata.bio} maxLength={150}/>
     </div>
   {/if}
 
   <div class="flex gap-3 pt-3">
     <div>
-      <span class="font-semibold">{formatFollowerCount(profile.stats.totalFollowing)}</span>
+      <span class="font-semibold">{formatFollowerCount(profile.stats.following)}</span>
       <span class="opacity-60">Following</span>
     </div>
 
     <div>
-      <span class="font-semibold">{formatFollowerCount(profile.stats.totalFollowers)}</span>
+      <span class="font-semibold">{formatFollowerCount(profile.stats.followers)}</span>
       <span class="opacity-60">Followers</span>
     </div>
   </div>
 
   {#if mutualFollows && $currentUser && profile}
 
-    {#if mutualFollows.profiles.length > 0}
+    {#if mutualFollows.items.length > 0}
 
       <div class="pt-3 flex gap-2" in:slide={{duration: 200}}>
 
         <div class="flex flex-shrink-0 overlap">
-          {#each mutualFollows.profiles as mutualFollow}
-            <img src={getAvatarForLensHandle(mutualFollow.handle)} alt="Avatar"
+          {#each mutualFollows.items as mutualFollow}
+            <img src={mutualFollow.handle ? getAvatarForLensHandle(mutualFollow.handle) : getAvatarFromAddress(mutualFollow.ownedBy.address)} alt="Avatar"
                  class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
           {/each}
         </div>

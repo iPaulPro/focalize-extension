@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {currentUser} from '../stores/user-store'
-    import {getProfiles} from '../user/lens-profile'
-    import LoadingSpinner from './LoadingSpinner.svelte'
+    // @ts-ignore
     import InlineSVG from 'svelte-inline-svg';
+    import {currentUser} from '../stores/user-store'
+    import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user/user';
     import {getAvatarForLensHandle} from "../utils/utils";
@@ -10,6 +10,7 @@
     import {darkMode} from '../stores/preferences-store';
     import type {Profile} from '../graph/lens-service';
     import {clearNotificationCache} from '../stores/cache-store';
+    import { getProfiles } from '../lens-service';
 
     export let anchorNode: Node;
     export let showSettings = true;
@@ -35,7 +36,7 @@
 
   {#if $currentUser?.address}
 
-    {#await getProfiles([$currentUser.address])}
+    {#await getProfiles({ownedBy: [$currentUser.address]})}
 
       <div class="w-32 h-16 flex justify-center items-center">
         <LoadingSpinner/>

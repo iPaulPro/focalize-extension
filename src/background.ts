@@ -5,13 +5,9 @@ import { pollForPublicationId } from './lib/utils/has-transaction-been-indexed';
 import lensApi from './lib/lens-api';
 import type {
     Notification,
-    Profile,
     PublicationMetadataV2Input,
 } from './lib/graph/lens-service';
-import {
-    ProxyActionStatusTypes,
-    SearchRequestTypes,
-} from './lib/graph/lens-service';
+import { ProxyActionStatusTypes } from './lib/graph/lens-service';
 import type { User } from './lib/user/user';
 import {
     getAvatarForLensHandle,
@@ -57,8 +53,9 @@ import {
 import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
 import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
-import { getProfileByAddress } from './lib/user/lens-profile';
 import { getKnownSenders } from './lib/utils/getKnownSenders';
+import { getProfiles, searchProfiles } from './lib/lens-service';
+import type { ProfileFragment } from '@lens-protocol/client';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -563,13 +560,17 @@ const onMessagesAlarm = async () => {
             if (!thread.conversation.topic || !thread.peer) continue;
 
             const peerProfile = thread.peer.profile;
-            let isFollowing = peerProfile?.isFollowedByMe ?? false;
+            let isFollowing =
+                peerProfile?.operations.isFollowedByMe.value ?? false;
 
             const peerAddress = thread.conversation.peerAddress;
             if (!peerProfile && peerAddress) {
                 try {
-                    const profile = await getProfileByAddress(peerAddress);
-                    isFollowing = profile?.isFollowedByMe ?? false;
+                    const res = await getProfiles({});
+                    isFollowing =
+                        res?.items.find(
+                            (profile) => profile.operations.isFollowedByMe.value
+                        ) != undefined;
                 } catch (e) {}
             }
 
@@ -603,7 +604,7 @@ const onMessagesAlarm = async () => {
                         ? `${messages.length} new messages`
                         : messages[0].content),
                 contextMessage: 'Focalize',
-                iconUrl: peerProfile
+                iconUrl: peerProfile?.handle
                     ? getAvatarForLensHandle(peerProfile.handle)
                     : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
                 silent: false,
@@ -716,31 +717,6 @@ chrome.runtime.onMessage.addListener((req, sender, res) => {
     return onMessage(req, sender, res);
 });
 
-const searchProfiles = async (
-    query: string,
-    limit: number
-): Promise<Profile[]> => {
-    const { search } = await lensApi.searchProfiles({
-        request: { query, limit, type: SearchRequestTypes.Profile },
-    });
-
-    if (search.__typename === 'ProfileSearchResult' && search.items) {
-        return search.items as Profile[];
-    }
-
-    return [];
-};
-
-const getProfiles = async (address: string): Promise<Profile[]> => {
-    const storage = await chrome.storage.local.get('currentUser');
-    const userProfileId = storage.currentUser?.profileId;
-    const { profiles } = await lensApi.profiles({
-        request: { ownedBy: [address] },
-        userProfileId,
-    });
-    return profiles.items;
-};
-
 const isEthereumAddress = (address: string): boolean =>
     /^0x[a-fA-F0-9]{40}$/.test(address);
 
@@ -752,9 +728,9 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
 
     if (isEthereumAddress(text)) {
         try {
-            const profiles = await getProfiles(text);
-            if (profiles.length) {
-                handle = profiles[0].handle;
+            const profiles = await getProfiles({ ownedBy: [text] });
+            if (profiles.items.length) {
+                handle = profiles.items[0].handle;
             }
         } catch (e) {
             console.warn('Error getting profiles for address', text, e);
@@ -770,12 +746,13 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
 });
 
 chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
-    let profiles: Profile[] = [];
+    let profiles: ProfileFragment[] = [];
 
     if (isEthereumAddress(text)) {
-        profiles = await getProfiles(text);
+        const res = await getProfiles({ ownedBy: [text] });
+        profiles = res.items;
     } else {
-        profiles = await searchProfiles(text, 10);
+        profiles = await searchProfiles(text);
     }
 
     if (!profiles) {
@@ -785,11 +762,13 @@ chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
 
     const suggestions = profiles.map((profile) => {
         const regex = new RegExp(text, 'i');
-        const handle = profile.handle.replace(regex, `<match>${text}</match>`);
+        const handle = profile.handle?.replace(regex, `<match>${text}</match>`);
 
         return {
-            content: profile.handle,
-            description: `@${handle} <dim>${profile.name ?? ''}</dim>`,
+            content: profile.handle ?? '',
+            description: `@${handle} <dim>${
+                profile.metadata?.displayName ?? ''
+            }</dim>`,
         };
     });
 

@@ -18,7 +18,7 @@
     import {windowTopicMap} from '../../../lib/stores/cache-store';
     import NewThreadRecipientInput from './components/NewThreadRecipientInput.svelte';
     import {newThread} from '../../../lib/xmtp-service.js';
-    import {getProfileByAddress} from "../../../lib/user/lens-profile";
+    import {getProfiles} from '../../../lib/lens-service';
 
     let loading = true;
     let thread: Thread;
@@ -66,8 +66,8 @@
         if (newMessagePeer) {
             loading = true;
 
-            const peerAddress = newMessagePeer.wallet?.address ?? newMessagePeer.profile?.ownedBy;
-            const existingThread = await findThread(peerAddress);
+            const peerAddress = newMessagePeer.wallet?.address ?? newMessagePeer.profile?.ownedBy.address;
+            const existingThread = peerAddress && (await findThread(peerAddress));
             if (existingThread) {
                 thread = existingThread;
                 console.log('onSubmit: found existing thread', thread);
@@ -94,7 +94,7 @@
     };
 
     const getPeerUrl = (): string => {
-        if (thread?.peer?.profile) {
+        if (thread?.peer?.profile?.handle) {
             return getProfileUrl($nodeSearch, thread.peer.profile.handle);
         } else if (thread?.peer?.wallet?.ens) {
             return `https://app.ens.domains/${thread.peer.wallet?.ens}`;
@@ -102,7 +102,7 @@
         return `https://etherscan.io/address/${thread.conversation.peerAddress}}`;
     };
 
-    const getPeerHandle = (): string => {
+    const getPeerHandle = (): string | null => {
         if (isLensThread(thread) && thread?.peer?.profile && peerName !== thread.peer.profile.handle) {
             return thread.peer.profile.handle;
         } else if (thread?.peer?.wallet?.ens && peerName !== thread.peer.wallet?.ens) {
@@ -116,7 +116,7 @@
     };
 
     $: peerProfile = thread?.peer?.profile;
-    $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
+    $: avatarUrl = peerProfile?.handle ? getAvatarForLensHandle(peerProfile.handle) : getAvatarFromAddress(thread?.conversation?.peerAddress);
     $: peerName = thread?.peer && getPeerName(thread);
     $: peerHandle = thread && getPeerHandle();
 
@@ -135,37 +135,38 @@
     }
 
     const handleQueryParams = async () => {
-      const queryString = window.location.search;
-      console.log('handleQueryParams: query string', queryString);
-      const urlParams = getSearchParamsMap(queryString);
-      const topic = urlParams.topic;
-      const address = urlParams.address;
+        const queryString = window.location.search;
+        console.log('handleQueryParams: query string', queryString);
+        const urlParams = getSearchParamsMap(queryString);
+        const topic = urlParams.topic;
+        const address = urlParams.address;
 
-      if (address) {
-        const existingThread = await findThread(address);
-        if (existingThread) {
-          thread = existingThread;
-        } else {
-          newMessagePeer = {
-            profile: await getProfileByAddress(address),
-            wallet: {
-              address: address,
-            },
-          };
+        if (address) {
+            const existingThread = await findThread(address);
+            if (existingThread) {
+                thread = existingThread;
+            } else {
+                const profiles = await getProfiles({ ownedBy: [address] });
+                newMessagePeer = {
+                    profile: profiles.items?.[0],
+                    wallet: {
+                        address: address,
+                    },
+                };
+            }
+            return;
         }
-        return;
-      }
 
-      if (!topic) return;
+        if (!topic) return;
 
-      thread = await getThread(topic);
+        thread = await getThread(topic);
 
-      if (!thread) {
-        window.close();
-        return;
-      }
+        if (!thread) {
+            window.close();
+            return;
+        }
 
-      chrome.notifications.clear(topic);
+        chrome.notifications.clear(topic);
     };
 
     onMount(async () => {
@@ -261,7 +262,7 @@
 
     <div class="flex-grow">
       <NewThreadRecipientInput
-              recipient={newMessagePeer?.profile?.handle ?? newMessagePeer?.wallet?.ens ?? newMessagePeer?.wallet?.address}
+              recipient={newMessagePeer?.profile?.handle ?? newMessagePeer?.wallet?.ens ?? newMessagePeer?.wallet?.address ?? ''}
               on:peerSelected={(e) => newMessagePeer = e.detail}/>
     </div>
 

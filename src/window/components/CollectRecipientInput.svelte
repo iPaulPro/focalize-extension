@@ -5,10 +5,10 @@
     import {searchHandles} from '../../lib/user/search-handles';
     import {getAddressFromEns, getEnsFromAddress, isEthereumAddress, validateRecipient} from '../../lib/utils/utils';
     import {createEventDispatcher, onMount} from 'svelte';
-    import {getProfileByAddress, getProfileByHandle} from '../../lib/user/lens-profile';
     import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
-    import type {Profile} from "../../lib/graph/lens-service";
-    import type {Action} from "svelte/types/runtime/action";
+    import { getProfile } from '../../lib/lens-service';
+    import type { ProfileFragment } from '@lens-protocol/client';
+    import type { Action } from 'svelte/action';
 
     export let menuContainer: HTMLElement;
 
@@ -22,7 +22,7 @@
     const tribute: Action = (node: HTMLElement) => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, 5, cb),
-            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             autocompleteMode: true,
@@ -50,7 +50,7 @@
             if (split[1] === 'lens' || split[1] === 'test') {
                 console.log('checkForExistingRecipient: got lens name', trimmed);
                 try {
-                    const profile = await getProfileByHandle(trimmed);
+                    const profile = await getProfile({handle: trimmed});
                     console.log('checkForExistingRecipient: got profile', profile);
                     if (profile) {
                         dispatch('recipient', {
@@ -88,7 +88,7 @@
             return;
         }
 
-        const profile = await getProfileByAddress(trimmed);
+        const profile = await getProfile({handle: trimmed});
         if (profile) {
             console.log('checkForExistingRecipient: found profile', trimmed, profile);
             dispatch('recipient', {

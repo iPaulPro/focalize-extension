@@ -7,7 +7,7 @@ export const isFollowingOrKnownSender = (
     if (!thread.conversation.topic || !thread.peer) return false;
 
     const peerProfile = thread.peer.profile;
-    let isFollowing = peerProfile?.isFollowedByMe ?? false;
+    let isFollowing = peerProfile?.operations.isFollowedByMe.value ?? false;
 
     const peerAddress = thread.conversation.peerAddress;
     const isKnown = knownSenders?.find((s) => s === peerAddress) !== undefined;

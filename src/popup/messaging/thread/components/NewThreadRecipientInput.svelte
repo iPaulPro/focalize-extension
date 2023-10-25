@@ -11,12 +11,12 @@
         isEthereumAddress,
         addressOrDomainNameType
     } from '../../../../lib/utils/utils';
-    import {getProfileByHandle} from '../../../../lib/user/lens-profile';
     import {canMessage} from '../../../../lib/xmtp-service';
     import LoadingSpinner from '../../../../lib/components/LoadingSpinner.svelte';
     import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
-    import type {Profile} from '../../../../lib/graph/lens-service';
-    import type {Action} from 'svelte/types/runtime/action';
+    import type {Action} from 'svelte/action';
+    import { getProfile } from '../../../../lib/lens-service';
+    import type { ProfileFragment } from '@lens-protocol/client';
 
     const dispatch = createEventDispatcher();
 
@@ -30,7 +30,7 @@
     const tribute: Action = (node: HTMLElement) => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, 5, cb),
-            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             autocompleteMode: true,
@@ -68,7 +68,7 @@
         error = undefined;
 
         if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
-            peer.profile = await getProfileByHandle(recipient);
+            peer.profile = await getProfile({handle: recipient}) ?? undefined;
         } else if (recipient.endsWith('.eth')) {
             const address = await getAddressFromEns(recipient);
             if (!address) {
@@ -87,8 +87,8 @@
             };
         }
 
-        const address = peer.wallet?.address ?? peer.profile?.ownedBy;
-        const available = await canMessage(address);
+        const address = peer.wallet?.address ?? peer.profile?.ownedBy?.address;
+        const available = address && (await canMessage(address));
         if (!available) {
             error = 'This user has not registered with XMTP';
             dispatchPeer(null, false);
