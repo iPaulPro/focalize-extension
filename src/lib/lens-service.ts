@@ -2,6 +2,7 @@ import {
     development,
     LensClient,
     LimitType,
+    type NotificationFragment,
     type PaginatedResult,
     type ProfileFragment,
 } from '@lens-protocol/client';
@@ -298,4 +299,20 @@ export const enableProfileManager = async (): Promise<boolean> => {
     }
 
     return true;
+};
+
+export const getNotifications = async (
+    cursor?: any,
+    highSignalFilter: boolean = false
+): Promise<PaginatedResult<NotificationFragment>> => {
+    const res = await lensClient.notifications.fetch({
+        where: { highSignalFilter },
+        cursor,
+    });
+
+    if (res.isFailure()) {
+        throw new Error('Error fetching notifications');
+    }
+
+    return res.unwrap();
 };

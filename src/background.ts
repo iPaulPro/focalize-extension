@@ -3,11 +3,10 @@ import { DateTime } from 'luxon';
 import { pollForPublicationId } from './lib/utils/has-transaction-been-indexed';
 
 import lensApi from './lib/lens-api';
-import type {
-    Notification,
-    PublicationMetadataV2Input,
+import {
+    type PublicationMetadataV2Input,
+    ProxyActionStatusTypes,
 } from './lib/graph/lens-service';
-import { ProxyActionStatusTypes } from './lib/graph/lens-service';
 import type { User } from './lib/user/user';
 import {
     getAvatarForLensHandle,
@@ -26,6 +25,7 @@ import {
 } from './lib/publications/lens-nodes';
 import {
     getAvatarFromNotification,
+    getEventTime,
     getLatestNotifications,
     getNotificationAction,
     getNotificationContent,
@@ -55,7 +55,11 @@ import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
 import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
 import { getKnownSenders } from './lib/utils/getKnownSenders';
 import { getProfiles, searchProfiles } from './lib/lens-service';
-import type { ProfileFragment } from '@lens-protocol/client';
+import type {
+    NotificationFragment,
+    ProfileFragment,
+} from '@lens-protocol/client';
+import { getNotificationPublication } from './lib/utils/lens-utils';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -92,34 +96,35 @@ const clearAllNotifications = () => {
 };
 
 const createNotificationMessage = (
-    notification: Notification,
+    notification: NotificationFragment,
     contentStripped: string | null | undefined,
     currentUser: User
 ): string => {
+    const publication = getNotificationPublication(notification);
     switch (notification.__typename) {
-        case 'NewCollectNotification':
+        case 'ActedNotification':
             return (
                 truncate(contentStripped, 25) ??
-                notification.collectedPublication.metadata.name ??
+                publication?.metadata?.marketplace?.name ??
                 `@${currentUser.handle}`
             );
-        case 'NewCommentNotification':
+        case 'CommentNotification':
             return (
                 contentStripped ??
-                notification.comment.commentOn?.metadata.name ??
+                notification.comment.commentOn?.metadata?.marketplace?.name ??
                 `@${currentUser.handle}`
             );
-        case 'NewMentionNotification':
+        case 'MentionNotification':
             return (
                 contentStripped ??
-                notification.mentionPublication.metadata.name ??
+                notification.publication.metadata?.marketplace?.name ??
                 `@${currentUser.handle}`
             );
-        case 'NewMirrorNotification':
-        case 'NewReactionNotification':
+        case 'MirrorNotification':
+        case 'ReactionNotification':
             return (
                 truncate(contentStripped, 25) ??
-                notification.publication.metadata.name ??
+                notification.publication.metadata?.marketplace?.name ??
                 `@${currentUser.handle}`
             );
     }
@@ -127,11 +132,11 @@ const createNotificationMessage = (
 };
 
 const shouldNotificationRequireInteraction = (
-    notification: Notification
+    notification: NotificationFragment
 ): boolean => {
     switch (notification.__typename) {
-        case 'NewCommentNotification':
-        case 'NewMentionNotification':
+        case 'CommentNotification':
+        case 'MentionNotification':
             return true;
     }
     return false;
@@ -140,7 +145,7 @@ const shouldNotificationRequireInteraction = (
 const getAppIconUrl = () => chrome.runtime.getURL('images/icon-128.png');
 
 const createIndividualNotification = (
-    notification: Notification,
+    notification: NotificationFragment,
     currentUser: User
 ) => {
     const handle = getNotificationHandle(notification);
@@ -153,10 +158,11 @@ const createIndividualNotification = (
         contentStripped,
         currentUser
     );
+    const eventTime = getEventTime(notification);
 
-    chrome.notifications.create(notification.notificationId, {
+    chrome.notifications.create(notification.id, {
         type: 'basic',
-        eventTime: DateTime.fromISO(notification.createdAt).toMillis(),
+        eventTime: DateTime.fromISO(eventTime).toMillis(),
         title: handle + ' ' + action,
         message,
         contextMessage: 'Focalize',
@@ -166,7 +172,7 @@ const createIndividualNotification = (
 };
 
 const createGroupNotification = (
-    newNotifications: Notification[],
+    newNotifications: NotificationFragment[],
     currentUser: User
 ) => {
     const lengthStr =
@@ -243,7 +249,7 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
     ]);
     const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
     const notification = notifications.find(
-        (n: Notification) => n.notificationId === notificationId
+        (n: NotificationFragment) => n.id === notificationId
     );
     if (notification) {
         const url = await getNotificationLink(notification);
@@ -339,7 +345,7 @@ const onNotificationsAlarm = async () => {
         console.error('onAlarmTriggered: error updating badge', e);
     }
 
-    const notifications: Notification[] | undefined =
+    const notifications: NotificationFragment[] | undefined =
         latestNotifications.notifications;
     console.log(
         `onAlarmTriggered: ${

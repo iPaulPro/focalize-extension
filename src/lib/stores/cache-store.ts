@@ -1,14 +1,11 @@
 import { chromeStorageLocal } from './chrome-storage-store';
-import type { Readable, Writable } from 'svelte/store';
-
-import type {
-    Notification,
-    PaginatedResultInfo,
-    Profile,
-} from '../graph/lens-service';
+import { derived, type Readable, type Writable } from 'svelte/store';
 import type { CompactMessage } from '../xmtp-service';
-import { derived } from 'svelte/store';
-import type { ProfileFragment } from '@lens-protocol/client';
+import type {
+    NotificationFragment,
+    PaginatedResult,
+    ProfileFragment,
+} from '@lens-protocol/client';
 
 /**
  * Cached data is saved to the `local` chrome storage area.
@@ -25,14 +22,15 @@ export const getCached = async <T>(key: string): Promise<T | undefined> => {
 export const saveToCache = async (key: string, value: any): Promise<void> =>
     chrome.storage.local.set({ [key]: value });
 
-export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache';
-export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache';
-export const KEY_NOTIFICATION_SCROLL_TOP_CACHE = 'notificationsScrollTop';
+export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache.v2';
+export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache.v2';
+export const KEY_NOTIFICATION_SCROLL_TOP_CACHE = 'notificationsScrollTop.v2';
 
-export const notificationItemsCache: Writable<Notification[]> =
+export const notificationItemsCache: Writable<NotificationFragment[]> =
     chromeStorageLocal(KEY_NOTIFICATION_ITEMS_CACHE);
-export const notificationPageInfoCache: Writable<PaginatedResultInfo> =
-    chromeStorageLocal(KEY_NOTIFICATION_PAGE_INFO_CACHE);
+export const notificationPageInfoCache: Writable<
+    PaginatedResult<NotificationFragment>
+> = chromeStorageLocal(KEY_NOTIFICATION_PAGE_INFO_CACHE);
 export const notificationsScrollTop: Writable<number> = chromeStorageLocal(
     KEY_NOTIFICATION_SCROLL_TOP_CACHE
 );
@@ -99,7 +97,7 @@ export interface ProfileMap {
     [id: string]: ProfileFragment;
 }
 
-export const KEY_PROFILES = 'cachedProfilesv2';
+export const KEY_PROFILES = 'cachedProfiles.v2';
 export const profiles: Writable<ProfileMap> = chromeStorageLocal(KEY_PROFILES);
 
 /**

@@ -1,7 +1,10 @@
 <script lang="ts">
-    import {getLatestNotifications, getNextNotifications} from '../../lib/notifications/lens-notifications';
+    import {
+        getEventTime,
+        getLatestNotifications,
+        getNextNotifications,
+    } from '../../lib/notifications/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
-    import type {Notification} from '../../lib/graph/lens-service';
     import NotificationItem from './NotificationItem.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import {DateTime} from 'luxon';
@@ -14,6 +17,7 @@
     import {tick} from 'svelte';
     import {hideOnScroll, scrollEndListener} from '../../lib/utils/utils';
     import {notificationsTimestamp} from '../../lib/stores/preferences-store';
+    import type { NotificationFragment } from '@lens-protocol/client';
 
     export let lastUpdate: DateTime | null;
 
@@ -21,8 +25,8 @@
         scrollElement.scrollTop = 0;
     };
 
-    let notifications: Notification[] = [];
-    let newNotifications: Notification[] = [];
+    let notifications: NotificationFragment[] = [];
+    let newNotifications: NotificationFragment[] = [];
     let cursor: any = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
@@ -56,7 +60,8 @@
         scrollElement.scrollTop = 0;
     };
 
-    const onLatestNotificationSeen = async () => updateNotificationsTimestamp(notifications[0]?.createdAt);
+    const onLatestNotificationSeen = async () =>
+        updateNotificationsTimestamp(getEventTime(notifications[0]));
 
     const checkForNewNotifications = async () => {
         const latestNotifications = await getLatestNotifications();
@@ -77,11 +82,11 @@
         } else {
             // Only update the timestamp if we're not restoring the scroll position since new notifications are visible
             await onLatestNotificationSeen();
-            console.log('restoreScroll: updating notifications timestamp', notifications[0].createdAt);
+            console.log('restoreScroll: updating notifications timestamp', getEventTime(notifications[0]));
         }
     };
 
-    const findFirstVisibleListItem = (): Notification => {
+    const findFirstVisibleListItem = (): NotificationFragment => {
         const parentTop = listElement.parentElement?.getBoundingClientRect()?.top ?? 0;
         const listItemElements = listElement.querySelectorAll('li');
         let firstVisibleListItemIndex = 0;
@@ -104,7 +109,7 @@
         const firstNotification = findFirstVisibleListItem();
         if (
             firstNotification && $notificationsTimestamp &&
-            DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(firstNotification.createdAt)
+            DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(getEventTime(firstNotification))
         ) {
             onLatestNotificationSeen().catch(console.error);
         }

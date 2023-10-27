@@ -1,4 +1,3 @@
-import type { Notification } from '../graph/lens-service';
 import showdown from 'showdown';
 import * as cheerio from 'cheerio';
 import { fromEvent, Subject, takeUntil } from 'rxjs';
@@ -22,6 +21,8 @@ import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
 
 import { getDefaultProvider } from '../evm/get-default-provider';
+import type { NotificationFragment } from '@lens-protocol/client';
+import { getEventTime } from '../notifications/lens-notifications';
 
 export const POPUP_MIN_HEIGHT = 350;
 
@@ -433,8 +434,8 @@ export const getNotificationCountSinceLastOpened = async (
         return 0;
     }
 
-    const newNotifications = notifications.filter((n: Notification) => {
-        return DateTime.fromISO(n.createdAt) > lastUpdateDate;
+    const newNotifications = notifications.filter((n: NotificationFragment) => {
+        return DateTime.fromISO(getEventTime(n)) > lastUpdateDate;
     });
 
     return newNotifications.length;

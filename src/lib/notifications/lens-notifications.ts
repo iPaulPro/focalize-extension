@@ -1,42 +1,41 @@
-import type {
-    Notification,
-    PaginatedNotificationResult,
-} from '../graph/lens-service';
-import {
-    NotificationTypes,
-    type PaginatedResultInfo,
-    type Profile,
-} from '../graph/lens-service';
-import lensApi from '../lens-api';
 import {
     getAvatarForLensHandle,
     getAvatarFromAddress,
     stripMarkdown,
     truncate,
 } from '../utils/utils';
-import type { LensNode } from '../publications/lens-nodes';
 import {
-    getNodeForPublicationMainFocus,
+    type LensNode,
+    getNodeForPublication,
     getProfileUrl,
     getPublicationUrlFromNode,
 } from '../publications/lens-nodes';
-
-import type { User } from '../user/user';
-
 import {
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
 } from '../stores/cache-store';
-import { isAuthenticated } from '../lens-service';
+import { getNotifications, isAuthenticated } from '../lens-service';
+import type {
+    NotificationFragment,
+    PaginatedResult,
+    ProfileFragment,
+    PaginatedResultInfoFragment,
+} from '@lens-protocol/client';
+import {
+    getMetadataContent,
+    getNotificationPublication,
+} from '../utils/lens-utils';
+import { isCommentPublication } from '@lens-protocol/client';
+import { DateTime } from 'luxon';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
 const cacheNotifications = async (
-    notificationRes: PaginatedNotificationResult,
+    notificationRes: PaginatedResult<NotificationFragment>,
     prepend: boolean
 ) => {
     console.log('cacheNotifications', notificationRes, prepend);
-    const notifications = notificationRes.items as Notification[];
+    const notifications = notificationRes.items;
     if (notifications.length === 0) return;
 
     const storage = await chrome.storage.local.get([
@@ -51,14 +50,14 @@ const cacheNotifications = async (
 
     const newItems = notifications.filter((notification) => {
         return !notificationItemsCache.find(
-            (cached: Notification) =>
-                cached.notificationId === notification.notificationId
+            (cached: NotificationFragment) => cached.id === notification.id
         );
     });
     console.log('cacheNotifications: newItems', newItems);
 
     if (newItems.length > 0) {
-        let pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+        let pageInfo: PaginatedResultInfoFragment =
+            storage.notificationPageInfoCache;
 
         if (!pageInfo) {
             // If we don't have a cache yet, we need to set the entire pageInfo object
@@ -80,43 +79,10 @@ const cacheNotifications = async (
     }
 };
 
-export const getNotificationType = (
-    notification: Notification
-): NotificationTypes => {
-    switch (notification.__typename) {
-        case 'NewFollowerNotification':
-            return NotificationTypes.Followed;
-        case 'NewCollectNotification':
-            return notification.notificationId.includes('comment')
-                ? NotificationTypes.CollectedComment
-                : NotificationTypes.CollectedPost;
-        case 'NewReactionNotification':
-            return notification.notificationId.includes('comment')
-                ? NotificationTypes.ReactionComment
-                : NotificationTypes.ReactionPost;
-        case 'NewCommentNotification':
-            return notification.notificationId.includes('comment')
-                ? NotificationTypes.CommentedComment
-                : NotificationTypes.CollectedPost;
-        case 'NewMentionNotification':
-            return notification.notificationId.includes('comment')
-                ? NotificationTypes.MentionComment
-                : NotificationTypes.MentionPost;
-        case 'NewMirrorNotification':
-            return notification.notificationId.includes('comment')
-                ? NotificationTypes.MirroredComment
-                : NotificationTypes.MirroredPost;
-        default:
-            throw new Error(
-                `Unknown notification type: ${notification.__typename}`
-            );
-    }
-};
-
 const getPaginatedNotificationResult = async (
     cursor?: any,
     limit: number = NOTIFICATIONS_QUERY_LIMIT
-): Promise<PaginatedNotificationResult | null> => {
+): Promise<PaginatedResult<NotificationFragment> | null> => {
     console.log(
         'getPaginatedNotificationResult: cursor',
         cursor,
@@ -132,10 +98,6 @@ const getPaginatedNotificationResult = async (
         return null;
     }
 
-    const localStorage = await chrome.storage.local.get('currentUser');
-    if (!localStorage.currentUser) return null;
-    const user: User = localStorage.currentUser;
-
     const syncStorage = await chrome.storage.sync.get([
         'notificationsForFollows',
         'notificationsForMentions',
@@ -146,28 +108,23 @@ const getPaginatedNotificationResult = async (
     ]);
 
     try {
-        const { notifications } = await lensApi.notifications({
-            request: {
-                profileId: user.profileId,
-                limit,
-                highSignalFilter: syncStorage.notificationsFiltered === true,
-                cursor,
-            },
-            userProfileId: user.profileId,
-        });
+        const res = await getNotifications(
+            cursor,
+            syncStorage.notificationsFiltered === true
+        );
+
+        const notifications = res.items;
         console.log(
             'getPaginatedNotificationResult: notifications',
             notifications
         );
 
-        if (notifications.__typename === 'PaginatedNotificationResult') {
-            const notificationsRes =
-                notifications as PaginatedNotificationResult;
+        if (res) {
             await cacheNotifications(
-                notificationsRes,
+                res,
                 cursor && JSON.parse(cursor).cursorDirection === 'BEFORE'
             );
-            return notificationsRes;
+            return res;
         }
     } catch (e) {
         console.error('getNotifications: Error getting notifications', e);
@@ -178,14 +135,15 @@ const getPaginatedNotificationResult = async (
 
 export const getLatestNotifications = async (
     filter: boolean = false
-): Promise<{ notifications?: Notification[]; cursor?: any }> => {
+): Promise<{ notifications?: NotificationFragment[]; cursor?: any }> => {
     const storage = await chrome.storage.local.get([
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
         KEY_NOTIFICATION_ITEMS_CACHE,
     ]);
-    const pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+    const pageInfo: PaginatedResultInfoFragment =
+        storage.notificationPageInfoCache;
 
-    const notificationsRes: PaginatedNotificationResult | null =
+    const notificationsRes: PaginatedResult<NotificationFragment> | null =
         await getPaginatedNotificationResult(pageInfo?.prev);
     console.log('getNotifications: notifications result', notificationsRes);
 
@@ -211,33 +169,25 @@ export const getLatestNotifications = async (
         'notificationsFiltered',
     ]);
 
-    const filteredNotifications: Notification[] = notificationsRes.items.filter(
-        (notification: Notification) => {
-            const notificationType: NotificationTypes =
-                getNotificationType(notification);
-            switch (notificationType) {
-                case NotificationTypes.Followed:
+    const filteredNotifications: NotificationFragment[] =
+        notificationsRes.items.filter((notification: NotificationFragment) => {
+            switch (notification.__typename) {
+                case 'FollowNotification':
                     return syncStorage.notificationsForFollows !== false;
-                case NotificationTypes.ReactionPost:
-                case NotificationTypes.ReactionComment:
+                case 'ReactionNotification':
                     return syncStorage.notificationsForReactions !== false;
-                case NotificationTypes.CollectedPost:
-                case NotificationTypes.CollectedComment:
+                case 'ActedNotification':
                     return syncStorage.notificationsForCollects !== false;
-                case NotificationTypes.CommentedPost:
-                case NotificationTypes.CommentedComment:
+                case 'CommentNotification':
                     return syncStorage.notificationsForComments !== false;
-                case NotificationTypes.MentionPost:
-                case NotificationTypes.MentionComment:
+                case 'MentionNotification':
                     return syncStorage.notificationsForMentions !== false;
-                case NotificationTypes.MirroredPost:
-                case NotificationTypes.MirroredComment:
+                case 'MirrorNotification':
                     return syncStorage.notificationsForMirrors !== false;
                 default:
                     return false;
             }
-        }
-    );
+        });
 
     return {
         notifications: filteredNotifications,
@@ -246,18 +196,19 @@ export const getLatestNotifications = async (
 };
 
 export const getNextNotifications = async (): Promise<{
-    notifications?: Notification[];
+    notifications?: NotificationFragment[];
     cursor?: any;
 }> => {
     const storage = await chrome.storage.local.get([
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
     ]);
-    const pageInfo: PaginatedResultInfo = storage.notificationPageInfoCache;
+    const pageInfo: PaginatedResultInfoFragment =
+        storage.notificationPageInfoCache;
     const notifications = await getPaginatedNotificationResult(pageInfo?.next);
     console.log('getNotifications: notifications', notifications);
     if (notifications?.items) {
         return {
-            notifications: notifications.items as Notification[],
+            notifications: notifications.items as NotificationFragment[],
             cursor: notifications.pageInfo.next,
         };
     }
@@ -268,66 +219,52 @@ export const getNextNotifications = async (): Promise<{
  * Returns the profile of the user that triggered the notification
  */
 export const getNotificationProfile = (
-    notification: Notification
-): Profile | null | undefined => {
+    notification: NotificationFragment
+): ProfileFragment => {
     switch (notification.__typename) {
-        case 'NewCollectNotification':
-        case 'NewFollowerNotification':
-            return notification.wallet.defaultProfile;
-        case 'NewMentionNotification':
-            return notification.mentionPublication.profile;
-        case 'NewCommentNotification':
-        case 'NewReactionNotification':
-        case 'NewMirrorNotification':
-            return notification.profile;
+        case 'ReactionNotification':
+            return notification.reactions[0].profile;
+        case 'CommentNotification':
+            return notification.comment.by;
+        case 'MirrorNotification':
+            return notification.mirrors[0].profile;
+        case 'ActedNotification':
+            return notification.actions[0].by;
+        case 'MentionNotification':
+            return notification.publication.by;
+        case 'QuoteNotification':
+            return notification.quote.by;
+        case 'FollowNotification':
+            return notification.followers[0];
     }
-    return null;
 };
 
 export const getNotificationWalletAddress = (
-    notification: Notification
+    notification: NotificationFragment
 ): string => {
     switch (notification.__typename) {
-        case 'NewCollectNotification':
-        case 'NewFollowerNotification':
-            return notification.wallet.address;
-        case 'NewMentionNotification':
-            return notification.mentionPublication.profile.ownedBy;
-        case 'NewCommentNotification':
-        case 'NewReactionNotification':
-        case 'NewMirrorNotification':
-            return notification.profile.ownedBy;
+        case 'ReactionNotification':
+            return notification.reactions[0].profile.ownedBy.address;
+        case 'CommentNotification':
+            return notification.comment.by.ownedBy.address;
+        case 'QuoteNotification':
+            return notification.quote.by.ownedBy.address;
+        case 'MirrorNotification':
+            return notification.mirrors[0].profile.ownedBy.address;
+        case 'ActedNotification':
+            return notification.actions[0].by.ownedBy.address;
+        case 'MentionNotification':
+            return notification.publication.by.ownedBy.address;
     }
     throw new Error('Unknown notification type');
 };
 
 export const getAvatarFromNotification = (
-    notification: Notification
+    notification: NotificationFragment
 ): string | null => {
-    if (
-        notification.notificationId ===
-        'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed'
-    ) {
-        console.log('getAvatarFromNotification: notification', notification);
-    }
     const profile = getNotificationProfile(notification);
-    if (
-        notification.notificationId ===
-        'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed'
-    ) {
-        console.log('getAvatarFromNotification: profile', profile);
-    }
-    if (profile) {
-        if (
-            notification.notificationId ===
-            'followed-0x1e904dB986C7223bFE75083e84A8800956574504-0x46ed'
-        ) {
-            console.log(
-                'getAvatarFromNotification: avatar',
-                getAvatarForLensHandle(profile.handle)
-            );
-        }
-        return getAvatarForLensHandle(profile.handle);
+    if (profile.handle) {
+        return getAvatarForLensHandle(profile.handle.fullHandle);
     }
 
     const wallet = getNotificationWalletAddress(notification);
@@ -337,136 +274,105 @@ export const getAvatarFromNotification = (
 /**
  * Returns a human-readable action for the notification
  */
-export const getNotificationAction = (notification: Notification): string => {
+export const getNotificationAction = (
+    notification: NotificationFragment
+): string => {
     switch (notification.__typename) {
-        case 'NewCollectNotification':
-            return 'collected your post';
-        case 'NewFollowerNotification':
-            return notification.isFollowedByMe
-                ? 'followed you back'
-                : 'followed you';
-        case 'NewMentionNotification':
-            return 'mentioned you';
-        case 'NewCommentNotification':
-            return 'commented on your post';
-        case 'NewReactionNotification':
-            const publicationType = notification.notificationId.startsWith(
-                'reaction_comment'
-            )
+        case 'ActedNotification':
+            return 'collected your ' +
+                isCommentPublication(notification.publication)
                 ? 'comment'
                 : 'post';
-            return `liked your ${publicationType}`;
-        case 'NewMirrorNotification':
-            return 'mirrored your post';
+        case 'FollowNotification':
+            return notification.followers[0].operations.isFollowedByMe.value
+                ? 'followed you back'
+                : 'followed you';
+        case 'MentionNotification':
+            return 'mentioned you';
+        case 'CommentNotification':
+            return 'commented on your ' +
+                isCommentPublication(notification.comment.commentOn)
+                ? 'comment'
+                : 'post';
+        case 'ReactionNotification':
+            return 'liked your ' +
+                isCommentPublication(notification.publication)
+                ? 'comment'
+                : 'post';
+        case 'MirrorNotification':
+            return 'mirrored your ' +
+                isCommentPublication(notification.publication)
+                ? 'comment'
+                : 'post';
     }
     return '';
 };
 
-export const getNotificationHandle = (notification: Notification): string => {
+export const getNotificationHandle = (
+    notification: NotificationFragment
+): string => {
     return (
-        getNotificationProfile(notification)?.handle?.split('.')?.[0] ??
+        getNotificationProfile(notification)?.handle?.localName ??
         getNotificationWalletAddress(notification)
     );
 };
 
 export const getNotificationDisplayName = (
-    notification: Notification
+    notification: NotificationFragment
 ): string => {
-    return getNotificationProfile(notification)?.name ?? '';
+    return getNotificationProfile(notification)?.metadata?.displayName ?? '';
 };
 
 export const getNotificationContent = (
-    notification: Notification
+    notification: NotificationFragment
 ): string | undefined | null => {
-    switch (notification.__typename) {
-        case 'NewCollectNotification': {
-            const content = notification.collectedPublication.metadata.content;
+    const publication = getNotificationPublication(notification);
+
+    if (publication) {
+        const content = getMetadataContent(publication);
+        if (content) {
             const contentStripped = stripMarkdown(content);
             return (
                 truncate(contentStripped, 45) ??
-                notification.collectedPublication.metadata.name
-            );
-        }
-        case 'NewMentionNotification': {
-            const content = notification.mentionPublication.metadata.content;
-            const contentStripped = stripMarkdown(content);
-            return (
-                truncate(contentStripped, 250) ??
-                notification.mentionPublication.metadata.name
-            );
-        }
-        case 'NewCommentNotification': {
-            const content = notification.comment.metadata?.content;
-            const contentStripped = stripMarkdown(content);
-            return (
-                truncate(contentStripped, 250) ??
-                notification.comment.commentOn?.metadata?.name
-            );
-        }
-        case 'NewMirrorNotification':
-        case 'NewReactionNotification': {
-            const content = notification.publication.metadata.content;
-            const contentStripped = stripMarkdown(content);
-            return (
-                truncate(contentStripped, 45) ??
-                notification.publication.metadata.name
+                publication.metadata.marketplace?.name
             );
         }
     }
+
     return undefined;
 };
 
 export const getNodeForNotification = async (
-    notification: Notification
+    notification: NotificationFragment
 ): Promise<LensNode> => {
-    const storage = await chrome.storage.sync.get(['nodePost']);
-    switch (notification.__typename) {
-        case 'NewCollectNotification':
-            return await getNodeForPublicationMainFocus(
-                notification.collectedPublication.metadata.mainContentFocus
-            );
-        case 'NewMentionNotification':
-            return await getNodeForPublicationMainFocus(
-                notification.mentionPublication.metadata.mainContentFocus
-            );
-        case 'NewCommentNotification':
-            return await getNodeForPublicationMainFocus(
-                notification.comment.metadata.mainContentFocus
-            );
-        case 'NewReactionNotification':
-        case 'NewMirrorNotification':
-            return await getNodeForPublicationMainFocus(
-                notification.publication.metadata.mainContentFocus
-            );
+    const publication = getNotificationPublication(notification);
+
+    if (!publication) {
+        const storage = await chrome.storage.sync.get(['nodePost']);
+        return storage.nodePost;
     }
-    return storage.nodePost;
+
+    return getNodeForPublication(publication);
 };
 
 export const getNotificationLink = async (
-    notification: Notification
+    notification: NotificationFragment
 ): Promise<string> => {
     const node = await getNodeForNotification(notification);
 
     switch (notification.__typename) {
-        case 'NewCollectNotification':
-            return getPublicationUrlFromNode(
-                node,
-                notification.collectedPublication.id
-            );
-        case 'NewFollowerNotification':
-            return getProfileUrl(
-                node,
-                notification.wallet.defaultProfile?.handle
-            );
-        case 'NewMentionNotification':
-            return getPublicationUrlFromNode(
-                node,
-                notification.mentionPublication.id
-            );
-        case 'NewCommentNotification':
+        case 'FollowNotification':
+            const handle = notification.followers[0].handle?.fullHandle;
+            if (handle) {
+                return getProfileUrl(node, handle);
+            }
+            break;
+        case 'CommentNotification':
             return getPublicationUrlFromNode(node, notification.comment.id);
-        case 'NewReactionNotification':
-        case 'NewMirrorNotification':
+        case 'MentionNotification':
+        case 'ReactionNotification':
+        case 'ActedNotification':
+        case 'MirrorNotification':
             return getPublicationUrlFromNode(node, notification.publication.id);
     }
 
@@ -475,4 +381,20 @@ export const getNotificationLink = async (
         syncStorage.nodeNotifications.baseUrl +
         syncStorage.nodeNotifications.notifications
     );
+};
+
+export const getEventTime = (notification: NotificationFragment): string => {
+    switch (notification.__typename) {
+        case 'CommentNotification':
+            return notification.comment.createdAt;
+        case 'MentionNotification':
+            return notification.publication.createdAt;
+        case 'ReactionNotification':
+            return notification.reactions[0].reactions[0].reactedAt;
+        case 'ActedNotification':
+            return notification.actions[0].actedAt;
+        case 'MirrorNotification':
+            return notification.mirrors[0].mirroredAt;
+    }
+    return DateTime.now().toISO()!;
 };

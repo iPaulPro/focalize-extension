@@ -1,15 +1,14 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import type {Notification} from '../../lib/graph/lens-service';
     import {
-        getAvatarFromNotification,
+        getAvatarFromNotification, getEventTime,
         getNotificationAction,
         getNotificationContent,
         getNotificationHandle,
         getNotificationLink,
         getNotificationProfile,
-        getNotificationWalletAddress
+        getNotificationWalletAddress,
     } from '../../lib/notifications/lens-notifications';
     import {DateTime} from 'luxon';
     import ImageAvatar from '../../assets/ic_avatar.svg';
@@ -21,8 +20,9 @@
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
     import {getNotificationDisplayName} from '../../lib/notifications/lens-notifications.js';
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
+    import type { NotificationFragment } from '@lens-protocol/client';
 
-    export let notification: Notification;
+    export let notification: NotificationFragment;
     export let lastUpdate: DateTime | null;
 
     let avatarElement: HTMLImageElement;
@@ -33,7 +33,8 @@
     $: notificationDisplayName = notification && getNotificationDisplayName(notification);
     $: notificationHandle = notification && getNotificationHandle(notification);
     $: notificationWalletAddress = notification && getNotificationWalletAddress(notification);
-    $: isNew = notification && lastUpdate && DateTime.fromISO(notification.createdAt) > lastUpdate;
+    $: notificationEventTime = notification && DateTime.fromISO(getEventTime(notification));
+    $: isNew = notification && lastUpdate && notificationEventTime > lastUpdate;
     $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getProfileUrl($nodeSearch, notificationHandle);
     $: polygonScanUrl = notification && notificationWalletAddress && `https://polygonscan.com/address/${notificationWalletAddress}`;
 
@@ -62,9 +63,9 @@
            use:tippy={({
              delay: 500,
              placement: 'bottom',
-             content: DateTime.fromISO(notification.createdAt).toLocaleString(DateTime.DATETIME_MED)
+             content: notificationEventTime.toLocaleString(DateTime.DATETIME_MED)
            })}>
-        <AutoRelativeTimeView timestamp={DateTime.fromISO(notification.createdAt).toMillis()} capitalize={true}
+        <AutoRelativeTimeView timestamp={notificationEventTime.toMillis()} capitalize={true}
                               shortRelativeCutoff={120}
                               className="text-xs {isNew ? 'opacity-100 font-medium' : 'opacity-70'}" />
       </div>

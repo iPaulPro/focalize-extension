@@ -1,5 +1,16 @@
 import nodes from '../stores/nodes.json';
 import { PublicationMainFocus } from '../graph/lens-service';
+import type {
+    CommentFragment,
+    PostFragment,
+    QuoteFragment,
+} from '@lens-protocol/client';
+import {
+    isArticlePublication,
+    isAudioPublication,
+    isImagePublication,
+    isVideoPublication,
+} from '../utils/lens-utils';
 
 export type LensNode = {
     name: string;
@@ -35,6 +46,28 @@ export const getNodeForPublicationMainFocus = async (
         default:
             return storage.nodePost;
     }
+};
+
+export const getNodeForPublication = async (
+    publication: CommentFragment | PostFragment | QuoteFragment
+): Promise<LensNode> => {
+    const storage = await chrome.storage.sync.get([
+        'nodeImage',
+        'nodeVideo',
+        'nodeAudio',
+        'nodeArticle',
+        'nodePost',
+    ]);
+    if (isImagePublication(publication)) {
+        return storage.nodeImage;
+    } else if (isVideoPublication(publication)) {
+        return storage.nodeVideo;
+    } else if (isAudioPublication(publication)) {
+        return storage.nodeAudio;
+    } else if (isArticlePublication(publication)) {
+        return storage.nodeArticle;
+    }
+    return storage.nodePost;
 };
 
 export const getProfileUrl = (node: LensNode, handle: string) => {
