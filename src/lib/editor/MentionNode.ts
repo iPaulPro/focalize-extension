@@ -18,6 +18,9 @@ import {
     type SerializedTextNode,
     TextNode,
 } from 'lexical';
+import type { ElementTransformer } from '@lexical/markdown/MarkdownTransformers';
+import { formatHandle } from '../utils/lens-utils';
+import { MENTION_REGEX } from './LexicalMentionPlugin';
 
 export type SerializedMentionNode = Spread<
     {
@@ -126,3 +129,20 @@ export class MentionNode extends TextNode {
         return true;
     }
 }
+
+export const MENTION: ElementTransformer = {
+    dependencies: [MentionNode],
+    export: (node, traverseChildren) => {
+        if (!isMentionNode(node)) {
+            return null;
+        }
+        const text = node.getTextContent();
+        return formatHandle(text);
+    },
+    regExp: MENTION_REGEX,
+    replace: (parentNode, children, match, isImport) => {
+        const mentionNode = createMentionNode(match[0]);
+        parentNode.replaceChild(mentionNode);
+    },
+    type: 'element',
+};

@@ -4,7 +4,7 @@ import { registerLexicalTextEntity } from '@lexical/text';
 
 // Matches @ mentions with domains and leading  and trailing whitespace or punctuation.
 // (full match), (leading whitespace), (name), (trailing whitespace/punctuation)
-const MENTION_REGEX =
+export const MENTION_REGEX =
     /(^|\s)@([a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*)(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/;
 
 const createMentionNodeFromTextNode = (textNode: TextNode): MentionNode =>

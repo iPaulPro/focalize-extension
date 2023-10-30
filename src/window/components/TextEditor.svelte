@@ -58,7 +58,7 @@
     import { registerAutoLink } from '../../lib/editor/LexicalAutoLinkPlugin';
     import { HashtagNode } from '../../lib/editor/HashtagNode';
     import { registerHashtagPlugin } from '../../lib/editor/LexicalHashtagPlugin';
-    import { createMentionNode, isMentionNode, MentionNode } from '../../lib/editor/MentionNode';
+    import { createMentionNode, isMentionNode, MENTION, MentionNode } from '../../lib/editor/MentionNode';
     import { registerMentionPlugin } from '../../lib/editor/LexicalMentionPlugin';
     import { registerEmojiShortcodePlugin } from '../../lib/editor/LexicalEmojiShortcodePlugin';
     import { EmojiNode } from '../../lib/editor/EmojiNode';
@@ -105,6 +105,7 @@
     const MARKDOWN_TRANSFORMERS = [
         CODE,
         QUOTE,
+        MENTION,
         ...TEXT_FORMAT_TRANSFORMERS,
         ...TEXT_MATCH_TRANSFORMERS
     ];

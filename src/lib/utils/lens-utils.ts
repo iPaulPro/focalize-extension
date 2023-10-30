@@ -279,3 +279,12 @@ export const getCoverFromMetadata = (
     }
     return undefined;
 };
+
+export const formatHandle = (handle: string): string => {
+    // format the handle from lens/paulburke to paulburke.lens
+    const handleParts = handle.split('/');
+    if (handleParts.length === 2) {
+        return `${handleParts[1]}.${handleParts[0]}`;
+    }
+    return handle;
+};
