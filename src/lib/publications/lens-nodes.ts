@@ -1,5 +1,4 @@
 import nodes from '../stores/nodes.json';
-import { PublicationMainFocus } from '../graph/lens-service';
 import type {
     CommentFragment,
     PostFragment,
@@ -11,6 +10,8 @@ import {
     isImagePublication,
     isVideoPublication,
 } from '../utils/lens-utils';
+import type { PublicationMetadata } from '@lens-protocol/metadata';
+import { PublicationSchemaId } from '@lens-protocol/metadata';
 
 export type LensNode = {
     name: string;
@@ -24,8 +25,8 @@ export type LensNode = {
 
 export const LENS_NODES: LensNode[] = [...nodes];
 
-export const getNodeForPublicationMainFocus = async (
-    postType: PublicationMainFocus
+export const getNodeForPublicationMetadata = async (
+    metadata: PublicationMetadata
 ): Promise<LensNode> => {
     const storage = await chrome.storage.sync.get([
         'nodeImage',
@@ -34,18 +35,17 @@ export const getNodeForPublicationMainFocus = async (
         'nodeArticle',
         'nodePost',
     ]);
-    switch (postType) {
-        case PublicationMainFocus.Image:
-            return storage.nodeImage;
-        case PublicationMainFocus.Video:
-            return storage.nodeVideo;
-        case PublicationMainFocus.Audio:
-            return storage.nodeAudio;
-        case PublicationMainFocus.Article:
-            return storage.nodeArticle;
-        default:
+    switch (metadata.$schema) {
+        case PublicationSchemaId.TEXT_ONLY_LATEST:
             return storage.nodePost;
+        case PublicationSchemaId.IMAGE_LATEST:
+            return storage.nodeImage;
+        case PublicationSchemaId.AUDIO_LATEST:
+            return storage.nodeAudio;
+        case PublicationSchemaId.VIDEO_LATEST:
+            return storage.nodeVideo;
     }
+    return storage.nodePost;
 };
 
 export const getNodeForPublication = async (
@@ -87,9 +87,9 @@ export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {
 };
 
 export const getPublicationUrl = async (
-    postType: PublicationMainFocus,
+    metadata: PublicationMetadata,
     postId: string
 ) => {
-    const node = await getNodeForPublicationMainFocus(postType);
+    const node = await getNodeForPublicationMetadata(metadata);
     return getPublicationUrlFromNode(node, postId);
 };

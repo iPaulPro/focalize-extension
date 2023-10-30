@@ -3,7 +3,6 @@
     import toast from 'svelte-french-toast';
 
     import {currentUser} from "../../lib/stores/user-store";
-    import {setDispatcher} from "../../lib/user/lens-profile";
     import {useDispatcher} from "../../lib/stores/preferences-store";
     import { enableProfileManager } from '../../lib/lens-service';
 

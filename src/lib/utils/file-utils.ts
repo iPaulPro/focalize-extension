@@ -1,5 +1,3 @@
-import { PublicationMainFocus } from '../graph/lens-service';
-
 export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 export const IMAGE_TYPES = [
@@ -30,17 +28,4 @@ export const supportedMimeTypesJoined = () => {
 
 export const imageMimeTypesJoined = () => {
     return IMAGE_TYPES.join(',');
-};
-
-export const getMainFocusFromMimeType = (
-    type: string
-): PublicationMainFocus => {
-    if (type.startsWith('image/')) {
-        return PublicationMainFocus.Image;
-    } else if (type.startsWith('video/')) {
-        return PublicationMainFocus.Video;
-    } else if (type.startsWith('audio/')) {
-        return PublicationMainFocus.Audio;
-    }
-    throw new Error('Unsupported file type');
 };

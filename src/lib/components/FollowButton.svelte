@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { ProfileFollowModuleSettings } from '../graph/lens-service';
     import toast from 'svelte-french-toast';
     import type { ProfileFragment } from '@lens-protocol/client';
     import { followProfile, getProfile, unfollowProfile } from '../lens-service';
@@ -28,10 +27,7 @@
         if (updated) profile = updated;
     };
 
-    const isProfileFollowModuleSettings = (obj: any): obj is ProfileFollowModuleSettings =>
-        obj.__typename === 'ProfileFollowModuleSettings';
-
-    $: isFollowSupported = profile && (!profile.followModule || profile.operations.isFollowedByMe.value || isProfileFollowModuleSettings(profile.followModule));
+    $: isFollowSupported = profile && (!profile.followModule || profile.operations.isFollowedByMe.value);
 </script>
 
 <button disabled={!isFollowSupported}

@@ -2,17 +2,17 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {createEventDispatcher, onMount, tick} from 'svelte';
-    import {z} from 'zod';
-
-    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/publications/lens-modules';
-    import {collectSettings, type Recipient} from '../../lib/stores/state-store';
-
-    import type {Erc20, RecipientDataInput} from '../../lib/graph/lens-service';
-    import type {Writable} from 'svelte/store';
-    import {writable} from 'svelte/store';
-    import {currentUser} from '../../lib/stores/user-store';
-    import CollectSettingsSwitch from './CollectSettingsSwitch.svelte';
+    import {writable, type Writable} from 'svelte/store';
     import {fade, slide} from 'svelte/transition';
+    import {z} from 'zod';
+    import {DateTime} from 'luxon';
+    import toast, {Toaster} from 'svelte-french-toast';
+    import type { Erc20Fragment } from '@lens-protocol/client';
+
+    import {currentUser} from '../../lib/stores/user-store';
+    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/publications/lens-modules';
+    import CollectSettingsSwitch from './CollectSettingsSwitch.svelte';
+    import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {
         formatCryptoValue,
         getAvatarForLensHandle,
@@ -22,8 +22,6 @@
     import CollectFeeSplitInput from './CollectFeeSplitInput.svelte';
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
-    import {DateTime} from 'luxon';
-    import toast, {Toaster} from 'svelte-french-toast';
 
     export let isCompact: boolean = false;
 
@@ -61,8 +59,8 @@
         invalid_type_error: 'Date must be a valid date',
     }).min(new Date(), 'End time must be in the future');
 
-    let currencies: Erc20[];
-    let token: Erc20;
+    let currencies: Erc20Fragment[];
+    let token: Erc20Fragment;
 
     let priceError: string | null = null;
     let limitError: string | null = null;

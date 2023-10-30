@@ -2,9 +2,18 @@ import {
     development,
     LensClient,
     LimitType,
+    LensTransactionStatusType,
     type NotificationFragment,
     type PaginatedResult,
     type ProfileFragment,
+    type CreateOnchainPostBroadcastItemResultFragment,
+    type OpenActionModuleInput,
+    type ReferenceModuleInput,
+    type RelayErrorFragment,
+    type RelaySuccessFragment,
+    type BroadcastRequest,
+    type Erc20Fragment,
+    type AnyPublicationFragment,
 } from '@lens-protocol/client';
 import type {
     IObservableStorageProvider,
@@ -316,3 +325,82 @@ export const getNotifications = async (
 
     return res.unwrap();
 };
+
+export const postOnChain = async (
+    contentURI: string,
+    referenceModule: ReferenceModuleInput,
+    openActionModules?: OpenActionModuleInput[]
+) =>
+    lensClient.publication.postOnchain({
+        referenceModule,
+        contentURI,
+        openActionModules,
+    });
+
+export const createPostTypedData = async (
+    contentURI: string,
+    referenceModule: ReferenceModuleInput,
+    openActionModules?: OpenActionModuleInput[]
+): Promise<CreateOnchainPostBroadcastItemResultFragment> => {
+    const res = await lensClient.publication.createOnchainPostTypedData({
+        referenceModule,
+        contentURI,
+        openActionModules,
+    });
+
+    if (res.isFailure()) {
+        throw new Error('Error creating post typed data');
+    }
+
+    return res.unwrap();
+};
+
+export const broadcastPostOnChain = async (
+    request: BroadcastRequest
+): Promise<RelaySuccessFragment | RelayErrorFragment> => {
+    const res = await lensClient.transaction.broadcastOnchain(request);
+
+    if (res.isFailure()) {
+        throw new Error('Error broadcasting post onchain');
+    }
+
+    return res.unwrap();
+};
+
+export const enabledModuleCurrencies = async (): Promise<
+    PaginatedResult<Erc20Fragment>
+> =>
+    lensClient.modules.fetchCurrencies({
+        limit: LimitType.Fifty,
+    });
+
+export const waitForTransaction = async ({
+    txHash,
+    txId,
+}: {
+    txHash?: string;
+    txId?: string;
+}): Promise<LensTransactionStatusType> => {
+    const res = await lensClient.transaction.waitUntilComplete({
+        forTxHash: txHash,
+        forTxId: txId,
+    });
+
+    if (!res || res.status === LensTransactionStatusType.Failed) {
+        throw new Error('Error waiting for transaction');
+    }
+
+    return res.status;
+};
+
+export const getPublication = async ({
+    txHash,
+    txId,
+}: {
+    txHash?: string;
+    txId?: string;
+}): Promise<AnyPublicationFragment | null> =>
+    lensClient.publication.fetch({
+        forTxHash: txHash,
+        forId: txId,
+    });

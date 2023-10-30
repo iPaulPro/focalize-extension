@@ -1,29 +1,34 @@
 <script lang="ts">
+    // @ts-ignore
     import InlineSVG from "svelte-inline-svg";
     import {DateTime} from "luxon";
-
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {ipfsUrlToGatewayUrl} from '../../lib/ipfs-service';
     import {htmlFromMarkdown} from "../../lib/utils/utils";
     import {PublicationState} from '../../lib/stores/state-store';
     import LoadingSpinner from "../../lib/components/LoadingSpinner.svelte";
-
-    import type {PublicationMetadataV2Input} from "../../lib/graph/lens-service";
     import type {User} from "../../lib/user/user";
-    import {getNodeForPublicationMainFocus, getPublicationUrl} from "../../lib/publications/lens-nodes";
+    import {
+        getNodeForPublicationMainFocus,
+        getNodeForPublicationMetadata,
+        getPublicationUrl,
+    } from '../../lib/publications/lens-nodes';
+    import type { PublicationMetadata } from '@lens-protocol/metadata';
+    import { getCoverFromMetadata } from '../../lib/utils/lens-utils';
+    import { PublicationSchemaId } from '@lens-protocol/metadata';
 
     export let currentUser: User | null;
     export let publicationState: PublicationState | undefined;
-    export let postMetaData: PublicationMetadataV2Input;
+    export let postMetaData: PublicationMetadata;
     export let postId: string;
 
     let avatarError = false;
     let now = DateTime.now();
     let imageLoading = true;
 
-    $: contentHtml = postMetaData?.content ? htmlFromMarkdown(postMetaData?.content) : '';
-    $: cover = postMetaData?.media?.[0]?.cover ?? postMetaData?.image;
-    $: artist = postMetaData?.attributes?.find(attr => attr.traitType === 'author')?.value ?? currentUser?.handle ?? 'unknown';
+    $: contentHtml = htmlFromMarkdown(postMetaData.lens.content) ?? '';
+    $: cover = getCoverFromMetadata(postMetaData);
+    $: artist = postMetaData.$schema === PublicationSchemaId.AUDIO_LATEST && postMetaData.lens.audio.artist;
 
     const onViewPostClick = async () => {
         if (!postMetaData || !postId) return;
@@ -34,7 +39,7 @@
     };
 
     const getNodeName = async () => {
-        const node = await getNodeForPublicationMainFocus(postMetaData?.mainContentFocus);
+        const node = await getNodeForPublicationMetadata(postMetaData);
         return node.name;
     };
 </script>

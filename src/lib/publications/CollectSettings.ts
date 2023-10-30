@@ -1,10 +1,10 @@
-import type { Erc20 } from '../graph/lens-service';
 import type { Recipient } from '../stores/state-store';
+import type { Erc20Fragment } from '@lens-protocol/client';
 
 export interface CollectSettings {
     isCollectible?: boolean;
     price?: number;
-    token?: Erc20;
+    token?: Erc20Fragment;
     limit?: number;
     referralFee?: number;
     followerOnly?: boolean;

@@ -19,6 +19,18 @@ import type {
     TransactionMetadataV3Fragment,
     VideoMetadataV3Fragment,
 } from '@lens-protocol/client';
+import {
+    type AnyMedia,
+    type MediaAudio,
+    MediaAudioMimeType,
+    type MediaImage,
+    MediaImageMimeType,
+    type MediaVideo,
+    MediaVideoMimeType,
+    type PublicationMetadata,
+    PublicationSchemaId,
+    type EncryptableURI,
+} from '@lens-protocol/metadata';
 
 const hasMetadata = (
     publication: CommentFragment | PostFragment | QuoteFragment
@@ -187,6 +199,83 @@ export const getNotificationPublication = (
             return notification.quote;
         case 'ReactionNotification':
             return notification.publication;
+    }
+    return undefined;
+};
+
+export const getMediaImageMimeType = (mimeType: string): MediaImageMimeType => {
+    switch (mimeType) {
+        case 'image/bmp':
+            return MediaImageMimeType.BMP;
+        case 'image/gif':
+            return MediaImageMimeType.GIF;
+        case 'image/heic':
+            return MediaImageMimeType.HEIC;
+        case 'image/jpeg':
+            return MediaImageMimeType.JPEG;
+        case 'image/png':
+            return MediaImageMimeType.PNG;
+        case 'image/svg+xml':
+            return MediaImageMimeType.SVG_XML;
+        case 'image/webp':
+            return MediaImageMimeType.WEBP;
+        case 'image/x-ms-bmp':
+            return MediaImageMimeType.X_MS_BMP;
+        default:
+            throw new Error(`Unsupported image mime type: ${mimeType}`);
+    }
+};
+
+export const getMediaVideoMimeType = (mimeType: string): MediaVideoMimeType => {
+    switch (mimeType) {
+        case 'model/gltf+json':
+            return MediaVideoMimeType.GLTF;
+        case 'model/gltf-binary':
+            return MediaVideoMimeType.GLTF_BINARY;
+        case 'video/m4v':
+            return MediaVideoMimeType.M4V;
+        case 'video/mov':
+            return MediaVideoMimeType.MOV;
+        case 'video/mp4':
+            return MediaVideoMimeType.MP4;
+        case 'video/mpeg':
+            return MediaVideoMimeType.MPEG;
+        case 'video/ogg':
+            return MediaVideoMimeType.OGG;
+        case 'video/ogv':
+            return MediaVideoMimeType.OGV;
+        case 'video/quicktime':
+            return MediaVideoMimeType.QUICKTIME;
+        case 'video/webm':
+            return MediaVideoMimeType.WEBM;
+        default:
+            throw new Error(`Unsupported video mime type: ${mimeType}`);
+    }
+};
+
+export const isAudioMedia = (media: AnyMedia): media is MediaAudio =>
+    Object.values(MediaAudioMimeType).includes(
+        media.type as MediaAudioMimeType
+    );
+
+export const isVideoMedia = (media: AnyMedia): media is MediaVideo =>
+    Object.values(MediaVideoMimeType).includes(
+        media.type as MediaVideoMimeType
+    );
+
+export const isImageMedia = (media: AnyMedia): media is MediaImage =>
+    Object.values(MediaImageMimeType).includes(
+        media.type as MediaImageMimeType
+    );
+
+export const getCoverFromMetadata = (
+    metadata: PublicationMetadata
+): EncryptableURI | undefined => {
+    switch (metadata.$schema) {
+        case PublicationSchemaId.AUDIO_LATEST:
+            return metadata.lens.audio.cover;
+        case PublicationSchemaId.VIDEO_LATEST:
+            return metadata.lens.video.cover;
     }
     return undefined;
 };

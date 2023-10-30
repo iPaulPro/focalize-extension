@@ -59,10 +59,10 @@
     import { HashtagNode } from '../../lib/editor/HashtagNode';
     import { registerHashtagPlugin } from '../../lib/editor/LexicalHashtagPlugin';
     import { createMentionNode, isMentionNode, MentionNode } from '../../lib/editor/MentionNode';
-    import type { Profile } from '../../lib/graph/lens-service';
     import { registerMentionPlugin } from '../../lib/editor/LexicalMentionPlugin';
     import { registerEmojiShortcodePlugin } from '../../lib/editor/LexicalEmojiShortcodePlugin';
     import { EmojiNode } from '../../lib/editor/EmojiNode';
+    import type { ProfileFragment } from '@lens-protocol/client';
 
     export let content: Writable<string | undefined>;
     export let disabled: boolean = false;
@@ -247,9 +247,9 @@
     };
 
     const tribute: Action = (node: HTMLElement) => {
-        const plainTextTribute = new Tribute<Profile>({
+        const plainTextTribute = new Tribute<ProfileFragment>({
             values: (text, cb) => searchHandles(text, isCompact ? 4 : 5, cb),
-            menuItemTemplate: (item: TributeItem<Profile>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             noMatchTemplate: () => '<span class="hidden"></span>',

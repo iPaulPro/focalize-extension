@@ -1,10 +1,9 @@
 import type { Writable } from 'svelte/store';
 import { writable } from 'svelte/store';
-import type { PublicationMetadataMediaInput } from '../graph/lens-service';
 import type { Web3File } from '../ipfs-service';
 import type { CollectSettings } from '../publications/CollectSettings';
 import type { PostDraft } from '../publications/PostDraft';
-import { PublicationContentWarning } from '../graph/lens-service';
+import type { AnyMedia } from '@lens-protocol/metadata';
 
 export interface Recipient {
     address: string;
@@ -63,11 +62,9 @@ export const description: Writable<string | undefined> = writable();
 export const file: Writable<Web3File | undefined> = writable();
 
 /**
- * The main post attachment. Can represent an image, audio, or video file.
+ * The post attachments. An array of image, audio, and/or video files.
  */
-export const attachments: Writable<
-    PublicationMetadataMediaInput[] | undefined
-> = writable();
+export const attachments: Writable<AnyMedia[] | undefined> = writable();
 
 /**
  * The cover image for audio and video attachments
@@ -95,8 +92,8 @@ export const publicationState: Writable<PublicationState | undefined> =
  */
 export const tags: Writable<string[] | undefined> = writable();
 
-export const contentWarning: Writable<PublicationContentWarning | undefined> =
-    writable();
+// export const contentWarning: Writable<PublicationContentWarning | undefined> =
+//     writable();
 
 /**
  * Clears all post-related stores
@@ -111,7 +108,7 @@ export const clearPostState = () => {
     author.set(undefined);
     collectSettings.set({});
     tags.set(undefined);
-    contentWarning.set(undefined);
+    // contentWarning.set(undefined);
 };
 
 export const loadFromDraft = (postDraft: PostDraft) => {
@@ -124,5 +121,5 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     author.set(postDraft.author);
     collectSettings.set(postDraft.collectFee ?? {});
     tags.set(postDraft.tags);
-    contentWarning.set(postDraft.contentWarning);
+    // contentWarning.set(postDraft.contentWarning);
 };

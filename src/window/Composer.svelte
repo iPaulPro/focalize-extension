@@ -5,16 +5,13 @@
     import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
 
     import type {SelectOption} from '../lib/publications/lens-modules';
-    import {collectSettingsToModuleParams, CONTENT_WARNING_ITEMS, REFERENCE_ITEMS,} from '../lib/publications/lens-modules';
+    import { collectSettingsToModuleInput, REFERENCE_ITEMS } from '../lib/publications/lens-modules';
 
     import {
-        createAudioAttributes,
-        createVideoAttributes,
         generateAudioPostMetadata,
         generateImagePostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
-        getUrlsFromText,
         submitPost,
     } from '../lib/publications/lens-post';
 
@@ -33,7 +30,7 @@
         PublicationState,
         title,
         tags as postTags,
-        contentWarning,
+        // contentWarning,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
     import {
@@ -43,13 +40,6 @@
         useDispatcher,
         useRelay,
     } from '../lib/stores/preferences-store';
-
-    import type {
-        CollectModuleParams,
-        MetadataAttributeInput,
-        PublicationMetadataV2Input, ReferenceModuleParams,
-    } from '../lib/graph/lens-service';
-    import {PublicationMainFocus} from '../lib/graph/lens-service';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
     import ModuleSelectionItem from './components/ModuleSelectionItem.svelte';
@@ -84,15 +74,23 @@
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
     import EditorActionsBar from '../lib/editor/components/EditorActionsBar.svelte';
     import type {Web3File} from '../lib/ipfs-service';
+    import type {
+        PublicationMetadata,
+        URI
+    } from '@lens-protocol/metadata';
+    import type {
+        CollectActionModuleInput,
+        OpenActionModuleInput,
+        ReferenceModuleInput,
+    } from '@lens-protocol/client';
+    import { isAudioMedia, isImageMedia, isVideoMedia } from '../lib/utils/lens-utils';
 
     let onGifDialogShown: () => {};
 
     let insertAtSelection: (text: string) => {};
 
-    let mainFocus: PublicationMainFocus;
-
-    let postContentWarning = CONTENT_WARNING_ITEMS[0];
-    let referenceItem: SelectOption<ReferenceModuleParams> = REFERENCE_ITEMS[0];
+    // let postContentWarning = CONTENT_WARNING_ITEMS[0];
+    let referenceItem: SelectOption<ReferenceModuleInput> = REFERENCE_ITEMS[0];
 
     let postId: string;
     let isSubmittingPost = false;
@@ -109,7 +107,7 @@
 
     const draftSubject: Subject<PostDraft> = new Subject();
     let postDraft: PostDraft | undefined;
-    let postMetaData: PublicationMetadataV2Input;
+    let postMetaData: PublicationMetadata;
     let currentTabData: {
         title: string,
         desc: string,
@@ -120,9 +118,9 @@
     $: referenceModuleParams = referenceItem.value;
     $: isMediaPostType = $attachments && $attachments.length > 0;
 
-    $: if (postContentWarning) {
-        $contentWarning = postContentWarning.value;
-    }
+    // $: if (postContentWarning) {
+    //     $contentWarning = postContentWarning.value;
+    // }
 
     const getCurrentTabData = (): {
         title: string,
@@ -176,7 +174,7 @@
         onGifDialogShown();
     };
 
-    const buildMetadata = (): PublicationMetadataV2Input => {
+    const buildMetadata = (): PublicationMetadata => {
         if (!$currentUser) throw new Error('No user found');
 
         const locale = selectedLocale?.value ?? navigator.languages[0];
@@ -184,80 +182,57 @@
         if (!isMediaPostType) {
             if (!$content) throw new Error('No content found');
 
-            let postType = PublicationMainFocus.TextOnly;
-
-            const urls = getUrlsFromText($content);
-            if (urls.length > 0) {
-                postType = PublicationMainFocus.Link;
-            }
-
             return generateTextPostMetadata(
                 $currentUser.handle,
                 $content,
-                postType,
                 $postTags,
-                $contentWarning,
+                // $contentWarning,
                 locale,
             );
         }
 
         if (!$attachments?.length) throw new Error('No attachments found');
 
-        if ($cover && $attachments[0]) {
-            $attachments[0].cover = `ipfs://${$cover.cid}`;
+        const attachment = $attachments[0];
+        if ($cover && attachment && (isAudioMedia(attachment) || isVideoMedia(attachment))) {
+            attachment.cover = `ipfs://${$cover.cid}` as URI;
         }
 
-        let attributes: MetadataAttributeInput[] = [];
+        let metadata: PublicationMetadata | undefined = undefined
 
-        mainFocus = getMainFocusFromMimeType($attachments[0].type);
-
-        let metadata: PublicationMetadataV2Input | undefined = undefined
-
-        switch (mainFocus) {
-            case PublicationMainFocus.Image:
-                metadata = generateImagePostMetadata(
-                    $currentUser.handle,
-                    $attachments,
-                    $title,
-                    $content,
-                    $postTags,
-                    $contentWarning,
-                    $description,
-                    locale,
-                );
-                break;
-            case PublicationMainFocus.Video:
-                attributes = createVideoAttributes();
-                metadata = generateVideoPostMetadata(
-                    $currentUser.handle,
-                    $attachments,
-                    $title,
-                    $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                    $cover?.type,
-                    $content,
-                    attributes,
-                    $postTags,
-                    $contentWarning,
-                    $description,
-                    locale,
-                );
-                break;
-            case PublicationMainFocus.Audio:
-                if ($author) attributes = createAudioAttributes($author);
-                metadata = generateAudioPostMetadata(
-                    $currentUser.handle,
-                    $attachments,
-                    $title,
-                    $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                    $cover?.type,
-                    $content,
-                    attributes,
-                    $postTags,
-                    $contentWarning,
-                    $description,
-                    locale,
-                );
-                break;
+        if (isImageMedia(attachment)) {
+            metadata = generateImagePostMetadata(
+                $currentUser.handle,
+                $attachments,
+                $title,
+                $content,
+                $postTags,
+                $description,
+                locale,
+            );
+        } else if (isVideoMedia(attachment)) {
+            metadata = generateVideoPostMetadata(
+                $currentUser.handle,
+                $attachments,
+                $title,
+                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $content,
+                $postTags,
+                $description,
+                locale,
+            );
+        } else if (isAudioMedia(attachment)) {
+            metadata = generateAudioPostMetadata(
+                $currentUser.handle,
+                $attachments,
+                $title,
+                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $content,
+                $author,
+                $postTags,
+                $description,
+                locale,
+            );
         }
 
         if (metadata) {
@@ -279,9 +254,9 @@
 
         await ensureDraft();
 
-        let collectModuleParams: CollectModuleParams;
+        let collectModuleParams: CollectActionModuleInput | null = null;
         try {
-            collectModuleParams = collectSettingsToModuleParams($currentUser.address, $collectSettings);
+            collectModuleParams = collectSettingsToModuleInput($currentUser.address, $collectSettings);
         } catch (e) {
             console.error(e);
             if (e instanceof Error) {
@@ -293,15 +268,19 @@
         try {
             postMetaData = buildMetadata();
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
-
+            const openActionModules: OpenActionModuleInput[] = [];
+            if (collectModuleParams) {
+                openActionModules.push({
+                    collectOpenAction: collectModuleParams
+                });
+            }
             const publicationId = await submitPost(
                 $currentUser,
                 $draftId ?? uuid(),
                 postMetaData,
+                openActionModules,
                 referenceModuleParams,
-                collectModuleParams,
                 $useDispatcher,
-                $useRelay
             );
 
             postId = `${$currentUser.profileId}-${publicationId}`;
@@ -411,7 +390,7 @@
         author: $author,
         collectFee: $collectSettings,
         tags: $postTags,
-        contentWarning: $contentWarning,
+        // contentWarning: $contentWarning,
     });
 
     const onDraftChanged = async (draft: PostDraft) => {
@@ -423,7 +402,8 @@
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
     $: if (
-        $content || $title || $description || $attachments || $author || $postTags || $contentWarning
+        $content || $title || $description || $attachments || $author || $postTags
+        // || $contentWarning
         || $collectSettings.isCollectible !== undefined
     ) {
         const draft = buildDraft();
@@ -782,42 +762,42 @@
               </Select>
             {/if}
 
-            <Select bind:value={postContentWarning}
-                    items={CONTENT_WARNING_ITEMS}
-                    clearable={false}
-                    searchable={false}
-                    listAutoWidth={false}
-                    showChevron={true}
-                    disabled={isSubmittingPost}
-                    listOffset={-48}
-                    --item-is-active-bg="#DB4700"
-                    --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
-                    --list-z-index={20}
-                    --font-size="{isPopupWindow ? '0.8rem' : '0.875rem'}"
-                    --background="transparent"
-                    --list-background={$darkMode ? '#374354' : 'white'}
-                    --selected-item-padding="{isPopupWindow ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"
-                    --list-border-radius="0.75rem"
-                    --height="{isPopupWindow ? '2.5rem' : '3rem'}"
-                    --item-height="{isPopupWindow ? '2.5rem' : '3rem'}"
-                    class="!w-fit !h-fit !bg-white dark:!bg-gray-900 hover:!bg-gray-100 dark:!hover:bg-gray-600
-                      !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100
-                      !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">
-              <div slot="prepend" class="pr-1">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"
-                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-              </div>
-              <div slot="chevron-icon">
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-              </div>
-            </Select>
+<!--            <Select bind:value={postContentWarning}-->
+<!--                    items={CONTENT_WARNING_ITEMS}-->
+<!--                    clearable={false}-->
+<!--                    searchable={false}-->
+<!--                    listAutoWidth={false}-->
+<!--                    showChevron={true}-->
+<!--                    disabled={isSubmittingPost}-->
+<!--                    listOffset={-48}-->
+<!--                    &#45;&#45;item-is-active-bg="#DB4700"-->
+<!--                    &#45;&#45;item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}-->
+<!--                    &#45;&#45;list-z-index={20}-->
+<!--                    &#45;&#45;font-size="{isPopupWindow ? '0.8rem' : '0.875rem'}"-->
+<!--                    &#45;&#45;background="transparent"-->
+<!--                    &#45;&#45;list-background={$darkMode ? '#374354' : 'white'}-->
+<!--                    &#45;&#45;selected-item-padding="{isPopupWindow ? '0.25rem 0 0.25rem 0.25rem' : '0.5rem 0 0.5rem 0.5rem'}"-->
+<!--                    &#45;&#45;list-border-radius="0.75rem"-->
+<!--                    &#45;&#45;height="{isPopupWindow ? '2.5rem' : '3rem'}"-->
+<!--                    &#45;&#45;item-height="{isPopupWindow ? '2.5rem' : '3rem'}"-->
+<!--                    class="!w-fit !h-fit !bg-white dark:!bg-gray-900 hover:!bg-gray-100 dark:!hover:bg-gray-600-->
+<!--                      !shadow !text-sm !text-gray-800 dark:!text-gray-300 dark:!hover:text-gray-100-->
+<!--                      !rounded-full !border-none !ring-0 focus:!outline-none focus:!ring-0 focus:!border-none">-->
+<!--              <div slot="prepend" class="pr-1">-->
+<!--                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4"-->
+<!--                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">-->
+<!--                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>-->
+<!--                  <line x1="12" y1="9" x2="12" y2="13"/>-->
+<!--                  <line x1="12" y1="17" x2="12.01" y2="17"/>-->
+<!--                </svg>-->
+<!--              </div>-->
+<!--              <div slot="chevron-icon">-->
+<!--                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"-->
+<!--                     stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">-->
+<!--                  <path d="M6 9l6 6 6-6"/>-->
+<!--                </svg>-->
+<!--              </div>-->
+<!--            </Select>-->
 
             <PostTags disabled={isSubmittingPost} isCompact={isPopupWindow ?? false}/>
 

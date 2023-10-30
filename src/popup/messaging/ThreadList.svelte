@@ -24,7 +24,7 @@
     import { launchThreadWindow } from '../../lib/utils/utils';
     import { currentUser, KEY_KNOWN_SENDERS } from '../../lib/stores/user-store';
     import { messagesHideUnknownSenders, messagesWalletToWallet } from '../../lib/stores/preferences-store';
-    import { isFollowingOrKnownSender } from '../../lib/utils/isFollowingOrKnownSender';
+    import { isFollowingOrKnownSender } from '../../lib/utils/is-following-or-known-sender';
 
     const dispatch = createEventDispatcher();
 

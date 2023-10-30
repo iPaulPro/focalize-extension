@@ -1,12 +1,4 @@
 import { DateTime } from 'luxon';
-
-import { pollForPublicationId } from './lib/utils/has-transaction-been-indexed';
-
-import lensApi from './lib/lens-api';
-import {
-    type PublicationMetadataV2Input,
-    ProxyActionStatusTypes,
-} from './lib/graph/lens-service';
 import type { User } from './lib/user/user';
 import {
     getAvatarForLensHandle,
@@ -18,7 +10,7 @@ import {
     truncateAddress,
     updateBadge,
 } from './lib/utils/utils';
-import type { PublicationState } from './lib/stores/state-store';
+import { PublicationState } from './lib/stores/state-store';
 import {
     getPublicationUrl,
     type LensNode,
@@ -53,13 +45,20 @@ import {
 import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
 import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
-import { getKnownSenders } from './lib/utils/getKnownSenders';
-import { getProfiles, searchProfiles } from './lib/lens-service';
+import { getKnownSenders } from './lib/utils/get-known-senders';
+import {
+    getProfiles,
+    getPublication,
+    searchProfiles,
+    waitForTransaction,
+} from './lib/lens-service';
 import type {
     NotificationFragment,
     ProfileFragment,
 } from '@lens-protocol/client';
+import { LensTransactionStatusType } from '@lens-protocol/client';
 import { getNotificationPublication } from './lib/utils/lens-utils';
+import type { PublicationMetadata } from '@lens-protocol/metadata';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -304,7 +303,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 const notifyOfPublishedPost = async (
-    metadata: PublicationMetadataV2Input,
+    metadata: PublicationMetadata,
     publicationId: string
 ) => {
     const localStorage = await chrome.storage.local.get('currentUser');
@@ -312,7 +311,7 @@ const notifyOfPublishedPost = async (
     if (!currentUser) return;
 
     const postId = `${currentUser.profileId}-${publicationId}`;
-    const url = await getPublicationUrl(metadata.mainContentFocus, postId);
+    const url = await getPublicationUrl(metadata, postId);
 
     chrome.notifications.create(url, {
         type: 'basic',
@@ -398,27 +397,37 @@ const onGetPublicationIdMessage = async (
     req: any,
     res: (response?: any) => void
 ) => {
-    let port: chrome.runtime.Port;
+    let port: chrome.runtime.Port | undefined = undefined;
     if (sender.tab?.id) {
         port = chrome.tabs.connect(sender.tab.id, {
             name: MESSAGE_GET_PUBLICATION_ID,
         });
     }
-    const onPublicationStateChange = (state: PublicationState) => {
-        if (!port) return;
-        port.postMessage({ state });
-    };
 
     try {
-        const publicationId = await pollForPublicationId(
-            req.post.txHash,
-            onPublicationStateChange
-        );
-        res({ publicationId });
-        return notifyOfPublishedPost(
-            req.post.metadata.mainContentFocus,
-            publicationId
-        );
+        const txHash = req.post.txHash;
+        await waitForTransaction(txHash);
+        const publicationStatus = await waitForTransaction({ txHash });
+
+        if (
+            publicationStatus === LensTransactionStatusType.Complete ||
+            publicationStatus ===
+                LensTransactionStatusType.OptimisticallyUpdated
+        ) {
+            port?.postMessage({ state: PublicationState.SUCCESS });
+
+            const publication = await getPublication({ txHash });
+            if (publication) {
+                const publicationId = publication.id;
+                res({ publicationId });
+                return notifyOfPublishedPost(
+                    req.post.metadata.mainContentFocus,
+                    publicationId
+                );
+            }
+        } else if (publicationStatus === LensTransactionStatusType.Failed) {
+            port?.postMessage({ state: PublicationState.ERROR });
+        }
     } catch (e) {
         return onMessageError(e, res);
     }
@@ -429,63 +438,63 @@ const getPendingProxyActions = async () => {
     return (storage.pendingProxyActions as PendingProxyActionMap) ?? {};
 };
 
-const checkProxyActionStatus = async (
-    proxyActionId: string,
-    handle: string
-) => {
-    console.log(
-        'checkProxyActionStatus: checking status of proxy action',
-        proxyActionId,
-        handle
-    );
-    const { proxyActionStatus } = await lensApi.proxyActionStatus({
-        proxyActionId,
-    });
-    console.log('checkProxyActionStatus: proxyActionStatus', proxyActionStatus);
-
-    if (proxyActionStatus.__typename === 'ProxyActionError') {
-        // show a notification that the follow was unsuccessful
-        chrome.notifications.create('proxyActionError', {
-            type: 'basic',
-            requireInteraction: true,
-            title: `Error following @${handle}`,
-            message: 'Please try again',
-            contextMessage: 'Focalize',
-            iconUrl: getAppIconUrl(),
-        });
-    }
-
-    const saveProxyAction = async () => {
-        const pendingProxyActions: PendingProxyActionMap =
-            await getPendingProxyActions();
-        pendingProxyActions[proxyActionId] = handle;
-        await chrome.storage.local.set({ pendingProxyActions });
-    };
-
-    if (proxyActionStatus.__typename === 'ProxyActionQueued') {
-        console.log(
-            'checkProxyActionStatus: proxy action still queued, setting an alarm for 1 minute from now'
-        );
-        await saveProxyAction();
-        return chrome.alarms.create(proxyActionId, { delayInMinutes: 1 });
-    }
-
-    if (proxyActionStatus.__typename === 'ProxyActionStatusResult') {
-        if (proxyActionStatus.status === ProxyActionStatusTypes.Complete) {
-            const pendingProxyActions: PendingProxyActionMap =
-                await getPendingProxyActions();
-            delete pendingProxyActions[proxyActionId];
-            await chrome.storage.local.set({ pendingProxyActions });
-            return chrome.alarms.clear(proxyActionId);
-        }
-
-        console.log(
-            'checkProxyActionStatus: proxy action still minting or transferring, setting an alarm for 1 minute from now'
-        );
-        await saveProxyAction();
-        return chrome.alarms.create(proxyActionId, { delayInMinutes: 1 });
-    }
-};
+// const checkProxyActionStatus = async (
+//     proxyActionId: string,
+//     handle: string
+// ) => {
+//     console.log(
+//         'checkProxyActionStatus: checking status of proxy action',
+//         proxyActionId,
+//         handle
+//     );
+//     const { proxyActionStatus } = await lensApi.proxyActionStatus({
+//         proxyActionId,
+//     });
+//     console.log('checkProxyActionStatus: proxyActionStatus', proxyActionStatus);
+//
+//     if (proxyActionStatus.__typename === 'ProxyActionError') {
+//         // show a notification that the follow was unsuccessful
+//         chrome.notifications.create('proxyActionError', {
+//             type: 'basic',
+//             requireInteraction: true,
+//             title: `Error following @${handle}`,
+//             message: 'Please try again',
+//             contextMessage: 'Focalize',
+//             iconUrl: getAppIconUrl(),
+//         });
+//     }
+//
+//     const saveProxyAction = async () => {
+//         const pendingProxyActions: PendingProxyActionMap =
+//             await getPendingProxyActions();
+//         pendingProxyActions[proxyActionId] = handle;
+//         await chrome.storage.local.set({ pendingProxyActions });
+//     };
+//
+//     if (proxyActionStatus.__typename === 'ProxyActionQueued') {
+//         console.log(
+//             'checkProxyActionStatus: proxy action still queued, setting an alarm for 1 minute from now'
+//         );
+//         await saveProxyAction();
+//         return chrome.alarms.create(proxyActionId, { delayInMinutes: 1 });
+//     }
+//
+//     if (proxyActionStatus.__typename === 'ProxyActionStatusResult') {
+//         if (proxyActionStatus.status === ProxyActionStatusTypes.Complete) {
+//             const pendingProxyActions: PendingProxyActionMap =
+//                 await getPendingProxyActions();
+//             delete pendingProxyActions[proxyActionId];
+//             await chrome.storage.local.set({ pendingProxyActions });
+//             return chrome.alarms.clear(proxyActionId);
+//         }
+//
+//         console.log(
+//             'checkProxyActionStatus: proxy action still minting or transferring, setting an alarm for 1 minute from now'
+//         );
+//         await saveProxyAction();
+//         return chrome.alarms.create(proxyActionId, { delayInMinutes: 1 });
+//     }
+// };
 
 const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
     try {
@@ -661,15 +670,15 @@ const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {
         case ALARM_ID_MESSAGES:
             await onMessagesAlarm();
             break;
-        default:
-            const pendingProxyActions: PendingProxyActionMap =
-                await getPendingProxyActions();
-            const proxyActionId = alarm.name;
-            const handle = pendingProxyActions[proxyActionId];
-            if (handle) {
-                await checkProxyActionStatus(proxyActionId, handle);
-            }
-            break;
+        // default:
+        //     const pendingProxyActions: PendingProxyActionMap =
+        //         await getPendingProxyActions();
+        //     const proxyActionId = alarm.name;
+        //     const handle = pendingProxyActions[proxyActionId];
+        //     if (handle) {
+        //         await checkProxyActionStatus(proxyActionId, handle);
+        //     }
+        //     break;
     }
 };
 
@@ -696,11 +705,11 @@ const onMessage = (
         case MESSAGE_SET_NOTIFICATION_ALARM:
             onSetNotificationsAlarmMessage(req, res).catch(console.error);
             return true;
-        case MESSAGE_PROXY_ACTION:
-            checkProxyActionStatus(req.proxyActionId, req.profile.handle)
-                .then(() => res())
-                .catch(console.error);
-            return true;
+        // case MESSAGE_PROXY_ACTION:
+        //     checkProxyActionStatus(req.proxyActionId, req.profile.handle)
+        //         .then(() => res())
+        //         .catch(console.error);
+        //     return true;
         case MESSAGE_SET_MESSAGE_ALARM:
             onSetMessagesAlarm(req, res).catch(console.error);
             return true;

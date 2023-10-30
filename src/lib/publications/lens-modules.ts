@@ -1,19 +1,17 @@
-import type {
-    CollectModuleParams,
-    Erc20,
-    ReferenceModuleParams,
-    SimpleCollectModuleParams,
-    MultirecipientFeeCollectModuleParams,
-    ModuleFeeAmountParams,
-    RecipientDataInput,
-} from '../graph/lens-service';
-
-import { PublicationContentWarning } from '../graph/lens-service';
-
-import lensApi from '../lens-api';
 import { DateTime } from 'luxon';
-
 import type { CollectSettings } from './CollectSettings';
+import type {
+    Erc20Fragment,
+    RecipientDataInput,
+    ReferenceModuleInput,
+} from '@lens-protocol/client';
+import { enabledModuleCurrencies } from '../lens-service';
+import type {
+    AmountInput,
+    CollectActionModuleInput,
+    MultirecipientFeeCollectModuleInput,
+    SimpleCollectOpenActionModuleInput,
+} from '@lens-protocol/client';
 
 export type SelectOption<Type> = {
     value: Type;
@@ -22,7 +20,7 @@ export type SelectOption<Type> = {
     icon?: string;
 };
 
-export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
+export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput>[] = [
     {
         value: {
             followerOnlyReferenceModule: false,
@@ -44,6 +42,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
             degreesOfSeparationReferenceModule: {
                 commentsRestricted: true,
                 mirrorsRestricted: false,
+                quotesRestricted: false,
                 degreesOfSeparation: 0,
             },
         },
@@ -56,6 +55,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
             degreesOfSeparationReferenceModule: {
                 commentsRestricted: true,
                 mirrorsRestricted: false,
+                quotesRestricted: false,
                 degreesOfSeparation: 1,
             },
         },
@@ -68,6 +68,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
             degreesOfSeparationReferenceModule: {
                 commentsRestricted: true,
                 mirrorsRestricted: false,
+                quotesRestricted: false,
                 degreesOfSeparation: 2,
             },
         },
@@ -78,13 +79,13 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleParams>[] = [
     },
 ];
 
-export const CONTENT_WARNING_ITEMS: SelectOption<PublicationContentWarning | null>[] =
-    [
-        { value: null, label: 'No content warning' },
-        { value: PublicationContentWarning.Nsfw, label: 'NSFW' },
-        { value: PublicationContentWarning.Spoiler, label: 'Spoiler' },
-        { value: PublicationContentWarning.Sensitive, label: 'Sensitive' },
-    ];
+// export const CONTENT_WARNING_ITEMS: SelectOption<PublicationContentWarning | null>[] =
+//     [
+//         { value: null, label: 'No content warning' },
+//         { value: PublicationContentWarning.Nsfw, label: 'NSFW' },
+//         { value: PublicationContentWarning.Spoiler, label: 'Spoiler' },
+//         { value: PublicationContentWarning.Sensitive, label: 'Sensitive' },
+//     ];
 
 export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
     { value: 0, label: 'Custom' },
@@ -95,23 +96,21 @@ export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
     { value: 168, label: '1 week' },
 ];
 
-export const REVERT_COLLECT_MODULE: CollectModuleParams = {
-    revertCollectModule: true,
-};
-
-export const DEFAULT_REFERENCE_MODULE: ReferenceModuleParams = {
+export const DEFAULT_REFERENCE_MODULE: ReferenceModuleInput = {
     followerOnlyReferenceModule: false,
 };
 
-export const getEnabledModuleCurrencies = async (): Promise<Erc20[]> => {
-    const { enabledModuleCurrencies } = await lensApi.enabledModuleCurrencies();
-    return enabledModuleCurrencies;
+export const getEnabledModuleCurrencies = async (): Promise<
+    Erc20Fragment[]
+> => {
+    const currencies = await enabledModuleCurrencies();
+    return currencies.items;
 };
 
-export const collectSettingsToModuleParams = (
+export const collectSettingsToModuleInput = (
     address: string,
     collectSettings: CollectSettings
-): CollectModuleParams => {
+): CollectActionModuleInput | null => {
     if (!address) {
         throw new Error('Address must be provided');
     }
@@ -121,7 +120,7 @@ export const collectSettingsToModuleParams = (
     }
 
     if (!collectSettings.isCollectible) {
-        return REVERT_COLLECT_MODULE;
+        return null;
     }
 
     const getEndTimestamp = (): string | null => {
@@ -142,8 +141,8 @@ export const collectSettingsToModuleParams = (
     };
 
     if (collectSettings.price && collectSettings.token) {
-        const amount: ModuleFeeAmountParams = {
-            currency: collectSettings.token.address,
+        const amount: AmountInput = {
+            currency: collectSettings.token.contract.address,
             value: collectSettings.price.toString(),
         };
 
@@ -177,7 +176,7 @@ export const collectSettingsToModuleParams = (
             throw new Error('Total revenue split must equal 100%');
         }
 
-        const multirecipientFeeCollectModule: MultirecipientFeeCollectModuleParams =
+        const multirecipientCollectOpenAction: MultirecipientFeeCollectModuleInput =
             {
                 amount,
                 recipients,
@@ -185,33 +184,33 @@ export const collectSettingsToModuleParams = (
             };
 
         if (collectSettings.referralFee) {
-            multirecipientFeeCollectModule.referralFee =
+            multirecipientCollectOpenAction.referralFee =
                 collectSettings.referralFee;
         }
 
         if (collectSettings.limit) {
-            multirecipientFeeCollectModule.collectLimit =
+            multirecipientCollectOpenAction.collectLimit =
                 collectSettings.limit.toString();
         }
 
         if (collectSettings.timed) {
-            multirecipientFeeCollectModule.endTimestamp = getEndTimestamp();
+            multirecipientCollectOpenAction.endsAt = getEndTimestamp();
         }
 
-        return { multirecipientFeeCollectModule };
+        return { multirecipientCollectOpenAction };
     }
 
-    const simpleCollectModule: SimpleCollectModuleParams = {
+    const simpleCollectOpenAction: SimpleCollectOpenActionModuleInput = {
         followerOnly: collectSettings.followerOnly ?? false,
     };
 
     if (collectSettings.limit) {
-        simpleCollectModule.collectLimit = collectSettings.limit.toString();
+        simpleCollectOpenAction.collectLimit = collectSettings.limit.toString();
     }
 
     if (collectSettings.timed) {
-        simpleCollectModule.endTimestamp = getEndTimestamp();
+        simpleCollectOpenAction.endsAt = getEndTimestamp();
     }
 
-    return { simpleCollectModule };
+    return { simpleCollectOpenAction };
 };

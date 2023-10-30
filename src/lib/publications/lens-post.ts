@@ -2,298 +2,272 @@ import { v4 as uuid } from 'uuid';
 import Autolinker, { UrlMatch } from 'autolinker';
 
 import { APP_ID, LENS_PREVIEW_NODE } from '../../config';
-import {
-    DEFAULT_REFERENCE_MODULE,
-    REVERT_COLLECT_MODULE,
-} from './lens-modules';
 
-import type {
-    BroadcastRequest,
-    CollectModuleParams,
-    CreatePostBroadcastItemResult,
-    CreatePublicPostRequest,
-    MetadataAttributeInput,
-    PublicationMetadataMediaInput,
-    PublicationMetadataV2Input,
-    ReferenceModuleParams,
-    RelayerResult,
-    ValidatePublicationMetadataRequest,
-} from '../graph/lens-service';
-import {
-    PublicationContentWarning,
-    PublicationMainFocus,
-    PublicationMetadataDisplayTypes,
-} from '../graph/lens-service';
-import { uploadAndPin } from '../ipfs-service';
-import { getLensHub } from '../evm/lens-hub';
 import { ensureCorrectChain, signTypedData } from '../evm/ethers-service';
 import { deleteDraft } from '../stores/draft-store';
 
-import lensApi from '../lens-api';
 import type { User } from '../user/user';
 import { PublicationState, publicationState } from '../stores/state-store';
-import { isAuthenticated } from '../lens-service';
+import {
+    broadcastPostOnChain,
+    createPostTypedData,
+    isAuthenticated,
+    postOnChain,
+    waitForTransaction,
+} from '../lens-service';
+import {
+    PublicationMetadataSchema,
+    textOnly,
+    image,
+    video,
+    audio,
+    type TextOnlyMetadata,
+    type ImageMetadata,
+    type VideoMetadata,
+    type AudioMetadata,
+    type PublicationMetadata,
+    type AnyMedia,
+    type MarketplaceMetadataAttribute,
+    MediaImageMimeType,
+    MediaVideoMimeType,
+    MediaAudioMimeType,
+    MarketplaceMetadataAttributeDisplayType,
+} from '@lens-protocol/metadata';
 
-const makeMetadataFile = (
-    metadata: PublicationMetadataV2Input,
+import {
+    type BroadcastRequest,
+    type OpenActionModuleInput,
+    type ReferenceModuleInput,
+    isRelaySuccess,
+} from '@lens-protocol/client';
+import { getIrys } from '../irys-service';
+import { DEFAULT_REFERENCE_MODULE } from './lens-modules';
+
+const uploadMetadata = async (
+    metadata: PublicationMetadata,
     id: string = uuid()
-): File => {
+): Promise<string> => {
     const obj = {
         ...metadata,
         version: '2.0.0',
         metadata_id: id,
         appId: APP_ID,
     };
-    const o = Object.fromEntries(
+    const data = Object.fromEntries(
         Object.entries(obj).filter(([_, v]) => v != null)
     );
-    console.log('makeMetadataFile: Creating metadata file for', o);
-    const blob = new Blob([JSON.stringify(o)], { type: 'application/json' });
-    return new File([blob], `metadata.json`);
+    console.log('makeMetadataFile: Creating metadata file for', data);
+
+    const irys = await getIrys();
+    const tx = await irys.upload(JSON.stringify(data), {
+        tags: [{ name: 'Content-Type', value: 'application/json' }],
+    });
+
+    return tx.id;
 };
 
 export const generateTextPostMetadata = (
-    handle: string,
-    content: string | undefined,
-    mainContentFocus: PublicationMainFocus,
+    handle: string | undefined,
+    content: string,
     tags?: string[],
-    contentWarning?: PublicationContentWarning,
     locale: string = 'en',
-    attributes: MetadataAttributeInput[] = []
-): PublicationMetadataV2Input =>
-    ({
-        name: `Post by @${handle}`,
+    attributes: MarketplaceMetadataAttribute[] = []
+): TextOnlyMetadata =>
+    textOnly({
         content,
-        mainContentFocus,
         tags,
-        contentWarning,
-        attributes,
+        // contentWarning,
+        marketplace: {
+            name: `Post by @${handle || 'anonymous'}`,
+            attributes,
+        },
         locale,
-    }) as PublicationMetadataV2Input;
+    });
 
 export const generateImagePostMetadata = (
-    handle: string,
-    media: PublicationMetadataMediaInput[],
+    handle: string | undefined,
+    attachments: AnyMedia[],
     title?: string,
     content?: string,
     tags?: string[],
-    contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
     locale: string = 'en',
-    image: string = media[0].item,
-    imageMimeType: string = media[0].type,
-    attributes: MetadataAttributeInput[] = []
-): PublicationMetadataV2Input =>
-    ({
-        name: title || `Post by @${handle}`,
-        media,
-        image,
-        imageMimeType,
+    item: string = attachments[0].item,
+    type: MediaImageMimeType = attachments[0].type as MediaImageMimeType
+): ImageMetadata =>
+    image({
+        attachments,
+        image: { item, type },
         content,
-        description,
-        mainContentFocus: PublicationMainFocus.Image,
         tags,
-        contentWarning,
-        attributes,
-        external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+        // contentWarning,
         locale,
-    }) as PublicationMetadataV2Input;
+        marketplace: {
+            name: title || `Post by @${handle || 'anonymous'}`,
+            description,
+            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+        },
+    });
 
-export const createVideoAttributes = (): MetadataAttributeInput[] => {
+const createVideoAttributes = (): MarketplaceMetadataAttribute[] => {
     return [
         {
-            displayType: PublicationMetadataDisplayTypes.String,
-            traitType: 'type',
+            display_type: MarketplaceMetadataAttributeDisplayType.STRING,
+            trait_type: 'type',
             value: 'video',
         },
-    ] as MetadataAttributeInput[];
+    ] as MarketplaceMetadataAttribute[];
 };
 
 export const generateVideoPostMetadata = (
-    handle: string,
-    media: PublicationMetadataMediaInput[],
+    handle: string | undefined,
+    attachments: AnyMedia[],
     title?: string,
     image?: string,
-    imageMimeType?: string,
     content?: string,
-    attributes?: MetadataAttributeInput[],
     tags?: string[],
-    contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
     locale: string = 'en',
-    animationUrl: string = media[0].item
-): PublicationMetadataV2Input =>
-    ({
-        name: title || `Post by @${handle}`,
-        media,
-        image,
-        imageMimeType,
-        animation_url: animationUrl,
+    attributes: MarketplaceMetadataAttribute[] = createVideoAttributes(),
+    animationUrl: string = attachments[0].item,
+    videoMimeType: MediaVideoMimeType = attachments[0]
+        .type as MediaVideoMimeType
+): VideoMetadata =>
+    video({
+        video: {
+            cover: image,
+            item: animationUrl,
+            type: videoMimeType,
+        },
+        attachments,
         content,
-        description,
-        attributes,
-        mainContentFocus: PublicationMainFocus.Video,
+        marketplace: {
+            name: title || `Post by @${handle || 'anonymous'}`,
+            attributes,
+            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            animation_url: animationUrl,
+            image,
+            description,
+        },
         tags,
-        contentWarning,
-        external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+        // contentWarning,
         locale,
-    }) as PublicationMetadataV2Input;
+    });
 
 export const createAudioAttributes = (
-    author: string
-): MetadataAttributeInput[] => {
+    author?: string
+): MarketplaceMetadataAttribute[] => {
+    if (!author) return [];
     return [
         {
-            displayType: PublicationMetadataDisplayTypes.String,
-            traitType: 'author',
+            display_type: MarketplaceMetadataAttributeDisplayType.STRING,
+            trait_type: 'author',
             value: author,
         },
         {
-            displayType: PublicationMetadataDisplayTypes.String,
-            traitType: 'type',
+            display_type: MarketplaceMetadataAttributeDisplayType.STRING,
+            trait_type: 'type',
             value: 'audio',
         },
-    ] as MetadataAttributeInput[];
+    ] as MarketplaceMetadataAttribute[];
 };
 
 export const generateAudioPostMetadata = (
-    handle: string,
-    media: PublicationMetadataMediaInput[],
+    handle: string | undefined,
+    attachments: AnyMedia[],
     title?: string,
     image?: string,
-    imageMimeType?: string,
     content?: string,
-    attributes?: MetadataAttributeInput[],
+    artist?: string,
     tags?: string[],
-    contentWarning?: PublicationContentWarning,
     description: string | undefined = content,
     locale: string = 'en',
-    animationUrl: string = media[0].item
-): PublicationMetadataV2Input => {
-    const artistAttr = attributes?.find((attr) => attr.traitType === 'author');
-    return {
-        name: artistAttr ? `${artistAttr.value} - ${title}` : title,
-        media,
-        image,
-        imageMimeType,
-        animation_url: animationUrl,
-        content,
-        description,
-        attributes,
-        mainContentFocus: PublicationMainFocus.Audio,
-        tags,
-        contentWarning,
-        external_url: LENS_PREVIEW_NODE + 'u/' + handle,
-        locale,
-    } as PublicationMetadataV2Input;
-};
-
-const validateMetadata = async (metadata: PublicationMetadataV2Input) => {
-    const request: ValidatePublicationMetadataRequest = {
-        metadatav2: {
-            ...metadata,
-            version: '2.0.0',
-            metadata_id: uuid(),
-            appId: APP_ID,
+    attributes: MarketplaceMetadataAttribute[] = createAudioAttributes(artist),
+    animationUrl: string = attachments[0].item
+): AudioMetadata => {
+    return audio({
+        audio: {
+            item: attachments[0].item,
+            type: attachments[0].type as MediaAudioMimeType,
+            cover: image,
+            artist,
         },
-    };
-    const { validatePublicationMetadata } =
-        await lensApi.validatePublicationMetadata({ request });
-    return validatePublicationMetadata;
-};
-
-const _createPostViaDispatcher = async (
-    request: CreatePublicPostRequest
-): Promise<RelayerResult> => {
-    const { createPostViaDispatcher } = await lensApi.createPostViaDispatcher({
-        request,
+        attachments,
+        content,
+        tags,
+        // contentWarning,
+        locale,
+        marketplace: {
+            name: artist ? `${artist} - ${title}` : title,
+            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            attributes,
+            animation_url: animationUrl,
+            description,
+        },
     });
-    if (createPostViaDispatcher.__typename === 'RelayError')
-        throw createPostViaDispatcher.reason;
-    return createPostViaDispatcher;
-};
-
-const _createPostTypedData = async (
-    profileId: string,
-    contentURI: string,
-    collectModule: CollectModuleParams,
-    referenceModule: ReferenceModuleParams
-): Promise<CreatePostBroadcastItemResult> => {
-    const request = { profileId, contentURI, referenceModule, collectModule };
-    const { createPostTypedData } = await lensApi.createPostTypedData({
-        request,
-    });
-    return createPostTypedData;
 };
 
 const createPostTransaction = async (
-    profileId: string,
     contentURI: string,
-    useRelay: boolean,
-    collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
-    referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE
-): Promise<string> => {
+    openActionModules?: OpenActionModuleInput[],
+    referenceModule: ReferenceModuleInput = DEFAULT_REFERENCE_MODULE
+): Promise<string | null> => {
     await ensureCorrectChain();
 
-    const postResult = await _createPostTypedData(
-        profileId,
+    const postResult = await createPostTypedData(
         contentURI,
-        collectModule,
-        referenceModule
+        referenceModule,
+        openActionModules
     );
 
     const typedData = postResult.typedData;
     console.log('createPostTransaction: Created post typed data', typedData);
 
-    if (useRelay) {
-        const signature = await signTypedData(
-            typedData.domain,
-            // @ts-ignore
-            typedData.types,
-            typedData.value
-        );
-        const request: BroadcastRequest = {
-            id: postResult.id,
-            signature,
-        };
-        const { broadcast } = await lensApi.broadcast({ request });
+    const signature = await signTypedData(
+        typedData.domain,
+        typedData.types,
+        typedData.value
+    );
+    const request: BroadcastRequest = {
+        id: postResult.id,
+        signature,
+    };
+    const broadcastRes = await broadcastPostOnChain(request);
 
-        if (broadcast.__typename === 'RelayerResult') {
-            console.log(
-                'createPostTransaction: broadcast transaction success',
-                broadcast.txHash
-            );
-            return broadcast.txHash;
-        } else if (broadcast.__typename === 'RelayError') {
-            console.error(
-                'createPostTransaction: post with broadcast failed',
-                broadcast.reason
-            );
-            // allow fallback to self-broadcasting
-        }
+    if (isRelaySuccess(broadcastRes)) {
+        console.log(
+            'createPostTransaction: broadcast transaction success',
+            broadcastRes.txHash
+        );
+        return broadcastRes.txHash;
+    } else {
+        console.error(
+            'createPostTransaction: post with broadcast failed',
+            broadcastRes.reason
+        );
+        throw new Error(broadcastRes.reason);
     }
 
-    const lensHub = await getLensHub();
-    const tx = await lensHub.post({
-        profileId: typedData.value.profileId,
-        contentURI: typedData.value.contentURI,
-        collectModule: typedData.value.collectModule,
-        collectModuleInitData: typedData.value.collectModuleInitData,
-        referenceModule: typedData.value.referenceModule,
-        referenceModuleInitData: typedData.value.referenceModuleInitData,
-    });
-    console.log('createPostTransaction: submitted transaction', tx);
-    return tx.hash;
+    // const lensHub = await getLensHub();
+    // const tx = await lensHub.post({
+    //     profileId: typedData.value.profileId,
+    //     contentURI: typedData.value.contentURI,
+    //     collectModule: typedData.value.collectModule,
+    //     collectModuleInitData: typedData.value.collectModuleInitData,
+    //     referenceModule: typedData.value.referenceModule,
+    //     referenceModuleInitData: typedData.value.referenceModuleInitData,
+    // });
+    // console.log('createPostTransaction: submitted transaction', tx);
+    // return tx.hash;
 };
 
 export const submitPost = async (
     user: User,
     draftId: string,
-    metadata: PublicationMetadataV2Input,
-    referenceModule: ReferenceModuleParams = DEFAULT_REFERENCE_MODULE,
-    collectModule: CollectModuleParams = REVERT_COLLECT_MODULE,
-    useDispatcher: boolean = true,
-    useRelay: boolean = false
+    metadata: PublicationMetadata,
+    openActionModules?: OpenActionModuleInput[],
+    referenceModule: ReferenceModuleInput = DEFAULT_REFERENCE_MODULE,
+    useLensManager: boolean = true
 ): Promise<string> => {
     const profileId = user.profileId;
     console.log(
@@ -301,54 +275,64 @@ export const submitPost = async (
             metadata
         )}, referenceModule = ${JSON.stringify(
             referenceModule
-        )}, collectModule = ${JSON.stringify(collectModule)}`
+        )}, collectModule = ${JSON.stringify(openActionModules)}`
     );
 
     const authenticated = await isAuthenticated();
     if (!authenticated) {
         chrome.runtime.openOptionsPage();
         window?.close();
-        throw new Error('submitPost: Failed to get access token');
+        throw new Error('Unable to submit post. User is not authenticated.');
     }
 
-    const validate = await validateMetadata(metadata);
-    if (!validate.valid) {
-        throw validate.reason;
-    }
+    const publicationMetadata = PublicationMetadataSchema.parse(metadata);
 
-    const metadataFile: File = makeMetadataFile(metadata, draftId);
-    const metadataCid = await uploadAndPin(metadataFile);
-    const contentURI = `ipfs://${metadataCid}`;
+    const metadataId: string = await uploadMetadata(
+        publicationMetadata,
+        draftId
+    );
+    const contentURI = `https://gateway.irys.xyz/${metadataId}`;
     console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
 
     // At this point we know the metadata is valid and available on IPFS, so show optimistic completion
     publicationState.set(PublicationState.SUBMITTED);
 
-    let txHash: string | undefined;
+    let txHash: string | null = null;
 
-    if (useDispatcher && user.canUseRelay) {
-        try {
-            const relayerResult = await _createPostViaDispatcher({
-                profileId,
-                contentURI,
-                collectModule,
-                referenceModule,
-            });
-            txHash = relayerResult.txHash;
-            console.log('submitPost: created post with dispatcher', txHash);
-        } catch (e) {
-            console.error('Error creating post with dispatcher', e);
+    if (useLensManager && user.canUseRelay) {
+        const res = await postOnChain(
+            contentURI,
+            referenceModule,
+            openActionModules
+        );
+
+        if (res.isFailure()) {
+            console.error('Error creating onchain post', res.error);
+        } else {
+            const relayResult = res.unwrap();
+            if (isRelaySuccess(relayResult)) {
+                txHash = relayResult.txHash;
+                console.log('submitPost: created post with relay', txHash);
+            } else {
+                console.error(
+                    'Error creating post with relay',
+                    relayResult.reason
+                );
+                // TODO notify the user that the post tx relay failed
+            }
         }
     }
 
     if (!txHash) {
         txHash = await createPostTransaction(
-            profileId,
             contentURI,
-            useRelay,
-            collectModule,
+            openActionModules,
             referenceModule
         );
+    }
+
+    if (!txHash) {
+        throw new Error('Unable to create post transaction');
     }
 
     publicationState.set(PublicationState.SUCCESS);

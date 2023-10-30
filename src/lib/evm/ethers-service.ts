@@ -21,8 +21,6 @@ import { EthereumProvider } from '@walletconnect/ethereum-provider';
 import createMetaMaskProvider from 'metamask-extension-provider';
 import focalizeIcon from '../../assets/focalize.svg';
 import WalletConnection from './WalletConnection';
-// @ts-ignore
-import namehash from 'eth-ens-namehash';
 
 const walletConnectProjectId = WALLETCONNECT_PROJECT_ID;
 
@@ -143,7 +141,7 @@ const normalizeChainId = (id: string | number | bigint) => {
     return id;
 };
 
-const getProvider = async (): Promise<BrowserProvider> => {
+export const getProvider = async (): Promise<BrowserProvider> => {
     console.log('getProvider: cachedProvider', cachedProvider);
     if (!cachedProvider) {
         cachedProvider = await createSignerProvider();
