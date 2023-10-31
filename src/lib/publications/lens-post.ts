@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import Autolinker, { UrlMatch } from 'autolinker';
 
 import { APP_ID, LENS_PREVIEW_NODE } from '../../config';
@@ -13,7 +12,6 @@ import {
     createPostTypedData,
     isAuthenticated,
     postOnChain,
-    waitForTransaction,
 } from '../lens-service';
 import {
     PublicationMetadataSchema,
@@ -44,22 +42,12 @@ import { getIrys } from '../irys-service';
 import { DEFAULT_REFERENCE_MODULE } from './lens-modules';
 
 const uploadMetadata = async (
-    metadata: PublicationMetadata,
-    id: string = uuid()
+    metadata: PublicationMetadata
 ): Promise<string> => {
-    const obj = {
-        ...metadata,
-        version: '2.0.0',
-        metadata_id: id,
-        appId: APP_ID,
-    };
-    const data = Object.fromEntries(
-        Object.entries(obj).filter(([_, v]) => v != null)
-    );
-    console.log('makeMetadataFile: Creating metadata file for', data);
+    console.log('makeMetadataFile: Creating metadata file for', metadata);
 
     const irys = await getIrys();
-    const tx = await irys.upload(JSON.stringify(data), {
+    const tx = await irys.upload(JSON.stringify(metadata), {
         tags: [{ name: 'Content-Type', value: 'application/json' }],
     });
 
@@ -82,6 +70,7 @@ export const generateTextPostMetadata = (
             attributes,
         },
         locale,
+        appId: APP_ID,
     });
 
 export const generateImagePostMetadata = (
@@ -107,6 +96,7 @@ export const generateImagePostMetadata = (
             description,
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
         },
+        appId: APP_ID,
     });
 
 const createVideoAttributes = (): MarketplaceMetadataAttribute[] => {
@@ -152,6 +142,7 @@ export const generateVideoPostMetadata = (
         tags,
         // contentWarning,
         locale,
+        appId: APP_ID,
     });
 
 export const createAudioAttributes = (
@@ -204,6 +195,7 @@ export const generateAudioPostMetadata = (
             animation_url: animationUrl,
             description,
         },
+        appId: APP_ID,
     });
 };
 
@@ -286,11 +278,12 @@ export const submitPost = async (
     }
 
     const publicationMetadata = PublicationMetadataSchema.parse(metadata);
-
-    const metadataId: string = await uploadMetadata(
-        publicationMetadata,
-        draftId
+    console.log(
+        'submitPost: Parsed and validated metadata',
+        publicationMetadata
     );
+
+    const metadataId: string = await uploadMetadata(publicationMetadata);
     const contentURI = `https://gateway.irys.xyz/${metadataId}`;
     console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
 

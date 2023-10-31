@@ -1,21 +1,20 @@
 import type { TributeItem } from 'tributejs';
-import type { ProfileFragment } from '@lens-protocol/client';
+import type { SimpleProfile } from './SimpleProfile';
+import { formatHandleV2toV1 } from '../utils/lens-utils';
 
 export const buildTributeUsernameMenuTemplate = (
-    item: TributeItem<ProfileFragment>
+    item: TributeItem<SimpleProfile>
 ) => {
-    const profile: ProfileFragment = item.original;
+    const profile: SimpleProfile = item.original;
 
     const handleView = document.createElement('div');
     handleView.className = 'text-base font-medium dark:text-white truncate';
-    handleView.innerText = profile.handle!.suggestedFormatted.localName;
+    handleView.innerText = formatHandleV2toV1(profile.handle!);
 
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';
     subtextView.innerText =
-        profile.metadata?.displayName ||
-        profile.onchainIdentity?.ens?.name ||
-        profile.ownedBy.address;
+        profile.displayName || profile?.ens || profile.ownedBy;
 
     const textContainer = document.createElement('div');
     textContainer.className = 'flex-1 pl-1 mr-8 overflow-hidden';

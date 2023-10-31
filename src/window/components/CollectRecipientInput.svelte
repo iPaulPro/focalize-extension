@@ -9,6 +9,7 @@
     import { getProfile } from '../../lib/lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
     import type { Action } from 'svelte/action';
+    import { SimpleProfile } from '../../lib/user/SimpleProfile';
 
     export let menuContainer: HTMLElement;
 
@@ -22,7 +23,7 @@
     const tribute: Action = (node: HTMLElement) => {
         const plainTextTribute = new Tribute({
             values: (text, cb) => searchHandles(text, 5, cb),
-            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<SimpleProfile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             autocompleteMode: true,

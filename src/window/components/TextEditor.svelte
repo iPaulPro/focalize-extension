@@ -58,11 +58,12 @@
     import { registerAutoLink } from '../../lib/editor/LexicalAutoLinkPlugin';
     import { HashtagNode } from '../../lib/editor/HashtagNode';
     import { registerHashtagPlugin } from '../../lib/editor/LexicalHashtagPlugin';
-    import { createMentionNode, isMentionNode, MENTION, MentionNode } from '../../lib/editor/MentionNode';
+    import { createMentionNode, MENTION, MentionNode } from '../../lib/editor/MentionNode';
     import { registerMentionPlugin } from '../../lib/editor/LexicalMentionPlugin';
     import { registerEmojiShortcodePlugin } from '../../lib/editor/LexicalEmojiShortcodePlugin';
     import { EmojiNode } from '../../lib/editor/EmojiNode';
-    import type { ProfileFragment } from '@lens-protocol/client';
+    import type { SimpleProfile } from '../../lib/user/SimpleProfile';
+    import { formatHandleV2toV1 } from '../../lib/utils/lens-utils';
 
     export let content: Writable<string | undefined>;
     export let disabled: boolean = false;
@@ -248,12 +249,13 @@
     };
 
     const tribute: Action = (node: HTMLElement) => {
-        const plainTextTribute = new Tribute<ProfileFragment>({
+        const plainTextTribute = new Tribute<SimpleProfile>({
             values: (text, cb) => searchHandles(text, isCompact ? 4 : 5, cb),
-            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<SimpleProfile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
             noMatchTemplate: () => '<span class="hidden"></span>',
+
         });
 
         plainTextTribute.attach(node);
@@ -267,7 +269,7 @@
 
     const onTributeReplaced = (e: Event) => {
         const event = e as CustomEvent;
-        const handle = '@' + event.detail.item.original.handle as string;
+        const handle = event.detail.item.original.handle as string;
         editor.update(() => {
             const selection = getSelection();
             if (!selection || !isRangeSelection(selection)) {
@@ -275,10 +277,9 @@
             }
 
             const nodes = selection.getNodes();
-            if (nodes.length && isMentionNode(nodes[0])) {
-                const mentionNode = nodes[0] as MentionNode;
-                const newNode = createMentionNode(handle);
-                mentionNode.replace(newNode);
+            if (nodes.length) {
+                const newNode = createMentionNode(`@${formatHandleV2toV1(handle)}`);
+                nodes[0].replace(newNode);
                 newNode.select();
             }
         });

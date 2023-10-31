@@ -6,7 +6,7 @@
     import {resizeTextarea} from '../../../../lib/utils/utils';
     import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
     import type {Action} from 'svelte/action';
-    import type { ProfileFragment } from '@lens-protocol/client';
+    import type { SimpleProfile } from '../../../../lib/user/SimpleProfile';
 
     export let text: string = '';
     export let className: string = '';
@@ -47,7 +47,7 @@
     const tribute: Action = (node: HTMLElement) => {
         const t = new Tribute({
             values: (text, cb) => searchHandles(text, 4, cb),
-            menuItemTemplate: (item: TributeItem<ProfileFragment>) => buildTributeUsernameMenuTemplate(item),
+            menuItemTemplate: (item: TributeItem<SimpleProfile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
         })

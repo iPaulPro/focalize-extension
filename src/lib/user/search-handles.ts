@@ -1,5 +1,6 @@
-import type { ProfileFragment } from '@lens-protocol/client';
 import { searchProfiles } from '../lens-service';
+import type { SimpleProfile } from './SimpleProfile';
+import { toSimpleProfile } from './SimpleProfile';
 
 let searchAbortController: AbortController;
 
@@ -30,8 +31,8 @@ let searchAbortController: AbortController;
 export const searchHandles = (
     query: string,
     limit: number,
-    cb: (profiles: ProfileFragment[]) => void
+    cb: (profiles: SimpleProfile[]) => void
 ) =>
     searchProfiles(query)
-        .then((profiles) => cb(profiles.slice(0, limit)))
+        .then((profiles) => cb(profiles.slice(0, limit).map(toSimpleProfile)))
         .catch(() => {});
