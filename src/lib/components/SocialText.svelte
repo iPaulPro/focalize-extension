@@ -14,9 +14,8 @@
         if (!truncatedText?.length) return;
 
         // First, strip the domain part from the @mentions
-        truncatedText = truncatedText.replace(/@([\w\.]+)/g, (_, handle) => {
-            const cleanHandle = handle.split('.')[0];
-            return `@${cleanHandle}`;
+        truncatedText = truncatedText.replace(/@[a-zA-Z0-9_]+\/([a-zA-Z0-9_]+)/g, (_, localName) => {
+            return `@${localName}`;
         });
 
         // Then, replace the links with anchors

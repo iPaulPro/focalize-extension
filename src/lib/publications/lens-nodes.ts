@@ -5,6 +5,7 @@ import type {
     QuoteFragment,
 } from '@lens-protocol/client';
 import {
+    formatHandleV2toV1,
     isArticlePublication,
     isAudioPublication,
     isImagePublication,
@@ -71,7 +72,8 @@ export const getNodeForPublication = async (
 };
 
 export const getProfileUrl = (node: LensNode, handle: string) => {
-    return node.baseUrl + node.profiles.replace('{$handle}', handle);
+    const formattedHandle = formatHandleV2toV1(handle);
+    return node.baseUrl + node.profiles.replace('{$handle}', formattedHandle);
 };
 
 export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {

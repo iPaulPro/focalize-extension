@@ -67,7 +67,7 @@ export const getCidFromIpfsUrl = (ipfsUrl: string): string => {
 };
 
 export const ipfsUrlToGatewayUrl = (
-    ipfsUrl: string,
+    ipfsUrl: string | undefined,
     gatewayDomain: string = 'https://ipfs.io/ipfs/'
 ): string | undefined => {
     if (!ipfsUrl || ipfsUrl.length === 0 || !ipfsUrl.startsWith('ipfs://'))

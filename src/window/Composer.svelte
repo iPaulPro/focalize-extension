@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {v4 as uuid} from 'uuid';
-    import {getMainFocusFromMimeType, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
+    import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
 
     import type {SelectOption} from '../lib/publications/lens-modules';
     import { collectSettingsToModuleInput, REFERENCE_ITEMS } from '../lib/publications/lens-modules';
@@ -38,7 +38,6 @@
         dispatcherDialogShown,
         richTextComposer,
         useDispatcher,
-        useRelay,
     } from '../lib/stores/preferences-store';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
@@ -268,25 +267,25 @@
         try {
             postMetaData = buildMetadata();
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
-            const openActionModules: OpenActionModuleInput[] = [];
-            if (collectModuleParams) {
-                openActionModules.push({
-                    collectOpenAction: collectModuleParams
-                });
-            }
-            const publicationId = await submitPost(
-                $currentUser,
-                $draftId ?? uuid(),
-                postMetaData,
-                openActionModules,
-                referenceModuleParams,
-                $useDispatcher,
-            );
-
-            postId = `${$currentUser.profileId}-${publicationId}`;
-            console.log('onSubmitClick: post id', postId);
-
-            clearPostState();
+            // const openActionModules: OpenActionModuleInput[] = [];
+            // if (collectModuleParams) {
+            //     openActionModules.push({
+            //         collectOpenAction: collectModuleParams
+            //     });
+            // }
+            // const publicationId = await submitPost(
+            //     $currentUser,
+            //     $draftId ?? uuid(),
+            //     postMetaData,
+            //     openActionModules,
+            //     referenceModuleParams,
+            //     $useDispatcher,
+            // );
+            //
+            // postId = `${$currentUser.profileId}-${publicationId}`;
+            // console.log('onSubmitClick: post id', postId);
+            //
+            // clearPostState();
         } catch (e) {
             console.error(e);
             toast.error('Error creating post', {duration: 5000});

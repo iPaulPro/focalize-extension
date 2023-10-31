@@ -23,6 +23,7 @@ import { z, ZodType } from 'zod';
 import { getDefaultProvider } from '../evm/get-default-provider';
 import type { NotificationFragment } from '@lens-protocol/client';
 import { getEventTime } from '../notifications/lens-notifications';
+import { formatHandleV2toV1 } from './lens-utils';
 
 export const POPUP_MIN_HEIGHT = 350;
 
@@ -38,7 +39,8 @@ export const getAvatarForLensHandle = (
     handle: string,
     size: number = 128
 ): string => {
-    return `https://cdn.stamp.fyi/avatar/${handle}?s=${size}`;
+    const formattedHandle = formatHandleV2toV1(handle);
+    return `https://cdn.stamp.fyi/avatar/${formattedHandle}?s=${size}`;
 };
 
 export const getAvatarFromAddress = (

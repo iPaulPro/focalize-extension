@@ -31,6 +31,7 @@ import {
     PublicationSchemaId,
     type EncryptableURI,
 } from '@lens-protocol/metadata';
+import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
 
 const hasMetadata = (
     publication: CommentFragment | PostFragment | QuoteFragment
@@ -177,7 +178,9 @@ export const getMetadataContent = (
         isMintPublication(publication) ||
         isSpacePublication(publication) ||
         isStoryPublication(publication) ||
-        isTextOnlyPublication(publication)
+        isTextOnlyPublication(publication) ||
+        isThreeDPublication(publication) ||
+        isTransactionPublication(publication)
     ) {
         return publication.metadata.content;
     }
@@ -280,11 +283,27 @@ export const getCoverFromMetadata = (
     return undefined;
 };
 
-export const formatHandle = (handle: string): string => {
-    // format the handle from lens/paulburke to paulburke.lens
+/**
+ * Format a handle from domain/local to local.domain
+ * @param handle The handle to format
+ */
+export const formatHandleV2toV1 = (handle: string): string => {
     const handleParts = handle.split('/');
     if (handleParts.length === 2) {
         return `${handleParts[1]}.${handleParts[0]}`;
     }
     return handle;
+};
+
+/**
+ * Format a handle from local.domain to domain/local
+ * @param handle The handle to format
+ */
+export const formatHandleV1toV2 = (handle: string): string => {
+    // format the handle from paulburke.lens to lens/paulburke
+    const match = handle.match(MENTION_REGEX);
+    if (!match) return handle;
+
+    const [, , , localName, domain] = match;
+    return `@${domain}/${localName}`;
 };

@@ -18,9 +18,8 @@ import {
     type SerializedTextNode,
     TextNode,
 } from 'lexical';
-import type { ElementTransformer } from '@lexical/markdown/MarkdownTransformers';
-import { formatHandle } from '../utils/lens-utils';
-import { MENTION_REGEX } from './LexicalMentionPlugin';
+import type { TextMatchTransformer } from '@lexical/markdown/MarkdownTransformers';
+import { formatHandleV1toV2 } from '../utils/lens-utils';
 
 export type SerializedMentionNode = Spread<
     {
@@ -130,19 +129,25 @@ export class MentionNode extends TextNode {
     }
 }
 
-export const MENTION: ElementTransformer = {
+export const MENTION: TextMatchTransformer = {
     dependencies: [MentionNode],
     export: (node, traverseChildren) => {
         if (!isMentionNode(node)) {
             return null;
         }
         const text = node.getTextContent();
-        return formatHandle(text);
+        return formatHandleV1toV2(text);
     },
-    regExp: MENTION_REGEX,
-    replace: (parentNode, children, match, isImport) => {
-        const mentionNode = createMentionNode(match[0]);
-        parentNode.replaceChild(mentionNode);
+    importRegExp:
+        /(^|\s)@(([a-zA-Z0-9_]+)\/([a-zA-Z0-9_]+))(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|)/,
+    regExp: /(^|\s)@(([a-zA-Z0-9_]+)\/([a-zA-Z0-9_]+))(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|$)/,
+    replace: (textNode: TextNode, match: RegExpMatchArray) => {
+        const [, leadingWhiteSpace, , domain, localName] = match;
+        const handle = `${leadingWhiteSpace}@${localName}.${domain}`;
+        const mentionNode = createMentionNode(handle);
+        mentionNode.setFormat(textNode.getFormat());
+        textNode.replace(mentionNode);
     },
-    type: 'element',
+    type: 'text-match',
+    trigger: '@',
 };

@@ -5,7 +5,7 @@
     import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import {userFromProfile} from '../user/user';
-    import { getAvatarForLensHandle, getAvatarFromAddress } from '../utils/utils';
+    import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
     import {clearNotificationCache} from '../stores/cache-store';
@@ -76,8 +76,8 @@
             {/if}
 
             <div class="flex flex-col gap-0.5 grow">
-              <div class="font-semibold text-sm text-black dark:text-white">{p.metadata?.displayName || p.handle}</div>
-              <div class="text-xs text-gray-600 dark:text-gray-300">@{p.handle}</div>
+              <div class="font-semibold text-sm text-black dark:text-white">{p.metadata?.displayName || p.handle?.localName || truncateAddress(p.ownedBy.address)}</div>
+              <div class="text-xs text-gray-600 dark:text-gray-300">{p.handle?.suggestedFormatted.localName}</div>
             </div>
 
             {#if $currentUser?.handle === p.handle?.fullHandle}

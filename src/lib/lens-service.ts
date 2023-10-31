@@ -21,6 +21,7 @@ import type {
     StorageSubscription,
 } from '@lens-protocol/storage';
 import WalletConnection from './evm/WalletConnection';
+import { ensureCorrectChain } from './evm/ethers-service';
 
 export class NoProfileError extends Error {
     constructor() {
@@ -73,15 +74,6 @@ const lensClient: LensClient = new LensClient({
 export const isAuthenticated = (): Promise<boolean> =>
     lensClient.authentication.isAuthenticated();
 
-export const generateChallenge = (
-    profileId: string,
-    address: string
-): Promise<{ id: string; text: string }> =>
-    lensClient.authentication.generateChallenge({
-        for: profileId,
-        signedBy: address,
-    });
-
 export const login = async (walletConnection: WalletConnection) => {
     const {
         initEthers,
@@ -127,7 +119,10 @@ export const login = async (walletConnection: WalletConnection) => {
         throw new NoProfileError();
     }
 
-    const { id, text } = await generateChallenge(profile.id, address);
+    const { id, text } = await lensClient.authentication.generateChallenge({
+        for: profile.id,
+        signedBy: address,
+    });
     console.log('authenticate: Lens challenge response', { id, text });
 
     const signer = await getSigner();
@@ -271,6 +266,8 @@ export const unfollowProfile = async (profileId: string): Promise<boolean> => {
 };
 
 export const enableProfileManager = async (): Promise<boolean> => {
+    await ensureCorrectChain();
+
     const res = await lensClient.profile.createChangeProfileManagersTypedData({
         approveSignless: true,
     });

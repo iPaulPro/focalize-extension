@@ -9,12 +9,11 @@
     import LoadingSpinner from "../../lib/components/LoadingSpinner.svelte";
     import type {User} from "../../lib/user/user";
     import {
-        getNodeForPublicationMainFocus,
         getNodeForPublicationMetadata,
         getPublicationUrl,
     } from '../../lib/publications/lens-nodes';
     import type { PublicationMetadata } from '@lens-protocol/metadata';
-    import { getCoverFromMetadata } from '../../lib/utils/lens-utils';
+    import { getCoverFromMetadata, isAudioMedia, isImageMedia, isVideoMedia } from '../../lib/utils/lens-utils';
     import { PublicationSchemaId } from '@lens-protocol/metadata';
 
     export let currentUser: User | null;
@@ -32,7 +31,7 @@
 
     const onViewPostClick = async () => {
         if (!postMetaData || !postId) return;
-        const url = await getPublicationUrl(postMetaData.mainContentFocus, postId)
+        const url = await getPublicationUrl(postMetaData, postId)
         chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();
@@ -121,16 +120,19 @@
             &#64;{currentUser.handle}
           </div>
 
-          {#if postMetaData.content}
+          {#if postMetaData.lens.content}
             <div class="prose dark:prose-invert pt-4 pb-2 pr-4">
               {@html contentHtml}
             </div>
           {/if}
 
-          {#if postMetaData.media?.length}
-            {@const media = postMetaData.media[0]}
+            {#if (postMetaData.$schema === PublicationSchemaId.IMAGE_LATEST
+                || postMetaData.$schema === PublicationSchemaId.AUDIO_LATEST
+                || postMetaData.$schema === PublicationSchemaId.VIDEO_LATEST)
+            && postMetaData.lens.attachments?.length}
+            {@const media = postMetaData.lens.attachments[0]}
 
-            {#if media.item && media.type?.startsWith('image')}
+            {#if media.item && isImageMedia(media)}
 
               <div class="w-full lg:w-4/5 max-h-96 pt-4 pb-2">
                 {#if imageLoading}
@@ -146,19 +148,22 @@
                 </a>
               </div>
 
-            {:else if media.type?.startsWith('video')}
+            {:else if isVideoMedia(media)}
 
-              <video src={ipfsUrlToGatewayUrl(media.item)} type={media.type} poster={ipfsUrlToGatewayUrl(media.cover)}
+              <video
+                     poster={ipfsUrlToGatewayUrl(media.cover)}
                      class="w-full lg:w-2/3 aspect-video rounded-lg bg-black mt-4 mb-2"
-                     preload="metadata" controls controlslist="nodownload"></video>
+                     preload="metadata" controls controlslist="nodownload">
+                  <source src={ipfsUrlToGatewayUrl(media.item)} type={media.type.toString()}>
+              </video>
 
-            {:else if media.type?.startsWith('audio')}
+            {:else if isAudioMedia(media)}
 
               <div class="w-full flex mt-4 mb-2 bg-gray-100 dark:bg-gray-700 rounded-xl">
 
                 <div class="w-full flex items-center">
                   {#if cover}
-                    <img src={ipfsUrlToGatewayUrl(cover)} alt={media.altTag}
+                    <img src={ipfsUrlToGatewayUrl(cover)} alt='Cover image'
                          class="object-cover h-36 w-36 rounded-l-xl">
                   {/if}
 
@@ -171,8 +176,9 @@
                       {artist}
                     </div>
 
-                    <audio src={ipfsUrlToGatewayUrl(media.item)} type={media.type}
-                           class="w-full px-1" preload="metadata" controls controlslist="nodownload"></audio>
+                    <audio class="w-full px-1" preload="metadata" controls controlslist="nodownload">
+                        <source src={ipfsUrlToGatewayUrl(media.item)} type={media.type.toString()}>
+                    </audio>
                   </div>
                 </div>
 
