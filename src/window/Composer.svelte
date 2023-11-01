@@ -37,7 +37,7 @@
         darkMode,
         dispatcherDialogShown,
         richTextComposer,
-        useDispatcher,
+        useProfileManager,
     } from '../lib/stores/preferences-store';
 
     import ModuleChoiceItem from './components/ModuleChoiceItem.svelte';
@@ -53,7 +53,7 @@
 
     import tags from 'language-tags';
     import GifSelectionDialog from './components/GifSelectionDialog.svelte';
-    import SetDispatcherDialog from './components/SetDispatcherDialog.svelte';
+    import SetDispatcherDialog from './components/SetProfileManagerDialog.svelte';
     import {ensureUser} from '../lib/user/user';
     import {getDraft, postDrafts, saveDraft} from '../lib/stores/draft-store';
 
@@ -244,7 +244,7 @@
     const onSubmitClick = async () => {
         if (!$currentUser) throw new Error('No user found');
 
-        if ($useDispatcher && !$currentUser.canUseRelay) {
+        if ($useProfileManager && !$currentUser.canUseRelay) {
             enableDispatcherDialog.showModal();
             return;
         }
@@ -347,7 +347,7 @@
         $dispatcherDialogShown = true;
 
         if ($currentUser?.canUseRelay === false) {
-            $useDispatcher = false;
+            $useProfileManager = false;
         }
     };
 
@@ -362,7 +362,7 @@
     }
 
     $: if ($dispatcherDialogShown && $currentUser?.canUseRelay === false) {
-        $useDispatcher = false;
+        $useProfileManager = false;
     }
 
     const updateWindowHeight = async () => {
@@ -907,7 +907,7 @@
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
-  <DialogOuter title="Enable Dispatcher">
+  <DialogOuter title="Enable Profile Manager">
     <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()}/>
   </DialogOuter>
 </dialog>

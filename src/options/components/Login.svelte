@@ -11,13 +11,16 @@
     import {createEventDispatcher} from 'svelte';
     import {fade} from 'svelte/transition';
     import type WalletConnection from '../../lib/evm/WalletConnection';
-    import { login, NoProfileError } from '../../lib/lens-service';
+    import { connectWalletAndGetProfiles, login, NoProfileError } from '../../lib/lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
+    import AccountChooser from '../../lib/components/AccountChooser.svelte';
 
     const dispatch = createEventDispatcher();
 
     let walletConnectDialog: HTMLDialogElement;
     let showWalletConnectDialog = false;
+    let profilePickerDialog: HTMLDialogElement;
+    let showProfilePickerDialog = false;
 
     const showConnectWalletDialog = async () => {
         showWalletConnectDialog = true;
@@ -25,13 +28,19 @@
         walletConnectDialog?.showModal();
     };
 
+    const showProfilePicker = async () => {
+        showProfilePickerDialog = true;
+        await tick();
+        profilePickerDialog?.showModal();
+    };
+
     const authenticate = async (wallet: WalletConnection) => {
         console.log('authenticate: wallet', wallet);
         walletConnectDialog?.close();
 
-        let authenticatedProfile: ProfileFragment;
+        let profiles: ProfileFragment[];
         try {
-            authenticatedProfile = await login(wallet);
+            profiles = await connectWalletAndGetProfiles(wallet);
         } catch (e) {
             if (e instanceof NoProfileError) {
                 dispatch('noProfile');
@@ -39,14 +48,12 @@
             return;
         }
 
-        $currentUser = userFromProfile(authenticatedProfile);
-        console.log('Authenticated user', $currentUser);
-
-        try {
-            await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
-            await chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true});
-        } catch (e) {
-            console.error('Error setting alarms', e)
+        if (!profiles.length) {
+            dispatch('noProfile');
+        } else if (profiles.length > 1) {
+            await showProfilePicker();
+        } else {
+            await login(profiles[0]);
         }
     };
 
@@ -98,6 +105,16 @@
       <ConnectWalletDialog
           on:select={(e) => authenticate(e.detail)}
           on:dismiss={() => walletConnectDialog.close()}/>
+    </DialogOuter>
+  </dialog>
+{/if}
+
+{#if showProfilePickerDialog}
+  <dialog id="profilePickerDialog" bind:this={profilePickerDialog} on:close={() => showProfilePickerDialog = false}
+          class="w-1/3 max-w-sm rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800
+          dark:border-gray-700">
+    <DialogOuter>
+      <AccountChooser standalone={true}/>
     </DialogOuter>
   </dialog>
 {/if}

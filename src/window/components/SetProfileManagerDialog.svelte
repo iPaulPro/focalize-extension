@@ -3,7 +3,7 @@
     import toast from 'svelte-french-toast';
 
     import {currentUser} from "../../lib/stores/user-store";
-    import {useDispatcher} from "../../lib/stores/preferences-store";
+    import {useProfileManager} from "../../lib/stores/preferences-store";
     import { enableProfileManager } from '../../lib/lens-service';
 
     const dispatch = createEventDispatcher();
@@ -18,7 +18,7 @@
             success = await enableProfileManager();
             if (success) {
                 $currentUser.canUseRelay = true;
-                $useDispatcher = true;
+                $useProfileManager = true;
                 toast.success('Profile Manager set!');
                 dispatch('success');
             }

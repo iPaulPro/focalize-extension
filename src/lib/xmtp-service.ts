@@ -632,7 +632,7 @@ export const getPeerName = (
     if ((isLensThread(thread) && peerProfile) || (peerProfile && !ens)) {
         return (
             peerProfile.metadata?.displayName ??
-            peerProfile.handle ??
+            peerProfile.handle?.localName ??
             truncateAddress(peerProfile.ownedBy.address)
         );
     }

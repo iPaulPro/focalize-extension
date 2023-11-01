@@ -1,8 +1,7 @@
 <script lang="ts">
     import {
         darkMode,
-        useDispatcher,
-        useRelay,
+        useProfileManager,
         nodePost,
         nodeArticle,
         nodeAudio,
@@ -29,15 +28,15 @@
 
   <section class="w-full flex flex-col py-6 md:py-10">
 
-    <div class="flex flex-col md:flex-row md:gap-12 pb-4">
+    <div class="flex flex-col md:flex-row md:gap-12">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
-        <div class="flex flex-col pb-6 pr-6">
+        <div class="flex flex-col pb-4 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Gasless
           </div>
           <div class="text-base text-neutral-400">
-            Using a Dispatcher allows you to post without needing to sign transactions or pay for your own gas.
+            Using Profile Manager allows you to post without needing to sign transactions or pay for your own gas.
           </div>
         </div>
       </div>
@@ -47,7 +46,7 @@
         <div class="w-full flex">
           <div class="pt-1">
             <label class="switch">
-              <input type="checkbox" bind:checked={$useDispatcher}>
+              <input type="checkbox" bind:checked={$useProfileManager}>
               <span class="slider round flex justify-between items-center px-2
                   shadow-none"></span>
             </label>
@@ -55,29 +54,10 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Use Dispatcher
+              Use Profile Manager
             </div>
             <div class="text-base text-neutral-400">
               Allow apps to sign transactions and pay for gas on your behalf
-            </div>
-          </div>
-        </div>
-
-        <div class="w-full flex {$useDispatcher ? 'opacity-40' : 'opacity-100'}">
-          <div class="pt-1">
-            <label class="switch">
-              <input type="checkbox" bind:checked={$useRelay} disabled={$useDispatcher}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
-
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Use Relay
-            </div>
-            <div class="text-base text-neutral-400">
-              Sign your own transactions but don't pay for gas
             </div>
           </div>
         </div>

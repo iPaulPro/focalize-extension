@@ -21,7 +21,7 @@ import type {
     StorageSubscription,
 } from '@lens-protocol/storage';
 import WalletConnection from './evm/WalletConnection';
-import { ensureCorrectChain } from './evm/ethers-service';
+import { clearNotificationCache } from './stores/cache-store';
 
 export class NoProfileError extends Error {
     constructor() {
@@ -74,14 +74,11 @@ const lensClient: LensClient = new LensClient({
 export const isAuthenticated = (): Promise<boolean> =>
     lensClient.authentication.isAuthenticated();
 
-export const login = async (walletConnection: WalletConnection) => {
-    const {
-        initEthers,
-        getSigner,
-        getAccounts,
-        clearProvider,
-        ensureCorrectChain,
-    } = await import('./evm/ethers-service');
+export const connectWalletAndGetProfiles = async (
+    walletConnection: WalletConnection
+): Promise<ProfileFragment[]> => {
+    const { initEthers, getAccounts, clearProvider, ensureCorrectChain } =
+        await import('./evm/ethers-service');
 
     let address: string | undefined;
     try {
@@ -111,17 +108,19 @@ export const login = async (walletConnection: WalletConnection) => {
 
     const ownedBy = [address];
     const res = await getProfiles({ ownedBy });
-    console.log('authenticate: Profiles', res);
+    return res.items;
+};
 
-    // TODO handle multiple profiles
-    const profile = res.items[0];
-    if (!profile) {
-        throw new NoProfileError();
-    }
+export const login = async (
+    profile: ProfileFragment
+): Promise<ProfileFragment> => {
+    await clearNotificationCache();
+
+    const { getSigner } = await import('./evm/ethers-service');
 
     const { id, text } = await lensClient.authentication.generateChallenge({
         for: profile.id,
-        signedBy: address,
+        signedBy: profile.ownedBy.address,
     });
     console.log('authenticate: Lens challenge response', { id, text });
 
@@ -141,6 +140,7 @@ export const login = async (walletConnection: WalletConnection) => {
 };
 
 export const logOut = async () => {
+    await lensClient.authentication.logout();
     await chrome.storage.local.clear();
     await chrome.runtime.sendMessage({ type: 'loggedOut' });
     const { clearProvider } = await import('./evm/ethers-service');
@@ -266,6 +266,8 @@ export const unfollowProfile = async (profileId: string): Promise<boolean> => {
 };
 
 export const enableProfileManager = async (): Promise<boolean> => {
+    const { ensureCorrectChain } = await import('./evm/ethers-service');
+
     await ensureCorrectChain();
 
     const res = await lensClient.profile.createChangeProfileManagersTypedData({

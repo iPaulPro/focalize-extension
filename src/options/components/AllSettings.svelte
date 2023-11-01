@@ -1,7 +1,7 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
-    import {useDispatcher, dispatcherDialogShown} from '../../lib/stores/preferences-store';
-    import SetDispatcherDialog from "../../window/components/SetDispatcherDialog.svelte";
+    import {useProfileManager, dispatcherDialogShown} from '../../lib/stores/preferences-store';
+    import SetDispatcherDialog from "../../window/components/SetProfileManagerDialog.svelte";
     import {currentUser} from "../../lib/stores/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";
     import Sidebar from "./Sidebar.svelte";
@@ -16,19 +16,19 @@
         $dispatcherDialogShown = true
 
         if ($currentUser?.canUseRelay === false) {
-            $useDispatcher = false;
+            $useProfileManager = false;
         }
     };
 
     $: activeTab = $queryParams.tab;
 
     $: if ($currentUser) {
-        if ($useDispatcher && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
+        if ($useProfileManager && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
             enableDispatcherDialog?.showModal();
         }
 
         if ($dispatcherDialogShown && $currentUser.canUseRelay === false) {
-            $useDispatcher = false;
+            $useProfileManager = false;
         }
     }
 </script>
@@ -65,7 +65,7 @@
 
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
-  <DialogOuter title="Enable Dispatcher">
+  <DialogOuter title="Enable Profile Manager">
     <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()} />
   </DialogOuter>
 </dialog>

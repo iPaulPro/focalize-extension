@@ -8,12 +8,14 @@
     import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
-    import {clearNotificationCache} from '../stores/cache-store';
-    import { getProfiles } from '../lens-service';
+    import { getProfiles, login } from '../lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
+    import { formatHandleV2toV1 } from '../utils/lens-utils';
+    import { getAccounts } from '../evm/ethers-service';
 
-    export let anchorNode: Node;
+    export let anchorNode: Node | undefined = undefined;
     export let showSettings = true;
+    export let standalone = false;
 
     let avatarError: Number[] = [];
 
@@ -23,20 +25,33 @@
 
     const showLogoutDialog = () => {
         const event = new CustomEvent('logout');
-        anchorNode.dispatchEvent(event);
+        anchorNode?.dispatchEvent(event);
     };
 
-    const switchProfiles = async (profile: ProfileFragment) => {
-        await clearNotificationCache();
-        $currentUser = userFromProfile(profile);
+    const onProfileSelected = async (profile: ProfileFragment) => {
+        if (profile.id === $currentUser?.profileId) {
+            return;
+        }
+
+        const authenticatedProfile = await login(profile);
+
+        $currentUser = userFromProfile(authenticatedProfile);
+        console.log('Authenticated user', $currentUser);
+
+        try {
+            await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
+            await chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true});
+        } catch (e) {
+            console.error('Error setting alarms', e)
+        }
     }
 </script>
 
 <div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
 
-  {#if $currentUser?.address}
+  {#await getAccounts() then accounts}
 
-    {#await getProfiles({ownedBy: [$currentUser.address]})}
+    {#await getProfiles({ownedBy: [accounts[0]]})}
 
       <div class="w-32 h-16 flex justify-center items-center">
         <LoadingSpinner/>
@@ -44,18 +59,20 @@
 
     {:then profiles}
 
-      <div class="px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-4"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 2.1l4 4-4 4"/>
-          <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4"/>
-          <path d="M21 11.8v2a4 4 0 0 1-4 4H4.2"/>
-        </svg>
+        <div class='px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default'>
+            {#if !standalone}
+                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' class='w-4'
+                     stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                    <path d='M17 2.1l4 4-4 4' />
+                    <path d='M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4' />
+                    <path d='M21 11.8v2a4 4 0 0 1-4 4H4.2' />
+                </svg>
+            {/if}
 
-        <div class="font-semibold text-xs">
-          Switch profiles
+            <div class='font-semibold text-xs'>
+                {standalone ? 'Select profile' : 'Switch profile'}
+            </div>
         </div>
-      </div>
 
       <div class="py-1">
 
@@ -65,7 +82,7 @@
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={() => switchProfiles(p)}>
+               on:click={() => onProfileSelected(p)}>
 
             {#if !avatarUrl || avatarError[index]}
               <InlineSVG src={ImageAvatar}
@@ -76,8 +93,12 @@
             {/if}
 
             <div class="flex flex-col gap-0.5 grow">
-              <div class="font-semibold text-sm text-black dark:text-white">{p.metadata?.displayName || p.handle?.localName || truncateAddress(p.ownedBy.address)}</div>
-              <div class="text-xs text-gray-600 dark:text-gray-300">{p.handle?.suggestedFormatted.localName}</div>
+              <div class="font-semibold text-sm text-black dark:text-white">
+                  {p.metadata?.displayName || p.handle?.localName || truncateAddress(p.ownedBy.address)}
+              </div>
+              <div class="text-xs text-gray-600 dark:text-gray-300">
+                  {p.handle ? `@${formatHandleV2toV1(p.handle.fullHandle)}` : truncateAddress(p.ownedBy.address)}
+              </div>
             </div>
 
             {#if $currentUser?.handle === p.handle?.fullHandle}
@@ -90,43 +111,45 @@
 
       </div>
 
-      <div on:click={() => {$darkMode = !$darkMode}}
-           class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-600">
-        <span class="text-black dark:text-white">
-          Dark mode
-        </span>
-        <DarkModeSwitch/>
-      </div>
+        {#if !standalone}
+            <div on:click={() => {$darkMode = !$darkMode}}
+                 class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-600">
+                <span class="text-black dark:text-white">
+                    Dark mode
+                </span>
+                <DarkModeSwitch/>
+            </div>
 
-      <div class="p-1 border-t border-gray-200 dark:border-gray-600">
-        {#if showSettings}
-          <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
-               hover:bg-orange-300 dark:hover:bg-gray-800"
-               on:click={launchOptions}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                 class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path
-                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-            <span class="text-sm text-black dark:text-white">Settings</span>
-          </button>
+            <div class="p-1 border-t border-gray-200 dark:border-gray-600">
+                {#if showSettings}
+                    <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
+                            hover:bg-orange-300 dark:hover:bg-gray-800"
+                            on:click={launchOptions}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                             class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        <span class="text-sm text-black dark:text-white">Settings</span>
+                    </button>
+                {/if}
+
+                <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
+                        hover:bg-orange-300 dark:hover:bg-gray-800"
+                        on:click={showLogoutDialog}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
+                    </svg>
+                    <span class="text-sm text-black dark:text-white">Log out</span>
+                </button>
+            </div>
+
         {/if}
-
-        <button type="button" class="w-full px-2 py-2.5 rounded-xl flex items-center gap-3 cursor-pointer
-             hover:bg-orange-300 dark:hover:bg-gray-800"
-             on:click={showLogoutDialog}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-               class="w-5 mx-1.5 text-gray-600 dark:text-gray-200"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 3H6a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4M16 17l5-5-5-5M19.8 12H9"/>
-          </svg>
-          <span class="text-sm text-black dark:text-white">Log out</span>
-        </button>
-      </div>
-
     {/await}
 
-  {/if}
+  {/await}
 </div>

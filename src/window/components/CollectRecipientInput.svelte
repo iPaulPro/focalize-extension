@@ -7,9 +7,8 @@
     import {createEventDispatcher, onMount} from 'svelte';
     import {buildTributeUsernameMenuTemplate} from '../../lib/user/tribute-username-template';
     import { getProfile } from '../../lib/lens-service';
-    import type { ProfileFragment } from '@lens-protocol/client';
     import type { Action } from 'svelte/action';
-    import { SimpleProfile } from '../../lib/user/SimpleProfile';
+    import type { SimpleProfile } from '../../lib/user/SimpleProfile';
 
     export let menuContainer: HTMLElement;
 

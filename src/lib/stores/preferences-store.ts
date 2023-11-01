@@ -10,7 +10,7 @@ import type WalletConnection from '../evm/WalletConnection';
 export const KEY_COMPACT_MODE = 'compactMode';
 export const KEY_DARK_MODE = 'darkMode';
 export const KEY_DISPATCHER_DIALOG_SHOWN = 'dispatcherDialogShown';
-export const KEY_USE_DISPATCHER = 'useDispatcher';
+export const KEY_USE_PROFILE_MANAGER = 'useDispatcher';
 export const KEY_USE_RELAY = 'useRelay';
 export const KEY_PIN_PROMPT_SHOWN = 'pinPromptShown';
 export const KEY_RELEASE_DISMISSED = 'releaseDismissed';
@@ -85,8 +85,8 @@ export const dispatcherDialogShown: Writable<boolean> = chromeStorageSync(
     false
 );
 
-export const useDispatcher: Writable<boolean> = chromeStorageSync(
-    KEY_USE_DISPATCHER,
+export const useProfileManager: Writable<boolean> = chromeStorageSync(
+    KEY_USE_PROFILE_MANAGER,
     true
 );
 
