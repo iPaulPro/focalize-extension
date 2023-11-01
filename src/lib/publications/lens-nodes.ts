@@ -3,6 +3,7 @@ import type {
     CommentFragment,
     PostFragment,
     QuoteFragment,
+    AnyPublicationMetadataFragment,
 } from '@lens-protocol/client';
 import {
     formatHandleV2toV1,
@@ -49,6 +50,29 @@ export const getNodeForPublicationMetadata = async (
     return storage.nodePost;
 };
 
+const getNodeForAnyPublicationMetadata = async (
+    metadata: AnyPublicationMetadataFragment
+): Promise<LensNode> => {
+    const storage = await chrome.storage.sync.get([
+        'nodeImage',
+        'nodeVideo',
+        'nodeAudio',
+        'nodeArticle',
+        'nodePost',
+    ]);
+    switch (metadata.__typename) {
+        case 'TextOnlyMetadataV3':
+            return storage.nodePost;
+        case 'ImageMetadataV3':
+            return storage.nodeImage;
+        case 'AudioMetadataV3':
+            return storage.nodeAudio;
+        case 'VideoMetadataV3':
+            return storage.nodeVideo;
+    }
+    return storage.nodePost;
+};
+
 export const getNodeForPublication = async (
     publication: CommentFragment | PostFragment | QuoteFragment
 ): Promise<LensNode> => {
@@ -88,10 +112,18 @@ export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {
     return node.baseUrl + node.posts.replace('{$id}', id);
 };
 
-export const getPublicationUrl = async (
+export const getUrlForPublicationMetadata = async (
     metadata: PublicationMetadata,
     postId: string
 ) => {
     const node = await getNodeForPublicationMetadata(metadata);
+    return getPublicationUrlFromNode(node, postId);
+};
+
+export const getUrlForAnyPublicationMetadata = async (
+    metadata: AnyPublicationMetadataFragment,
+    postId: string
+) => {
+    const node = await getNodeForAnyPublicationMetadata(metadata);
     return getPublicationUrlFromNode(node, postId);
 };

@@ -12,7 +12,7 @@ import {
 } from './lib/utils/utils';
 import { PublicationState } from './lib/stores/state-store';
 import {
-    getPublicationUrl,
+    getUrlForAnyPublicationMetadata,
     type LensNode,
 } from './lib/publications/lens-nodes';
 import {
@@ -55,10 +55,13 @@ import {
 import type {
     NotificationFragment,
     ProfileFragment,
+    AnyPublicationMetadataFragment,
 } from '@lens-protocol/client';
 import { LensTransactionStatusType } from '@lens-protocol/client';
-import { getNotificationPublication } from './lib/utils/lens-utils';
-import type { PublicationMetadata } from '@lens-protocol/metadata';
+import {
+    getNotificationPublication,
+    hasMetadata,
+} from './lib/utils/lens-utils';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -303,7 +306,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 const notifyOfPublishedPost = async (
-    metadata: PublicationMetadata,
+    metadata: AnyPublicationMetadataFragment,
     publicationId: string
 ) => {
     const localStorage = await chrome.storage.local.get('currentUser');
@@ -311,7 +314,7 @@ const notifyOfPublishedPost = async (
     if (!currentUser) return;
 
     const postId = `${currentUser.profileId}-${publicationId}`;
-    const url = await getPublicationUrl(metadata, postId);
+    const url = await getUrlForAnyPublicationMetadata(metadata, postId);
 
     chrome.notifications.create(url, {
         type: 'basic',
@@ -406,7 +409,6 @@ const onGetPublicationIdMessage = async (
 
     try {
         const txHash = req.post.txHash;
-        await waitForTransaction(txHash);
         const publicationStatus = await waitForTransaction({ txHash });
 
         if (
@@ -420,10 +422,13 @@ const onGetPublicationIdMessage = async (
             if (publication) {
                 const publicationId = publication.id;
                 res({ publicationId });
-                return notifyOfPublishedPost(
-                    req.post.metadata.mainContentFocus,
-                    publicationId
-                );
+
+                if (hasMetadata(publication)) {
+                    return notifyOfPublishedPost(
+                        publication.metadata,
+                        publicationId
+                    );
+                }
             }
         } else if (publicationStatus === LensTransactionStatusType.Failed) {
             port?.postMessage({ state: PublicationState.ERROR });

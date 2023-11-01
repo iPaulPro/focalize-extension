@@ -1,4 +1,5 @@
 import type {
+    AnyPublicationFragment,
     ArticleMetadataV3Fragment,
     AudioMetadataV3Fragment,
     CheckingInMetadataV3Fragment,
@@ -18,32 +19,38 @@ import type {
     ThreeDMetadataV3Fragment,
     TransactionMetadataV3Fragment,
     VideoMetadataV3Fragment,
+    AnyPublicationMetadataFragment,
 } from '@lens-protocol/client';
 import {
     type AnyMedia,
     type MediaAudio,
-    MediaAudioMimeType,
     type MediaImage,
-    MediaImageMimeType,
     type MediaVideo,
-    MediaVideoMimeType,
     type PublicationMetadata,
-    PublicationSchemaId,
     type EncryptableURI,
+    MediaAudioMimeType,
+    MediaImageMimeType,
+    MediaVideoMimeType,
+    PublicationSchemaId,
 } from '@lens-protocol/metadata';
 import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
 
-const hasMetadata = (
-    publication: CommentFragment | PostFragment | QuoteFragment
+export const hasMetadata = (
+    publication: AnyPublicationFragment
 ): publication is
-    | (CommentFragment & { metadata: any })
-    | (PostFragment & { metadata: any })
-    | (QuoteFragment & { metadata: any }) => publication.metadata !== undefined;
+    | (CommentFragment & { metadata: AnyPublicationMetadataFragment })
+    | (PostFragment & { metadata: AnyPublicationMetadataFragment })
+    | (QuoteFragment & { metadata: AnyPublicationMetadataFragment }) => {
+    if ('metadata' in publication) {
+        return publication.metadata !== undefined;
+    }
+    return false;
+};
 
 const isPublicationWithMetadata = (
     publication: CommentFragment | PostFragment | QuoteFragment,
     metadataType: string
-) => publication.metadata.__typename === metadataType;
+): boolean => publication.metadata.__typename === metadataType;
 
 export const isArticlePublication = (
     publication: CommentFragment | PostFragment | QuoteFragment

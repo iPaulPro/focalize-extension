@@ -114,6 +114,7 @@ export const connectWalletAndGetProfiles = async (
 export const login = async (
     profile: ProfileFragment
 ): Promise<ProfileFragment> => {
+    console.log('authenticate: Logging in with profile', profile);
     await clearNotificationCache();
 
     const { getSigner } = await import('./evm/ethers-service');
@@ -285,7 +286,6 @@ export const enableProfileManager = async (): Promise<boolean> => {
     const { id, typedData } = res.unwrap();
 
     const { signTypedData } = await import('./evm/ethers-service');
-
     const signedTypedData = await signTypedData(
         typedData.domain,
         typedData.types,
@@ -305,6 +305,10 @@ export const enableProfileManager = async (): Promise<boolean> => {
         // TODO submit enableProfileManager transaction directly on broadcast failure
         return false;
     }
+
+    console.log(
+        `Successfully changed profile managers with transaction with id ${onchainRelayResult}, txHash: ${onchainRelayResult.txHash}`
+    );
 
     return true;
 };
@@ -327,7 +331,7 @@ export const getNotifications = async (
 
 export const postOnChain = async (
     contentURI: string,
-    referenceModule: ReferenceModuleInput,
+    referenceModule?: ReferenceModuleInput,
     openActionModules?: OpenActionModuleInput[]
 ) =>
     lensClient.publication.postOnchain({
@@ -338,7 +342,7 @@ export const postOnChain = async (
 
 export const createPostTypedData = async (
     contentURI: string,
-    referenceModule: ReferenceModuleInput,
+    referenceModule?: ReferenceModuleInput,
     openActionModules?: OpenActionModuleInput[]
 ): Promise<CreateOnchainPostBroadcastItemResultFragment> => {
     const res = await lensClient.publication.createOnchainPostTypedData({

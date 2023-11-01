@@ -10,7 +10,7 @@
     import type {User} from "../../lib/user/user";
     import {
         getNodeForPublicationMetadata,
-        getPublicationUrl,
+        getUrlForPublicationMetadata,
     } from '../../lib/publications/lens-nodes';
     import type { PublicationMetadata } from '@lens-protocol/metadata';
     import { getCoverFromMetadata, isAudioMedia, isImageMedia, isVideoMedia } from '../../lib/utils/lens-utils';
@@ -31,7 +31,7 @@
 
     const onViewPostClick = async () => {
         if (!postMetaData || !postId) return;
-        const url = await getPublicationUrl(postMetaData, postId)
+        const url = await getUrlForPublicationMetadata(postMetaData, postId)
         chrome.notifications.clear(url);
         window.open(url, '_blank');
         window.close();

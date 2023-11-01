@@ -8,7 +8,7 @@
     import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
-    import { getProfiles, login } from '../lens-service';
+    import { getAllProfiles, login } from '../lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
     import { formatHandleV2toV1 } from '../utils/lens-utils';
     import { getAccounts } from '../evm/ethers-service';
@@ -34,7 +34,6 @@
         }
 
         const authenticatedProfile = await login(profile);
-
         $currentUser = userFromProfile(authenticatedProfile);
         console.log('Authenticated user', $currentUser);
 
@@ -44,6 +43,11 @@
         } catch (e) {
             console.error('Error setting alarms', e)
         }
+    };
+
+    const getSortedProfiles = async (account: string): Promise<ProfileFragment[]> => {
+        const profiles = await getAllProfiles({ ownedBy: [account] });
+        return profiles.sort((a, b) => b.stats.publications - a.stats.publications);
     }
 </script>
 
@@ -51,7 +55,7 @@
 
   {#await getAccounts() then accounts}
 
-    {#await getProfiles({ownedBy: [accounts[0]]})}
+    {#await getSortedProfiles(accounts[0])}
 
       <div class="w-32 h-16 flex justify-center items-center">
         <LoadingSpinner/>
@@ -74,9 +78,9 @@
             </div>
         </div>
 
-      <div class="py-1">
+      <div class="py-1 overflow-y-scroll {standalone ? 'max-h-96' : 'max-h-32'}">
 
-        {#each profiles.items as p, index}
+        {#each profiles as p, index}
 
           {@const avatarUrl = p.handle ? getAvatarForLensHandle(p.handle.fullHandle) : getAvatarFromAddress(p.ownedBy.address)}
 

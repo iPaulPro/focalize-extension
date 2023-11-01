@@ -267,25 +267,26 @@
         try {
             postMetaData = buildMetadata();
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
-            // const openActionModules: OpenActionModuleInput[] = [];
-            // if (collectModuleParams) {
-            //     openActionModules.push({
-            //         collectOpenAction: collectModuleParams
-            //     });
-            // }
-            // const publicationId = await submitPost(
-            //     $currentUser,
-            //     $draftId ?? uuid(),
-            //     postMetaData,
-            //     openActionModules,
-            //     referenceModuleParams,
-            //     $useDispatcher,
-            // );
-            //
-            // postId = `${$currentUser.profileId}-${publicationId}`;
-            // console.log('onSubmitClick: post id', postId);
-            //
-            // clearPostState();
+            let openActionModules: OpenActionModuleInput[] | undefined = undefined;
+            if (collectModuleParams) {
+                openActionModules = [];
+                openActionModules.push({
+                    collectOpenAction: collectModuleParams
+                });
+            }
+            const publicationId = await submitPost(
+                $currentUser,
+                $draftId ?? uuid(),
+                postMetaData,
+                openActionModules,
+                referenceModuleParams,
+                $useProfileManager,
+            );
+
+            postId = `${$currentUser.profileId}-${publicationId}`;
+            console.log('onSubmitClick: post id', postId);
+
+            clearPostState();
         } catch (e) {
             console.error(e);
             toast.error('Error creating post', {duration: 5000});

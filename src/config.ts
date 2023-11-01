@@ -7,7 +7,7 @@ const getParamOrExit = (name: string) => {
     return param;
 };
 
-export const APP_ID: string = 'Focalize';
+export const APP_ID: string = 'focalize';
 
 export const LENS_API: string = getParamOrExit('VITE_LENS_API');
 

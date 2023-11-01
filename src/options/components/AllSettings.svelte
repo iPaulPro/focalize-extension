@@ -1,7 +1,7 @@
 <script lang="ts">
     import Toolbar from './Toolbar.svelte';
     import {useProfileManager, dispatcherDialogShown} from '../../lib/stores/preferences-store';
-    import SetDispatcherDialog from "../../window/components/SetProfileManagerDialog.svelte";
+    import SetProfileManagerDialog from "../../window/components/SetProfileManagerDialog.svelte";
     import {currentUser} from "../../lib/stores/user-store";
     import GeneralSettings from "./GeneralSettings.svelte";
     import Sidebar from "./Sidebar.svelte";
@@ -23,6 +23,7 @@
     $: activeTab = $queryParams.tab;
 
     $: if ($currentUser) {
+        console.log('currentUser', $currentUser, $useProfileManager);
         if ($useProfileManager && !$currentUser.canUseRelay && !enableDispatcherDialog?.open) {
             enableDispatcherDialog?.showModal();
         }
@@ -66,7 +67,7 @@
 <dialog id="enableDispatcherDialog" bind:this={enableDispatcherDialog} on:close={onDispatcherDialogClosed}
         class="w-2/3 max-w-md rounded-2xl shadow-2xl dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0">
   <DialogOuter title="Enable Profile Manager">
-    <SetDispatcherDialog on:success={() => enableDispatcherDialog?.close()} />
+    <SetProfileManagerDialog on:success={() => enableDispatcherDialog?.close()} />
   </DialogOuter>
 </dialog>
 

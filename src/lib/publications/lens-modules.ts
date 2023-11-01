@@ -20,64 +20,63 @@ export type SelectOption<Type> = {
     icon?: string;
 };
 
-export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput>[] = [
-    {
-        value: {
-            followerOnlyReferenceModule: false,
+export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput | undefined>[] =
+    [
+        {
+            value: undefined,
+            label: 'Everyone can reply',
+            summary: 'Any Lens user can add a comment',
+            icon: 'earth',
         },
-        label: 'Everyone can reply',
-        summary: 'Any Lens user can add a comment',
-        icon: 'earth',
-    },
-    {
-        value: {
-            followerOnlyReferenceModule: true,
+        {
+            value: {
+                followerOnlyReferenceModule: true,
+            } satisfies ReferenceModuleInput,
+            label: 'Followers only',
+            summary: 'Only your followers can comment',
+            icon: 'followers',
         },
-        label: 'Followers only',
-        summary: 'Only your followers can comment',
-        icon: 'followers',
-    },
-    {
-        value: {
-            degreesOfSeparationReferenceModule: {
-                commentsRestricted: true,
-                mirrorsRestricted: false,
-                quotesRestricted: false,
-                degreesOfSeparation: 0,
-            },
+        {
+            value: {
+                degreesOfSeparationReferenceModule: {
+                    commentsRestricted: true,
+                    mirrorsRestricted: false,
+                    quotesRestricted: false,
+                    degreesOfSeparation: 1,
+                },
+            } satisfies ReferenceModuleInput,
+            label: 'Friends only',
+            summary: 'Only profiles that you follow can comment',
+            icon: 'friends',
         },
-        label: 'No comments',
-        summary: 'No one can comment, including you',
-        icon: 'lock',
-    },
-    {
-        value: {
-            degreesOfSeparationReferenceModule: {
-                commentsRestricted: true,
-                mirrorsRestricted: false,
-                quotesRestricted: false,
-                degreesOfSeparation: 1,
-            },
+        {
+            value: {
+                degreesOfSeparationReferenceModule: {
+                    commentsRestricted: true,
+                    mirrorsRestricted: false,
+                    quotesRestricted: false,
+                    degreesOfSeparation: 2,
+                },
+            } satisfies ReferenceModuleInput,
+            label: 'Friends of friends',
+            summary:
+                'Only profiles that you follow, and the profiles they\nfollow, can comment',
+            icon: 'friends_of_friends',
         },
-        label: 'Friends only',
-        summary: 'Only profiles that you follow can comment',
-        icon: 'friends',
-    },
-    {
-        value: {
-            degreesOfSeparationReferenceModule: {
-                commentsRestricted: true,
-                mirrorsRestricted: false,
-                quotesRestricted: false,
-                degreesOfSeparation: 2,
-            },
+        {
+            value: {
+                degreesOfSeparationReferenceModule: {
+                    commentsRestricted: true,
+                    mirrorsRestricted: false,
+                    quotesRestricted: false,
+                    degreesOfSeparation: 0,
+                },
+            } satisfies ReferenceModuleInput,
+            label: 'No comments',
+            summary: 'No one can comment, including you',
+            icon: 'lock',
         },
-        label: 'Friends of friends',
-        summary:
-            'Only profiles that you follow, and the profiles they\nfollow, can comment',
-        icon: 'friends_of_friends',
-    },
-];
+    ];
 
 // export const CONTENT_WARNING_ITEMS: SelectOption<PublicationContentWarning | null>[] =
 //     [
@@ -95,10 +94,6 @@ export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
     { value: 72, label: '3 days' },
     { value: 168, label: '1 week' },
 ];
-
-export const DEFAULT_REFERENCE_MODULE: ReferenceModuleInput = {
-    followerOnlyReferenceModule: false,
-};
 
 export const getEnabledModuleCurrencies = async (): Promise<
     Erc20Fragment[]

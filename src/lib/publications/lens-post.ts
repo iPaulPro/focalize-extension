@@ -39,7 +39,7 @@ import {
     isRelaySuccess,
 } from '@lens-protocol/client';
 import { getIrys } from '../irys-service';
-import { DEFAULT_REFERENCE_MODULE } from './lens-modules';
+import { formatHandleV2toV1 } from '../utils/lens-utils';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -54,6 +54,9 @@ const uploadMetadata = async (
     return tx.id;
 };
 
+const defaultTitle = (handle?: string): string =>
+    `Post by @${(handle && formatHandleV2toV1(handle)) || 'anonymous'}`;
+
 export const generateTextPostMetadata = (
     handle: string | undefined,
     content: string,
@@ -66,7 +69,7 @@ export const generateTextPostMetadata = (
         tags,
         // contentWarning,
         marketplace: {
-            name: `Post by @${handle || 'anonymous'}`,
+            name: defaultTitle(handle),
             attributes,
         },
         locale,
@@ -92,7 +95,7 @@ export const generateImagePostMetadata = (
         // contentWarning,
         locale,
         marketplace: {
-            name: title || `Post by @${handle || 'anonymous'}`,
+            name: title || defaultTitle(handle),
             description,
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
         },
@@ -132,7 +135,7 @@ export const generateVideoPostMetadata = (
         attachments,
         content,
         marketplace: {
-            name: title || `Post by @${handle || 'anonymous'}`,
+            name: title || defaultTitle(handle),
             attributes,
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
             animation_url: animationUrl,
@@ -189,7 +192,9 @@ export const generateAudioPostMetadata = (
         // contentWarning,
         locale,
         marketplace: {
-            name: artist ? `${artist} - ${title}` : title,
+            name: artist
+                ? `${artist} - ${title ?? 'untitled'}`
+                : title ?? defaultTitle(handle),
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
             attributes,
             animation_url: animationUrl,
@@ -202,7 +207,7 @@ export const generateAudioPostMetadata = (
 const createPostTransaction = async (
     contentURI: string,
     openActionModules?: OpenActionModuleInput[],
-    referenceModule: ReferenceModuleInput = DEFAULT_REFERENCE_MODULE
+    referenceModule?: ReferenceModuleInput
 ): Promise<string | null> => {
     await ensureCorrectChain();
 
@@ -258,7 +263,7 @@ export const submitPost = async (
     draftId: string,
     metadata: PublicationMetadata,
     openActionModules?: OpenActionModuleInput[],
-    referenceModule: ReferenceModuleInput = DEFAULT_REFERENCE_MODULE,
+    referenceModule?: ReferenceModuleInput,
     useLensManager: boolean = true
 ): Promise<string> => {
     const profileId = user.profileId;
@@ -267,7 +272,7 @@ export const submitPost = async (
             metadata
         )}, referenceModule = ${JSON.stringify(
             referenceModule
-        )}, collectModule = ${JSON.stringify(openActionModules)}`
+        )}, openActionModules = ${JSON.stringify(openActionModules)}`
     );
 
     const authenticated = await isAuthenticated();
