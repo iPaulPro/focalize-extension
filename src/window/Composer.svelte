@@ -89,7 +89,7 @@
     let insertAtSelection: (text: string) => {};
 
     // let postContentWarning = CONTENT_WARNING_ITEMS[0];
-    let referenceItem: SelectOption<ReferenceModuleInput> = REFERENCE_ITEMS[0];
+    let referenceItem: SelectOption<ReferenceModuleInput | undefined> = REFERENCE_ITEMS[0];
 
     let postId: string;
     let isSubmittingPost = false;
@@ -197,14 +197,15 @@
             attachment.cover = `ipfs://${$cover.cid}` as URI;
         }
 
-        let metadata: PublicationMetadata | undefined = undefined
+        let metadata: PublicationMetadata | undefined = undefined;
+        const postContent = $content?.length ? $content : undefined;
 
         if (isImageMedia(attachment)) {
             metadata = generateImagePostMetadata(
                 $currentUser.handle,
-                $attachments,
+                attachment,
                 $title,
-                $content,
+                postContent,
                 $postTags,
                 $description,
                 locale,
@@ -212,10 +213,10 @@
         } else if (isVideoMedia(attachment)) {
             metadata = generateVideoPostMetadata(
                 $currentUser.handle,
-                $attachments,
+                attachment,
                 $title,
                 $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                $content,
+                postContent,
                 $postTags,
                 $description,
                 locale,
@@ -223,10 +224,10 @@
         } else if (isAudioMedia(attachment)) {
             metadata = generateAudioPostMetadata(
                 $currentUser.handle,
-                $attachments,
+                attachment,
                 $title,
                 $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
-                $content,
+                postContent,
                 $author,
                 $postTags,
                 $description,

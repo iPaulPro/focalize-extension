@@ -15,6 +15,7 @@ import {
     type BroadcastRequest,
     type Erc20Fragment,
     type AnyPublicationFragment,
+    isRelaySuccess,
 } from '@lens-protocol/client';
 import type {
     IObservableStorageProvider,
@@ -301,18 +302,17 @@ export const enableProfileManager = async (): Promise<boolean> => {
         });
 
     const onchainRelayResult = broadcastOnchainResult.unwrap();
+    if (isRelaySuccess(onchainRelayResult)) {
+        console.log(
+            `Successfully changed profile managers with transaction with id ${onchainRelayResult}, txHash: ${onchainRelayResult.txHash}`
+        );
 
-    if (onchainRelayResult.__typename === 'RelayError') {
-        console.log(`Something went wrong`);
-        // TODO submit enableProfileManager transaction directly on broadcast failure
-        return false;
+        return true;
     }
 
-    console.log(
-        `Successfully changed profile managers with transaction with id ${onchainRelayResult}, txHash: ${onchainRelayResult.txHash}`
-    );
-
-    return true;
+    console.warn(`enableProfileManager: Something went wrong`);
+    // TODO submit enableProfileManager transaction directly on broadcast failure
+    return false;
 };
 
 export const getNotifications = async (
@@ -330,6 +330,9 @@ export const getNotifications = async (
 
     return res.unwrap();
 };
+
+export const postOnMomoka = async (contentURI: string) =>
+    lensClient.publication.postOnMomoka({ contentURI });
 
 export const postOnChain = async (
     contentURI: string,

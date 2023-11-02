@@ -12,6 +12,7 @@ import {
     createPostTypedData,
     isAuthenticated,
     postOnChain,
+    postOnMomoka,
 } from '../lens-service';
 import {
     PublicationMetadataSchema,
@@ -26,9 +27,9 @@ import {
     type PublicationMetadata,
     type AnyMedia,
     type MarketplaceMetadataAttribute,
-    MediaImageMimeType,
-    MediaVideoMimeType,
-    MediaAudioMimeType,
+    type MediaImage,
+    type MediaVideo,
+    type MediaAudio,
     MarketplaceMetadataAttributeDisplayType,
 } from '@lens-protocol/metadata';
 
@@ -37,9 +38,10 @@ import {
     type OpenActionModuleInput,
     type ReferenceModuleInput,
     isRelaySuccess,
+    isCreateMomokaPublicationResult,
 } from '@lens-protocol/client';
 import { getIrys } from '../irys-service';
-import { formatHandleV2toV1 } from '../utils/lens-utils';
+import { formatHandleV2toV1, getMediaImageMimeType } from '../utils/lens-utils';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -78,18 +80,17 @@ export const generateTextPostMetadata = (
 
 export const generateImagePostMetadata = (
     handle: string | undefined,
-    attachments: AnyMedia[],
+    mediaImage: MediaImage,
     title?: string,
     content?: string,
     tags?: string[],
     description: string | undefined = content,
     locale: string = 'en',
-    item: string = attachments[0].item,
-    type: MediaImageMimeType = attachments[0].type as MediaImageMimeType
+    attachments?: AnyMedia[]
 ): ImageMetadata =>
     image({
         attachments,
-        image: { item, type },
+        image: mediaImage,
         content,
         tags,
         // contentWarning,
@@ -114,7 +115,7 @@ const createVideoAttributes = (): MarketplaceMetadataAttribute[] => {
 
 export const generateVideoPostMetadata = (
     handle: string | undefined,
-    attachments: AnyMedia[],
+    mediaVideo: MediaVideo,
     title?: string,
     image?: string,
     content?: string,
@@ -122,23 +123,17 @@ export const generateVideoPostMetadata = (
     description: string | undefined = content,
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = createVideoAttributes(),
-    animationUrl: string = attachments[0].item,
-    videoMimeType: MediaVideoMimeType = attachments[0]
-        .type as MediaVideoMimeType
+    attachments?: AnyMedia[]
 ): VideoMetadata =>
     video({
-        video: {
-            cover: image,
-            item: animationUrl,
-            type: videoMimeType,
-        },
+        video: mediaVideo,
         attachments,
         content,
         marketplace: {
             name: title || defaultTitle(handle),
             attributes,
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
-            animation_url: animationUrl,
+            animation_url: mediaVideo.item,
             image,
             description,
         },
@@ -168,7 +163,7 @@ export const createAudioAttributes = (
 
 export const generateAudioPostMetadata = (
     handle: string | undefined,
-    attachments: AnyMedia[],
+    audioMedia: MediaAudio,
     title?: string,
     image?: string,
     content?: string,
@@ -177,12 +172,12 @@ export const generateAudioPostMetadata = (
     description: string | undefined = content,
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = createAudioAttributes(artist),
-    animationUrl: string = attachments[0].item
+    attachments?: AnyMedia[]
 ): AudioMetadata => {
     return audio({
         audio: {
-            item: attachments[0].item,
-            type: attachments[0].type as MediaAudioMimeType,
+            item: audioMedia.item,
+            type: audioMedia.type,
             cover: image,
             artist,
         },
@@ -197,7 +192,7 @@ export const generateAudioPostMetadata = (
                 : title ?? defaultTitle(handle),
             external_url: LENS_PREVIEW_NODE + 'u/' + handle,
             attributes,
-            animation_url: animationUrl,
+            animation_url: audioMedia.item,
             description,
         },
         appId: APP_ID,
@@ -258,6 +253,52 @@ const createPostTransaction = async (
     // return tx.hash;
 };
 
+const createPostOnChain = async (
+    contentURI: string,
+    referenceModule?: ReferenceModuleInput,
+    openActionModules?: OpenActionModuleInput[]
+): Promise<string | null> => {
+    const res = await postOnChain(
+        contentURI,
+        referenceModule,
+        openActionModules
+    );
+
+    if (res.isFailure()) {
+        console.error('Error creating onchain post', res.error);
+    } else {
+        const relayResult = res.unwrap();
+        if (isRelaySuccess(relayResult)) {
+            console.log(
+                'submitPost: created post with relay tx',
+                relayResult.txHash
+            );
+            return relayResult.txHash;
+        } else {
+            console.error('Error creating post with relay', relayResult.reason);
+            // TODO notify the user that the post tx relay failed
+        }
+    }
+
+    return null;
+};
+
+export const createPostOnMomoka = async (
+    contentURI: string
+): Promise<string | undefined> => {
+    const result = await postOnMomoka(contentURI);
+
+    const resultValue = result.unwrap();
+
+    if (!isCreateMomokaPublicationResult(resultValue)) {
+        console.log(`createPostOnMomoka: Something went wrong`, resultValue);
+        return undefined;
+    }
+
+    console.log(`createPostOnMomoka: Created post on Momoka`, resultValue);
+    return resultValue.id;
+};
+
 export const submitPost = async (
     user: User,
     draftId: string,
@@ -290,7 +331,7 @@ export const submitPost = async (
 
     const metadataId: string = await uploadMetadata(publicationMetadata);
     const contentURI = `https://gateway.irys.xyz/${metadataId}`;
-    console.log('submitPost: Uploaded metadata to IPFS with URI', contentURI);
+    console.log('submitPost: Uploaded metadata to Irys with URI', contentURI);
 
     // At this point we know the metadata is valid and available on IPFS, so show optimistic completion
     publicationState.set(PublicationState.SUBMITTED);
@@ -298,28 +339,30 @@ export const submitPost = async (
     let txHash: string | null = null;
 
     if (useLensManager && user.canUseRelay) {
-        const res = await postOnChain(
-            contentURI,
-            referenceModule,
-            openActionModules
-        );
-
-        if (res.isFailure()) {
-            console.error('Error creating onchain post', res.error);
+        console.log('submitPost: Using Lens Manager to create post');
+        if (referenceModule || openActionModules?.length) {
+            console.log('submitPost: Creating post on chain');
+            txHash = await createPostOnChain(
+                contentURI,
+                referenceModule,
+                openActionModules
+            );
         } else {
-            const relayResult = res.unwrap();
-            if (isRelaySuccess(relayResult)) {
-                txHash = relayResult.txHash;
-                console.log('submitPost: created post with relay', txHash);
-            } else {
-                console.error(
-                    'Error creating post with relay',
-                    relayResult.reason
+            console.log('submitPost: Creating post on Momoka');
+            const publicationId = await createPostOnMomoka(contentURI);
+            if (publicationId) {
+                console.log(
+                    'submitPost: Created post on Momoka',
+                    publicationId
                 );
-                // TODO notify the user that the post tx relay failed
+                publicationState.set(PublicationState.SUCCESS);
+                await deleteDraft(draftId);
+                return publicationId;
             }
         }
     }
+
+    console.log('submitPost: Creating post transaction manually');
 
     if (!txHash) {
         txHash = await createPostTransaction(
