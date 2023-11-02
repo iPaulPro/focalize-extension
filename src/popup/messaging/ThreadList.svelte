@@ -112,6 +112,15 @@
         const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
         const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
         const requests = unfilteredThreads.filter(thread =>
+            !isFollowingOrKnownSender(thread, knownSenders)
+        );
+        return requests.length;
+    };
+
+    const getUnreadRequestsCount = async (): Promise<number> => {
+        const localStorage = await chrome.storage.local.get([KEY_KNOWN_SENDERS]);
+        const knownSenders = localStorage[KEY_KNOWN_SENDERS] || [];
+        const requests = unfilteredThreads.filter(thread =>
             !isFollowingOrKnownSender(thread, knownSenders) && thread.unread
         );
         return requests.length;
@@ -205,17 +214,21 @@
         <div class="flex gap-1 items-center grow justify-end">
             {#if $messagesHideUnknownSenders && $selectedMessagesTab !== 3}
                 {#await getRequestsCount() then requestsCount}
-                    {@const hasRequests = requestsCount > 0}
-                    <button type="button"
-                            class="text-xs hover:opacity-100 rounded-full px-2 py-1 opacity-70
-                                  {hasRequests ? 'font-bold' : 'font-normal'}"
-                            on:click={() => {$selectedMessagesTab = 3}}
-                            use:tippy={{
+                    {#if requestsCount > 0}
+                        {#await getUnreadRequestsCount() then unreadRequestsCount}
+                            {@const hasUnreadRequests = unreadRequestsCount > 0}
+                            <button type="button"
+                                    class="text-xs hover:opacity-100 rounded-full px-2 py-1 opacity-70
+                                  {hasUnreadRequests ? 'font-bold' : 'font-normal'}"
+                                    on:click={() => {$selectedMessagesTab = 3}}
+                                    use:tippy={{
                               delay: 500,
                               content: 'Requests are messages from addresses you\'ve never spoken with and Lens Profiles you\'re not following'
                              }}>
-                        {hasRequests ? requestsCount + ' requests' : 'Requests'}
-                    </button>
+                                {hasUnreadRequests ? unreadRequestsCount + ' requests' : 'Requests'}
+                            </button>
+                        {/await}
+                    {/if}
                 {/await}
             {/if}
             <button type="button"
@@ -250,7 +263,7 @@
           <path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"/>
           <path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16a2 2 0 002-2v-6l-3.4-6.9A2 2 0 0016.8 4H7.2a2 2 0 00-1.8 1.1z"/>
         </svg>
-        <div class="opacity-80 text-sm">
+        <div class="opacity-40 font-semibold text-sm">
           No messages
         </div>
       </div>

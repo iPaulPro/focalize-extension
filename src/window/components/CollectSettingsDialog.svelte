@@ -22,6 +22,7 @@
     import CollectFeeSplitInput from './CollectFeeSplitInput.svelte';
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
+    import { formatHandleV2toV1 } from '../../lib/utils/lens-utils';
 
     export let isCompact: boolean = false;
 
@@ -268,7 +269,9 @@
         $hasReferralFee = $collectSettings.referralFee !== undefined;
         $splitRevenue = $collectSettings.recipients?.length !== undefined;
 
-        currencies = await getEnabledModuleCurrencies();
+        const order = ['USDC', 'DAI', 'WETH', 'WMATIC'];
+        currencies = (await getEnabledModuleCurrencies())
+            .sort((a, b) => order.indexOf(a.symbol) - order.indexOf(b.symbol));
 
         console.log('onMount', $collectSettings);
         if ($collectSettings.endDate) {
@@ -451,7 +454,7 @@
                                             {#each $collectSettings.recipients as recipient, index}
 
                                                 {@const avatarUrl = recipient.identity?.lens
-                                                    ? getAvatarForLensHandle(recipient.identity.lens)
+                                                    ? getAvatarForLensHandle(formatHandleV2toV1(recipient.identity.lens))
                                                     : getAvatarFromAddress(recipient.address)}
 
                                                 <div class="flex items-center gap-2">
@@ -467,7 +470,9 @@
                                                                  content: recipient.address,
                                                                  appendTo: 'parent',
                                                                })}>
-                                                                {recipient.identity?.lens ?? recipient.identity?.ens ?? truncateAddress(recipient.address)}
+                                                                { (recipient.identity?.lens && formatHandleV2toV1(recipient.identity.lens))
+                                                                ?? recipient.identity?.ens
+                                                                ?? truncateAddress(recipient.address)}
                                                             </div>
                                                             {#if $collectSettings.price && recipient.split && $collectSettings.token}
                                                                 <div class="text-xs text-gray-500 dark:text-gray-400">

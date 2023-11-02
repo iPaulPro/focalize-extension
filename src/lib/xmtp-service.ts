@@ -613,10 +613,28 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 const getPeerProfile = async (
     conversation: Conversation
 ): Promise<ProfileFragment | undefined> => {
-    const res = await getProfiles({
+    console.log('getPeerProfile: conversation', conversation.topic);
+    const profilesRes = await getProfiles({
         ownedBy: [conversation.peerAddress],
     });
-    return res.items?.[0];
+    console.log('getPeerProfile: profilesRes', profilesRes);
+
+    if (isLensConversation(conversation)) {
+        const { profileIdA, profileIdB } = getProfilesFromConversationTopic(
+            conversation.topic
+        );
+        console.log(
+            'getPeerProfile: profileIdA',
+            profileIdA,
+            'profileIdB',
+            profileIdB
+        );
+        return profilesRes.items.find(
+            (profile) => profile.id === profileIdA || profile.id === profileIdB
+        );
+    }
+
+    return profilesRes.items?.[0];
 };
 
 export const getPeerName = (

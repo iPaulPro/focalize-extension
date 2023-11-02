@@ -1,6 +1,7 @@
 import type { TributeItem } from 'tributejs';
 import type { SimpleProfile } from './SimpleProfile';
 import { formatHandleV2toV1 } from '../utils/lens-utils';
+import { truncateAddress } from '../utils/utils';
 
 export const buildTributeUsernameMenuTemplate = (
     item: TributeItem<SimpleProfile>
@@ -14,7 +15,7 @@ export const buildTributeUsernameMenuTemplate = (
     const subtextView = document.createElement('div');
     subtextView.className = 'text-gray-600 dark:text-gray-200 text-sm truncate';
     subtextView.innerText =
-        profile.displayName || profile?.ens || profile.ownedBy;
+        profile.displayName || profile?.ens || truncateAddress(profile.ownedBy);
 
     const textContainer = document.createElement('div');
     textContainer.className = 'flex-1 pl-1 mr-8 overflow-hidden';

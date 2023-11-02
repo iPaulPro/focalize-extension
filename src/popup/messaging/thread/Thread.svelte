@@ -19,6 +19,7 @@
     import NewThreadRecipientInput from './components/NewThreadRecipientInput.svelte';
     import {newThread} from '../../../lib/xmtp-service.js';
     import {getProfiles} from '../../../lib/lens-service';
+    import { formatHandleV2toV1 } from '../../../lib/utils/lens-utils';
 
     let loading = true;
     let thread: Thread;
@@ -107,7 +108,7 @@
             && thread?.peer?.profile
             && peerName !== thread.peer.profile.handle?.fullHandle
         ) {
-            return thread.peer.profile.handle?.fullHandle ?? null;
+            return thread.peer.profile.handle?.fullHandle ? formatHandleV2toV1(thread.peer.profile.handle.fullHandle) : null;
         } else if (thread?.peer?.wallet?.ens && peerName !== thread.peer.wallet?.ens) {
             return thread.peer.wallet?.ens;
         }

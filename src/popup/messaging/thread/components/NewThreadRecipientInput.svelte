@@ -17,6 +17,7 @@
     import type {Action} from 'svelte/action';
     import { getProfile } from '../../../../lib/lens-service';
     import type { SimpleProfile } from '../../../../lib/user/SimpleProfile';
+    import { formatHandleV1toV2, formatHandleV2toV1 } from '../../../../lib/utils/lens-utils';
 
     const dispatch = createEventDispatcher();
 
@@ -37,6 +38,7 @@
             replaceTextSuffix: '',
             menuShowMinLength: 2,
             noMatchTemplate: () => '',
+            selectTemplate: (item: TributeItem<SimpleProfile>) => formatHandleV2toV1(item.original.handle!),
         });
 
         plainTextTribute.attach(node);
@@ -68,7 +70,7 @@
         error = undefined;
 
         if (recipient.endsWith('.lens') || recipient.endsWith('.test')) {
-            peer.profile = await getProfile({handle: recipient}) ?? undefined;
+            peer.profile = await getProfile({handle: formatHandleV1toV2(recipient)}) ?? undefined;
         } else if (recipient.endsWith('.eth')) {
             const address = await getAddressFromEns(recipient);
             if (!address) {

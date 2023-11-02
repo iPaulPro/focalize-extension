@@ -12,6 +12,7 @@
     import type { ProfileFragment } from '@lens-protocol/client';
     import { formatHandleV2toV1 } from '../utils/lens-utils';
     import { getAccounts } from '../evm/ethers-service';
+    import {slide} from 'svelte/transition';
 
     export let anchorNode: Node | undefined = undefined;
     export let showSettings = true;
@@ -47,11 +48,13 @@
 
     const getSortedProfiles = async (account: string): Promise<ProfileFragment[]> => {
         const profiles = await getAllProfiles({ ownedBy: [account] });
+        console.log('getSortedProfiles: profiles', profiles);
         return profiles.sort((a, b) => b.stats.publications - a.stats.publications);
     }
 </script>
 
-<div class="bg-white dark:bg-gray-700 rounded-xl flex flex-col shadow-lg border border-gray-200 dark:border-gray-600">
+<div class="bg-white rounded-xl flex flex-col shadow-lg border border-gray-200
+     {standalone ? 'dark:bg-gray-800 dark:border-gray-700' : 'dark:bg-gray-700 dark:border-gray-600'}">
 
   {#await getAccounts() then accounts}
 
@@ -63,29 +66,50 @@
 
     {:then profiles}
 
-        <div class='px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default'>
-            {#if !standalone}
+        {#if standalone}
+            <div class="flex flex-col gap-1 px-5 pt-5 pb-2">
+                <div class="text-xl font-semibold">
+                    Select a profile
+                </div>
+                <div class="opacity-60 text-sm">
+                    Choose a Lens profile to sign in with.
+                </div>
+            </div>
+
+            <div class="absolute right-3 top-3">
+                <form method="dialog">
+                    <button class="p-2 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-full transition-none
+                            focus:outline-orange-400 focus:ring-orange-400 focus:ring-offset-orange-200">
+                        <svg class="w-5 h-5 text-gray-500 dark:text-gray-300" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        {:else}
+            <div class='px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default'>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' class='w-4'
                      stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
                     <path d='M17 2.1l4 4-4 4' />
                     <path d='M3 12.2v-2a4 4 0 0 1 4-4h12.8M7 21.9l-4-4 4-4' />
                     <path d='M21 11.8v2a4 4 0 0 1-4 4H4.2' />
                 </svg>
-            {/if}
-
-            <div class='font-semibold text-xs'>
-                {standalone ? 'Select profile' : 'Switch profile'}
+                <div class='font-semibold text-xs'>
+                    Switch profile
+                </div>
             </div>
-        </div>
+        {/if}
 
-      <div class="py-1 overflow-y-scroll {standalone ? 'max-h-96' : 'max-h-32'}">
+      <div class="py-1 overflow-y-auto {standalone ? 'max-h-96 px-1' : 'max-h-32'}" in:slide>
 
         {#each profiles as p, index}
 
           {@const avatarUrl = p.handle ? getAvatarForLensHandle(p.handle.fullHandle) : getAvatarFromAddress(p.ownedBy.address)}
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
-               hover:bg-orange-300 dark:hover:bg-gray-800"
+               hover:bg-orange-300 {standalone ? 'dark:hover:bg-gray-900' : 'dark:hover:bg-gray-800'} "
                on:click={() => onProfileSelected(p)}>
 
             {#if !avatarUrl || avatarError[index]}

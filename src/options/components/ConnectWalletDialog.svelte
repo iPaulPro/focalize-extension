@@ -1,8 +1,9 @@
 <script lang="ts">
+    // @ts-ignore
+    import InlineSVG from 'svelte-inline-svg';
     import metaMaskLogo from '../../assets/metamask.svg';
     import frameIcon from '../../assets/ic_frame_app.png';
     import browserWalletIcon from '../../assets/ic_browser_wallet.svg';
-    import InlineSVG from 'svelte-inline-svg';
     import {createEventDispatcher, onMount} from 'svelte';
     import {slide} from 'svelte/transition';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';

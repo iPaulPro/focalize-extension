@@ -1,6 +1,5 @@
 <script lang="ts">
     import { DateTime } from 'luxon';
-    import InfiniteLoading from 'svelte-infinite-loading';
     import type { DecodedMessage } from '@xmtp/xmtp-js';
     import { getMessagesStream, type Thread } from '../../../../lib/xmtp-service';
     import { messageTimestamps } from '../../../../lib/stores/cache-store';

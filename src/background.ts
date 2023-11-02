@@ -59,6 +59,7 @@ import type {
 } from '@lens-protocol/client';
 import { LensTransactionStatusType } from '@lens-protocol/client';
 import {
+    formatHandleV2toV1,
     getNotificationPublication,
     hasMetadata,
 } from './lib/utils/lens-utils';
@@ -108,29 +109,29 @@ const createNotificationMessage = (
             return (
                 truncate(contentStripped, 25) ??
                 publication?.metadata?.marketplace?.name ??
-                `@${currentUser.handle}`
+                `@${formatHandle(currentUser.handle)}`
             );
         case 'CommentNotification':
             return (
                 contentStripped ??
                 notification.comment.commentOn?.metadata?.marketplace?.name ??
-                `@${currentUser.handle}`
+                `@${formatHandle(currentUser.handle)}`
             );
         case 'MentionNotification':
             return (
                 contentStripped ??
                 notification.publication.metadata?.marketplace?.name ??
-                `@${currentUser.handle}`
+                `@${formatHandle(currentUser.handle)}`
             );
         case 'MirrorNotification':
         case 'ReactionNotification':
             return (
                 truncate(contentStripped, 25) ??
                 notification.publication.metadata?.marketplace?.name ??
-                `@${currentUser.handle}`
+                `@${formatHandle(currentUser.handle)}`
             );
     }
-    return `@${currentUser.handle}`;
+    return `@${formatHandle(currentUser.handle)}`;
 };
 
 const shouldNotificationRequireInteraction = (
@@ -187,7 +188,7 @@ const createGroupNotification = (
         eventTime: DateTime.now().toMillis(),
         requireInteraction: true,
         title: `${lengthStr} new notifications`,
-        message: `@${currentUser.handle}`,
+        message: `@${formatHandle(currentUser.handle)}`,
         contextMessage: 'Focalize',
         iconUrl:
             currentUser.avatarUrl ??
@@ -305,6 +306,9 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
+const formatHandle = (handle: string | undefined): string =>
+    `@${handle ? formatHandleV2toV1(handle) : 'anonymous'}`;
+
 const notifyOfPublishedPost = async (
     metadata: AnyPublicationMetadataFragment,
     publicationId: string
@@ -320,7 +324,7 @@ const notifyOfPublishedPost = async (
         type: 'basic',
         requireInteraction: true,
         title: `Post published!`,
-        message: `@${currentUser.handle}`,
+        message: `@${formatHandle(currentUser.handle)}`,
         contextMessage: 'Focalize',
         iconUrl:
             currentUser.avatarUrl ??
@@ -566,12 +570,16 @@ const onMessagesAlarm = async () => {
         await createEnableXmtpNotification();
     }
 
+    const savedKnownSenders = localStorage[KEY_KNOWN_SENDERS] ?? [];
+    let knownSenders: string[] =
+        alarmHasRun && savedKnownSenders.length
+            ? savedKnownSenders ?? []
+            : await updateKnownSenders();
+
     console.log('onMessagesAlarm: unread threads', threads);
     if (threads.size === 0) {
         return;
     }
-
-    const knownSenders: string[] = localStorage[KEY_KNOWN_SENDERS] ?? [];
 
     chrome.notifications.getAll(async (existingNotifications: any) => {
         const unreadTopics: string[] = [];

@@ -9,6 +9,7 @@
     import { getProfile } from '../../lib/lens-service';
     import type { Action } from 'svelte/action';
     import type { SimpleProfile } from '../../lib/user/SimpleProfile';
+    import { formatHandleV2toV1, formatHandleV1toV2 } from '../../lib/utils/lens-utils';
 
     export let menuContainer: HTMLElement;
 
@@ -30,6 +31,7 @@
             menuShowMinLength: 2,
             menuContainer,
             noMatchTemplate: () => '<span class="hidden"></span>',
+            selectTemplate: (item: TributeItem<SimpleProfile>) => formatHandleV2toV1(item.original.handle!),
         });
 
         plainTextTribute.attach(node);
@@ -50,7 +52,7 @@
             if (split[1] === 'lens' || split[1] === 'test') {
                 console.log('checkForExistingRecipient: got lens name', trimmed);
                 try {
-                    const profile = await getProfile({handle: trimmed});
+                    const profile = await getProfile({handle: formatHandleV1toV2(trimmed)});
                     console.log('checkForExistingRecipient: got profile', profile);
                     if (profile) {
                         dispatch('recipient', {

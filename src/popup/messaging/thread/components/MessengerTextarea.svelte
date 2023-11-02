@@ -7,6 +7,7 @@
     import {buildTributeUsernameMenuTemplate} from '../../../../lib/user/tribute-username-template';
     import type {Action} from 'svelte/action';
     import type { SimpleProfile } from '../../../../lib/user/SimpleProfile';
+    import { formatHandleV2toV1 } from '../../../../lib/utils/lens-utils';
 
     export let text: string = '';
     export let className: string = '';
@@ -50,6 +51,7 @@
             menuItemTemplate: (item: TributeItem<SimpleProfile>) => buildTributeUsernameMenuTemplate(item),
             fillAttr: 'handle',
             lookup: 'handle',
+            selectTemplate: (item: TributeItem<SimpleProfile>) => formatHandleV2toV1(item.original.handle!),
         })
 
         t.attach(node);

@@ -20,9 +20,9 @@
     let ens: string | undefined | null = thread?.peer?.wallet?.ens;
 
     $: peerProfile = thread?.peer?.profile;
-    $: peerAddress = thread?.peer?.profile?.ownedBy ?? thread?.peer?.wallet?.address;
+    $: peerAddress = thread?.peer?.profile?.ownedBy.address ?? thread?.peer?.wallet?.address!;
     $: unread = thread?.unread;
-    $: avatarUrl = peerProfile ? getAvatarForLensHandle(peerProfile?.handle) : getAvatarFromAddress(peerAddress);
+    $: avatarUrl = peerProfile?.handle ? getAvatarForLensHandle(peerProfile.handle.fullHandle) : getAvatarFromAddress(peerAddress);
     $: peerName = thread?.peer && getPeerName(thread, ens);
 
     const latestMessage = getLatestMessage(thread?.conversation?.topic);
@@ -75,7 +75,9 @@
         <div class="placeholder animate-pulse"></div>
       {:else if $latestMessage}
         <div class="line-clamp-2 {unread ? 'opacity-80 font-medium' : 'opacity-60'} text-sm">
-          {truncate($latestMessage.content, 90)}
+            {#if $latestMessage.content}
+                {truncate($latestMessage.content, 90)}
+            {/if}
         </div>
       {/if}
 

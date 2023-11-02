@@ -7,6 +7,8 @@
     import {DateTime} from 'luxon';
     import {COLLECT_DURATION_ITEMS} from '../../lib/publications/lens-modules';
     import {createEventDispatcher} from 'svelte';
+    import { formatHandleV2toV1 } from '../../lib/utils/lens-utils';
+    import { truncateAddress } from '../../lib/utils/utils';
 
     const dispatch = createEventDispatcher();
 
@@ -27,12 +29,13 @@
 
     $: hasAttachments = $attachments?.length !== undefined;
     $: attachmentType = $attachments?.[0]?.type;
-
     $: isAttachmentAudio = attachmentType?.startsWith('audio/');
-
     $: saleEndString = $collectSettings && getSaleEndString($collectSettings);
-
     $: useContentAsDescription = !$description?.length;
+    $: postTitle = `Title (Post by @${$currentUser?.handle
+        ? formatHandleV2toV1($currentUser.handle)
+        : $currentUser ? truncateAddress($currentUser.address) : 'anonymous'})`
+
 </script>
 
 <div class="flex flex-col gap-3" class:px-2={!hasAttachments}>
@@ -141,7 +144,7 @@
 
   </div>
 
-  <input type="text" placeholder="Title (Post by @{$currentUser?.handle})"
+  <input type="text" placeholder={postTitle}
          class="w-full input mt-1"
          bind:value={$title} disabled={disabled}>
 

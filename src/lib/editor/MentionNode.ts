@@ -19,7 +19,7 @@ import {
     TextNode,
 } from 'lexical';
 import type { TextMatchTransformer } from '@lexical/markdown/MarkdownTransformers';
-import { formatHandleV1toV2 } from '../utils/lens-utils';
+import { formatMentionV1toV2 } from '../utils/lens-utils';
 
 export type SerializedMentionNode = Spread<
     {
@@ -136,7 +136,7 @@ export const MENTION: TextMatchTransformer = {
             return null;
         }
         const text = node.getTextContent();
-        return formatHandleV1toV2(text);
+        return '@' + formatMentionV1toV2(text.slice(1));
     },
     importRegExp:
         /(^|\s)@(([a-zA-Z0-9_]+)\/([a-zA-Z0-9_]+))(?=[\s.,+*?$@&|#{}()^\-\[\]\\/!%'"~=<>_:;]|)/,
