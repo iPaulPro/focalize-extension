@@ -17,6 +17,8 @@ export const LENS_HUB_CONTRACT: string = getParamOrExit(
 
 export const CHAIN_ID: string = getParamOrExit('VITE_CHAIN_ID');
 
+export const isMainnet = CHAIN_ID === '137';
+
 export const INFURA_PROJECT_ID: string = getParamOrExit(
     'VITE_INFURA_PROJECT_ID'
 );

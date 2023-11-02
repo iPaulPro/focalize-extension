@@ -1,7 +1,0 @@
-mutation refresh($request: RefreshRequest!) {
-    refresh(request: $request) {
-        __typename
-        accessToken
-        refreshToken
-    }
-}

@@ -1,9 +1,0 @@
-query enabledModuleCurrencies {
-    enabledModuleCurrencies {
-        __typename
-        name
-        symbol
-        decimals
-        address
-    }
-}

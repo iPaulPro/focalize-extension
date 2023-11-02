@@ -1,9 +1,0 @@
-query validatePublicationMetadata(
-    $request: ValidatePublicationMetadataRequest!
-) {
-    validatePublicationMetadata(request: $request) {
-        __typename
-        reason
-        valid
-    }
-}

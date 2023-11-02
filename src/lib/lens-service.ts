@@ -1,5 +1,6 @@
 import {
     development,
+    production,
     LensClient,
     LimitType,
     LensTransactionStatusType,
@@ -22,6 +23,7 @@ import type {
 } from '@lens-protocol/storage';
 import WalletConnection from './evm/WalletConnection';
 import { clearNotificationCache } from './stores/cache-store';
+import { isMainnet } from '../config';
 
 export class NoProfileError extends Error {
     constructor() {
@@ -67,7 +69,7 @@ class ChromeStorageProvider implements IObservableStorageProvider {
 const chromeStorage = new ChromeStorageProvider();
 
 const lensClient: LensClient = new LensClient({
-    environment: development,
+    environment: isMainnet ? production : development,
     storage: chromeStorage,
 });
 

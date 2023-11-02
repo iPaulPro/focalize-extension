@@ -30,6 +30,7 @@ import type { User } from './user/user';
 import { lookupAddresses } from './utils/lookup-addresses';
 import { getAllProfiles, getProfiles } from './lens-service';
 import type { ProfileFragment } from '@lens-protocol/client';
+import { isMainnet } from '../config';
 
 export const LENS_PREFIX = 'lens.dev/dm';
 
@@ -89,10 +90,7 @@ export const getXmtpClient = async (): Promise<Client> => {
         keys = await getXmtpKeys(user.address);
         if (keys) {
             client = await Client.create(null, {
-                env:
-                    import.meta.env.MODE === 'development'
-                        ? 'dev'
-                        : 'production',
+                env: isMainnet ? 'production' : 'dev',
                 privateKeyOverride: keys,
             });
             if (typeof window !== 'undefined') {
