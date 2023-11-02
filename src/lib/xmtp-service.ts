@@ -216,10 +216,10 @@ export const getReadTimestamps = async (): Promise<MessageTimestampMap> => {
     return localStorage[KEY_MESSAGE_TIMESTAMPS] as MessageTimestampMap;
 };
 
-const getProfilesFromConversationTopic = (
-    topic: string
+const getProfilesFromConversationId = (
+    conversationId: string
 ): { profileIdB: string; profileIdA: string } => {
-    const idsWithoutPrefix = topic.substring(LENS_PREFIX.length + 1);
+    const idsWithoutPrefix = conversationId.substring(LENS_PREFIX.length + 1);
     const [profileIdA, profileIdB] = idsWithoutPrefix.split('-');
     return { profileIdA, profileIdB };
 };
@@ -231,7 +231,7 @@ const extractProfileId = (
     if (!userProfileIds || userProfileIds.length === 0)
         throw new Error('User profile id is required');
     const { profileIdA, profileIdB } =
-        getProfilesFromConversationTopic(conversationId);
+        getProfilesFromConversationId(conversationId);
     const userProfileId = userProfileIds.find(
         (id) => id === profileIdA || id === profileIdB
     );
@@ -302,13 +302,18 @@ export const isLensConversation = (conversation: Conversation): boolean =>
 export const isLensThread = (thread: Thread): boolean =>
     isLensConversation(thread.conversation);
 
+export const isProfileConversation = (
+    conversation: Conversation,
+    userProfileId: string
+): boolean => {
+    const conversationId = conversation.context?.conversationId;
+    return conversationId?.includes(userProfileId) ?? false;
+};
+
 export const isProfileThread = (
     thread: Thread,
     userProfileId: string
-): boolean => {
-    const conversationId = thread.conversation.context?.conversationId;
-    return conversationId?.includes(userProfileId) ?? false;
-};
+): boolean => isProfileConversation(thread.conversation, userProfileId);
 
 export const getMessagesBatch = async (
     xmtpClient: Client,
@@ -611,15 +616,20 @@ export const getAllThreads = async (): Promise<Thread[]> => {
 const getPeerProfile = async (
     conversation: Conversation
 ): Promise<ProfileFragment | undefined> => {
-    console.log('getPeerProfile: conversation', conversation.topic);
+    console.log(
+        'getPeerProfile: conversation',
+        conversation.topic,
+        conversation.context?.conversationId
+    );
     const profilesRes = await getProfiles({
         ownedBy: [conversation.peerAddress],
     });
     console.log('getPeerProfile: profilesRes', profilesRes);
 
-    if (isLensConversation(conversation)) {
-        const { profileIdA, profileIdB } = getProfilesFromConversationTopic(
-            conversation.topic
+    const userProfileId = await getUserProfileId();
+    if (userProfileId && isProfileConversation(conversation, userProfileId)) {
+        const { profileIdA, profileIdB } = getProfilesFromConversationId(
+            conversation.context!.conversationId
         );
         console.log(
             'getPeerProfile: profileIdA',
@@ -846,10 +856,14 @@ export const getAllMessagesStream = (): Observable<DecodedMessage> =>
                             if (message.senderAddress === xmtp.address)
                                 continue;
 
-                            const topic = message.conversation.topic;
-                            if (topic?.includes(LENS_PREFIX)) {
+                            if (isLensConversation(message.conversation)) {
+                                const conversationId =
+                                    message.conversation.context!
+                                        .conversationId;
                                 const { profileIdA, profileIdB } =
-                                    getProfilesFromConversationTopic(topic);
+                                    getProfilesFromConversationId(
+                                        conversationId
+                                    );
                                 if (
                                     profileIdA !== user?.profileId &&
                                     profileIdB !== user?.profileId
