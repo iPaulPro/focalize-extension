@@ -109,29 +109,29 @@ const createNotificationMessage = (
             return (
                 truncate(contentStripped, 25) ??
                 publication?.metadata?.marketplace?.name ??
-                `@${formatHandle(currentUser.handle)}`
+                `${formatHandle(currentUser.handle)}`
             );
         case 'CommentNotification':
             return (
                 contentStripped ??
                 notification.comment.commentOn?.metadata?.marketplace?.name ??
-                `@${formatHandle(currentUser.handle)}`
+                `${formatHandle(currentUser.handle)}`
             );
         case 'MentionNotification':
             return (
                 contentStripped ??
                 notification.publication.metadata?.marketplace?.name ??
-                `@${formatHandle(currentUser.handle)}`
+                `${formatHandle(currentUser.handle)}`
             );
         case 'MirrorNotification':
         case 'ReactionNotification':
             return (
                 truncate(contentStripped, 25) ??
                 notification.publication.metadata?.marketplace?.name ??
-                `@${formatHandle(currentUser.handle)}`
+                `${formatHandle(currentUser.handle)}`
             );
     }
-    return `@${formatHandle(currentUser.handle)}`;
+    return `${formatHandle(currentUser.handle)}`;
 };
 
 const shouldNotificationRequireInteraction = (
@@ -188,7 +188,7 @@ const createGroupNotification = (
         eventTime: DateTime.now().toMillis(),
         requireInteraction: true,
         title: `${lengthStr} new notifications`,
-        message: `@${formatHandle(currentUser.handle)}`,
+        message: `${formatHandle(currentUser.handle)}`,
         contextMessage: 'Focalize',
         iconUrl:
             currentUser.avatarUrl ??
@@ -324,7 +324,7 @@ const notifyOfPublishedPost = async (
         type: 'basic',
         requireInteraction: true,
         title: `Post published!`,
-        message: `@${formatHandle(currentUser.handle)}`,
+        message: `${formatHandle(currentUser.handle)}`,
         contextMessage: 'Focalize',
         iconUrl:
             currentUser.avatarUrl ??
