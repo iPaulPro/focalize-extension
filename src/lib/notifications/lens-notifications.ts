@@ -255,8 +255,9 @@ export const getNotificationWalletAddress = (
             return notification.actions[0].by.ownedBy.address;
         case 'MentionNotification':
             return notification.publication.by.ownedBy.address;
+        case 'FollowNotification':
+            return notification.followers[0].ownedBy.address;
     }
-    throw new Error('Unknown notification type');
 };
 
 export const getAvatarFromNotification = (
@@ -277,12 +278,15 @@ export const getAvatarFromNotification = (
 export const getNotificationAction = (
     notification: NotificationFragment
 ): string => {
+    console.log('getNotificationAction', notification.__typename);
     switch (notification.__typename) {
         case 'ActedNotification':
-            return 'collected your ' +
-                isCommentPublication(notification.publication)
-                ? 'comment'
-                : 'post';
+            return (
+                'collected your ' +
+                (isCommentPublication(notification.publication)
+                    ? 'comment'
+                    : 'post')
+            );
         case 'FollowNotification':
             return notification.followers[0].operations.isFollowedByMe.value
                 ? 'followed you back'
@@ -290,20 +294,26 @@ export const getNotificationAction = (
         case 'MentionNotification':
             return 'mentioned you';
         case 'CommentNotification':
-            return 'commented on your ' +
-                isCommentPublication(notification.comment.commentOn)
-                ? 'comment'
-                : 'post';
+            return (
+                'commented on your ' +
+                (isCommentPublication(notification.comment.commentOn)
+                    ? 'comment'
+                    : 'post')
+            );
         case 'ReactionNotification':
-            return 'liked your ' +
-                isCommentPublication(notification.publication)
-                ? 'comment'
-                : 'post';
+            return (
+                'liked your ' +
+                (isCommentPublication(notification.publication)
+                    ? 'comment'
+                    : 'post')
+            );
         case 'MirrorNotification':
-            return 'mirrored your ' +
-                isCommentPublication(notification.publication)
-                ? 'comment'
-                : 'post';
+            return (
+                'mirrored your ' +
+                (isCommentPublication(notification.publication)
+                    ? 'comment'
+                    : 'post')
+            );
     }
     return '';
 };
