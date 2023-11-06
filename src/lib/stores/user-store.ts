@@ -2,7 +2,7 @@ import { chromeStorageLocal } from './chrome-storage-store';
 import type { Writable } from 'svelte/store';
 import type { User } from '../user/user';
 
-export const KEY_CURRENT_USER = 'currentUser';
+export const KEY_CURRENT_USER = 'currentUserV2';
 export const KEY_KNOWN_SENDERS = 'knownSenders';
 
 /**
@@ -17,7 +17,7 @@ export const clearUser = () => {
 
 export const getUser = async (): Promise<User | undefined> => {
     const storage = await chrome.storage.local.get(KEY_CURRENT_USER);
-    return storage.currentUser;
+    return storage[KEY_CURRENT_USER];
 };
 
 /**

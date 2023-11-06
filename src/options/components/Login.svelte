@@ -2,8 +2,6 @@
     // @ts-ignore
     import InlineSVG from 'svelte-inline-svg';
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
-    import {currentUser} from '../../lib/stores/user-store';
-    import {userFromProfile} from '../../lib/user/user';
     import toast from 'svelte-french-toast';
     import DialogOuter from '../../lib/components/DialogOuter.svelte';
     import {tick} from 'svelte';

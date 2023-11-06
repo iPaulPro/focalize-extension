@@ -44,7 +44,7 @@ import {
 } from './lib/stores/preferences-store';
 import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
-import { KEY_KNOWN_SENDERS } from './lib/stores/user-store';
+import { KEY_CURRENT_USER, KEY_KNOWN_SENDERS } from './lib/stores/user-store';
 import { getKnownSenders } from './lib/utils/get-known-senders';
 import {
     getProfiles,
@@ -309,12 +309,17 @@ chrome.runtime.onInstalled.addListener((details) => {
 const formatHandle = (handle: string | undefined): string =>
     `@${handle ? formatHandleV2toV1(handle) : 'anonymous'}`;
 
+const getUser = async () => {
+    const localStorage = await chrome.storage.local.get(KEY_CURRENT_USER);
+    const currentUser: User = localStorage[KEY_CURRENT_USER];
+    return currentUser;
+};
+
 const notifyOfPublishedPost = async (
     metadata: AnyPublicationMetadataFragment,
     publicationId: string
 ) => {
-    const localStorage = await chrome.storage.local.get('currentUser');
-    const currentUser: User = localStorage.currentUser;
+    const currentUser: User = await getUser();
     if (!currentUser) return;
 
     const postId = `${currentUser.profileId}-${publicationId}`;
@@ -330,12 +335,6 @@ const notifyOfPublishedPost = async (
             currentUser.avatarUrl ??
             `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`,
     });
-};
-
-const getUser = async () => {
-    const localStorage = await chrome.storage.local.get('currentUser');
-    const currentUser: User = localStorage.currentUser;
-    return currentUser;
 };
 
 const onNotificationsAlarm = async () => {
@@ -660,8 +659,7 @@ const onMessagesAlarm = async () => {
 };
 
 const updateKnownSenders = async (): Promise<string[]> => {
-    const localStorage = await chrome.storage.local.get('currentUser');
-    const currentUser: User = localStorage.currentUser;
+    const currentUser: User = await getUser();
     const xmtp = await getXmtpClient();
 
     const knownSenders = await getKnownSenders(currentUser, xmtp);
