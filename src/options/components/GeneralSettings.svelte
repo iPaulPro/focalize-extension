@@ -9,7 +9,8 @@
         nodeVideo,
         nodeSearch,
         usePopupComposer,
-        richTextComposer
+        richTextComposer,
+        autoSignMetadata,
     } from '../../lib/stores/preferences-store';
     import LensNodeSelect from './LensNodeSelect.svelte';
 </script>
@@ -28,10 +29,10 @@
 
   <section class="w-full flex flex-col py-6 md:py-10">
 
-    <div class="flex flex-col md:flex-row md:gap-12">
+    <div class="flex flex-col md:flex-row md:gap-12 pb-4">
 
       <div class="w-full md:w-1/3 grow-0 shrink-0">
-        <div class="flex flex-col pb-4 pr-6">
+        <div class="flex flex-col pb-6 pr-6">
           <div class="text-lg font-medium text-neutral-800 dark:text-white">
             Gasless
           </div>
@@ -54,10 +55,29 @@
 
           <div class="flex flex-col pl-4">
             <div class="text-base font-medium dark:text-white">
-              Use Profile Manager
+              Use Lens Profile Manager
             </div>
             <div class="text-base text-neutral-400">
-              Allow apps to sign transactions and pay for gas on your behalf
+              Allow trusted apps to sign onchain transactions and pay for gas on your behalf
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$autoSignMetadata}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Auto-sign metadata
+            </div>
+            <div class="text-base text-neutral-400">
+              Disable to sign your own publication metadata
             </div>
           </div>
         </div>

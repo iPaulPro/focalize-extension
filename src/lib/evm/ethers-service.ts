@@ -50,6 +50,8 @@ const rpcMap = new Map<number, string>([
     [80001, 'https://polygon-mumbai.infura.io/v3/' + INFURA_PROJECT_ID],
 ]);
 
+export const getRpcUrl = (): string | undefined => rpcMap.get(chainId);
+
 const createWalletConnectProvider = async () => {
     const ethereumProvider = await EthereumProvider.init({
         projectId: walletConnectProjectId,

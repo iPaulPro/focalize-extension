@@ -12,6 +12,7 @@ export const KEY_DARK_MODE = 'darkMode';
 export const KEY_DISPATCHER_DIALOG_SHOWN = 'dispatcherDialogShown';
 export const KEY_USE_PROFILE_MANAGER = 'useDispatcher';
 export const KEY_USE_RELAY = 'useRelay';
+export const KEY_AUTO_SIGN_METADATA = 'autoSignMetadata';
 export const KEY_PIN_PROMPT_SHOWN = 'pinPromptShown';
 export const KEY_RELEASE_DISMISSED = 'releaseDismissed';
 export const KEY_NODE_POST = 'nodePost';
@@ -92,6 +93,11 @@ export const useProfileManager: Writable<boolean> = chromeStorageSync(
 
 export const useRelay: Writable<boolean> = chromeStorageSync(
     KEY_USE_RELAY,
+    true
+);
+
+export const autoSignMetadata: Writable<boolean> = chromeStorageSync(
+    KEY_AUTO_SIGN_METADATA,
     true
 );
 
