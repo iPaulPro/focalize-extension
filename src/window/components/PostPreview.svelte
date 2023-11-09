@@ -123,7 +123,7 @@
                     </div>
 
                     {#if postMetaData.lens.content}
-                        <div class='prose dark:prose-invert pt-4 pb-2 pr-4'>
+                        <div class='h-full prose dark:prose-invert pt-4 pb-2 pr-4'>
                             {@html contentHtml}
                         </div>
                     {/if}
