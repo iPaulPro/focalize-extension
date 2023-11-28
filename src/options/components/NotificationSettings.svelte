@@ -5,6 +5,7 @@
         darkMode,
         messagesRefreshEnabled,
         notificationsEnabled,
+        notificationsForQuotes,
         notificationsRefreshInterval,
     } from '../../lib/stores/preferences-store';
     import {nodeNotifications, notificationsForFollows, notificationsGrouped} from "../../lib/stores/preferences-store";
@@ -301,6 +302,25 @@
             </div>
             <div class="text-base text-neutral-400">
               Notify when someone likes my content
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full flex">
+          <div class="pt-1">
+            <label class="switch">
+              <input type="checkbox" bind:checked={$notificationsForQuotes}>
+              <span class="slider round flex justify-between items-center px-2
+                  shadow-none"></span>
+            </label>
+          </div>
+
+          <div class="flex flex-col pl-4">
+            <div class="text-base font-medium dark:text-white">
+              Quote alerts
+            </div>
+            <div class="text-base text-neutral-400">
+              Notify when someone quotes my posts and comments
             </div>
           </div>
         </div>

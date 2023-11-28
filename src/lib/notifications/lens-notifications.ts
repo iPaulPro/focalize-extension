@@ -99,11 +99,6 @@ const getPaginatedNotificationResult = async (
     }
 
     const syncStorage = await chrome.storage.sync.get([
-        'notificationsForFollows',
-        'notificationsForMentions',
-        'notificationsForReactions',
-        'notificationsForComments',
-        'notificationsForCollects',
         'notificationsFiltered',
     ]);
 
@@ -166,6 +161,7 @@ export const getLatestNotifications = async (
         'notificationsForMirrors',
         'notificationsForComments',
         'notificationsForCollects',
+        'notificationsForQuotes',
         'notificationsFiltered',
     ]);
 
@@ -184,6 +180,8 @@ export const getLatestNotifications = async (
                     return syncStorage.notificationsForMentions !== false;
                 case 'MirrorNotification':
                     return syncStorage.notificationsForMirrors !== false;
+                case 'QuoteNotification':
+                    return syncStorage.notificationsForQuotes !== false;
                 default:
                     return false;
             }
@@ -314,8 +312,14 @@ export const getNotificationAction = (
                     ? 'comment'
                     : 'post')
             );
+        case 'QuoteNotification':
+            return (
+                'quoted your ' +
+                (isCommentPublication(notification.quote.quoteOn)
+                    ? 'comment'
+                    : 'post')
+            );
     }
-    return '';
 };
 
 export const getNotificationHandle = (
@@ -379,6 +383,8 @@ export const getNotificationLink = async (
             break;
         case 'CommentNotification':
             return getPublicationUrlFromNode(node, notification.comment.id);
+        case 'QuoteNotification':
+            return getPublicationUrlFromNode(node, notification.quote.id);
         case 'MentionNotification':
         case 'ReactionNotification':
         case 'ActedNotification':
@@ -407,6 +413,8 @@ export const getEventTime = (
             return notification.actions[0].actedAt;
         case 'MirrorNotification':
             return notification.mirrors[0].mirroredAt;
+        case 'QuoteNotification':
+            return notification.quote.createdAt;
     }
     return undefined;
 };

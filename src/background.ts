@@ -130,6 +130,12 @@ const createNotificationMessage = (
                 notification.publication.metadata?.marketplace?.name ??
                 `${formatHandle(currentUser.handle)}`
             );
+        case 'QuoteNotification':
+            return (
+                truncate(contentStripped, 25) ??
+                notification.quote.metadata?.marketplace?.name ??
+                `${formatHandle(currentUser.handle)}`
+            );
     }
     return `${formatHandle(currentUser.handle)}`;
 };
@@ -140,6 +146,7 @@ const shouldNotificationRequireInteraction = (
     switch (notification.__typename) {
         case 'CommentNotification':
         case 'MentionNotification':
+        case 'QuoteNotification':
             return true;
     }
     return false;

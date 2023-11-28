@@ -34,6 +34,7 @@ export const KEY_NOTIFICATIONS_FOR_COLLECTS = 'notificationsForCollects';
 export const KEY_NOTIFICATIONS_FOR_COMMENTS = 'notificationsForComments';
 export const KEY_NOTIFICATIONS_FOR_MENTIONS = 'notificationsForMentions';
 export const KEY_NOTIFICATIONS_FOR_REACTIONS = 'notificationsForReactions';
+export const KEY_NOTIFICATIONS_FOR_QUOTES = 'notificationsForQuotes';
 export const KEY_MESSAGES_REFRESH_ENABLED = 'messagesRefreshEnabled';
 export const KEY_MESSAGES_REFRESH_INTERVAL = 'messagesRefreshInterval';
 export const KEY_MESSAGES_UNREAD_TOPICS = 'messagesUnreadTopics';
@@ -195,6 +196,11 @@ export const notificationsForMentions: Writable<boolean> = chromeStorageSync(
 
 export const notificationsForReactions: Writable<boolean> = chromeStorageSync(
     KEY_NOTIFICATIONS_FOR_REACTIONS,
+    true
+);
+
+export const notificationsForQuotes: Writable<boolean> = chromeStorageSync(
+    KEY_NOTIFICATIONS_FOR_QUOTES,
     true
 );
 
