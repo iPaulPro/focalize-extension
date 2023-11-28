@@ -437,7 +437,9 @@ export const getNotificationCountSinceLastOpened = async (
     }
 
     const newNotifications = notifications.filter((n: NotificationFragment) => {
-        return DateTime.fromISO(getEventTime(n)) > lastUpdateDate;
+        const eventTime = getEventTime(n);
+        if (!eventTime) return false;
+        return DateTime.fromISO(eventTime) > lastUpdateDate;
     });
 
     return newNotifications.length;

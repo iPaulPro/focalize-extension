@@ -165,7 +165,9 @@ const createIndividualNotification = (
 
     chrome.notifications.create(notification.id, {
         type: 'basic',
-        eventTime: DateTime.fromISO(eventTime).toMillis(),
+        eventTime: eventTime
+            ? DateTime.fromISO(eventTime).toMillis()
+            : undefined,
         title: handle + ' ' + action,
         message,
         contextMessage: 'Focalize',

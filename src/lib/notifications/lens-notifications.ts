@@ -393,7 +393,9 @@ export const getNotificationLink = async (
     );
 };
 
-export const getEventTime = (notification: NotificationFragment): string => {
+export const getEventTime = (
+    notification: NotificationFragment
+): string | undefined => {
     switch (notification.__typename) {
         case 'CommentNotification':
             return notification.comment.createdAt;
@@ -406,5 +408,5 @@ export const getEventTime = (notification: NotificationFragment): string => {
         case 'MirrorNotification':
             return notification.mirrors[0].mirroredAt;
     }
-    return DateTime.now().toISO()!;
+    return undefined;
 };

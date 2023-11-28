@@ -33,8 +33,9 @@
     $: notificationDisplayName = notification && getNotificationDisplayName(notification);
     $: notificationHandle = notification && getNotificationHandle(notification);
     $: notificationWalletAddress = notification && getNotificationWalletAddress(notification);
-    $: notificationEventTime = notification && DateTime.fromISO(getEventTime(notification));
-    $: isNew = notification && lastUpdate && notificationEventTime > lastUpdate;
+    $: notificationEventTime = getEventTime(notification);
+    $: notificationDateTime = notificationEventTime && DateTime.fromISO(notificationEventTime);
+    $: isNew = notification && lastUpdate && notificationDateTime && notificationDateTime > lastUpdate;
     $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getProfileUrl($nodeSearch, notificationHandle);
     $: polygonScanUrl = notification && notificationWalletAddress && `https://polygonscan.com/address/${notificationWalletAddress}`;
 
@@ -59,16 +60,18 @@
              class="w-8 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
       </a>
 
-      <div class="h-fit"
-           use:tippy={({
-             delay: 500,
-             placement: 'bottom',
-             content: notificationEventTime.toLocaleString(DateTime.DATETIME_MED)
-           })}>
-        <AutoRelativeTimeView timestamp={notificationEventTime.toMillis()} capitalize={true}
-                              shortRelativeCutoff={120}
-                              className="text-xs {isNew ? 'opacity-100 font-medium' : 'opacity-70'}" />
-      </div>
+      {#if notificationDateTime}
+          <div class="h-fit"
+               use:tippy={({
+                 delay: 500,
+                 placement: 'bottom',
+                 content: notificationDateTime.toLocaleString(DateTime.DATETIME_MED)
+               })}>
+            <AutoRelativeTimeView timestamp={notificationDateTime.toMillis()} capitalize={true}
+                                  shortRelativeCutoff={120}
+                                  className="text-xs {isNew ? 'opacity-100 font-medium' : 'opacity-70'}" />
+          </div>
+      {/if}
     </div>
 
     <span class="text-sm text-gray-900 dark:text-gray-300 pt-1">

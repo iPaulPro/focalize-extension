@@ -107,9 +107,10 @@
         $notificationsScrollTop = node.scrollTop;
 
         const firstNotification = findFirstVisibleListItem();
+        const eventTime = getEventTime(firstNotification);
         if (
-            firstNotification && $notificationsTimestamp &&
-            DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(getEventTime(firstNotification))
+            firstNotification && $notificationsTimestamp && eventTime &&
+            DateTime.fromISO($notificationsTimestamp) < DateTime.fromISO(eventTime)
         ) {
             onLatestNotificationSeen().catch(console.error);
         }
