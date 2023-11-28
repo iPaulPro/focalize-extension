@@ -20,7 +20,7 @@
     "@giphy/js-types": "^4.4.0",
     "@irys/sdk": "^0.0.4",
     "@joeattardi/emoji-button": "^4.6.4",
-    "@lens-protocol/client": "^2.0.0-alpha.18",
+    "@lens-protocol/client": "^2.0.0-alpha.22",
     "@lexical/code": "^0.11.3",
     "@lexical/history": "^0.11.3",
     "@lexical/link": "^0.11.3",

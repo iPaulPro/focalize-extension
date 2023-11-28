@@ -3,7 +3,7 @@ import type {
     CommentFragment,
     PostFragment,
     QuoteFragment,
-    AnyPublicationMetadataFragment,
+    PublicationMetadataFragment,
 } from '@lens-protocol/client';
 import {
     formatHandleV2toV1,
@@ -51,7 +51,7 @@ export const getNodeForPublicationMetadata = async (
 };
 
 const getNodeForAnyPublicationMetadata = async (
-    metadata: AnyPublicationMetadataFragment
+    metadata: PublicationMetadataFragment
 ): Promise<LensNode> => {
     const storage = await chrome.storage.sync.get([
         'nodeImage',
@@ -121,7 +121,7 @@ export const getUrlForPublicationMetadata = async (
 };
 
 export const getUrlForAnyPublicationMetadata = async (
-    metadata: AnyPublicationMetadataFragment,
+    metadata: PublicationMetadataFragment,
     postId: string
 ) => {
     const node = await getNodeForAnyPublicationMetadata(metadata);

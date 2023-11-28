@@ -55,7 +55,7 @@ import {
 import type {
     NotificationFragment,
     ProfileFragment,
-    AnyPublicationMetadataFragment,
+    PublicationMetadataFragment,
 } from '@lens-protocol/client';
 import { LensTransactionStatusType } from '@lens-protocol/client';
 import {
@@ -316,7 +316,7 @@ const getUser = async () => {
 };
 
 const notifyOfPublishedPost = async (
-    metadata: AnyPublicationMetadataFragment,
+    metadata: PublicationMetadataFragment,
     publicationId: string
 ) => {
     const currentUser: User = await getUser();

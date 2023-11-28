@@ -19,7 +19,7 @@ import type {
     ThreeDMetadataV3Fragment,
     TransactionMetadataV3Fragment,
     VideoMetadataV3Fragment,
-    AnyPublicationMetadataFragment,
+    PublicationMetadataFragment,
 } from '@lens-protocol/client';
 import {
     type AnyMedia,
@@ -38,9 +38,9 @@ import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
 export const hasMetadata = (
     publication: AnyPublicationFragment
 ): publication is
-    | (CommentFragment & { metadata: AnyPublicationMetadataFragment })
-    | (PostFragment & { metadata: AnyPublicationMetadataFragment })
-    | (QuoteFragment & { metadata: AnyPublicationMetadataFragment }) => {
+    | (CommentFragment & { metadata: PublicationMetadataFragment })
+    | (PostFragment & { metadata: PublicationMetadataFragment })
+    | (QuoteFragment & { metadata: PublicationMetadataFragment }) => {
     if ('metadata' in publication) {
         return publication.metadata !== undefined;
     }
