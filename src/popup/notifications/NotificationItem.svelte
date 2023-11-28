@@ -21,6 +21,7 @@
     import {getNotificationDisplayName} from '../../lib/notifications/lens-notifications.js';
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
     import type { NotificationFragment } from '@lens-protocol/client';
+    import SocialText from '../../lib/components/SocialText.svelte';
 
     export let notification: NotificationFragment;
     export let lastUpdate: DateTime | null;
@@ -93,7 +94,7 @@
 
     {#if notificationContent}
       <div class="text-sm text-gray-500 leading-tight">
-        {notificationContent}
+        <SocialText text={notificationContent} linkify={false} />
       </div>
     {/if}
   </div>

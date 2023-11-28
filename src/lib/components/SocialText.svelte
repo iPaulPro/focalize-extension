@@ -6,6 +6,7 @@
     export let maxLength: number | undefined = undefined;
     export let classNames: string = 'leading-tight whitespace-pre-wrap break-keep ![overflow-wrap:anywhere]';
     export let anchorClass: string = '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
+    export let linkify: boolean = true;
 
     let formattedText: string = '';
 
@@ -25,15 +26,17 @@
             return `<a href="https://${cleanUrl}" class="${anchorClass}" target="_blank">${cleanUrl}</a>${punctuation}`;
         });
 
-        // Replace @mentions with anchors
-        formatted = formatted.replace(/@(\w+)/g, (_, handle) => {
-            return `<a href="https://hey.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
-        });
+        if (linkify) {
+            // Replace @mentions with anchors
+            formatted = formatted.replace(/@(\w+)/g, (_, handle) => {
+                return `<a href="https://hey.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
+            });
 
-        // Replace hashtags with anchors
-        formatted = formatted.replace(/(?<!\w)#(\w+)/g, (_, hashtag) => {
-            return `<a href="https://hey.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
-        });
+            // Replace hashtags with anchors
+            formatted = formatted.replace(/(?<!\w)#(\w+)/g, (_, hashtag) => {
+                return `<a href="https://hey.xyz/search?q=${hashtag}&type=pubs" class="${anchorClass}" target="_blank">#${hashtag}</a>`;
+            });
+        }
 
         formattedText = DOMPurify.sanitize(formatted, {
             ADD_ATTR: ['target'], // Allow the 'target' attribute
