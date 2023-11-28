@@ -159,7 +159,7 @@
   </div>
 
   {#if profile.metadata?.bio}
-    <div class="pt-3 text-base">
+    <div class="pt-3 text-sm">
       <SocialText text={profile.metadata.bio} maxLength={150}/>
     </div>
   {/if}
@@ -183,7 +183,7 @@
       <div class="pt-3 flex gap-2" in:slide={{duration: 200}}>
 
         <div class="flex flex-shrink-0 overlap">
-          {#each mutualFollows.items as mutualFollow}
+          {#each mutualFollows.items.slice(0,3) as mutualFollow}
             <img src={mutualFollow.handle ? getAvatarForLensHandle(mutualFollow.handle.fullHandle) : getAvatarFromAddress(mutualFollow.ownedBy.address)} alt="Avatar"
                  class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
           {/each}
