@@ -8,7 +8,7 @@
     import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
-    import { getAllProfiles, login } from '../lens-service';
+    import { getManagedProfiles, login } from '../lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
     import { formatHandleV2toV1 } from '../utils/lens-utils';
     import { getAccounts } from '../evm/ethers-service';
@@ -47,9 +47,17 @@
     };
 
     const getSortedProfiles = async (account: string): Promise<ProfileFragment[]> => {
-        const profiles = await getAllProfiles({ ownedBy: [account] });
-        console.log('getSortedProfiles: profiles', profiles);
-        return profiles.sort((a, b) => b.stats.publications - a.stats.publications);
+        const profiles = await getManagedProfiles(account);
+        // sort first by owned profiles, then by publications stats
+        return profiles.sort((a, b) => {
+            if (a.ownedBy.address === account && b.ownedBy.address !== account) {
+                return -1;
+            } else if (a.ownedBy.address !== account && b.ownedBy.address === account) {
+                return 1;
+            } else {
+                return b.stats.publications - a.stats.publications;
+            }
+        });
     }
 </script>
 

@@ -212,6 +212,25 @@ export const getAllProfiles = async ({
     return profiles;
 };
 
+export const getManagedProfiles = async (
+    address: string
+): Promise<ProfileFragment[]> => {
+    let profiles: ProfileFragment[] = [];
+    let cursor: any = null;
+    let hasMore = true;
+    while (hasMore) {
+        const managedProfiles = await lensClient.wallet.profilesManaged({
+            for: address,
+            cursor,
+            limit: LimitType.Fifty,
+        });
+        profiles.push(...managedProfiles.items);
+        cursor = managedProfiles.pageInfo.next;
+        hasMore = managedProfiles.pageInfo.next !== null;
+    }
+    return profiles;
+};
+
 export const searchProfiles = async (
     query: string,
     limit: LimitType = LimitType.Ten
