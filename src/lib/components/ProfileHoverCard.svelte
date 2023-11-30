@@ -9,7 +9,7 @@
     import FollowButton from './FollowButton.svelte';
     import SocialText from './SocialText.svelte';
     import {currentUser} from '../stores/user-store';
-    import {getProfileUrl} from '../publications/lens-nodes';
+    import {getNodeUrlForHandle} from '../publications/lens-nodes';
     import {nodeSearch} from '../stores/preferences-store';
     import {canMessage, findThread, isXmtpEnabled} from "../xmtp-service";
     import LoadingSpinner from "./LoadingSpinner.svelte";
@@ -25,7 +25,7 @@
     let isMessaging = false;
 
     $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle.fullHandle);
-    $: userProfileUrl = profile.handle && $nodeSearch && getProfileUrl($nodeSearch, profile.handle.fullHandle);
+    $: userProfileUrl = profile.handle && $nodeSearch && getNodeUrlForHandle($nodeSearch, profile.handle.fullHandle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     const canMessageProfile = async (): Promise<boolean> => {

@@ -20,6 +20,7 @@ import type {
     TransactionMetadataV3Fragment,
     VideoMetadataV3Fragment,
     PublicationMetadataFragment,
+    ProfileFragment,
 } from '@lens-protocol/client';
 import {
     type AnyMedia,
@@ -34,6 +35,17 @@ import {
     PublicationSchemaId,
 } from '@lens-protocol/metadata';
 import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
+import {
+    getAvatarForLensHandle,
+    getAvatarFromAddress,
+    truncateAddress,
+} from './utils';
+import {
+    getPreference,
+    KEY_NODE_SEARCH,
+    nodeSearch,
+} from '../stores/preferences-store';
+import { getNodeUrlForHandle, LENS_NODES } from '../publications/lens-nodes';
 
 export const hasMetadata = (
     publication: AnyPublicationFragment
@@ -175,20 +187,7 @@ export const isVideoPublication = (
 export const getMetadataContent = (
     publication: CommentFragment | PostFragment | QuoteFragment
 ): string | undefined => {
-    if (
-        isArticlePublication(publication) ||
-        isAudioPublication(publication) ||
-        isCheckingInPublication(publication) ||
-        isEmbedPublication(publication) ||
-        isLinkPublication(publication) ||
-        isLiveStreamPublication(publication) ||
-        isMintPublication(publication) ||
-        isSpacePublication(publication) ||
-        isStoryPublication(publication) ||
-        isTextOnlyPublication(publication) ||
-        isThreeDPublication(publication) ||
-        isTransactionPublication(publication)
-    ) {
+    if (publication.metadata.__typename !== 'EventMetadataV3') {
         return publication.metadata.content;
     }
 
@@ -326,4 +325,25 @@ export const formatHandleV1toV2 = (handle: string): string => {
         return `${handleParts[1]}/${handleParts[0]}`;
     }
     return handle;
+};
+
+export const getProfileDisplayName = (profile: ProfileFragment): string => {
+    if (profile.metadata?.displayName) {
+        return profile.metadata.displayName;
+    } else if (profile.handle) {
+        return profile.handle.localName;
+    }
+    return truncateAddress(profile.ownedBy.address);
+};
+
+export const getProfileAvatar = (profile: ProfileFragment): string =>
+    profile.handle
+        ? getAvatarForLensHandle(profile.handle.fullHandle, 64)
+        : getAvatarFromAddress(profile.ownedBy.address, 64);
+
+export const getProfileUrl = (profile: ProfileFragment): string => {
+    if (profile.handle) {
+        return getNodeUrlForHandle(LENS_NODES[0], profile.handle.localName);
+    }
+    return `https://hey.xyz/p/${profile.id}`;
 };

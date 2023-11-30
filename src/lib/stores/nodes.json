@@ -8,7 +8,8 @@
     "notifications": "/notifications",
     "focus": [
       "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ]
+    ],
+    "fullHandle": false
   },
   {
     "name": "Amnisiac",
@@ -19,7 +20,8 @@
     "notifications": null,
     "focus": [
       "AUDIO"
-    ]
+    ],
+    "fullHandle": true
   },
   {
     "name": "Beats",
@@ -30,7 +32,8 @@
     "notifications": null,
     "focus": [
       "AUDIO"
-    ]
+    ],
+    "fullHandle": true
   },
   {
     "name": "LensPort",
@@ -41,7 +44,8 @@
     "notifications": "/notifications",
     "focus": [
       "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ]
+    ],
+    "fullHandle": false
   },
   {
     "name": "Lensta",
@@ -52,18 +56,20 @@
     "notifications": null,
     "focus": [
       "IMAGE"
-    ]
+    ],
+    "fullHandle": true
   },
   {
-    "name": "Lenstube",
-    "baseUrl": "https://lenstube.xyz",
+    "name": "Tape",
+    "baseUrl": "https://tape.xyz",
     "posts": "/watch/{$id}",
-    "profiles": "/channel/{$handle}",
+    "profiles": "/u/{$handle}",
     "hexIdentifier": true,
     "notifications": "/notifications",
     "focus": [
       "VIDEO"
-    ]
+    ],
+    "fullHandle": false
   },
   {
     "name": "Pinsta",
@@ -74,17 +80,6 @@
     "notifications": "/notifications",
     "focus": [
       "IMAGE"
-    ]
-  },
-  {
-    "name": "Share",
-    "baseUrl": "https://theshr.xyz",
-    "posts": "/{$id}/detail_article",
-    "profiles": "/profiles/{$handle}",
-    "hexIdentifier": true,
-    "notifications": null,
-    "focus": [
-      "ARTICLE"
     ]
   }
 ]

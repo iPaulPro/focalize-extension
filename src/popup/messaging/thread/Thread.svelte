@@ -11,7 +11,7 @@
     import ProfileHoverCard from '../../../lib/components/ProfileHoverCard.svelte';
     import MessagesList from './components/MessagesList.svelte';
     import WindowBlinker from '../../../lib/utils/WindowBlinker';
-    import {getProfileUrl} from '../../../lib/publications/lens-nodes';
+    import {getNodeUrlForHandle} from '../../../lib/publications/lens-nodes';
     import {Toast, toastStore, storePopup} from '@skeletonlabs/skeleton';
     import {arrow, autoUpdate, computePosition, flip, offset, shift} from '@floating-ui/dom';
     import LoadingSpinner from '../../../lib/components/LoadingSpinner.svelte';
@@ -96,7 +96,7 @@
 
     const getPeerUrl = (): string => {
         if (thread?.peer?.profile?.handle) {
-            return getProfileUrl($nodeSearch, thread.peer.profile.handle.fullHandle);
+            return getNodeUrlForHandle($nodeSearch, thread.peer.profile.handle.fullHandle);
         } else if (thread?.peer?.wallet?.ens) {
             return `https://app.ens.domains/${thread.peer.wallet?.ens}`;
         }

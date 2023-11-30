@@ -1,6 +1,7 @@
-<script lang="ts">
-    import {autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig} from '@floating-ui/dom';
-    import {onDestroy} from 'svelte';
+<script lang='ts'>
+    import { autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig } from '@floating-ui/dom';
+    import { onDestroy } from 'svelte';
+    import Portal from './Portal.svelte';
 
     const showEvents = ['mouseenter', 'focus'];
     const hideEvents = ['mouseleave', 'blur'];
@@ -11,7 +12,7 @@
     export let interactive: boolean = false;
     export let config: ComputePositionConfig = {
         strategy: 'absolute',
-        middleware: [offset(6), flip(), shift({padding: 5})],
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
     };
 
     let component: HTMLElement;
@@ -50,7 +51,7 @@
     const updatePosition = async () => {
         if (!component || !activeAnchor) return;
 
-        const {strategy, x, y} = await computePosition(activeAnchor, component, config);
+        const { strategy, x, y } = await computePosition(activeAnchor, component, config);
         Object.assign(component.style, {
             position: strategy,
             left: `${x}px`,
@@ -96,8 +97,10 @@
     });
 </script>
 
-<div bind:this={component} class="hidden absolute w-max top-0 left-0 z-[9999]">
-  {#if isShown}
-    <slot></slot>
-  {/if}
-</div>
+<Portal>
+    <div bind:this={component} class='hidden absolute w-max top-0 left-0 z-[9999]'>
+        {#if isShown}
+            <slot></slot>
+        {/if}
+    </div>
+</Portal>

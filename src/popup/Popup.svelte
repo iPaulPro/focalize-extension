@@ -10,7 +10,11 @@
     import {Toaster} from 'svelte-french-toast';
     import ThreadList from './messaging/ThreadList.svelte';
     import {ensureUser} from '../lib/user/user';
-    import {selectedMainTab} from '../lib/stores/cache-store';
+    import {
+        KEY_NOTIFICATION_ITEMS_CACHE,
+        KEY_NOTIFICATION_PAGE_INFO_CACHE,
+        selectedMainTab,
+    } from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
 
@@ -78,15 +82,13 @@
 
     const onNotificationsTabClick = async () => {
         if ($selectedMainTab !== 0) return;
-        await chrome.storage.local.remove(['notificationItemsCache', 'notificationPageInfoCache']);
+        await chrome.storage.local.remove([KEY_NOTIFICATION_ITEMS_CACHE, KEY_NOTIFICATION_PAGE_INFO_CACHE]);
     };
 
     const scrollToTop = () => {
         if (notificationsList) {
-            // @ts-ignore
             notificationsList.scrollToTop();
         } else if (conversationsList) {
-            // @ts-ignore
             conversationsList.scrollToTop();
         }
     };

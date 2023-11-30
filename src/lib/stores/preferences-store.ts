@@ -47,6 +47,14 @@ export const KEY_USE_POPUP_COMPOSER = 'usePopupComposer';
 export const KEY_RICH_TEXT = 'richTextComposer';
 export const KEY_WALLET_CONNECTION = 'walletConnection';
 
+export const ALL_NODE_KEYS = [
+    KEY_NODE_IMAGE,
+    KEY_NODE_VIDEO,
+    KEY_NODE_AUDIO,
+    KEY_NODE_ARTICLE,
+    KEY_NODE_POST,
+];
+
 /**
  * Preferences are saved to the `sync` chrome storage area.
  * @param key The key used to store in the `sync` chrome storage area.

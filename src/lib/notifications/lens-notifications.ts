@@ -7,7 +7,7 @@ import {
 import {
     type LensNode,
     getNodeForPublication,
-    getProfileUrl,
+    getNodeUrlForHandle,
     getPublicationUrlFromNode,
 } from '../publications/lens-nodes';
 import {
@@ -25,10 +25,19 @@ import {
     getMetadataContent,
     getNotificationPublication,
 } from '../utils/lens-utils';
-import { isCommentPublication } from '@lens-protocol/client';
-import { DateTime } from 'luxon';
+import {
+    isCommentPublication,
+    type ActedNotificationFragment,
+    type FollowNotificationFragment,
+    type ReactionNotificationFragment,
+} from '@lens-protocol/client';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
+
+export type GroupNotification =
+    | ActedNotificationFragment
+    | FollowNotificationFragment
+    | ReactionNotificationFragment;
 
 const cacheNotifications = async (
     notificationRes: PaginatedResult<NotificationFragment>,
@@ -42,7 +51,7 @@ const cacheNotifications = async (
         KEY_NOTIFICATION_ITEMS_CACHE,
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
     ]);
-    const notificationItemsCache = storage.notificationItemsCache || [];
+    const notificationItemsCache = storage[KEY_NOTIFICATION_ITEMS_CACHE] || [];
     console.log(
         'cacheNotifications: notificationItemsCache',
         notificationItemsCache
@@ -57,7 +66,7 @@ const cacheNotifications = async (
 
     if (newItems.length > 0) {
         let pageInfo: PaginatedResultInfoFragment =
-            storage.notificationPageInfoCache;
+            storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
 
         if (!pageInfo) {
             // If we don't have a cache yet, we need to set the entire pageInfo object
@@ -71,8 +80,8 @@ const cacheNotifications = async (
         }
 
         await chrome.storage.local.set({
-            notificationPageInfoCache: pageInfo,
-            notificationItemsCache: prepend
+            [KEY_NOTIFICATION_PAGE_INFO_CACHE]: pageInfo,
+            [KEY_NOTIFICATION_ITEMS_CACHE]: prepend
                 ? [...newItems, ...notificationItemsCache]
                 : [...notificationItemsCache, ...newItems],
         });
@@ -81,14 +90,9 @@ const cacheNotifications = async (
 
 const getPaginatedNotificationResult = async (
     cursor?: any,
-    limit: number = NOTIFICATIONS_QUERY_LIMIT
+    prepend: boolean = false
 ): Promise<PaginatedResult<NotificationFragment> | null> => {
-    console.log(
-        'getPaginatedNotificationResult: cursor',
-        cursor,
-        'limit',
-        limit
-    );
+    console.log('getPaginatedNotificationResult: cursor', cursor);
 
     let authenticated = await isAuthenticated();
     if (!authenticated) {
@@ -107,18 +111,10 @@ const getPaginatedNotificationResult = async (
             cursor,
             syncStorage.notificationsFiltered === true
         );
-
-        const notifications = res.items;
-        console.log(
-            'getPaginatedNotificationResult: notifications',
-            notifications
-        );
+        console.log('getPaginatedNotificationResult: get notifications', res);
 
         if (res) {
-            await cacheNotifications(
-                res,
-                cursor && JSON.parse(cursor).cursorDirection === 'BEFORE'
-            );
+            await cacheNotifications(res, prepend);
             return res;
         }
     } catch (e) {
@@ -136,10 +132,10 @@ export const getLatestNotifications = async (
         KEY_NOTIFICATION_ITEMS_CACHE,
     ]);
     const pageInfo: PaginatedResultInfoFragment =
-        storage.notificationPageInfoCache;
+        storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
 
     const notificationsRes: PaginatedResult<NotificationFragment> | null =
-        await getPaginatedNotificationResult(pageInfo?.prev);
+        await getPaginatedNotificationResult(pageInfo?.prev, true);
     console.log('getNotifications: notifications result', notificationsRes);
 
     // If we don't have a cache yet there are no "latest" notifications
@@ -201,7 +197,7 @@ export const getNextNotifications = async (): Promise<{
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
     ]);
     const pageInfo: PaginatedResultInfoFragment =
-        storage.notificationPageInfoCache;
+        storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
     const notifications = await getPaginatedNotificationResult(pageInfo?.next);
     console.log('getNotifications: notifications', notifications);
     if (notifications?.items) {
@@ -378,7 +374,7 @@ export const getNotificationLink = async (
         case 'FollowNotification':
             const handle = notification.followers[0].handle?.fullHandle;
             if (handle) {
-                return getProfileUrl(node, handle);
+                return getNodeUrlForHandle(node, handle);
             }
             break;
         case 'CommentNotification':
@@ -417,4 +413,17 @@ export const getEventTime = (
             return notification.quote.createdAt;
     }
     return undefined;
+};
+
+export const isGroupNotification = (
+    notification: NotificationFragment
+): notification is GroupNotification => {
+    switch (notification.__typename) {
+        case 'FollowNotification':
+        case 'ReactionNotification':
+        case 'ActedNotification':
+            return true;
+        default:
+            return false;
+    }
 };

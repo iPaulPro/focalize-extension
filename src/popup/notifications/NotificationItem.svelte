@@ -2,7 +2,8 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {
-        getAvatarFromNotification, getEventTime,
+        getAvatarFromNotification,
+        getEventTime,
         getNotificationAction,
         getNotificationContent,
         getNotificationHandle,
@@ -12,7 +13,7 @@
     } from '../../lib/notifications/lens-notifications';
     import {DateTime} from 'luxon';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getProfileUrl} from '../../lib/publications/lens-nodes';
+    import {getNodeUrlForHandle} from '../../lib/publications/lens-nodes';
     import {nodeSearch} from '../../lib/stores/preferences-store';
     import {truncate, truncateAddress} from '../../lib/utils/utils';
     import NotificationIcon from './NotificationIcon.svelte';
@@ -37,7 +38,7 @@
     $: notificationEventTime = getEventTime(notification);
     $: notificationDateTime = notificationEventTime && DateTime.fromISO(notificationEventTime);
     $: isNew = notification && lastUpdate && notificationDateTime && notificationDateTime > lastUpdate;
-    $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getProfileUrl($nodeSearch, notificationHandle);
+    $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getNodeUrlForHandle($nodeSearch, notificationHandle);
     $: polygonScanUrl = notification && notificationWalletAddress && `https://polygonscan.com/address/${notificationWalletAddress}`;
 
     const launchNotification = async () => {
@@ -58,7 +59,7 @@
       <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer">
         <img loading="lazy" decoding="async" src={notificationAvatar ?? ImageAvatar} alt="avatar"
              bind:this={avatarElement}
-             class="w-8 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
+             class="w-8 h-8 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
       </a>
 
       {#if notificationDateTime}

@@ -14,6 +14,14 @@ import {
 } from '../utils/lens-utils';
 import type { PublicationMetadata } from '@lens-protocol/metadata';
 import { PublicationSchemaId } from '@lens-protocol/metadata';
+import {
+    ALL_NODE_KEYS,
+    KEY_NODE_ARTICLE,
+    KEY_NODE_AUDIO,
+    KEY_NODE_IMAGE,
+    KEY_NODE_POST,
+    KEY_NODE_VIDEO,
+} from '../stores/preferences-store';
 
 export type LensNode = {
     name: string;
@@ -30,72 +38,54 @@ export const LENS_NODES: LensNode[] = [...nodes];
 export const getNodeForPublicationMetadata = async (
     metadata: PublicationMetadata
 ): Promise<LensNode> => {
-    const storage = await chrome.storage.sync.get([
-        'nodeImage',
-        'nodeVideo',
-        'nodeAudio',
-        'nodeArticle',
-        'nodePost',
-    ]);
+    const storage = await chrome.storage.sync.get(ALL_NODE_KEYS);
     switch (metadata.$schema) {
         case PublicationSchemaId.TEXT_ONLY_LATEST:
-            return storage.nodePost;
+            return storage[KEY_NODE_POST];
         case PublicationSchemaId.IMAGE_LATEST:
-            return storage.nodeImage;
+            return storage[KEY_NODE_IMAGE];
         case PublicationSchemaId.AUDIO_LATEST:
-            return storage.nodeAudio;
+            return storage[KEY_NODE_AUDIO];
         case PublicationSchemaId.VIDEO_LATEST:
-            return storage.nodeVideo;
+            return storage[KEY_NODE_VIDEO];
     }
-    return storage.nodePost;
+    return storage[KEY_NODE_POST];
 };
 
 const getNodeForAnyPublicationMetadata = async (
     metadata: PublicationMetadataFragment
 ): Promise<LensNode> => {
-    const storage = await chrome.storage.sync.get([
-        'nodeImage',
-        'nodeVideo',
-        'nodeAudio',
-        'nodeArticle',
-        'nodePost',
-    ]);
+    const storage = await chrome.storage.sync.get(ALL_NODE_KEYS);
     switch (metadata.__typename) {
         case 'TextOnlyMetadataV3':
-            return storage.nodePost;
+            return storage[KEY_NODE_POST];
         case 'ImageMetadataV3':
-            return storage.nodeImage;
+            return storage[KEY_NODE_IMAGE];
         case 'AudioMetadataV3':
-            return storage.nodeAudio;
+            return storage[KEY_NODE_AUDIO];
         case 'VideoMetadataV3':
-            return storage.nodeVideo;
+            return storage[KEY_NODE_VIDEO];
     }
-    return storage.nodePost;
+    return storage[KEY_NODE_POST];
 };
 
 export const getNodeForPublication = async (
     publication: CommentFragment | PostFragment | QuoteFragment
 ): Promise<LensNode> => {
-    const storage = await chrome.storage.sync.get([
-        'nodeImage',
-        'nodeVideo',
-        'nodeAudio',
-        'nodeArticle',
-        'nodePost',
-    ]);
+    const storage = await chrome.storage.sync.get(ALL_NODE_KEYS);
     if (isImagePublication(publication)) {
-        return storage.nodeImage;
+        return storage[KEY_NODE_IMAGE];
     } else if (isVideoPublication(publication)) {
-        return storage.nodeVideo;
+        return storage[KEY_NODE_VIDEO];
     } else if (isAudioPublication(publication)) {
-        return storage.nodeAudio;
+        return storage[KEY_NODE_AUDIO];
     } else if (isArticlePublication(publication)) {
-        return storage.nodeArticle;
+        return storage[KEY_NODE_ARTICLE];
     }
-    return storage.nodePost;
+    return storage[KEY_NODE_POST];
 };
 
-export const getProfileUrl = (node: LensNode, handle: string) => {
+export const getNodeUrlForHandle = (node: LensNode, handle: string) => {
     const formattedHandle = formatHandleV2toV1(handle);
     return node.baseUrl + node.profiles.replace('{$handle}', formattedHandle);
 };

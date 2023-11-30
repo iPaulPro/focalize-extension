@@ -3,6 +3,7 @@
         getEventTime,
         getLatestNotifications,
         getNextNotifications,
+        isGroupNotification,
     } from '../../lib/notifications/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import NotificationItem from './NotificationItem.svelte';
@@ -18,6 +19,7 @@
     import {hideOnScroll, scrollEndListener} from '../../lib/utils/utils';
     import {notificationsTimestamp} from '../../lib/stores/preferences-store';
     import type { NotificationFragment } from '@lens-protocol/client';
+    import GroupNotificationItem from './GroupNotificationItem.svelte';
 
     export let lastUpdate: DateTime | null;
 
@@ -164,14 +166,18 @@
 </script>
 
 <div bind:this={scrollElement} use:scrollEndListener={{onScrollEnd}}
-     class="w-full h-full overflow-y-auto">
+     class="z-0 w-full h-full overflow-y-auto">
 
     <ul bind:this={listElement}
-        class="w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+        class="z-0 w-full h-fit bg-gray-100 dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
 
         {#each notifications as notification}
             <li>
-                <NotificationItem {notification} {lastUpdate}/>
+                {#if isGroupNotification(notification)}
+                    <GroupNotificationItem {notification} {lastUpdate}/>
+                {:else}
+                    <NotificationItem {notification} {lastUpdate}/>
+                {/if}
             </li>
         {/each}
 

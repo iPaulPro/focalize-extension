@@ -14,6 +14,7 @@ import {
 import {
     getCached,
     KEY_ENS_NAME_MAP,
+    KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_WINDOW_TOPIC_MAP,
     saveToCache,
 } from '../stores/cache-store';
@@ -430,8 +431,10 @@ export const getNotificationCountSinceLastOpened = async (
 
     if (!lastUpdateDate) return 0;
 
-    const storage = await chrome.storage.local.get(['notificationItemsCache']);
-    const notifications = storage.notificationItemsCache;
+    const storage = await chrome.storage.local.get([
+        KEY_NOTIFICATION_ITEMS_CACHE,
+    ]);
+    const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
     if (!notifications || notifications.length === 0) {
         return 0;
     }
