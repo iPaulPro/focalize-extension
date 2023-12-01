@@ -1,12 +1,11 @@
 <script lang='ts'>
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import type { GroupNotification } from '../../lib/notifications/lens-notifications';
+    import type { BatchedNotification } from '../../lib/notifications/lens-notifications';
     import NotificationIcon from './NotificationIcon.svelte';
     import type { ProfileFragment } from '@lens-protocol/client';
-    import ImageAvatar from '../../assets/ic_avatar.svg';
     import { truncate, truncateAddress } from '../../lib/utils/utils';
-    import { getProfileAvatar, getProfileDisplayName, getProfileUrl } from '../../lib/utils/lens-utils';
+    import { getProfileDisplayName, getProfileUrl } from '../../lib/utils/lens-utils';
     import {
         getEventTime,
         getNotificationAction,
@@ -19,7 +18,7 @@
     import { PublicationReactionType } from '@lens-protocol/client';
     import ProfileAvatar from '../../lib/components/ProfileAvatar.svelte';
 
-    export let notification: GroupNotification;
+    export let notification: BatchedNotification;
     export let lastUpdate: DateTime | null;
 
     let expanded = false;
@@ -146,7 +145,7 @@
 
     {#if expanded}
         <div class='w-full flex flex-col pl-12 gap-1' transition:slide>
-            <div class='border-t dark:border-gray-700 pt-2 pr-8'>
+            <div class='border-t dark:border-gray-700 py-2 pr-8'>
                 {#each getSubNotifications() as sub}
                     <a href={getProfileUrl(sub.profile)} target="_blank" rel="noreferrer"
                        class='w-full flex items-center gap-2 px-2 py-2 rounded-xl

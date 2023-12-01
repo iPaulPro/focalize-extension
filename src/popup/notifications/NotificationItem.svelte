@@ -37,8 +37,9 @@
     $: notificationWalletAddress = notification && getNotificationWalletAddress(notification);
     $: notificationEventTime = getEventTime(notification);
     $: notificationDateTime = notificationEventTime && DateTime.fromISO(notificationEventTime);
+    $: notificationProfile = getNotificationProfile(notification);
     $: isNew = notification && lastUpdate && notificationDateTime && notificationDateTime > lastUpdate;
-    $: userProfileUrl = notification && notificationHandle?.length > 0 && $nodeSearch && getNodeUrlForHandle($nodeSearch, notificationHandle);
+    $: userProfileUrl = notification && notificationProfile.handle && $nodeSearch && getNodeUrlForHandle($nodeSearch, notificationProfile.handle);
     $: polygonScanUrl = notification && notificationWalletAddress && `https://polygonscan.com/address/${notificationWalletAddress}`;
 
     const launchNotification = async () => {

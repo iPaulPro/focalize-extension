@@ -4,6 +4,7 @@ import type {
     PostFragment,
     QuoteFragment,
     PublicationMetadataFragment,
+    HandleInfoFragment,
 } from '@lens-protocol/client';
 import {
     formatHandleV2toV1,
@@ -31,6 +32,7 @@ export type LensNode = {
     hexIdentifier: boolean;
     notifications: string | null;
     focus: string[];
+    fullHandle: boolean;
 };
 
 export const LENS_NODES: LensNode[] = [...nodes];
@@ -85,8 +87,13 @@ export const getNodeForPublication = async (
     return storage[KEY_NODE_POST];
 };
 
-export const getNodeUrlForHandle = (node: LensNode, handle: string) => {
-    const formattedHandle = formatHandleV2toV1(handle);
+export const getNodeUrlForHandle = (
+    node: LensNode,
+    handle: HandleInfoFragment
+) => {
+    const formattedHandle = node.fullHandle
+        ? formatHandleV2toV1(handle.fullHandle)
+        : handle.localName;
     return node.baseUrl + node.profiles.replace('{$handle}', formattedHandle);
 };
 

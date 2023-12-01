@@ -96,7 +96,7 @@
 
     const getPeerUrl = (): string => {
         if (thread?.peer?.profile?.handle) {
-            return getNodeUrlForHandle($nodeSearch, thread.peer.profile.handle.fullHandle);
+            return getNodeUrlForHandle($nodeSearch, thread.peer.profile.handle);
         } else if (thread?.peer?.wallet?.ens) {
             return `https://app.ens.domains/${thread.peer.wallet?.ens}`;
         }

@@ -4,7 +4,7 @@
     import {currentUser} from '../stores/user-store'
     import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {userFromProfile} from '../user/user';
+    import { onLogin } from '../user/user';
     import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
@@ -35,15 +35,7 @@
         }
 
         const authenticatedProfile = await login(profile);
-        $currentUser = userFromProfile(authenticatedProfile);
-        console.log('Authenticated user', $currentUser);
-
-        try {
-            await chrome.runtime.sendMessage({type: 'setNotificationsAlarm', enabled: true});
-            await chrome.runtime.sendMessage({type: 'setMessagesAlarm', enabled: true});
-        } catch (e) {
-            console.error('Error setting alarms', e)
-        }
+        await onLogin(authenticatedProfile);
     };
 
     const getSortedProfiles = async (account: string): Promise<ProfileFragment[]> => {
@@ -96,7 +88,7 @@
                     </button>
                 </form>
             </div>
-        {:else}
+        {:else if profiles.length > 1}
             <div class='px-4 pt-3 flex items-center gap-2 text-gray-500 dark:text-gray-400 cursor-default'>
                 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' class='w-4'
                      stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
@@ -117,7 +109,7 @@
           {@const avatarUrl = p.handle ? getAvatarForLensHandle(p.handle.fullHandle) : getAvatarFromAddress(p.ownedBy.address)}
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
-               hover:bg-orange-300 {standalone ? 'dark:hover:bg-gray-900' : 'dark:hover:bg-gray-800'} "
+               hover:bg-orange-300 {standalone ? 'dark:hover:bg-gray-900' : 'dark:hover:bg-gray-800'}"
                on:click={() => onProfileSelected(p)}>
 
             {#if !avatarUrl || avatarError[index]}
@@ -137,7 +129,7 @@
               </div>
             </div>
 
-            {#if $currentUser?.handle === p.handle?.fullHandle}
+            {#if $currentUser?.handle === p.handle?.fullHandle && profiles.length > 1}
               <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
             {/if}
 

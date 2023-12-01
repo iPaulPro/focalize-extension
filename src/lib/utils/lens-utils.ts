@@ -343,7 +343,7 @@ export const getProfileAvatar = (profile: ProfileFragment): string =>
 
 export const getProfileUrl = (profile: ProfileFragment): string => {
     if (profile.handle) {
-        return getNodeUrlForHandle(LENS_NODES[0], profile.handle.localName);
+        return getNodeUrlForHandle(LENS_NODES[0], profile.handle);
     }
     return `https://hey.xyz/p/${profile.id}`;
 };

@@ -35,7 +35,7 @@
     "@tailwindcss/typography": "^0.5.10",
     "@tsconfig/svelte": "^5.0.2",
     "@typechain/ethers-v6": "^0.4.2",
-    "@types/chrome": "^0.0.237",
+    "@types/chrome": "^0.0.253",
     "@types/dompurify": "^3.0.2",
     "@types/emoji-mart": "^3.0.9",
     "@types/language-tags": "^1.0.1",

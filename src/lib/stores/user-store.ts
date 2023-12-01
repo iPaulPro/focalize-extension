@@ -20,6 +20,9 @@ export const getUser = async (): Promise<User | undefined> => {
     return storage[KEY_CURRENT_USER];
 };
 
+export const saveUser = async (user: User) =>
+    chrome.storage.local.set({ [KEY_CURRENT_USER]: user });
+
 /**
  * A list of known XMTP senders
  */

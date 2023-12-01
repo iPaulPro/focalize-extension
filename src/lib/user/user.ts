@@ -1,4 +1,4 @@
-import { getUser } from '../stores/user-store';
+import { currentUser, getUser, saveUser } from '../stores/user-store';
 import { getAvatarForLensHandle } from '../utils/utils';
 import { isAuthenticated } from '../lens-service';
 import type { ProfileFragment } from '@lens-protocol/client';
@@ -48,4 +48,19 @@ export const ensureUser = async () => {
 
     chrome.runtime.openOptionsPage();
     window?.close();
+};
+
+export const onLogin = async (profile: ProfileFragment) => {
+    const user = userFromProfile(profile);
+    await saveUser(user);
+    console.log('Authenticated user', user);
+
+    try {
+        await chrome.runtime.sendMessage({
+            type: 'setNotificationsAlarm',
+            enabled: true,
+        });
+    } catch (e) {
+        console.error('Error setting notification alarm', e);
+    }
 };

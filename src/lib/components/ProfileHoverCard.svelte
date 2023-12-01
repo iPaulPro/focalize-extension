@@ -25,7 +25,7 @@
     let isMessaging = false;
 
     $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle.fullHandle);
-    $: userProfileUrl = profile.handle && $nodeSearch && getNodeUrlForHandle($nodeSearch, profile.handle.fullHandle);
+    $: userProfileUrl = profile.handle && $nodeSearch && getNodeUrlForHandle($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
     const canMessageProfile = async (): Promise<boolean> => {

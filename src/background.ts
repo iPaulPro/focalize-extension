@@ -24,6 +24,8 @@ import {
     getNotificationContent,
     getNotificationHandle,
     getNotificationLink,
+    getBatchedNotificationCount,
+    isBatchedNotification,
     NOTIFICATIONS_QUERY_LIMIT,
 } from './lib/notifications/lens-notifications';
 import {
@@ -59,6 +61,7 @@ import {
     waitForTransaction,
 } from './lib/lens-service';
 import type {
+    FollowNotificationFragment,
     NotificationFragment,
     ProfileFragment,
     PublicationMetadataFragment,
@@ -160,10 +163,25 @@ const shouldNotificationRequireInteraction = (
 
 const getAppIconUrl = () => chrome.runtime.getURL('images/icon-128.png');
 
-const createIndividualNotification = (
+const getNotificationById = (id: string) =>
+    new Promise((resolve) => {
+        chrome.notifications.getAll((notifications: any) => {
+            resolve(notifications[id]);
+        });
+    });
+
+const createIndividualNotification = async (
     notification: NotificationFragment,
     currentUser: User
 ) => {
+    const existing = await getNotificationById(notification.id);
+    if (existing) {
+        console.log(
+            'createIndividualNotification: notification already exists'
+        );
+        return;
+    }
+
     const handle = getNotificationHandle(notification);
     const avatar = getAvatarFromNotification(notification);
     const content = getNotificationContent(notification);
@@ -176,12 +194,24 @@ const createIndividualNotification = (
     );
     const eventTime = getEventTime(notification);
 
+    let title = handle + ' ' + action;
+    if (isBatchedNotification(notification)) {
+        const batchedNotificationCount =
+            getBatchedNotificationCount(notification);
+        title =
+            handle +
+            (batchedNotificationCount > 1
+                ? ` and ${batchedNotificationCount - 1} others `
+                : ' ') +
+            action;
+    }
+
     chrome.notifications.create(notification.id, {
         type: 'basic',
         eventTime: eventTime
             ? DateTime.fromISO(eventTime).toMillis()
             : undefined,
-        title: handle + ' ' + action,
+        title,
         message,
         contextMessage: 'Focalize',
         iconUrl: avatar ?? getAppIconUrl(),
@@ -352,6 +382,10 @@ const notifyOfPublishedPost = async (
     });
 };
 
+const handleFollowNotification = async (
+    notification: FollowNotificationFragment
+) => {};
+
 const onNotificationsAlarm = async () => {
     const currentUser = await getUser();
     if (!currentUser) return;
@@ -385,7 +419,11 @@ const onNotificationsAlarm = async () => {
     }
 
     for (const notification of notifications) {
-        createIndividualNotification(notification, currentUser);
+        if (notification.__typename === 'FollowNotification') {
+            await handleFollowNotification(notification);
+        } else {
+            await createIndividualNotification(notification, currentUser);
+        }
     }
 };
 
@@ -546,6 +584,8 @@ const onSetMessagesAlarm = async (req: any, res: (response?: any) => void) => {
 };
 
 const createEnableXmtpNotification = async () => {
+    await clearAlarm(ALARM_ID_NOTIFICATIONS);
+
     const storage = await chrome.storage.local.get(
         STORAGE_KEY_ENABLE_XMTP_NOTIFICATION
     );
@@ -580,7 +620,7 @@ const onMessagesAlarm = async () => {
         const client = await getXmtpClient();
         threads = await getUnreadThreads(client, !alarmHasRun);
     } catch (e) {
-        console.error('onMessagesAlarm: error getting unread threads', e);
+        console.warn('onMessagesAlarm: error getting unread threads', e);
         await createEnableXmtpNotification();
     }
 
@@ -675,14 +715,19 @@ const onMessagesAlarm = async () => {
 
 const updateKnownSenders = async (): Promise<string[]> => {
     const currentUser: User = await getUser();
-    const xmtp = await getXmtpClient();
+    try {
+        const xmtp = await getXmtpClient();
 
-    const knownSenders = await getKnownSenders(currentUser, xmtp);
-    await chrome.storage.local.set({
-        [KEY_KNOWN_SENDERS]: knownSenders,
-    });
+        const knownSenders = await getKnownSenders(currentUser, xmtp);
+        await chrome.storage.local.set({
+            [KEY_KNOWN_SENDERS]: knownSenders,
+        });
 
-    return knownSenders;
+        return knownSenders;
+    } catch (e) {
+        console.warn('updateKnownSenders: error getting known senders', e);
+        return [];
+    }
 };
 
 const onAlarmTriggered = async (alarm: chrome.alarms.Alarm) => {

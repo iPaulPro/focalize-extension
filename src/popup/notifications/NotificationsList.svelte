@@ -3,7 +3,7 @@
         getEventTime,
         getLatestNotifications,
         getNextNotifications,
-        isGroupNotification,
+        isBatchedNotification,
     } from '../../lib/notifications/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import NotificationItem from './NotificationItem.svelte';
@@ -173,7 +173,7 @@
 
         {#each notifications as notification}
             <li>
-                {#if isGroupNotification(notification)}
+                {#if isBatchedNotification(notification)}
                     <GroupNotificationItem {notification} {lastUpdate}/>
                 {:else}
                     <NotificationItem {notification} {lastUpdate}/>

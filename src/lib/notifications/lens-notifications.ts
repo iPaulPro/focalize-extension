@@ -22,6 +22,7 @@ import type {
     PaginatedResultInfoFragment,
 } from '@lens-protocol/client';
 import {
+    formatHandleV2toV1,
     getMetadataContent,
     getNotificationPublication,
 } from '../utils/lens-utils';
@@ -34,7 +35,7 @@ import {
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
-export type GroupNotification =
+export type BatchedNotification =
     | ActedNotificationFragment
     | FollowNotificationFragment
     | ReactionNotificationFragment;
@@ -56,12 +57,13 @@ const cacheNotifications = async (
         'cacheNotifications: notificationItemsCache',
         notificationItemsCache
     );
+    const cachedIds = new Set(
+        notificationItemsCache.map((item: { id: string }) => item.id)
+    );
 
-    const newItems = notifications.filter((notification) => {
-        return !notificationItemsCache.find(
-            (cached: NotificationFragment) => cached.id === notification.id
-        );
-    });
+    const newItems = notifications.filter(
+        (notification) => !cachedIds.has(notification.id)
+    );
     console.log('cacheNotifications: newItems', newItems);
 
     if (newItems.length > 0) {
@@ -139,7 +141,7 @@ export const getLatestNotifications = async (
     console.log('getNotifications: notifications result', notificationsRes);
 
     // If we don't have a cache yet there are no "latest" notifications
-    if (!storage.notificationItemsCache || !notificationsRes?.items) {
+    if (!storage[KEY_NOTIFICATION_ITEMS_CACHE] || !notificationsRes?.items) {
         return {};
     }
 
@@ -321,10 +323,10 @@ export const getNotificationAction = (
 export const getNotificationHandle = (
     notification: NotificationFragment
 ): string => {
-    return (
-        getNotificationProfile(notification)?.handle?.localName ??
-        getNotificationWalletAddress(notification)
-    );
+    const handle = getNotificationProfile(notification)?.handle;
+    return handle
+        ? formatHandleV2toV1(handle.fullHandle)
+        : getNotificationWalletAddress(notification);
 };
 
 export const getNotificationDisplayName = (
@@ -372,7 +374,7 @@ export const getNotificationLink = async (
 
     switch (notification.__typename) {
         case 'FollowNotification':
-            const handle = notification.followers[0].handle?.fullHandle;
+            const handle = notification.followers[0].handle;
             if (handle) {
                 return getNodeUrlForHandle(node, handle);
             }
@@ -415,9 +417,9 @@ export const getEventTime = (
     return undefined;
 };
 
-export const isGroupNotification = (
+export const isBatchedNotification = (
     notification: NotificationFragment
-): notification is GroupNotification => {
+): notification is BatchedNotification => {
     switch (notification.__typename) {
         case 'FollowNotification':
         case 'ReactionNotification':
@@ -425,5 +427,18 @@ export const isGroupNotification = (
             return true;
         default:
             return false;
+    }
+};
+
+export const getBatchedNotificationCount = (
+    notification: BatchedNotification
+): number => {
+    switch (notification.__typename) {
+        case 'FollowNotification':
+            return notification.followers.length;
+        case 'ReactionNotification':
+            return notification.reactions[0].reactions.length;
+        case 'ActedNotification':
+            return notification.actions.length;
     }
 };

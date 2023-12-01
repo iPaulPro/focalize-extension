@@ -12,6 +12,7 @@
     import { connectWalletAndGetProfiles, login, NoProfileError } from '../../lib/lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
     import AccountChooser from '../../lib/components/AccountChooser.svelte';
+    import { onLogin } from '../../lib/user/user';
 
     const dispatch = createEventDispatcher();
 
@@ -51,7 +52,8 @@
         } else if (profiles.length > 1) {
             await showProfilePicker();
         } else {
-            await login(profiles[0]);
+            const profile = await login(profiles[0]);
+            await onLogin(profile);
         }
     };
 
