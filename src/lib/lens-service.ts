@@ -121,14 +121,14 @@ export const login = async (
     await clearNotificationCache();
 
     const { getSigner } = await import('./evm/ethers-service');
+    const signer = await getSigner();
 
     const { id, text } = await lensClient.authentication.generateChallenge({
         for: profile.id,
-        signedBy: profile.ownedBy.address,
+        signedBy: signer.address,
     });
     console.log('authenticate: Lens challenge response', { id, text });
 
-    const signer = await getSigner();
     const signature = await signer.signMessage(text);
     console.log('authenticate: Signed Lens challenge', signature);
 
