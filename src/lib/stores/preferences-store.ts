@@ -45,7 +45,6 @@ export const KEY_MESSAGES_HIDE_EMPTY = 'messagesHideEmptyThreads';
 export const KEY_MESSAGES_PLAY_SOUNDS = 'messagesPlaySounds';
 export const KEY_USE_POPUP_COMPOSER = 'usePopupComposer';
 export const KEY_RICH_TEXT = 'richTextComposer';
-export const KEY_WALLET_CONNECTION = 'walletConnection';
 
 export const ALL_NODE_KEYS = [
     KEY_NODE_IMAGE,
@@ -249,10 +248,6 @@ export const messagesPlaySounds: Writable<boolean> = chromeStorageSync(
 export const richTextComposer: Writable<boolean> = chromeStorageSync(
     KEY_RICH_TEXT,
     true
-);
-
-export const walletConnection: Writable<WalletConnection> = chromeStorageSync(
-    KEY_WALLET_CONNECTION
 );
 
 export const messagesUnreadCount: Readable<number> = derived(

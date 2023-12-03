@@ -29,14 +29,14 @@
 
     let notifications: NotificationFragment[] = [];
     let newNotifications: NotificationFragment[] = [];
-    let cursor: any = null;
+    let cursorNext: any = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
 
     const reload = () => {
         notifications = [];
-        cursor = null;
+        cursorNext = null;
         infiniteId++;
     };
 
@@ -126,16 +126,18 @@
         }
     ) => {
         try {
-            if (!cursor) {
+            if (!cursorNext) {
                 const cachedNotifications = await get(notificationItemsCache);
                 if (cachedNotifications?.length) {
                     notifications = cachedNotifications;
+                    loaded();
+                    console.log('infiniteHandler: using cache');
 
                     const pageInfo = await get(notificationPageInfoCache);
-                    cursor = pageInfo.next;
-
-                    console.log('infiniteHandler: using cache');
-                    loaded();
+                    cursorNext = pageInfo.next;
+                    if (!cursorNext) {
+                        complete();
+                    }
 
                     await restoreScroll();
                     await checkForNewNotifications();
@@ -145,17 +147,16 @@
             }
 
             const nextNotifications = await getNextNotifications();
-            if (!nextNotifications.notifications || !nextNotifications.cursor) {
+            cursorNext = nextNotifications.next;
+            if (!nextNotifications.notifications?.length) {
                 complete();
                 return;
             }
 
-            cursor = nextNotifications.cursor;
+            notifications = [...notifications, ...nextNotifications.notifications];
+            loaded();
 
-            if (nextNotifications.notifications.length) {
-                notifications = [...notifications, ...nextNotifications.notifications];
-                loaded();
-            } else {
+            if (!cursorNext) {
                 complete();
             }
         } catch (e) {

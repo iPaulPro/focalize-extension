@@ -11,8 +11,11 @@ import {
     getPublicationUrlFromNode,
 } from '../publications/lens-nodes';
 import {
+    getCached,
     KEY_NOTIFICATION_ITEMS_CACHE,
+    KEY_NOTIFICATION_LATEST_ID,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
+    saveToCache,
 } from '../stores/cache-store';
 import { getNotifications, isAuthenticated } from '../lens-service';
 import type {
@@ -129,25 +132,40 @@ const getPaginatedNotificationResult = async (
 export const getLatestNotifications = async (
     filter: boolean = false
 ): Promise<{ notifications?: NotificationFragment[]; cursor?: any }> => {
-    const storage = await chrome.storage.local.get([
-        KEY_NOTIFICATION_PAGE_INFO_CACHE,
-        KEY_NOTIFICATION_ITEMS_CACHE,
-    ]);
-    const pageInfo: PaginatedResultInfoFragment =
-        storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
+    const cachedItems = await getCached<NotificationFragment[]>(
+        KEY_NOTIFICATION_ITEMS_CACHE
+    );
+    const cachedLatestId = await getCached<string>(KEY_NOTIFICATION_LATEST_ID);
 
     const notificationsRes: PaginatedResult<NotificationFragment> | null =
-        await getPaginatedNotificationResult(pageInfo?.prev, true);
+        await getPaginatedNotificationResult(undefined, true);
     console.log('getNotifications: notifications result', notificationsRes);
 
     // If we don't have a cache yet there are no "latest" notifications
-    if (!storage[KEY_NOTIFICATION_ITEMS_CACHE] || !notificationsRes?.items) {
+    if (!cachedItems || !notificationsRes?.items) {
         return {};
+    }
+
+    let notifications: NotificationFragment[] = notificationsRes.items;
+    // If we have a lastId, we need to filter out notifications that are older than the lastId
+    // TODO remove and replace with cursor once implemented in the API
+    if (cachedLatestId) {
+        const lastIdIndex = notificationsRes.items.findIndex(
+            (item) => item.id === cachedLatestId
+        );
+        if (lastIdIndex !== -1) {
+            notifications = notificationsRes.items.slice(0, lastIdIndex);
+        }
+    }
+
+    // update lastId to the latest notification
+    if (notifications.length > 0) {
+        await saveToCache(KEY_NOTIFICATION_LATEST_ID, notifications[0].id);
     }
 
     if (!filter) {
         return {
-            notifications: notificationsRes.items,
+            notifications,
             cursor: notificationsRes.pageInfo.prev,
         };
     }
@@ -163,8 +181,8 @@ export const getLatestNotifications = async (
         'notificationsFiltered',
     ]);
 
-    const filteredNotifications: NotificationFragment[] =
-        notificationsRes.items.filter((notification: NotificationFragment) => {
+    const filteredNotifications: NotificationFragment[] = notifications.filter(
+        (notification: NotificationFragment) => {
             switch (notification.__typename) {
                 case 'FollowNotification':
                     return syncStorage.notificationsForFollows !== false;
@@ -183,7 +201,8 @@ export const getLatestNotifications = async (
                 default:
                     return false;
             }
-        });
+        }
+    );
 
     return {
         notifications: filteredNotifications,
@@ -193,7 +212,7 @@ export const getLatestNotifications = async (
 
 export const getNextNotifications = async (): Promise<{
     notifications?: NotificationFragment[];
-    cursor?: any;
+    next?: any;
 }> => {
     const storage = await chrome.storage.local.get([
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
@@ -201,11 +220,11 @@ export const getNextNotifications = async (): Promise<{
     const pageInfo: PaginatedResultInfoFragment =
         storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
     const notifications = await getPaginatedNotificationResult(pageInfo?.next);
-    console.log('getNotifications: notifications', notifications);
+    console.log('getNextNotifications: notifications', notifications);
     if (notifications?.items) {
         return {
-            notifications: notifications.items as NotificationFragment[],
-            cursor: notifications.pageInfo.next,
+            notifications: notifications.items,
+            next: notifications.pageInfo.next,
         };
     }
     return {};
@@ -274,7 +293,6 @@ export const getAvatarFromNotification = (
 export const getNotificationAction = (
     notification: NotificationFragment
 ): string => {
-    console.log('getNotificationAction', notification.__typename);
     switch (notification.__typename) {
         case 'ActedNotification':
             return (
@@ -419,16 +437,10 @@ export const getEventTime = (
 
 export const isBatchedNotification = (
     notification: NotificationFragment
-): notification is BatchedNotification => {
-    switch (notification.__typename) {
-        case 'FollowNotification':
-        case 'ReactionNotification':
-        case 'ActedNotification':
-            return true;
-        default:
-            return false;
-    }
-};
+): notification is BatchedNotification =>
+    notification.__typename === 'FollowNotification' ||
+    notification.__typename === 'ReactionNotification' ||
+    notification.__typename === 'ActedNotification';
 
 export const getBatchedNotificationCount = (
     notification: BatchedNotification

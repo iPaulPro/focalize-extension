@@ -10,17 +10,17 @@ import { BrowserProvider, isError, toQuantity } from 'ethers';
 import omitDeep from 'omit-deep';
 import CoinbaseWalletSDK from '@coinbase/wallet-sdk';
 import ethProvider from 'eth-provider';
-import {
-    deletePreference,
-    getPreference,
-    KEY_DARK_MODE,
-    KEY_WALLET_CONNECTION,
-    savePreference,
-} from '../stores/preferences-store';
+import { getPreference, KEY_DARK_MODE } from '../stores/preferences-store';
 import { EthereumProvider } from '@walletconnect/ethereum-provider';
 import createMetaMaskProvider from 'metamask-extension-provider';
 import focalizeIcon from '../../assets/focalize.svg';
 import WalletConnection from './WalletConnection';
+import {
+    deleteFromCache,
+    getCached,
+    KEY_WALLET_CONNECTION,
+    saveToCache,
+} from '../stores/cache-store';
 
 const walletConnectProjectId = WALLETCONNECT_PROJECT_ID;
 
@@ -112,7 +112,7 @@ const createCoinbaseWalletProvider = async (): Promise<BrowserProvider> => {
 };
 
 const createSignerProvider = async (): Promise<BrowserProvider> => {
-    const walletConnection: WalletConnection | undefined = await getPreference(
+    const walletConnection: WalletConnection | undefined = await getCached(
         KEY_WALLET_CONNECTION
     );
     if (!walletConnection) {
@@ -153,13 +153,13 @@ export const getProvider = async (): Promise<BrowserProvider> => {
 
 export const clearProvider = async () => {
     cachedProvider = undefined;
-    await deletePreference(KEY_WALLET_CONNECTION);
+    await deleteFromCache(KEY_WALLET_CONNECTION);
 };
 
 export const initEthers = async (wallet: WalletConnection): Promise<any[]> => {
     console.log('initEthers: wallet connection', wallet);
     await clearProvider();
-    await savePreference(KEY_WALLET_CONNECTION, wallet);
+    await saveToCache(KEY_WALLET_CONNECTION, wallet);
     return await getAccounts();
 };
 

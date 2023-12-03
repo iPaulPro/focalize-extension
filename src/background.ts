@@ -13,7 +13,6 @@ import {
 import { PublicationState } from './lib/stores/state-store';
 import {
     getUrlForAnyPublicationMetadata,
-    LENS_NODES,
     type LensNode,
 } from './lib/publications/lens-nodes';
 import {
@@ -43,12 +42,7 @@ import {
     KEY_MESSAGES_HIDE_UNKNOWN,
     KEY_MESSAGES_REFRESH_INTERVAL,
     KEY_MESSAGES_UNREAD_TOPICS,
-    KEY_NODE_ARTICLE,
-    KEY_NODE_NOTIFICATIONS,
-    KEY_NODE_SEARCH,
-    KEY_NODE_VIDEO,
     KEY_NOTIFICATIONS_GROUPED,
-    ALL_NODE_KEYS,
 } from './lib/stores/preferences-store';
 import { getPeerName, getUnreadThreads, type Thread } from './lib/xmtp-service';
 import { Client, type DecodedMessage } from '@xmtp/xmtp-js';
@@ -72,6 +66,7 @@ import {
     getNotificationPublication,
     hasMetadata,
 } from './lib/utils/lens-utils';
+import { migrate } from './lib/utils/migrations';
 
 const ALARM_ID_NOTIFICATIONS = 'focalize-notifications-alarm';
 const ALARM_ID_MESSAGES = 'focalize-messages-alarm';
@@ -82,7 +77,6 @@ const STORAGE_KEY_ENABLE_XMTP_NOTIFICATION =
 const MESSAGE_LOGGED_OUT = 'loggedOut';
 const MESSAGE_GET_PUBLICATION_ID = 'getPublicationId';
 const MESSAGE_SET_NOTIFICATION_ALARM = 'setNotificationsAlarm';
-const MESSAGE_PROXY_ACTION = 'proxyAction';
 const MESSAGE_SET_MESSAGE_ALARM = 'setMessagesAlarm';
 const MESSAGE_CHECK_UNREAD_MESSAGES = 'checkForUnreadMessages';
 
@@ -382,10 +376,6 @@ const notifyOfPublishedPost = async (
     });
 };
 
-const handleFollowNotification = async (
-    notification: FollowNotificationFragment
-) => {};
-
 const onNotificationsAlarm = async () => {
     const currentUser = await getUser();
     if (!currentUser) return;
@@ -419,11 +409,7 @@ const onNotificationsAlarm = async () => {
     }
 
     for (const notification of notifications) {
-        if (notification.__typename === 'FollowNotification') {
-            await handleFollowNotification(notification);
-        } else {
-            await createIndividualNotification(notification, currentUser);
-        }
+        await createIndividualNotification(notification, currentUser);
     }
 };
 
@@ -879,44 +865,12 @@ chrome.windows.onRemoved.addListener(async (windowId: number) => {
     }
 });
 
-const updateSavedLensterNodes = async () => {
-    const syncStorage = await chrome.storage.sync.get([
-        ...ALL_NODE_KEYS,
-        KEY_NODE_NOTIFICATIONS,
-        KEY_NODE_SEARCH,
-    ]);
-    Object.entries(syncStorage).forEach(([key, value]) => {
-        if (value.name === 'Lenster') {
-            chrome.storage.sync.set({ [key]: LENS_NODES[0] });
-        }
-    });
-};
-
-const updateNodes = async () => {
-    await updateSavedLensterNodes();
-
-    const nodeArticle = await getPreference<LensNode>(KEY_NODE_ARTICLE);
-    if (nodeArticle?.name === 'Share') {
-        await chrome.storage.sync.set({
-            [KEY_NODE_ARTICLE]: LENS_NODES[0],
-        });
-    }
-
-    const nodeVideo = await getPreference<LensNode>(KEY_NODE_VIDEO);
-    if (nodeVideo?.name === 'Lenstube') {
-        await chrome.storage.sync.set({
-            [KEY_NODE_VIDEO]: LENS_NODES.find((n) => n.name === 'Tape'),
-        });
-    }
-};
-
 chrome.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === chrome.runtime.OnInstalledReason.UPDATE) {
-        switch (details.previousVersion) {
-            case '1.9.10':
-                await updateNodes();
-                break;
-        }
+    if (
+        details.reason === chrome.runtime.OnInstalledReason.UPDATE &&
+        details.previousVersion
+    ) {
+        await migrate(details.previousVersion);
     }
 });
 

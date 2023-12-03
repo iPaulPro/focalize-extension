@@ -1,4 +1,4 @@
-import { chromeStorageLocal } from './chrome-storage-store';
+import { chromeStorageLocal, chromeStorageSync } from './chrome-storage-store';
 import { derived, type Readable, type Writable } from 'svelte/store';
 import type { CompactMessage } from '../xmtp-service';
 import type {
@@ -6,6 +6,7 @@ import type {
     PaginatedResult,
     ProfileFragment,
 } from '@lens-protocol/client';
+import WalletConnection from '../evm/WalletConnection';
 
 /**
  * Cached data is saved to the `local` chrome storage area.
@@ -22,9 +23,13 @@ export const getCached = async <T>(key: string): Promise<T | undefined> => {
 export const saveToCache = async (key: string, value: any): Promise<void> =>
     chrome.storage.local.set({ [key]: value });
 
+export const deleteFromCache = async (key: string): Promise<void> =>
+    chrome.storage.local.remove(key);
+
 export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache.v2';
 export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache.v2';
 export const KEY_NOTIFICATION_SCROLL_TOP_CACHE = 'notificationsScrollTop.v2';
+export const KEY_NOTIFICATION_LATEST_ID = 'notificationsLastId';
 
 export const notificationItemsCache: Writable<NotificationFragment[]> =
     chromeStorageLocal(KEY_NOTIFICATION_ITEMS_CACHE);
@@ -39,6 +44,7 @@ export const clearNotificationCache = async () => {
     await chrome.storage.local.remove(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_PAGE_INFO_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_ITEMS_CACHE);
+    await chrome.storage.local.remove(KEY_NOTIFICATION_LATEST_ID);
 };
 
 /**
@@ -137,3 +143,8 @@ export const KEY_PROFILE_ID_BY_ADDRESS = 'profileIdsByAddressMap';
  */
 export const profileIdsByAddressMap: Writable<ProfileIdsByAddressMap> =
     chromeStorageLocal(KEY_PROFILE_ID_BY_ADDRESS, {});
+
+export const KEY_WALLET_CONNECTION = 'walletConnection';
+export const walletConnection: Writable<WalletConnection> = chromeStorageSync(
+    KEY_WALLET_CONNECTION
+);
