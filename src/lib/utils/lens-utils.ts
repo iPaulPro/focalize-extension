@@ -305,19 +305,6 @@ export const formatHandleV2toV1 = (handle: string): string => {
  * Format a handle from local.domain to domain/local
  * @param handle The handle to format
  */
-export const formatMentionV1toV2 = (handle: string): string => {
-    // format the handle from paulburke.lens to lens/paulburke
-    const match = handle.match(MENTION_REGEX);
-    if (!match) return handle;
-
-    const [, , , localName, domain] = match;
-    return `@${domain}/${localName}`;
-};
-
-/**
- * Format a handle from local.domain to domain/local
- * @param handle The handle to format
- */
 export const formatHandleV1toV2 = (handle: string): string => {
     // format the handle from paulburke.lens to lens/paulburke
     const handleParts = handle.split('.');

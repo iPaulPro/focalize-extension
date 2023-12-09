@@ -39,7 +39,6 @@
     import { $setBlocksType as setBlocksType } from '@lexical/selection';
     import { createEmptyHistoryState, registerHistory } from '@lexical/history';
     import { $canShowPlaceholder as canShowPlaceholder } from '@lexical/text';
-    import type { UpdateListener } from 'lexical/LexicalEditor';
     import type { TextFormatType } from 'lexical/nodes/LexicalTextNode';
 
     import { onMount } from 'svelte';
@@ -255,7 +254,6 @@
             fillAttr: 'handle',
             lookup: 'handle',
             noMatchTemplate: () => '<span class="hidden"></span>',
-
         });
 
         plainTextTribute.attach(node);
@@ -276,28 +274,25 @@
                 return;
             }
 
-            const nodes = selection.getNodes();
-            if (nodes.length) {
-                const newNode = createMentionNode(`@${formatHandleV2toV1(handle)}`);
-                nodes[0].replace(newNode);
-                newNode.select();
-            }
+            const newNode = createMentionNode(`@${formatHandleV2toV1(handle)}`);
+            selection.insertNodes([newNode]);
+            newNode.select();
         });
-    };
-
-    const onEditorStateUpdate = ({ editorState }: { editorState: EditorState }): UpdateListener => {
-        editorState.read(() => {
-            $content = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
-            showPlaceholder = canShowPlaceholder(editor.isComposing());
-        });
-        return () => {
-        };
     };
 
     const escapeOverride = (): boolean => {
         toolbarVisible = false;
         const selection = getSelection();
         return selection == null || !isRangeSelection(selection) || selection.isCollapsed();
+    };
+
+    const registerTextListener = (editor: LexicalEditor) => {
+        editor.registerTextContentListener(() => {
+            editor.getEditorState().read(() => {
+                $content = convertToMarkdownString(MARKDOWN_TRANSFORMERS);
+                showPlaceholder = canShowPlaceholder(editor.isComposing());
+            });
+        })
     };
 
     $: contentLength = $content?.length ?? 0;
@@ -317,12 +312,11 @@
         registerMentionPlugin(editor);
         registerEmojiShortcodePlugin(editor);
         registerHistoryKeyboardShortcuts();
+        registerTextListener(editor);
 
         editorElement?.addEventListener('tribute-active-true', () => tributeActive = true);
         editorElement?.addEventListener('tribute-active-false', () => tributeActive = false);
         editorElement?.addEventListener('tribute-replaced', onTributeReplaced);
-
-        return editor.registerUpdateListener(onEditorStateUpdate);
     });
 </script>
 
