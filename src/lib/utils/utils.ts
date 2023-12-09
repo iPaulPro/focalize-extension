@@ -110,6 +110,7 @@ export const launchComposerWindow = async (
         title?: string;
         description?: string;
         icon?: string;
+        image?: string;
     },
     draftId?: string
 ) => {
@@ -127,6 +128,7 @@ export const launchComposerWindow = async (
                 truncate(tags.description, 160) ?? ''
             );
         if (tags.icon) url.searchParams.append('icon', tags.icon);
+        if (tags.image) url.searchParams.append('image', tags.image);
     } else {
         const searchParams: Record<string, string> = getSearchParams();
         for (const [key, value] of Object.entries(searchParams)) {
@@ -318,6 +320,7 @@ export interface OpenGraphTags {
     title?: string | null;
     description?: string | null;
     icon?: string | null;
+    image?: string | null;
 }
 
 export const getOpenGraphTags = (): OpenGraphTags => ({
@@ -337,6 +340,13 @@ export const getOpenGraphTags = (): OpenGraphTags => ({
             ?.getAttribute('content') ??
         document.head
             .querySelector("meta[name='twitter:description']")
+            ?.getAttribute('content'),
+    image:
+        document.head
+            .querySelector("meta[property='og:image']")
+            ?.getAttribute('content') ??
+        document.head
+            .querySelector("meta[name='twitter:image']")
             ?.getAttribute('content'),
 });
 

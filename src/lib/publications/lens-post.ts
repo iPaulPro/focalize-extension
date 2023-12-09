@@ -20,10 +20,12 @@ import {
     image,
     video,
     audio,
+    link,
     type TextOnlyMetadata,
     type ImageMetadata,
     type VideoMetadata,
     type AudioMetadata,
+    type LinkMetadata,
     type PublicationMetadata,
     type AnyMedia,
     type MarketplaceMetadataAttribute,
@@ -41,7 +43,7 @@ import {
     isCreateMomokaPublicationResult,
 } from '@lens-protocol/client';
 import { getIrys } from '../irys-service';
-import { formatHandleV2toV1, getMediaImageMimeType } from '../utils/lens-utils';
+import { formatHandleV2toV1 } from '../utils/lens-utils';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -198,6 +200,31 @@ export const generateAudioPostMetadata = (
         appId: APP_ID,
     });
 };
+
+export const generateLinkPostMetadata = (
+    handle: string | undefined,
+    url: string,
+    title?: string,
+    content?: string,
+    tags?: string[],
+    description: string | undefined = content,
+    locale: string = 'en',
+    attributes: MarketplaceMetadataAttribute[] = []
+): LinkMetadata =>
+    link({
+        sharingLink: url,
+        content,
+        tags,
+        // contentWarning,
+        marketplace: {
+            name: title || defaultTitle(handle),
+            attributes,
+            external_url: url,
+            description,
+        },
+        locale,
+        appId: APP_ID,
+    });
 
 const createPostTransaction = async (
     contentURI: string,

@@ -10,6 +10,7 @@
     import {
         generateAudioPostMetadata,
         generateImagePostMetadata,
+        generateLinkPostMetadata,
         generateTextPostMetadata,
         generateVideoPostMetadata,
         submitPost,
@@ -30,6 +31,7 @@
         PublicationState,
         title,
         tags as postTags,
+        sharingLink,
         // contentWarning,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
@@ -107,12 +109,15 @@
     const draftSubject: Subject<PostDraft> = new Subject();
     let postDraft: PostDraft | undefined;
     let postMetaData: PublicationMetadata;
-    let currentTabData: {
+
+    type CurrentTabData = {
         title: string,
         desc: string,
         url: string,
         icon: string,
-    } | undefined;
+        image: string,
+    };
+    let currentTabData: CurrentTabData | undefined;
 
     $: referenceModuleParams = referenceItem.value;
     $: isMediaPostType = $attachments && $attachments.length > 0;
@@ -121,24 +126,21 @@
     //     $contentWarning = postContentWarning.value;
     // }
 
-    const getCurrentTabData = (): {
-        title: string,
-        desc: string,
-        url: string,
-        icon: string,
-    } | undefined => {
+    const getCurrentTabData = (): CurrentTabData | undefined => {
         const urlParams = getSearchParams();
 
         const title = urlParams.title;
         const desc = urlParams.desc;
         const url = urlParams.url;
         const icon = urlParams.icon;
+        const image = urlParams.image;
 
         return title || desc ? {
             title,
             desc,
             url,
-            icon
+            icon,
+            image,
         } : undefined;
     };
 
@@ -155,6 +157,9 @@
         }
 
         currentTabData = getCurrentTabData();
+        if (currentTabData?.url) {
+            $sharingLink = currentTabData.url;
+        }
     };
 
     const showCollectSettingsDialog = async () => {
@@ -177,6 +182,18 @@
         if (!$currentUser) throw new Error('No user found');
 
         const locale = selectedLocale?.value ?? navigator.languages[0];
+
+        if ($sharingLink) {
+            return generateLinkPostMetadata(
+                $currentUser.handle,
+                $sharingLink,
+                $title,
+                $content,
+                $postTags,
+                $description,
+                locale,
+            )
+        }
 
         if (!isMediaPostType) {
             if (!$content) throw new Error('No content found');
@@ -391,6 +408,7 @@
         author: $author,
         collectFee: $collectSettings,
         tags: $postTags,
+        sharingLink: $sharingLink,
         // contentWarning: $contentWarning,
     });
 
@@ -403,7 +421,7 @@
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
     $: if (
-        $content || $title || $description || $attachments || $author || $postTags
+        $content || $title || $description || $attachments || $author || $postTags || $sharingLink
         // || $contentWarning
         || $collectSettings.isCollectible !== undefined
     ) {
@@ -439,22 +457,6 @@
         currentTabData = undefined;
     };
 
-    const onCurrentTabDataClicked = () => {
-        if (!currentTabData) return;
-
-        if (!$richTextComposer) {
-            $content = `${currentTabData.title}\n\n"${currentTabData.desc}"\n\n${currentTabData.url}`;
-            return;
-        }
-
-        let md = '';
-
-        if (currentTabData.title) md += `**${currentTabData.title}**`;
-        if (currentTabData.desc) md += `\n\n> ${currentTabData.desc.replace('\n', '\n> ')}`;
-        if (currentTabData.url) md += `\n\n${currentTabData.url}`;
-        if (md.length > 0) $content = $content ? $content + '\n' + md : md;
-    };
-
     const ensureDraft = async () => {
         if (!$draftId && submitEnabled) {
             const draft = buildDraft();
@@ -480,10 +482,6 @@
     }
 
     $: if (isMediaPostType) {
-        clearCurrentTabData();
-    }
-
-    $: if ($content?.length) {
         clearCurrentTabData();
     }
 
@@ -547,6 +545,7 @@
 
                 <EditorActionsBar disabled={isSubmittingPost}
                                   isCompact={isPopupWindow ?? false}
+                                  showAttachmentButtons={$sharingLink === undefined}
                                   on:emojiSelected={(e) => insertAtSelection(e.detail)}
                                   on:fileSelected={(e) => setAttachment(e.detail)}
                                   on:selectGif={(e) => showGifSelectionDialog()}/>
@@ -574,41 +573,34 @@
 
               {#if currentTabData}
 
-                <div on:click={onCurrentTabDataClicked} out:fade={{duration: 200}}
-                     class="grid grid-cols-[auto,1fr] max-w-[70%] min-w-0 ml-2 mb-2 pt-1 pb-2 pr-2 truncate
-                        cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900
-                        rounded-lg border border-dashed border-gray-300 dark:border-gray-500">
+                <div out:fade={{duration: 200}}
+                     use:tippy={({delay: 400, content: currentTabData.url})}
+                     class="relative flex items-center max-w-[70%] min-w-0 min-h-[7rem] ml-2 mb-2 truncate bg-gray-50
+                     dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
 
-                  <div class="flex justify-center items-center px-4">
-                    <svg class="w-5 h-5 text-orange-600 dark:text-orange-300" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M9 10l6-6 6 6"/>
-                      <path d="M4 20h7a4 4 0 0 0 4-4V5"/>
-                    </svg>
-                  </div>
+                    {#if currentTabData.image}
+                        <img src={currentTabData.image} alt="Favicon" class="h-28 aspect-square object-cover flex-none">
+                    {/if}
 
                   <div class="flex flex-col truncate">
-                    <div class="flex justify-between items-end gap-24">
-                      <div class="flex gap-0.5 text-orange-600 dark:text-orange-300 font-semibold items-center">
-                        <svg class="w-4 h-4 text-yellow-400 animate-pulse" viewBox="0 0 100 100" fill="currentColor">
-                          <!-- Stars by Lewis K-T from Noun Project (CC BY 3.0) -->
-                          <path
-                                  d="M63.413 94.97a1.907 1.907 0 0 1-1.746-1.144l-4.186-9.6A19.329 19.329 0 0 0 47.455 74.2l-9.6-4.185a1.906 1.906 0 0 1 0-3.493l9.6-4.187a19.324 19.324 0 0 0 10.026-10.029l4.186-9.6a1.9 1.9 0 0 1 3.492 0l4.186 9.6A19.322 19.322 0 0 0 79.37 62.331l9.6 4.187a1.905 1.905 0 0 1 0 3.493l-9.6 4.185a19.322 19.322 0 0 0-10.025 10.026l-4.186 9.6a1.907 1.907 0 0 1-1.746 1.148ZM44.163 37.924a1.528 1.528 0 0 1-1.4-.917l-2.519-5.777a11.247 11.247 0 0 0-5.833-5.83l-5.777-2.517a1.528 1.528 0 0 1 0-2.8l5.778-2.518a11.247 11.247 0 0 0 5.833-5.833l2.518-5.778a1.527 1.527 0 0 1 2.8 0l2.518 5.777a11.247 11.247 0 0 0 5.834 5.834l5.778 2.518a1.528 1.528 0 0 1 0 2.8L53.914 25.4a11.251 11.251 0 0 0-5.833 5.835l-2.518 5.777a1.528 1.528 0 0 1-1.4.912ZM21.47 59.915a1.271 1.271 0 0 1-1.164-.762l-1.742-4a7.57 7.57 0 0 0-3.925-3.925l-3.995-1.74a1.27 1.27 0 0 1 0-2.328l4-1.742a7.568 7.568 0 0 0 3.92-3.918l1.742-4a1.271 1.271 0 0 1 1.164-.762 1.272 1.272 0 0 1 1.165.762l1.741 4a7.564 7.564 0 0 0 3.924 3.92l4 1.742a1.27 1.27 0 0 1 0 2.328l-4 1.741a7.566 7.566 0 0 0-3.924 3.924l-1.741 4a1.272 1.272 0 0 1-1.165.76Z"/>
-                        </svg>
-                        <span>Share {isPopupWindow ? 'current' : 'latest'} tab</span>
+                      <div class="flex px-3 pb-0.5 gap-1 text-orange-600 dark:text-orange-300 font-semibold items-center">
+                          <svg class='w-4 h-4' viewBox='0 0 24 24' fill='none'
+                               stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                              <path d='M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 4.2v10.3' />
+                          </svg>
+                          <span>Sharing link</span>
                       </div>
 
                       <button type="button" on:click={clearCurrentTabData}
-                              class="p-1 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
-                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                              class="absolute right-2 top-2 p-1 hover:bg-gray-300 dark:hover:bg-gray-500 rounded-full transition-none">
+                          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"
+                               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
                       </button>
-                    </div>
 
-                    <div class="flex text-sm font-medium pt-0.5 pr-4 truncate items-center gap-1">
+                    <div class="flex text-sm font-medium pt-0.5 px-3 truncate items-center gap-1">
                       {#if currentTabData.icon}
                         <img src={currentTabData.icon} alt="Favicon" class="h-4">
                       {/if}
@@ -616,7 +608,7 @@
                     </div>
 
                     {#if currentTabData.desc}
-                      <div class="opacity-60 pr-4 truncate whitespace-pre-wrap line-clamp-2	">
+                      <div class="opacity-60 px-3 truncate whitespace-pre-wrap line-clamp-2	">
                         {currentTabData.desc}
                       </div>
                     {/if}

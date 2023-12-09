@@ -95,6 +95,8 @@ export const tags: Writable<string[] | undefined> = writable();
 // export const contentWarning: Writable<PublicationContentWarning | undefined> =
 //     writable();
 
+export const sharingLink: Writable<string | undefined | null> = writable();
+
 /**
  * Clears all post-related stores
  */
@@ -108,6 +110,7 @@ export const clearPostState = () => {
     author.set(undefined);
     collectSettings.set({});
     tags.set(undefined);
+    sharingLink.set(undefined);
     // contentWarning.set(undefined);
 };
 
@@ -121,5 +124,6 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     author.set(postDraft.author);
     collectSettings.set(postDraft.collectFee ?? {});
     tags.set(postDraft.tags);
+    sharingLink.set(postDraft.sharingLink);
     // contentWarning.set(postDraft.contentWarning);
 };

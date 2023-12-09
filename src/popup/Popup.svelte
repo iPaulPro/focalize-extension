@@ -17,9 +17,11 @@
     } from '../lib/stores/cache-store';
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
+    import FloatingComponent from '../lib/components/FloatingComponent.svelte';
 
     let notificationsList: NotificationsList;
     let conversationsList: ThreadList;
+    let createButton: HTMLButtonElement;
 
     $: {
         if ($darkMode) {
@@ -29,7 +31,11 @@
         }
     }
 
-    const onCreatePostClick = async () => {
+    const onCreatePostClick = () => {
+        launchComposerWindow();
+    };
+
+    const onShareTabClick = async () => {
         const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
         console.log('tab', tab);
         if (!tab.id || !tab.url) {
@@ -59,6 +65,7 @@
                 url: url,
                 icon: tab.favIconUrl,
                 description: openGraphTags.description ?? undefined,
+                image: openGraphTags.image ?? undefined,
             };
 
             return launchComposerWindow(tags);
@@ -135,8 +142,7 @@
 
     <div on:click={scrollToTop}
          class="w-full flex justify-end items-center px-4 gap-2">
-      <button type="button" on:click|stopPropagation={onCreatePostClick}
-              use:tippy={{content: 'New post', placement: 'bottom', delay: 500}}
+      <button type="button" bind:this={createButton}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -172,3 +178,39 @@
 </div>
 
 <Toaster/>
+
+<FloatingComponent anchors={[createButton]} interactive={true} hideDelay={200} showDelay={200}>
+    <ul class='w-48 shadow-xl bg-white dark:bg-gray-700 rounded-xl text-black dark:text-white overflow-hidden'>
+        <li>
+            <button type='button' class='menu-button'
+                    on:click={onCreatePostClick}>
+                <svg class='menu-icon' viewBox='0 0 24 24' fill='none'
+                     stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                    <path d='M20 11.08V8l-6-6H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h6' />
+                    <path d='M14 3v5h5M18 21v-6M15 18h6' />
+                </svg>
+                New post
+            </button>
+        </li>
+        <li>
+            <button type='button' class='menu-button'
+                    on:click={onShareTabClick}>
+                <svg class='menu-icon' viewBox='0 0 24 24' fill='none'
+                     stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'>
+                    <path d='M3 15v4c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2v-4M17 8l-5-5-5 5M12 4.2v10.3' />
+                </svg>
+                Share current tab
+            </button>
+        </li>
+    </ul>
+</FloatingComponent>
+
+<style>
+    .menu-button {
+        @apply w-full h-full px-3.5 py-3 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 text-start flex gap-2 items-center font-medium;
+    }
+
+    .menu-icon {
+        @apply w-5 h-5 group-hover:text-orange transition-none select-none;
+    }
+</style>

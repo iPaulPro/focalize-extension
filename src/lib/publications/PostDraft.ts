@@ -11,5 +11,6 @@ export type PostDraft = {
     collectFee?: CollectSettings;
     timestamp?: number;
     tags?: string[];
+    sharingLink?: string | null;
     // contentWarning?: PublicationContentWarning;
 };

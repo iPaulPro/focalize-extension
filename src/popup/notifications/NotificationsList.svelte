@@ -157,6 +157,7 @@
             const nextNotifications = await getNextNotifications();
             cursorNext = nextNotifications.next;
             if (!nextNotifications.notifications?.length) {
+                loaded();
                 complete();
                 return;
             }
