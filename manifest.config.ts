@@ -9,7 +9,7 @@ export default defineManifest(async (env) => ({
     name: 'Focalize - DApp for Lens Protocol (Beta)',
     short_name: 'Focalize',
     version,
-    version_name: '2.0.0-beta.12',
+    version_name: '2.0.0-beta.13',
     description: 'Social app built on Lens Protocol with DMs via XMTP',
     permissions: [
         'activeTab',
