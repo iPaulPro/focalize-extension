@@ -65,7 +65,9 @@ const cacheNotifications = async (
     );
 
     const newItems = notifications.filter(
-        (notification) => !cachedIds.has(notification.id)
+        (notification) =>
+            !cachedIds.has(notification.id) &&
+            !isBatchedNotification(notification)
     );
     console.log('cacheNotifications: newItems', newItems);
 
@@ -129,7 +131,7 @@ const getPaginatedNotificationResult = async (
     return null;
 };
 
-export const getLatestNotifications = async (
+export const getNewNotifications = async (
     filter: boolean = false
 ): Promise<{ notifications?: NotificationFragment[]; cursor?: any }> => {
     const cachedItems = await getCached<NotificationFragment[]>(
@@ -141,7 +143,7 @@ export const getLatestNotifications = async (
         await getPaginatedNotificationResult(undefined, true);
     console.log('getNotifications: notifications result', notificationsRes);
 
-    // If we don't have a cache yet there are no "latest" notifications
+    // If we don't have a cache yet there are no "new" notifications
     if (!cachedItems || !notificationsRes?.items) {
         return {};
     }
@@ -160,7 +162,13 @@ export const getLatestNotifications = async (
 
     // update lastId to the latest notification
     if (notifications.length > 0) {
-        await saveToCache(KEY_NOTIFICATION_LATEST_ID, notifications[0].id);
+        // Batched notifications have changing IDs, so ignore them entirely
+        const firstNonBatched = notifications.find(
+            (n) => !isBatchedNotification(n)
+        );
+        if (firstNonBatched) {
+            await saveToCache(KEY_NOTIFICATION_LATEST_ID, firstNonBatched.id);
+        }
     }
 
     if (!filter) {

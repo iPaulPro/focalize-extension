@@ -18,7 +18,7 @@ import {
 import {
     getAvatarFromNotification,
     getEventTime,
-    getLatestNotifications,
+    getNewNotifications,
     getNotificationAction,
     getNotificationContent,
     getNotificationHandle,
@@ -380,7 +380,7 @@ const onNotificationsAlarm = async () => {
     const currentUser = await getUser();
     if (!currentUser) return;
 
-    const latestNotifications = await getLatestNotifications(true);
+    const latestNotifications = await getNewNotifications(true);
     console.log('onAlarmTriggered: notifications', latestNotifications);
 
     try {
@@ -409,6 +409,7 @@ const onNotificationsAlarm = async () => {
     }
 
     for (const notification of notifications) {
+        if (isBatchedNotification(notification)) continue;
         await createIndividualNotification(notification, currentUser);
     }
 };

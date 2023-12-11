@@ -1,7 +1,7 @@
 <script lang="ts">
     import {
         getEventTime,
-        getLatestNotifications,
+        getNewNotifications,
         getNextNotifications,
         isBatchedNotification,
     } from '../../lib/notifications/lens-notifications';
@@ -66,7 +66,7 @@
         updateNotificationsTimestamp(getEventTime(notifications[0]));
 
     const checkForNewNotifications = async () => {
-        const latestNotifications = await getLatestNotifications();
+        const latestNotifications = await getNewNotifications();
         newNotifications = latestNotifications.notifications ?? [];
         console.log('checkForNewNotifications: newNotifications', newNotifications);
 
