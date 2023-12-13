@@ -29,7 +29,7 @@ export const deleteFromCache = async (key: string): Promise<void> =>
 export const KEY_NOTIFICATION_ITEMS_CACHE = 'notificationItemsCache.v2';
 export const KEY_NOTIFICATION_PAGE_INFO_CACHE = 'notificationPageInfoCache.v2';
 export const KEY_NOTIFICATION_SCROLL_TOP_CACHE = 'notificationsScrollTop.v2';
-export const KEY_NOTIFICATION_LATEST_ID = 'notificationsLastId';
+export const KEY_NOTIFICATION_LATEST_TIMESTAMP = 'notificationsLastTimestamp';
 
 export const notificationItemsCache: Writable<NotificationFragment[]> =
     chromeStorageLocal(KEY_NOTIFICATION_ITEMS_CACHE);
@@ -44,7 +44,7 @@ export const clearNotificationCache = async () => {
     await chrome.storage.local.remove(KEY_NOTIFICATION_SCROLL_TOP_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_PAGE_INFO_CACHE);
     await chrome.storage.local.remove(KEY_NOTIFICATION_ITEMS_CACHE);
-    await chrome.storage.local.remove(KEY_NOTIFICATION_LATEST_ID);
+    await chrome.storage.local.remove(KEY_NOTIFICATION_LATEST_TIMESTAMP);
 };
 
 /**

@@ -19,7 +19,7 @@
     import {hideOnScroll, scrollEndListener} from '../../lib/utils/utils';
     import {notificationsTimestamp} from '../../lib/stores/preferences-store';
     import type { NotificationFragment } from '@lens-protocol/client';
-    import GroupNotificationItem from './GroupNotificationItem.svelte';
+    import BatchedNotificationItem from './BatchedNotificationItem.svelte';
 
     export let lastUpdate: DateTime | null;
 
@@ -53,6 +53,14 @@
 
     const addNewNotifications = async () => {
         if (newNotifications.length) {
+            const batchedNewNotifications = newNotifications.filter(isBatchedNotification);
+            if (batchedNewNotifications.length) {
+                const batchedNotifications = notifications.filter(isBatchedNotification);
+                notifications.forEach(notification => {
+
+                })
+            }
+
             notifications = [...newNotifications, ...notifications];
         }
 
@@ -175,7 +183,7 @@
         {#each notifications as notification}
             <li>
                 {#if isBatchedNotification(notification)}
-                    <GroupNotificationItem {notification} {lastUpdate}/>
+                    <BatchedNotificationItem {notification} {lastUpdate}/>
                 {:else}
                     <NotificationItem {notification} {lastUpdate}/>
                 {/if}

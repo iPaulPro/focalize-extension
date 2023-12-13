@@ -13,7 +13,7 @@ import {
 import {
     getCached,
     KEY_NOTIFICATION_ITEMS_CACHE,
-    KEY_NOTIFICATION_LATEST_ID,
+    KEY_NOTIFICATION_LATEST_TIMESTAMP,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
     saveToCache,
 } from '../stores/cache-store';
@@ -35,6 +35,7 @@ import {
     type FollowNotificationFragment,
     type ReactionNotificationFragment,
 } from '@lens-protocol/client';
+import { DateTime } from 'luxon';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
@@ -65,9 +66,7 @@ const cacheNotifications = async (
     );
 
     const newItems = notifications.filter(
-        (notification) =>
-            !cachedIds.has(notification.id) &&
-            !isBatchedNotification(notification)
+        (notification) => !cachedIds.has(notification.id)
     );
     console.log('cacheNotifications: newItems', newItems);
 
@@ -137,7 +136,14 @@ export const getNewNotifications = async (
     const cachedItems = await getCached<NotificationFragment[]>(
         KEY_NOTIFICATION_ITEMS_CACHE
     );
-    const cachedLatestId = await getCached<string>(KEY_NOTIFICATION_LATEST_ID);
+    const cachedLatestTimestamp = await getCached<string>(
+        KEY_NOTIFICATION_LATEST_TIMESTAMP
+    );
+    console.log(
+        'getNotifications: cachedItems',
+        cachedItems,
+        cachedLatestTimestamp
+    );
 
     const notificationsRes: PaginatedResult<NotificationFragment> | null =
         await getPaginatedNotificationResult(undefined, true);
@@ -149,25 +155,33 @@ export const getNewNotifications = async (
     }
 
     let notifications: NotificationFragment[] = notificationsRes.items;
-    // If we have a lastId, we need to filter out notifications that are older than the lastId
     // TODO remove and replace with cursor once implemented in the API
-    if (cachedLatestId) {
-        const lastIdIndex = notificationsRes.items.findIndex(
-            (item) => item.id === cachedLatestId
-        );
-        if (lastIdIndex !== -1) {
-            notifications = notificationsRes.items.slice(0, lastIdIndex);
+    if (cachedLatestTimestamp) {
+        const lastSeenIndex = notificationsRes.items.findIndex((item) => {
+            const time = getEventTime(item);
+            return (
+                time &&
+                DateTime.fromISO(time) < DateTime.fromISO(cachedLatestTimestamp)
+            );
+        });
+        console.log('getNotifications: lastSeenIndex', lastSeenIndex);
+        if (lastSeenIndex === -1) {
+            notifications = [];
+        } else {
+            notifications = notificationsRes.items.slice(0, lastSeenIndex);
         }
+        console.log('getNotifications: new notifications', notifications);
     }
 
     // update lastId to the latest notification
-    if (notifications.length > 0) {
-        // Batched notifications have changing IDs, so ignore them entirely
-        const firstNonBatched = notifications.find(
-            (n) => !isBatchedNotification(n)
-        );
-        if (firstNonBatched) {
-            await saveToCache(KEY_NOTIFICATION_LATEST_ID, firstNonBatched.id);
+    if (notifications.length) {
+        // Follow notifications don't have a timestamp, so we need to find the first notification with a timestamp
+        const firstWithTimestamp = notifications.find((n) => getEventTime(n));
+        if (firstWithTimestamp) {
+            const timestamp = getEventTime(firstWithTimestamp);
+            if (timestamp) {
+                await saveToCache(KEY_NOTIFICATION_LATEST_TIMESTAMP, timestamp);
+            }
         }
     }
 

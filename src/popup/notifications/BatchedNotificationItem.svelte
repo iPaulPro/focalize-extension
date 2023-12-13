@@ -5,17 +5,17 @@
     import NotificationIcon from './NotificationIcon.svelte';
     import type { ProfileFragment } from '@lens-protocol/client';
     import { truncate, truncateAddress } from '../../lib/utils/utils';
-    import { getProfileDisplayName, getProfileUrl } from '../../lib/utils/lens-utils';
+    import { getNotificationPublication, getProfileDisplayName, getProfileUrl } from '../../lib/utils/lens-utils';
     import {
         getEventTime,
         getNotificationAction,
-        getNotificationContent,
+        getNotificationContent, getNotificationLink,
     } from '../../lib/notifications/lens-notifications';
     import SocialText from '../../lib/components/SocialText.svelte';
     import { DateTime } from 'luxon';
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
     import { slide } from 'svelte/transition';
-    import { PublicationReactionType } from '@lens-protocol/client';
+    import { isCommentPublication, PublicationReactionType } from '@lens-protocol/client';
     import ProfileAvatar from '../../lib/components/ProfileAvatar.svelte';
 
     export let notification: BatchedNotification;
@@ -51,7 +51,9 @@
     $: profiles = notification && getProfiles();
     $: notificationEventTime = getEventTime(notification);
     $: notificationDateTime = notificationEventTime && DateTime.fromISO(notificationEventTime);
+    $: publication = notification && getNotificationPublication(notification);
     $: isNew = notification && lastUpdate && notificationDateTime && notificationDateTime > lastUpdate;
+    $: isComment = publication && isCommentPublication(publication);
 
     type SubNotification = {
         profile: ProfileFragment;
@@ -147,10 +149,7 @@
         <div class='w-full flex flex-col pl-12 gap-1' transition:slide>
             <div class='border-t dark:border-gray-700 py-2 pr-8'>
                 {#each getSubNotifications() as sub}
-                    <a href={getProfileUrl(sub.profile)} target="_blank" rel="noreferrer"
-                       class='w-full flex items-center gap-2 px-2 py-2 rounded-xl
-                       cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 !text-black dark:!text-white !no-underline'>
-
+                    <a href={getProfileUrl(sub.profile)} target="_blank" class='notification'>
                         <ProfileAvatar profile={sub.profile} />
                         <div class='flex flex-col flex-grow'>
                             <div class='text-sm font-semibold'>
@@ -178,7 +177,30 @@
                         {/if}
                     </a>
                 {/each}
+                {#if notification.__typename !== 'FollowNotification'}
+                    {#await getNotificationLink(notification) then link}
+                        <div class='w-full border-t dark:border-gray-700 pt-2'>
+                            <a href={link} class='notification text-sm justify-end w-fit opacity-80' target='_blank'>
+                                View {isComment ? 'comment' : 'post'}
+                                <svg viewBox='0 0 24 24' class='w-3 h-3'
+                                     fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'
+                                     stroke-linejoin='round'>
+                                    <g fill='none' fill-rule='evenodd'>
+                                        <path
+                                            d='M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8' />
+                                    </g>
+                                </svg>
+                            </a>
+                        </div>
+                    {/await}
+                {/if}
             </div>
         </div>
     {/if}
 </div>
+
+<style>
+    .notification {
+        @apply w-full flex items-center gap-2 px-2 py-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 !text-black dark:!text-white !no-underline;
+    }
+</style>
