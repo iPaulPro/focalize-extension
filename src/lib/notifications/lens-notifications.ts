@@ -140,14 +140,14 @@ export const getNewNotifications = async (
         KEY_NOTIFICATION_LATEST_TIMESTAMP
     );
     console.log(
-        'getNotifications: cachedItems',
+        'getNewNotifications: cachedItems',
         cachedItems,
         cachedLatestTimestamp
     );
 
     const notificationsRes: PaginatedResult<NotificationFragment> | null =
         await getPaginatedNotificationResult(undefined, true);
-    console.log('getNotifications: notifications result', notificationsRes);
+    console.log('getNewNotifications: notifications result', notificationsRes);
 
     // If we don't have a cache yet there are no "new" notifications
     if (!cachedItems || !notificationsRes?.items) {
@@ -161,16 +161,15 @@ export const getNewNotifications = async (
             const time = getEventTime(item);
             return (
                 time &&
-                DateTime.fromISO(time) < DateTime.fromISO(cachedLatestTimestamp)
+                DateTime.fromISO(time) > DateTime.fromISO(cachedLatestTimestamp)
             );
         });
-        console.log('getNotifications: lastSeenIndex', lastSeenIndex);
         if (lastSeenIndex === -1) {
             notifications = [];
         } else {
             notifications = notificationsRes.items.slice(0, lastSeenIndex);
         }
-        console.log('getNotifications: new notifications', notifications);
+        console.log('getNewNotifications: new notifications', notifications);
     }
 
     // update lastId to the latest notification
