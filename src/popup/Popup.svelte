@@ -179,7 +179,7 @@
 
 <Toaster/>
 
-<FloatingComponent anchors={[createButton]} interactive={true} hideDelay={200} showDelay={200}>
+<FloatingComponent anchors={[createButton]} interactive={true} hideDelay={200} showDelay={0}>
     <ul class='w-48 shadow-xl bg-white dark:bg-gray-700 rounded-xl text-black dark:text-white overflow-hidden'>
         <li>
             <button type='button' class='menu-button'

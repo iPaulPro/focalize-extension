@@ -3,10 +3,13 @@ import { defineManifest } from '@crxjs/vite-plugin';
 import packageJson from './package.json';
 
 const { version } = packageJson;
+const isProduction = process.env.NODE_ENV === 'production';
 
-export default defineManifest(async (env) => ({
+export default defineManifest((env) => ({
     manifest_version: 3,
-    name: 'Focalize - DApp for Lens Protocol (Beta)',
+    name: `Focalize -  ${
+        isProduction ? 'DApp for Lens Protocol (Beta)' : 'Debug'
+    }`,
     short_name: 'Focalize',
     version,
     version_name: '2.0.0-beta.14',
@@ -43,7 +46,9 @@ export default defineManifest(async (env) => ({
         service_worker: 'src/background.ts',
         type: 'module',
     },
-    key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxDr/ngNd7cYwCDGM9HhkGKFqIE/WlvMX5UJfFC/vGmBTS+uLpUKs/xFDi//MKEGmdckEEu/HpZsA9VAttTGM1ATjOawA36MHzXIhyQzsqzykUzCynIQeAus+UhLhTvmUZ3120VmggGA3uHlbq4o985Iyifw77wjemSPFcgwJV7jdCZoZe8FpPpgDqo0Qt2oMIMF5tbfz37n03CEjoLDR2S/+DP2rJErC6DwqvTVFWdqKp6wMbNEcYi4nvuGVfWc0gMZGFOYvjDD6SUBmkgteK6kA/DzcqvDfrVW5CUZ3Zfcv+eQ/vqq4AzghEH8RpJCGJjKAs8yx6d6cSAyaKrSfkQIDAQAB',
+    ...(isProduction && {
+        key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxDr/ngNd7cYwCDGM9HhkGKFqIE/WlvMX5UJfFC/vGmBTS+uLpUKs/xFDi//MKEGmdckEEu/HpZsA9VAttTGM1ATjOawA36MHzXIhyQzsqzykUzCynIQeAus+UhLhTvmUZ3120VmggGA3uHlbq4o985Iyifw77wjemSPFcgwJV7jdCZoZe8FpPpgDqo0Qt2oMIMF5tbfz37n03CEjoLDR2S/+DP2rJErC6DwqvTVFWdqKp6wMbNEcYi4nvuGVfWc0gMZGFOYvjDD6SUBmkgteK6kA/DzcqvDfrVW5CUZ3Zfcv+eQ/vqq4AzghEH8RpJCGJjKAs8yx6d6cSAyaKrSfkQIDAQAB',
+    }),
     minimum_chrome_version: '91',
     omnibox: {
         keyword: 'lens',
