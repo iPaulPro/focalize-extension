@@ -1,12 +1,21 @@
 import type { CollectSettings } from './CollectSettings';
-import type { AnyMedia } from '@lens-protocol/metadata';
+import type {
+    MediaAudio,
+    MediaVideo,
+    MediaImage,
+    ThreeDAsset,
+} from '@lens-protocol/metadata';
 
 export type PostDraft = {
     id: string;
     title?: string;
     content?: string;
     description?: string;
-    attachments?: AnyMedia[];
+    // attachments?: AnyMedia[];
+    image: MediaImage;
+    audio?: MediaAudio;
+    video?: MediaVideo;
+    threeDAsset?: ThreeDAsset;
     author?: string;
     collectFee?: CollectSettings;
     timestamp?: number;

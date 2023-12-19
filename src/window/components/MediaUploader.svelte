@@ -1,31 +1,38 @@
 <script lang="ts">
+    //@ts-ignore
+    import InlineSVG from 'svelte-inline-svg';
     import toast from 'svelte-french-toast';
 
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import imageExternal from '../../assets/ic_external.svg';
 
-    import {uploadAndPin, unpin, getCidFromIpfsUrl, type Web3File} from "../../lib/ipfs-service";
-    import {IMAGE_TYPES, imageMimeTypesJoined, MAX_FILE_SIZE, supportedMimeTypesJoined} from '../../lib/utils/file-utils'
-    import {attachments, author, cover, file, title} from "../../lib/stores/state-store";
+    import { getCidFromIpfsUrl, unpin, uploadAndPin, type Web3File } from '../../lib/ipfs-service';
+    import { IMAGE_TYPES, imageMimeTypesJoined, isThreeDFile, MAX_FILE_SIZE } from '../../lib/utils/file-utils';
+    import { audio, author, cover, file, image, threeDAsset, title, video } from '../../lib/stores/state-store';
 
-    import * as id3 from "id3js";
-    import InlineSVG from "svelte-inline-svg";
-    import {INFURA_GATEWAY_URL} from "../../config";
-    import type {ID3Tag, ID3TagV2} from 'id3js/lib/id3Tag';
+    import * as id3 from 'id3js';
+    import { INFURA_GATEWAY_URL } from '../../config';
+    import type { ID3Tag, ID3TagV2 } from 'id3js/lib/id3Tag';
+    import { type AnyMedia, type ThreeDAsset, ThreeDFormat, toUri } from '@lens-protocol/metadata';
+    import { getMediaImageMimeType, getThreeDMimeTypeString } from '../../lib/utils/lens-utils';
+    import { getMediaAudioMimeType, getMediaVideoMimeType } from '../../lib/utils/lens-utils.js';
+    import '@google/model-viewer';
 
     export let disabled: boolean = false;
     export let isCollectable: boolean;
 
-    $: attachmentCid = $attachments?.[0]?.item.startsWith('ipfs://') ? getCidFromIpfsUrl($attachments[0].item) : undefined;
-    $: attachmentPath = attachmentCid ? `${INFURA_GATEWAY_URL}${attachmentCid}` : $attachments?.[0]?.item;
-    $: attachmentType = $attachments?.[0]?.type;
+    const getMediaCid = (media: AnyMedia | undefined) =>
+        media?.item.startsWith('ipfs://') ? getCidFromIpfsUrl(media.item) : undefined
+
+    const getThreeDAssetCid = (threeDAsset: ThreeDAsset | undefined) =>
+        threeDAsset?.uri?.startsWith('ipfs://') ? getCidFromIpfsUrl(threeDAsset.uri) : undefined
+
+    $: attachedMedia = $audio || $image || $video;
+    $: attachmentCid = getMediaCid($image) || getMediaCid($audio) || getMediaCid($video) || getThreeDAssetCid($threeDAsset);
+    $: attachmentPath = attachmentCid ? `${INFURA_GATEWAY_URL}${attachmentCid}` : (attachedMedia?.item || $threeDAsset?.uri);
 
     $: coverPath = $cover?.cid ? `${INFURA_GATEWAY_URL}${$cover?.cid}` : undefined;
     $: coverType = $cover?.type;
-
-    $: isAttachmentImage = attachmentType?.startsWith('image/');
-    $: isAttachmentAudio = attachmentType?.startsWith('audio/');
-    $: isAttachmentVideo = attachmentType?.startsWith('video/');
 
     let coverInput: HTMLInputElement;
     let loading = false;
@@ -81,7 +88,10 @@
                 cover.set(undefined);
                 coverLoading = false;
             } else {
-                $attachments = [];
+                $image = undefined;
+                $audio = undefined;
+                $video = undefined;
+                $threeDAsset = undefined;
                 loading = false;
             }
 
@@ -100,16 +110,32 @@
             return;
         }
 
-        if (!$attachments) {
-            $attachments = [];
+        const item = toUri(`ipfs://${web3File.cid}`);
+
+        if (fileToUpload.type.startsWith('image/')) {
+            $image = {
+                item,
+                type: getMediaImageMimeType(fileToUpload.type),
+            };
+        } else if (fileToUpload.type.startsWith('audio/')) {
+            $audio =  {
+                item,
+                type: getMediaAudioMimeType(fileToUpload.type),
+            };
+        } else if (fileToUpload.type.startsWith('video/')) {
+            $video = {
+                item,
+                type: getMediaVideoMimeType(fileToUpload.type),
+            };
+        } else if (isThreeDFile(fileToUpload)) {
+            $threeDAsset = {
+                uri: item,
+                format: ThreeDFormat.GLTF,
+                playerUrl: toUri('https://modelviewer.dev/editor/'),
+            };
         }
 
-        $attachments[0] = {
-            item: 'ipfs://' + web3File.cid,
-            type: fileToUpload.type,
-        };
-
-        console.log('upload: created attachment', $attachments);
+        console.log('upload: created attachment', attachmentCid);
 
         if (fileToUpload.type.startsWith('audio/')) {
             try {
@@ -153,18 +179,18 @@
     };
 
     const deleteAttachment = async () => {
-        if ($attachments?.[0]?.item?.startsWith('ipfs://')) {
-            const cid = getCidFromIpfsUrl($attachments?.[0]?.item);
-            if (cid) {
-                try {
-                    await unpin(cid);
-                } catch (e) {
-                    console.warn('Unable to unpin cid', cid)
-                }
+        if (attachmentCid) {
+            try {
+                await unpin(attachmentCid);
+            } catch (e) {
+                console.warn('Unable to unpin cid', attachmentCid)
             }
         }
 
-        $attachments = [];
+        $image = undefined;
+        $audio = undefined;
+        $video = undefined;
+        $threeDAsset = undefined;
         loading = false;
     }
 
@@ -199,22 +225,21 @@
         loading = false
     };
 
-    $: {
+    $: if ($file && !$file.cid) {
         console.log('reactive: file=',$file);
-        if ($file && !$file.cid) {
-            onDeleteMedia().catch();
-            upload($file).catch();
-        }
+
+        onDeleteMedia().catch();
+        upload($file).catch();
     }
 </script>
 
 <div class="w-full h-full flex flex-col justify-center items-center gap-4 pb-2">
 
-  {#if attachmentPath &&attachmentType}
+  {#if attachmentPath}
 
     <div class="flex flex-col w-full items-center justify-center pt-1 rounded-xl">
 
-      {#if isAttachmentImage}
+      {#if $image}
 
         {#if loading}
           <LoadingSpinner message="Processing..."/>
@@ -241,21 +266,21 @@
 
         <div class="w-full flex flex-col items-center">
 
-          <div class:p-0={isAttachmentVideo}
-               class:px-2={isAttachmentAudio}
-               class:p-1={!isAttachmentVideo && !isAttachmentAudio}
+          <div class:p-0={$video}
+               class:px-2={$audio}
+               class:p-1={!$video && !$audio}
                on:drop|preventDefault|stopPropagation={onCoverFileDropped}
                on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
                on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
                on:dragleave|preventDefault|stopPropagation={() => isFileDragged = false}
                class="{isCollectable? 'w-full' : 'w-3/5'} mb-4 rounded-xl
-                      {isAttachmentVideo || isAttachmentAudio ? 'p-0' : 'p-1'}
+                      {$video || $audio ? 'p-0' : 'p-1'}
                       {isFileDragged ? 'bg-orange-50 dark:bg-gray-800' : 'bg-none'}">
 
             {#if coverPath}
 
               <div class="w-full relative flex justify-center items-center
-                     {isAttachmentVideo ? 'aspect-video' : ''}">
+                     {$video ? 'aspect-video' : ''}">
                 <img src={coverPath} alt="Cover"
                      class="w-full h-full object-cover rounded-xl bg-gray-200
                            {isFileDragged ? 'border border-orange-500' : 'border-none'}"
@@ -276,7 +301,7 @@
 
             {:else if coverLoading}
 
-              <div class="{isAttachmentVideo ? 'aspect-video' : 'aspect-square'} flex flex-col items-center justify-center">
+              <div class="{$video ? 'aspect-video' : 'aspect-square'} flex flex-col items-center justify-center">
                 <LoadingSpinner />
               </div>
 
@@ -289,10 +314,10 @@
 
               <button type="button" disabled={coverLoading}
                       on:click={()=>{coverInput.click();}}
-                      class="w-full {isAttachmentVideo ? 'aspect-video' : 'aspect-square'}
+                      class="w-full {$video ? 'aspect-video' : 'aspect-square'}
                             p-4 flex flex-col flex-shrink-0 items-center justify-center cursor-pointer
                             hover:bg-gray-200 dark:hover:bg-gray-500
-                            border border-gray-400 dark:border-gray-400 rounded-xl
+                            border border-gray-300 dark:border-gray-600 rounded-xl
                             text-gray-600 dark:text-gray-300">
 
                 <svg viewBox="0 0 24 24" fill="none" class="w-10 text-gray-500 dark:text-gray-200"
@@ -310,16 +335,20 @@
 
           </div>
 
-          {#if isAttachmentAudio}
+          {#if $audio}
             <audio src={attachmentPath} preload="metadata" controls controlslist="nodownload"
                    on:load={() => loading = false}
                    class="border border-gray-300 dark:border-gray-500 dark:bg-gray-600 rounded-full
                          {isCollectable ? 'w-full' : 'w-1/2'}"></audio>
-          {:else if isAttachmentVideo}
+          {:else if $video}
             <!-- svelte-ignore a11y-media-has-caption -->
             <video src={attachmentPath}
                    on:load={() => loading = false} preload="metadata" controls controlslist="nodownload"
                    class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'} aspect-video bg-black" ></video>
+          {:else if $threeDAsset}
+              <model-viewer src={attachmentPath} camera-controls interaction-prompt='none' auto-rotate shadow-intensity="1"
+                            class="w-96 h-96 border border-gray-300 dark:border-gray-600 rounded-xl
+                            focus-visible:outline-orange focus-visible:ring-orange" />
           {/if}
         </div>
 

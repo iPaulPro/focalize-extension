@@ -21,6 +21,7 @@ import {
     video,
     audio,
     link,
+    threeD,
     type TextOnlyMetadata,
     type ImageMetadata,
     type VideoMetadata,
@@ -32,6 +33,8 @@ import {
     type MediaImage,
     type MediaVideo,
     type MediaAudio,
+    type ThreeDMetadata,
+    type ThreeDAsset,
     MarketplaceMetadataAttributeDisplayType,
 } from '@lens-protocol/metadata';
 
@@ -220,6 +223,34 @@ export const generateLinkPostMetadata = (
             name: title || defaultTitle(handle),
             attributes,
             external_url: url,
+            description,
+        },
+        locale,
+        appId: APP_ID,
+    });
+
+export const generateThreeDPostMetadata = (
+    handle: string | undefined,
+    asset: ThreeDAsset,
+    title?: string,
+    image?: string,
+    content?: string,
+    tags?: string[],
+    description: string | undefined = content,
+    locale: string = 'en',
+    attributes: MarketplaceMetadataAttribute[] = []
+): ThreeDMetadata =>
+    threeD({
+        assets: [asset],
+        content,
+        tags,
+        // contentWarning,
+        marketplace: {
+            animation_url: asset.uri,
+            name: title || defaultTitle(handle),
+            attributes,
+            image,
+            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
             description,
         },
         locale,

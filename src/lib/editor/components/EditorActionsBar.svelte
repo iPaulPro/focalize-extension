@@ -42,7 +42,6 @@
 <div class="flex gap-3 -ml-2">
 
   <input type="file" class="hidden"
-         accept={supportedMimeTypesJoined()}
          on:change={onFileSelected}
          bind:this={fileInput}/>
 

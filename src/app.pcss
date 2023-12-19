@@ -38,6 +38,13 @@ input {
 	accent-color: var(--clr-accent);
 }
 
+/* Override focus-visible for all focusable elements */
+button, input, select, textarea, a[href], area[href], summary, iframe, [tabindex], [contentEditable=true] {
+    &:focus-visible {
+        outline: var(--clr-accent) solid 2px;
+    }
+}
+
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {

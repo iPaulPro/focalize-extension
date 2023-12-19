@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import {v4 as uuid} from 'uuid';
-    import {MAX_FILE_SIZE, SUPPORTED_MIME_TYPES} from '../lib/utils/file-utils';
+    import { isThreeDFile, isUnsupportedTreeDFile, MAX_FILE_SIZE, SUPPORTED_MIME_TYPES } from '../lib/utils/file-utils';
 
     import type {SelectOption} from '../lib/publications/lens-modules';
     import { collectSettingsToModuleInput, REFERENCE_ITEMS } from '../lib/publications/lens-modules';
@@ -11,13 +11,12 @@
         generateAudioPostMetadata,
         generateImagePostMetadata,
         generateLinkPostMetadata,
-        generateTextPostMetadata,
+        generateTextPostMetadata, generateThreeDPostMetadata,
         generateVideoPostMetadata,
         submitPost,
     } from '../lib/publications/lens-post';
 
     import {
-        attachments,
         author,
         clearPostState,
         collectSettings,
@@ -32,6 +31,10 @@
         title,
         tags as postTags,
         sharingLink,
+        image,
+        video,
+        audio,
+        threeDAsset,
         // contentWarning,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
@@ -84,7 +87,6 @@
         OpenActionModuleInput,
         ReferenceModuleInput,
     } from '@lens-protocol/client';
-    import { isAudioMedia, isImageMedia, isVideoMedia } from '../lib/utils/lens-utils';
 
     let onGifDialogShown: () => {};
 
@@ -120,7 +122,7 @@
     let currentTabData: CurrentTabData | undefined;
 
     $: referenceModuleParams = referenceItem.value;
-    $: isMediaPostType = $attachments && $attachments.length > 0;
+    $: isMediaPostType = $image || $audio || $video;
 
     // $: if (postContentWarning) {
     //     $contentWarning = postContentWarning.value;
@@ -193,6 +195,17 @@
                 $description,
                 locale,
             )
+        } else if ($threeDAsset) {
+            return generateThreeDPostMetadata(
+                $currentUser.handle,
+                $threeDAsset,
+                $title,
+                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $content,
+                $postTags,
+                $description,
+                locale,
+            );
         }
 
         if (!isMediaPostType) {
@@ -207,30 +220,30 @@
             );
         }
 
-        if (!$attachments?.length) throw new Error('No attachments found');
+        if (!isMediaPostType) throw new Error('No attachments found');
 
-        const attachment = $attachments[0];
-        if ($cover && attachment && (isAudioMedia(attachment) || isVideoMedia(attachment))) {
+        const attachment = $audio ?? $video ?? $threeDAsset;
+        if ($cover && attachment) {
             attachment.cover = `ipfs://${$cover.cid}` as URI;
         }
 
         let metadata: PublicationMetadata | undefined = undefined;
         const postContent = $content?.length ? $content : undefined;
 
-        if (isImageMedia(attachment)) {
+        if ($image) {
             metadata = generateImagePostMetadata(
                 $currentUser.handle,
-                attachment,
+                $image,
                 $title,
                 postContent,
                 $postTags,
                 $description,
                 locale,
             );
-        } else if (isVideoMedia(attachment)) {
+        } else if ($video) {
             metadata = generateVideoPostMetadata(
                 $currentUser.handle,
-                attachment,
+                $video,
                 $title,
                 $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
                 postContent,
@@ -238,10 +251,10 @@
                 $description,
                 locale,
             );
-        } else if (isAudioMedia(attachment)) {
+        } else if ($audio) {
             metadata = generateAudioPostMetadata(
                 $currentUser.handle,
-                attachment,
+                $audio,
                 $title,
                 $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
                 postContent,
@@ -285,6 +298,7 @@
         try {
             postMetaData = buildMetadata();
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
+
             let openActionModules: OpenActionModuleInput[] | undefined = undefined;
             if (collectModuleParams) {
                 openActionModules = [];
@@ -292,6 +306,7 @@
                     collectOpenAction: collectModuleParams
                 });
             }
+
             const publicationId = await submitPost(
                 $currentUser,
                 $draftId ?? uuid(),
@@ -316,28 +331,39 @@
     };
 
     const setAttachment = (f: File | undefined) => {
+        console.log('setAttachment: file', f);
         if (!f) {
             file.set(undefined);
             return;
         }
 
-        if (f.type === 'image/heic') {
-            toast.error('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.', {duration: 5000});
+        const fileError = (msg: string) => {
+            toast.error(msg, {duration: 5000});
             isFileDragged = false;
+        }
+
+        if (f.type === 'image/heic') {
+            fileError('HEIC files are not supported. Please use a tool like cloudconvert.com to convert to JPG or WEBP.');
             return;
         }
 
-        if (!f || !f.type ||
-            !SUPPORTED_MIME_TYPES.includes(f.type) ||
-            f.size > MAX_FILE_SIZE
-        ) {
-            toast.error('File not supported', {duration: 5000});
-            isFileDragged = false;
+        if (isUnsupportedTreeDFile(f)) {
+            fileError('Only GLB and GLTF 3D files are currently supported.');
+            return;
+        }
+
+        if ((!SUPPORTED_MIME_TYPES.includes(f.type) && !isThreeDFile(f))) {
+            fileError('File not supported');
+            return;
+        }
+
+        if (f.size > MAX_FILE_SIZE) {
+            fileError('File too large. Max file size is 100MB');
             return;
         }
 
         file.set(f as Web3File);
-        console.log('setAttachment: file', $file);
+        console.log('setAttachment: validated file state', $file);
         isFileDragged = false;
     };
 
@@ -404,13 +430,16 @@
         title: $title,
         content: $content,
         description: $description,
-        attachments: $attachments,
         author: $author,
         collectFee: $collectSettings,
         tags: $postTags,
         sharingLink: $sharingLink,
+        threeDAsset: $threeDAsset,
+        image: $image,
+        video: $video,
+        audio: $audio,
         // contentWarning: $contentWarning,
-    });
+    } as PostDraft);
 
     const onDraftChanged = async (draft: PostDraft) => {
         postDraft = await saveDraft(draft);
@@ -421,9 +450,9 @@
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
     $: if (
-        $content || $title || $description || $attachments || $author || $postTags || $sharingLink
+        $content || $title || $description || $audio || $video || $image || $author || $postTags
+        || $sharingLink || $threeDAsset || $collectSettings.isCollectible !== undefined
         // || $contentWarning
-        || $collectSettings.isCollectible !== undefined
     ) {
         const draft = buildDraft();
         draftSubject.next(draft);
@@ -622,12 +651,12 @@
 
           </div>
 
-          {#if $collectSettings.isCollectible || isMediaPostType || $file}
+          {#if $collectSettings.isCollectible || isMediaPostType || $file || $threeDAsset }
 
             <div class="flex w-full justify-center px-4 pt-6 pb-4 gap-4 bg-neutral-50 dark:bg-gray-900 rounded-xl border
                        border-gray-200 dark:border-gray-800">
 
-              {#if isMediaPostType || $file}
+              {#if isMediaPostType || $file || $threeDAsset}
                 <div class="{$collectSettings.isCollectible ? 'w-1/2' : 'w-full'}">
                   <MediaUploader isCollectable={$collectSettings.isCollectible ?? false}/>
                 </div>

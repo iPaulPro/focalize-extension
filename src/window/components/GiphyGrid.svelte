@@ -1,11 +1,12 @@
 <script lang="ts">
-    import {throttle} from "throttle-debounce";
-    import {GiphyFetch} from "@giphy/js-fetch-api";
-    import {renderGrid} from "@giphy/js-components";
-    import type {IGif} from "@giphy/js-types";
-    import {attachments} from "../../lib/stores/state-store";
-    import {createEventDispatcher} from "svelte";
-    import {GIPHY_KEY} from "../../config";
+    import { throttle } from 'throttle-debounce';
+    import { GiphyFetch } from '@giphy/js-fetch-api';
+    import { renderGrid } from '@giphy/js-components';
+    import type { IGif } from '@giphy/js-types';
+    import { createEventDispatcher } from 'svelte';
+    import { GIPHY_KEY } from '../../config';
+    import { image } from '../../lib/stores/state-store';
+    import { MediaImageMimeType, toUri } from '@lens-protocol/metadata';
 
     export let searchQuery: string;
 
@@ -18,13 +19,9 @@
 
         const onClick = (gif: IGif) => {
             console.log('GiphyGrid: on gif click', gif);
-            if (!$attachments) {
-                $attachments = [];
-            }
-
-            $attachments[0] = {
-                item: gif.images.original.url,
-                type: 'image/gif',
+            $image = {
+                item: toUri(gif.images.original.url),
+                type: MediaImageMimeType.GIF,
                 altTag: gif.title
             }
             dispatch('gifSelected');

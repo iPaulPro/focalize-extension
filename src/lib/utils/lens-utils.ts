@@ -33,6 +33,7 @@ import {
     MediaImageMimeType,
     MediaVideoMimeType,
     PublicationSchemaId,
+    ThreeDFormat,
 } from '@lens-protocol/metadata';
 import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
 import {
@@ -259,6 +260,28 @@ export const getMediaVideoMimeType = (mimeType: string): MediaVideoMimeType => {
             return MediaVideoMimeType.WEBM;
         default:
             throw new Error(`Unsupported video mime type: ${mimeType}`);
+    }
+};
+
+export const getMediaAudioMimeType = (mimeType: string): MediaAudioMimeType => {
+    switch (mimeType) {
+        case 'audio/mpeg':
+            return MediaAudioMimeType.MP3;
+        case 'audio/ogg':
+            return MediaAudioMimeType.OGG_AUDIO;
+        case 'audio/wav':
+            return MediaAudioMimeType.WAV;
+        default:
+            throw new Error(`Unsupported audio mime type: ${mimeType}`);
+    }
+};
+
+export const getThreeDMimeTypeString = (format: ThreeDFormat): string => {
+    switch (format) {
+        case ThreeDFormat.GLTF:
+            return 'model/gltf';
+        default:
+            throw new Error(`Unsupported 3D format: ${format}`);
     }
 };
 

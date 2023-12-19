@@ -1,13 +1,21 @@
 <script lang="ts">
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
-    import {author, description, collectSettings, title, attachments} from '../../lib/stores/state-store';
+    import {
+        author,
+        description,
+        collectSettings,
+        title,
+        threeDAsset,
+        audio,
+        video, image,
+    } from '../../lib/stores/state-store';
     import {currentUser} from '../../lib/stores/user-store';
     import type {CollectSettings} from '../../lib/publications/CollectSettings';
     import {DateTime} from 'luxon';
     import {COLLECT_DURATION_ITEMS} from '../../lib/publications/lens-modules';
     import {createEventDispatcher} from 'svelte';
-    import { formatHandleV2toV1 } from '../../lib/utils/lens-utils';
+    import { formatHandleV2toV1, getThreeDMimeTypeString } from '../../lib/utils/lens-utils';
     import { truncateAddress } from '../../lib/utils/utils';
 
     const dispatch = createEventDispatcher();
@@ -27,8 +35,9 @@
         dispatch('settingsClick');
     };
 
-    $: hasAttachments = $attachments?.length !== undefined;
-    $: attachmentType = $attachments?.[0]?.type;
+    $: attachedMedia = $audio || $image || $video;
+    $: hasAttachments = attachedMedia || $threeDAsset
+    $: attachmentType = attachedMedia?.type ?? ($threeDAsset && getThreeDMimeTypeString($threeDAsset.format));
     $: isAttachmentAudio = attachmentType?.startsWith('audio/');
     $: saleEndString = $collectSettings && getSaleEndString($collectSettings);
     $: useContentAsDescription = !$description?.length;

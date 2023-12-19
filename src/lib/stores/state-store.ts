@@ -3,7 +3,12 @@ import { writable } from 'svelte/store';
 import type { Web3File } from '../ipfs-service';
 import type { CollectSettings } from '../publications/CollectSettings';
 import type { PostDraft } from '../publications/PostDraft';
-import type { AnyMedia } from '@lens-protocol/metadata';
+import type {
+    MediaAudio,
+    MediaImage,
+    MediaVideo,
+    ThreeDAsset,
+} from '@lens-protocol/metadata';
 
 export interface Recipient {
     address: string;
@@ -61,10 +66,30 @@ export const description: Writable<string | undefined> = writable();
  */
 export const file: Writable<Web3File | undefined> = writable();
 
+// /**
+//  * The post attachments. An array of image, audio, and/or video files.
+//  */
+// export const attachments: Writable<AnyMedia[] | undefined> = writable();
+
 /**
- * The post attachments. An array of image, audio, and/or video files.
+ * An image attachment
  */
-export const attachments: Writable<AnyMedia[] | undefined> = writable();
+export const image: Writable<MediaImage | undefined> = writable();
+
+/**
+ * An audio attachment
+ */
+export const audio: Writable<MediaAudio | undefined> = writable();
+
+/**
+ * A video attachment
+ */
+export const video: Writable<MediaVideo | undefined> = writable();
+
+/**
+ * A 3D asset attachment
+ */
+export const threeDAsset: Writable<ThreeDAsset | undefined> = writable();
 
 /**
  * The cover image for audio and video attachments
@@ -95,6 +120,9 @@ export const tags: Writable<string[] | undefined> = writable();
 // export const contentWarning: Writable<PublicationContentWarning | undefined> =
 //     writable();
 
+/**
+ * The link the post is sharing
+ */
 export const sharingLink: Writable<string | undefined | null> = writable();
 
 /**
@@ -105,7 +133,10 @@ export const clearPostState = () => {
     title.set(undefined);
     content.set(undefined);
     description.set(undefined);
-    attachments.set(undefined);
+    image.set(undefined);
+    audio.set(undefined);
+    video.set(undefined);
+    threeDAsset.set(undefined);
     cover.set(undefined);
     author.set(undefined);
     collectSettings.set({});
@@ -120,7 +151,10 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     title.set(postDraft.title);
     content.set(postDraft.content);
     description.set(postDraft.description);
-    attachments.set(postDraft.attachments);
+    image.set(postDraft.image);
+    audio.set(postDraft.audio);
+    video.set(postDraft.video);
+    threeDAsset.set(postDraft.threeDAsset);
     author.set(postDraft.author);
     collectSettings.set(postDraft.collectFee ?? {});
     tags.set(postDraft.tags);
