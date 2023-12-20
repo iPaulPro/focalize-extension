@@ -37,6 +37,7 @@ import {
     type ThreeDMetadata,
     type ThreeDAsset,
     MarketplaceMetadataAttributeDisplayType,
+    MetadataAttributeType,
 } from '@lens-protocol/metadata';
 
 import {
@@ -48,6 +49,8 @@ import {
 } from '@lens-protocol/client';
 import { getIrys } from '../irys-service';
 import { formatHandleV2toV1 } from '../utils/lens-utils';
+import type { MetadataAttribute } from '@lens-protocol/metadata';
+import { DateTime } from 'luxon';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -156,7 +159,7 @@ export const generateVideoPostMetadata = async (
         appId: APP_ID,
     });
 
-export const createAudioAttributes = (
+export const createAudioMarketplaceAttributes = (
     author?: string
 ): MarketplaceMetadataAttribute[] => {
     if (!author) return [];
@@ -181,18 +184,39 @@ export const generateAudioPostMetadata = async (
     image?: string,
     content?: string,
     artist?: string,
+    album?: string,
+    date?: string,
     tags?: string[],
     description: string | undefined = content,
     locale: string = 'en',
-    attributes: MarketplaceMetadataAttribute[] = createAudioAttributes(artist),
     attachments?: AnyMedia[]
 ): Promise<AudioMetadata> => {
+    let attrs: MetadataAttribute[] | undefined = audioMedia.attributes;
+    if (album) {
+        if (!attrs) attrs = [];
+        attrs.push({
+            type: MetadataAttributeType.STRING,
+            value: album,
+            key: 'album',
+        });
+    }
+    if (date) {
+        if (!attrs) attrs = [];
+        const value = DateTime.fromISO(date).toUTC().toISO();
+        if (value) {
+            attrs.push({
+                type: MetadataAttributeType.DATE,
+                value,
+                key: 'date',
+            });
+        }
+    }
     return audio({
         audio: {
-            item: audioMedia.item,
-            type: audioMedia.type,
+            ...audioMedia,
             cover: image,
             artist,
+            attributes: attrs,
         },
         attachments,
         content,
@@ -204,7 +228,7 @@ export const generateAudioPostMetadata = async (
                 ? `${artist} - ${title ?? 'untitled'}`
                 : title ?? defaultTitle(handle),
             external_url: await buildExternalUrl(),
-            attributes,
+            attributes: createAudioMarketplaceAttributes(artist),
             animation_url: audioMedia.item,
             description,
         },

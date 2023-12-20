@@ -17,9 +17,12 @@ export type PostDraft = {
     video?: MediaVideo;
     threeDAsset?: ThreeDAsset;
     author?: string;
+    album?: string;
+    date?: string;
     collectFee?: CollectSettings;
     timestamp?: number;
     tags?: string[];
     sharingLink?: string | null;
+    cover?: string;
     // contentWarning?: PublicationContentWarning;
 };

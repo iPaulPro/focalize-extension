@@ -8,15 +8,28 @@
 
     import { getCidFromIpfsUrl, unpin, uploadAndPin, type Web3File } from '../../lib/ipfs-service';
     import { IMAGE_TYPES, imageMimeTypesJoined, isThreeDFile, MAX_FILE_SIZE } from '../../lib/utils/file-utils';
-    import { audio, author, cover, file, image, threeDAsset, title, video } from '../../lib/stores/state-store';
+    import {
+        album,
+        audio,
+        author, collectSettings,
+        cover, date,
+        description,
+        file,
+        image,
+        threeDAsset,
+        title,
+        video,
+    } from '../../lib/stores/state-store';
 
     import * as id3 from 'id3js';
     import { INFURA_GATEWAY_URL } from '../../config';
     import type { ID3Tag, ID3TagV2 } from 'id3js/lib/id3Tag';
-    import { type AnyMedia, type ThreeDAsset, ThreeDFormat, toUri } from '@lens-protocol/metadata';
-    import { getMediaImageMimeType, getThreeDMimeTypeString } from '../../lib/utils/lens-utils';
+    import { type AnyMedia, MediaAudioKind, type ThreeDAsset, ThreeDFormat, toUri } from '@lens-protocol/metadata';
+    import { getMediaImageMimeType } from '../../lib/utils/lens-utils';
     import { getMediaAudioMimeType, getMediaVideoMimeType } from '../../lib/utils/lens-utils.js';
     import '@google/model-viewer';
+    import { type MetadataAttribute, MetadataAttributeType } from '@lens-protocol/metadata';
+    import { DateTime } from 'luxon';
 
     export let disabled: boolean = false;
     export let isCollectable: boolean;
@@ -31,8 +44,7 @@
     $: attachmentCid = getMediaCid($image) || getMediaCid($audio) || getMediaCid($video) || getThreeDAssetCid($threeDAsset);
     $: attachmentPath = attachmentCid ? `${INFURA_GATEWAY_URL}${attachmentCid}` : (attachedMedia?.item || $threeDAsset?.uri);
 
-    $: coverPath = $cover?.cid ? `${INFURA_GATEWAY_URL}${$cover?.cid}` : undefined;
-    $: coverType = $cover?.type;
+    $: coverPath = $cover ? `${INFURA_GATEWAY_URL}${getCidFromIpfsUrl($cover)}` : undefined;
 
     let coverInput: HTMLInputElement;
     let loading = false;
@@ -44,25 +56,75 @@
         return (tag as ID3TagV2).kind === 'v2';
     };
 
-    const processId3Tags = async (file: File) => {
-        const tags: ID3Tag | null = await id3.fromFile(file);
-        if (!tags) return;
+    const getDurationFromFile = async (file: File): Promise<number> => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const arrayBuffer = event.target?.result as ArrayBuffer;
+                const audioContext = new AudioContext();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                resolve(audioBuffer.duration); // duration in seconds
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsArrayBuffer(file);
+    });
 
-        console.log('processId3Tags: got tags from file', tags)
-        if (tags.title) {
-            title.set(tags.title);
+    const processId3Tags = async (file: File) => {
+        const tag: ID3Tag | null = await id3.fromFile(file);
+        console.log('processId3Tags: got tags from file', tag)
+        if (!tag || !$audio) return;
+
+        // If there are ID3 tags, we assume it's a music file
+        $audio.kind = MediaAudioKind.MUSIC;
+
+        if (tag.title) {
+            title.set(tag.title);
         } else if (file.name) {
             title.set(file.name.replace(/\.[^/.]+$/, ""));
         }
 
-        if (tags.artist) {
-            author.set(tags.artist);
+        if (tag.artist) {
+            author.set(tag.artist);
+            $audio.artist = tag.artist;
         }
 
-        if (isID3TagV2(tags) && tags.images.length) {
-            const imageBuffer = tags.images[0].data;
+        if ('genre' in tag && tag.genre) {
+            $audio.genre = tag.genre as string;
+        }
+
+        if ('comments' in tag && tag.comments) {
+            description.set(tag.comments as string);
+        }
+
+        const attributes: MetadataAttribute[] = [];
+
+        if ('album' in tag && tag.album) {
+            album.set(tag.album as string)
+        }
+
+        if ('year' in tag && tag.year) {
+            try {
+                const year = Number(tag.year);
+                const iso = DateTime.fromObject({ year }).toISODate();
+                if (iso) {
+                    date.set(iso)
+                }
+            } catch (e) {
+                console.warn('processId3Tags: Error parsing year', tag.year);
+            }
+        }
+
+        if (attributes.length) {
+            $audio.attributes = attributes;
+        }
+
+        if (isID3TagV2(tag) && tag.images.length) {
+            const imageBuffer = tag.images[0].data;
             if (!imageBuffer) return;
-            const id3Cover = new File([imageBuffer], 'cover.jpeg', {type: tags.images[0].mime ?? undefined});
+            const id3Cover = new File([imageBuffer], 'cover.jpeg', {type: tag.images[0].mime ?? undefined});
             await upload(id3Cover, true);
         }
     };
@@ -106,7 +168,7 @@
         console.log('upload: Uploaded file at', web3File.cid);
 
         if (isCover) {
-            cover.set(web3File);
+            cover.set(`ipfs://${web3File.cid}`);
             return;
         }
 
@@ -135,11 +197,15 @@
             };
         }
 
-        console.log('upload: created attachment', attachmentCid);
+        console.log('upload: created attachment', web3File.cid);
 
-        if (fileToUpload.type.startsWith('audio/')) {
+        if ($audio) {
             try {
+                const duration = await getDurationFromFile(fileToUpload);
+                console.log('upload: audio duration', duration, 'seconds');
+                $audio.duration = Math.round(duration);
                 await processId3Tags(fileToUpload);
+                console.log('upload: audio ID3 tag metadata loaded', $audio);
             } catch (e) {
                 console.warn('upload: Error loading audio ID3 tag metadata');
             }
@@ -166,11 +232,11 @@
     const onDeleteCover = async () => {
         if (!$cover) return;
 
-        if ($cover.cid) {
+        if ($cover) {
             try {
-                await unpin($cover.cid);
+                await unpin(getCidFromIpfsUrl($cover));
             } catch (e) {
-                console.warn('Unable to unpin cid', $cover.cid)
+                console.warn('Unable to unpin cid', $cover)
             }
         }
 
@@ -192,6 +258,12 @@
         $video = undefined;
         $threeDAsset = undefined;
         loading = false;
+
+        if (!$collectSettings.isCollectible) {
+            $title = undefined;
+            $description = undefined;
+            $author = undefined;
+        }
     }
 
     const onDeleteMedia = async () => {
@@ -273,7 +345,7 @@
                on:dragenter|preventDefault|stopPropagation={() => isFileDragged = true}
                on:dragover|preventDefault|stopPropagation={() => isFileDragged = true}
                on:dragleave|preventDefault|stopPropagation={() => isFileDragged = false}
-               class="{isCollectable? 'w-full' : 'w-3/5'} mb-4 rounded-xl
+               class="{isCollectable || $audio ? 'w-full' : 'w-3/5'} mb-4 rounded-xl
                       {$video || $audio ? 'p-0' : 'p-1'}
                       {isFileDragged ? 'bg-orange-50 dark:bg-gray-800' : 'bg-none'}">
 
@@ -314,7 +386,7 @@
 
               <button type="button" disabled={coverLoading}
                       on:click={()=>{coverInput.click();}}
-                      class="w-full aspect-video
+                      class="w-full aspect-square
                             p-4 flex flex-col flex-shrink-0 items-center justify-center cursor-pointer
                             hover:bg-gray-200 dark:hover:bg-gray-500
                             border border-gray-300 dark:border-gray-600 rounded-xl
@@ -338,13 +410,12 @@
           {#if $audio}
             <audio src={attachmentPath} preload="metadata" controls controlslist="nodownload"
                    on:load={() => loading = false}
-                   class="border border-gray-300 dark:border-gray-500 dark:bg-gray-600 rounded-full
-                         {isCollectable ? 'w-full' : 'w-1/2'}"></audio>
+                   class="w-full border border-gray-300 dark:border-gray-500 dark:bg-gray-600 rounded-full"></audio>
           {:else if $video}
             <!-- svelte-ignore a11y-media-has-caption -->
             <video src={attachmentPath}
                    on:load={() => loading = false} preload="metadata" controls controlslist="nodownload"
-                   class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'} aspect-video bg-black" ></video>
+                   class="rounded-xl {isCollectable ? 'w-full' : 'w-3/5'} aspect-video bg-black" ></video>
           {:else if $threeDAsset}
               <div class='w-full aspect-square'>
                   <model-viewer src={attachmentPath} camera-controls interaction-prompt='none' auto-rotate shadow-intensity="1"

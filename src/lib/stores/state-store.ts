@@ -94,12 +94,22 @@ export const threeDAsset: Writable<ThreeDAsset | undefined> = writable();
 /**
  * The cover image for audio and video attachments
  */
-export const cover: Writable<Web3File | undefined> = writable();
+export const cover: Writable<string | undefined> = writable();
 
 /**
  * The author attribute in audio NFT metadata
  */
 export const author: Writable<string | undefined> = writable();
+
+/**
+ * The album attribute in audio NFT metadata
+ */
+export const album: Writable<string | undefined> = writable();
+
+/**
+ * The date attribute in audio NFT metadata in ISO 8601 format
+ */
+export const date: Writable<string | undefined> = writable();
 
 /**
  * The collect module settings when set to one of the fee types
@@ -139,6 +149,8 @@ export const clearPostState = () => {
     threeDAsset.set(undefined);
     cover.set(undefined);
     author.set(undefined);
+    album.set(undefined);
+    date.set(undefined);
     collectSettings.set({});
     tags.set(undefined);
     sharingLink.set(undefined);
@@ -155,7 +167,10 @@ export const loadFromDraft = (postDraft: PostDraft) => {
     audio.set(postDraft.audio);
     video.set(postDraft.video);
     threeDAsset.set(postDraft.threeDAsset);
+    cover.set(postDraft.cover);
     author.set(postDraft.author);
+    album.set(postDraft.album);
+    date.set(postDraft.date);
     collectSettings.set(postDraft.collectFee ?? {});
     tags.set(postDraft.tags);
     sharingLink.set(postDraft.sharingLink);

@@ -34,7 +34,7 @@
         image,
         video,
         audio,
-        threeDAsset,
+        threeDAsset, album, date,
         // contentWarning,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
@@ -73,7 +73,7 @@
     import {getSearchParams, isPopup, launchComposerTab, POPUP_MIN_HEIGHT} from '../lib/utils/utils';
     import {launchComposerWindow} from '../lib/utils/utils.js';
     import type {PostDraft} from '../lib/publications/PostDraft';
-    import CollectMetadata from './components/CollectMetadata.svelte';
+    import PostMetadata from './components/PostMetadata.svelte';
     import TextEditor from './components/TextEditor.svelte';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
     import EditorActionsBar from '../lib/editor/components/EditorActionsBar.svelte';
@@ -87,6 +87,7 @@
         OpenActionModuleInput,
         ReferenceModuleInput,
     } from '@lens-protocol/client';
+    import { toUri } from '@lens-protocol/metadata';
 
     let onGifDialogShown: () => {};
 
@@ -200,7 +201,7 @@
                 $currentUser.handle,
                 $threeDAsset,
                 $title,
-                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $cover,
                 $content,
                 $postTags,
                 $description,
@@ -226,7 +227,7 @@
 
         const attachment = $audio ?? $video ?? $threeDAsset;
         if ($cover && attachment) {
-            attachment.cover = `ipfs://${$cover.cid}` as URI;
+            attachment.cover = toUri($cover);
         }
 
         let metadata: PublicationMetadata | undefined = undefined;
@@ -247,7 +248,7 @@
                 $currentUser.handle,
                 $video,
                 $title,
-                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $cover,
                 postContent,
                 $postTags,
                 $description,
@@ -258,9 +259,11 @@
                 $currentUser.handle,
                 $audio,
                 $title,
-                $cover?.cid ? `ipfs://${$cover.cid}` : undefined,
+                $cover,
                 postContent,
                 $author,
+                $album,
+                $date,
                 $postTags,
                 $description,
                 locale,
@@ -440,6 +443,9 @@
         image: $image,
         video: $video,
         audio: $audio,
+        date: $date,
+        album: $album,
+        cover: $cover,
         // contentWarning: $contentWarning,
     } as PostDraft);
 
@@ -452,8 +458,8 @@
     const debouncedDraftUpdate = draftSubject.pipe(debounceTime(1000)).subscribe(onDraftChanged);
 
     $: if (
-        $content || $title || $description || $audio || $video || $image || $author || $postTags
-        || $sharingLink || $threeDAsset || $collectSettings.isCollectible !== undefined
+        $content || $title || $description || $audio || $video || $image || $author || $postTags || $cover
+        || $album || $date || $sharingLink || $threeDAsset || $collectSettings.isCollectible !== undefined
         // || $contentWarning
     ) {
         const draft = buildDraft();
@@ -659,15 +665,15 @@
                        border-gray-200 dark:border-gray-800">
 
               {#if isMediaPostType || $file || $threeDAsset}
-                <div class="{$collectSettings.isCollectible ? 'w-1/2' : 'w-full'}">
+                <div class="{$collectSettings.isCollectible || $audio ? 'w-1/2' : 'w-full'}">
                   <MediaUploader isCollectable={$collectSettings.isCollectible ?? false}/>
                 </div>
               {/if}
 
-              {#if $collectSettings.isCollectible}
-                <div class:px-[4.5rem]={!isMediaPostType && !$file && !$threeDAsset}
+              {#if $collectSettings.isCollectible || $audio}
+                <div class:px-[4.5rem]={!isMediaPostType && !$file && !$threeDAsset && !$audio}
                      class="w-1/2 grow">
-                  <CollectMetadata on:settingsClick={showCollectSettingsDialog}/>
+                  <PostMetadata on:settingsClick={showCollectSettingsDialog}/>
                 </div>
               {/if}
 
