@@ -180,13 +180,13 @@
         onGifDialogShown();
     };
 
-    const buildMetadata = (): PublicationMetadata => {
+    const buildMetadata = async (): Promise<PublicationMetadata> => {
         if (!$currentUser) throw new Error('No user found');
 
         const locale = selectedLocale?.value ?? navigator.languages[0];
 
         if ($sharingLink) {
-            return generateLinkPostMetadata(
+            return await generateLinkPostMetadata(
                 $currentUser.handle,
                 $sharingLink,
                 $title,
@@ -196,7 +196,7 @@
                 locale,
             )
         } else if ($threeDAsset) {
-            return generateThreeDPostMetadata(
+            return await generateThreeDPostMetadata(
                 $currentUser.handle,
                 $threeDAsset,
                 $title,
@@ -211,10 +211,12 @@
         if (!isMediaPostType) {
             if (!$content) throw new Error('No content found');
 
-            return generateTextPostMetadata(
+            return await generateTextPostMetadata(
                 $currentUser.handle,
                 $content,
+                $title,
                 $postTags,
+                $description,
                 // $contentWarning,
                 locale,
             );
@@ -231,7 +233,7 @@
         const postContent = $content?.length ? $content : undefined;
 
         if ($image) {
-            metadata = generateImagePostMetadata(
+            metadata = await generateImagePostMetadata(
                 $currentUser.handle,
                 $image,
                 $title,
@@ -241,7 +243,7 @@
                 locale,
             );
         } else if ($video) {
-            metadata = generateVideoPostMetadata(
+            metadata = await generateVideoPostMetadata(
                 $currentUser.handle,
                 $video,
                 $title,
@@ -252,7 +254,7 @@
                 locale,
             );
         } else if ($audio) {
-            metadata = generateAudioPostMetadata(
+            metadata = await generateAudioPostMetadata(
                 $currentUser.handle,
                 $audio,
                 $title,
@@ -296,7 +298,7 @@
         }
 
         try {
-            postMetaData = buildMetadata();
+            postMetaData = await buildMetadata();
             console.log('onSubmitClick: postMetaData, ', postMetaData, ' collectModuleParams', collectModuleParams);
 
             let openActionModules: OpenActionModuleInput[] | undefined = undefined;
@@ -375,7 +377,7 @@
         setAttachment(file);
     };
 
-    $: submitEnabled = !isSubmittingPost && ($content?.length || isMediaPostType);
+    $: submitEnabled = !isSubmittingPost && ($content?.length || isMediaPostType || $sharingLink || $threeDAsset);
 
     const locales = navigator.languages.map(tag => ({
         value: tag,
@@ -663,7 +665,7 @@
               {/if}
 
               {#if $collectSettings.isCollectible}
-                <div class:px-[4.5rem]={!isMediaPostType && !$file}
+                <div class:px-[4.5rem]={!isMediaPostType && !$file && !$threeDAsset}
                      class="w-1/2 grow">
                   <CollectMetadata on:settingsClick={showCollectSettingsDialog}/>
                 </div>

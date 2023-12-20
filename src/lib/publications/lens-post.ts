@@ -10,6 +10,7 @@ import { PublicationState, publicationState } from '../stores/state-store';
 import {
     broadcastPostOnChain,
     createPostTypedData,
+    getNextPublicationId,
     isAuthenticated,
     postOnChain,
     postOnMomoka,
@@ -64,26 +65,33 @@ const uploadMetadata = async (
 const defaultTitle = (handle?: string): string =>
     `Post by @${(handle && formatHandleV2toV1(handle)) || 'anonymous'}`;
 
-export const generateTextPostMetadata = (
+export const buildExternalUrl = async () => {
+    const nextId = await getNextPublicationId();
+    return `https://share.lens.xyz/p/${nextId}`;
+};
+
+export const generateTextPostMetadata = async (
     handle: string | undefined,
     content: string,
+    title?: string,
     tags?: string[],
-    locale: string = 'en',
-    attributes: MarketplaceMetadataAttribute[] = []
-): TextOnlyMetadata =>
+    description: string | undefined = content,
+    locale: string = 'en'
+): Promise<TextOnlyMetadata> =>
     textOnly({
         content,
         tags,
         // contentWarning,
-        marketplace: {
-            name: defaultTitle(handle),
-            attributes,
-        },
         locale,
+        marketplace: {
+            name: title ?? defaultTitle(handle),
+            description,
+            external_url: await buildExternalUrl(),
+        },
         appId: APP_ID,
     });
 
-export const generateImagePostMetadata = (
+export const generateImagePostMetadata = async (
     handle: string | undefined,
     mediaImage: MediaImage,
     title?: string,
@@ -92,7 +100,7 @@ export const generateImagePostMetadata = (
     description: string | undefined = content,
     locale: string = 'en',
     attachments?: AnyMedia[]
-): ImageMetadata =>
+): Promise<ImageMetadata> =>
     image({
         attachments,
         image: mediaImage,
@@ -103,7 +111,7 @@ export const generateImagePostMetadata = (
         marketplace: {
             name: title || defaultTitle(handle),
             description,
-            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            external_url: await buildExternalUrl(),
         },
         appId: APP_ID,
     });
@@ -118,7 +126,7 @@ const createVideoAttributes = (): MarketplaceMetadataAttribute[] => {
     ] as MarketplaceMetadataAttribute[];
 };
 
-export const generateVideoPostMetadata = (
+export const generateVideoPostMetadata = async (
     handle: string | undefined,
     mediaVideo: MediaVideo,
     title?: string,
@@ -129,7 +137,7 @@ export const generateVideoPostMetadata = (
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = createVideoAttributes(),
     attachments?: AnyMedia[]
-): VideoMetadata =>
+): Promise<VideoMetadata> =>
     video({
         video: mediaVideo,
         attachments,
@@ -137,7 +145,7 @@ export const generateVideoPostMetadata = (
         marketplace: {
             name: title || defaultTitle(handle),
             attributes,
-            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            external_url: await buildExternalUrl(),
             animation_url: mediaVideo.item,
             image,
             description,
@@ -166,7 +174,7 @@ export const createAudioAttributes = (
     ] as MarketplaceMetadataAttribute[];
 };
 
-export const generateAudioPostMetadata = (
+export const generateAudioPostMetadata = async (
     handle: string | undefined,
     audioMedia: MediaAudio,
     title?: string,
@@ -178,7 +186,7 @@ export const generateAudioPostMetadata = (
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = createAudioAttributes(artist),
     attachments?: AnyMedia[]
-): AudioMetadata => {
+): Promise<AudioMetadata> => {
     return audio({
         audio: {
             item: audioMedia.item,
@@ -195,7 +203,7 @@ export const generateAudioPostMetadata = (
             name: artist
                 ? `${artist} - ${title ?? 'untitled'}`
                 : title ?? defaultTitle(handle),
-            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            external_url: await buildExternalUrl(),
             attributes,
             animation_url: audioMedia.item,
             description,
@@ -204,7 +212,7 @@ export const generateAudioPostMetadata = (
     });
 };
 
-export const generateLinkPostMetadata = (
+export const generateLinkPostMetadata = async (
     handle: string | undefined,
     url: string,
     title?: string,
@@ -213,7 +221,7 @@ export const generateLinkPostMetadata = (
     description: string | undefined = content,
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = []
-): LinkMetadata =>
+): Promise<LinkMetadata> =>
     link({
         sharingLink: url,
         content,
@@ -222,14 +230,14 @@ export const generateLinkPostMetadata = (
         marketplace: {
             name: title || defaultTitle(handle),
             attributes,
-            external_url: url,
+            external_url: await buildExternalUrl(),
             description,
         },
         locale,
         appId: APP_ID,
     });
 
-export const generateThreeDPostMetadata = (
+export const generateThreeDPostMetadata = async (
     handle: string | undefined,
     asset: ThreeDAsset,
     title?: string,
@@ -239,7 +247,7 @@ export const generateThreeDPostMetadata = (
     description: string | undefined = content,
     locale: string = 'en',
     attributes: MarketplaceMetadataAttribute[] = []
-): ThreeDMetadata =>
+): Promise<ThreeDMetadata> =>
     threeD({
         assets: [asset],
         content,
@@ -250,7 +258,7 @@ export const generateThreeDPostMetadata = (
             name: title || defaultTitle(handle),
             attributes,
             image,
-            external_url: LENS_PREVIEW_NODE + 'u/' + handle,
+            external_url: await buildExternalUrl(),
             description,
         },
         locale,

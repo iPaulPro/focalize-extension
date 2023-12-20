@@ -431,3 +431,9 @@ export const getPublication = async ({
         forTxHash: txHash,
         forId: txId,
     });
+
+export const getNextPublicationId = async (): Promise<string> => {
+    const from = await lensClient.authentication.getProfileId();
+    if (!from) throw new Error('No authenticated address found');
+    return lensClient.publication.predictNextOnChainPublicationId({ from });
+};

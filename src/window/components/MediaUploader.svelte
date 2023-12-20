@@ -280,7 +280,7 @@
             {#if coverPath}
 
               <div class="w-full relative flex justify-center items-center
-                     {$video ? 'aspect-video' : ''}">
+                     {$video ? 'aspect-video' : 'aspect-square'}">
                 <img src={coverPath} alt="Cover"
                      class="w-full h-full object-cover rounded-xl bg-gray-200
                            {isFileDragged ? 'border border-orange-500' : 'border-none'}"
@@ -314,7 +314,7 @@
 
               <button type="button" disabled={coverLoading}
                       on:click={()=>{coverInput.click();}}
-                      class="w-full {$video ? 'aspect-video' : 'aspect-square'}
+                      class="w-full aspect-video
                             p-4 flex flex-col flex-shrink-0 items-center justify-center cursor-pointer
                             hover:bg-gray-200 dark:hover:bg-gray-500
                             border border-gray-300 dark:border-gray-600 rounded-xl
@@ -346,9 +346,11 @@
                    on:load={() => loading = false} preload="metadata" controls controlslist="nodownload"
                    class="rounded-xl {isCollectable? 'w-full' : 'w-3/5'} aspect-video bg-black" ></video>
           {:else if $threeDAsset}
-              <model-viewer src={attachmentPath} camera-controls interaction-prompt='none' auto-rotate shadow-intensity="1"
-                            class="w-96 h-96 border border-gray-300 dark:border-gray-600 rounded-xl
-                            focus-visible:outline-orange focus-visible:ring-orange" />
+              <div class='w-full aspect-square'>
+                  <model-viewer src={attachmentPath} camera-controls interaction-prompt='none' auto-rotate shadow-intensity="1"
+                                class="w-full h-full border border-gray-300 dark:border-gray-600 rounded-xl
+                                focus-visible:outline-orange focus-visible:ring-orange" />
+              </div>
           {/if}
         </div>
 
