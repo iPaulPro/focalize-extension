@@ -29,14 +29,14 @@
 
     let notifications: NotificationFragment[] = [];
     let newNotifications: NotificationFragment[] = [];
-    let cursorNext: any = null;
+    let cursor: any = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
 
     const reload = () => {
         notifications = [];
-        cursorNext = null;
+        cursor = null;
         infiniteId++;
     };
 
@@ -134,7 +134,7 @@
         }
     ) => {
         try {
-            if (!cursorNext) {
+            if (!cursor) {
                 const cachedNotifications = await get(notificationItemsCache);
                 if (cachedNotifications?.length) {
                     notifications = cachedNotifications;
@@ -142,8 +142,8 @@
                     console.log('infiniteHandler: using cache');
 
                     const pageInfo = await get(notificationPageInfoCache);
-                    cursorNext = pageInfo.next;
-                    if (!cursorNext) {
+                    cursor = pageInfo.next;
+                    if (!cursor) {
                         complete();
                     }
 
@@ -155,8 +155,9 @@
             }
 
             const nextNotifications = await getNextNotifications();
-            cursorNext = nextNotifications.next;
-            if (!nextNotifications.notifications?.length) {
+            cursor = nextNotifications.cursor;
+
+            if (!nextNotifications.notifications?.length || !nextNotifications.cursor) {
                 loaded();
                 complete();
                 return;
@@ -165,7 +166,7 @@
             notifications = [...notifications, ...nextNotifications.notifications];
             loaded();
 
-            if (!cursorNext) {
+            if (!cursor) {
                 complete();
             }
         } catch (e) {

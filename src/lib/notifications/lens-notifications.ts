@@ -11,11 +11,8 @@ import {
     getPublicationUrlFromNode,
 } from '../publications/lens-nodes';
 import {
-    getCached,
     KEY_NOTIFICATION_ITEMS_CACHE,
-    KEY_NOTIFICATION_LATEST_TIMESTAMP,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
-    saveToCache,
 } from '../stores/cache-store';
 import { getNotifications, isAuthenticated } from '../lens-service';
 import type {
@@ -133,60 +130,25 @@ const getPaginatedNotificationResult = async (
 export const getNewNotifications = async (
     filter: boolean = false
 ): Promise<{ notifications?: NotificationFragment[]; cursor?: any }> => {
-    const cachedItems = await getCached<NotificationFragment[]>(
-        KEY_NOTIFICATION_ITEMS_CACHE
-    );
-    const cachedLatestTimestamp = await getCached<string>(
-        KEY_NOTIFICATION_LATEST_TIMESTAMP
-    );
-    console.log(
-        'getNewNotifications: cachedItems',
-        cachedItems,
-        cachedLatestTimestamp
-    );
+    const storage = await chrome.storage.local.get([
+        KEY_NOTIFICATION_PAGE_INFO_CACHE,
+        KEY_NOTIFICATION_ITEMS_CACHE,
+    ]);
+    const pageInfo: PaginatedResultInfoFragment =
+        storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
 
     const notificationsRes: PaginatedResult<NotificationFragment> | null =
-        await getPaginatedNotificationResult(undefined, true);
+        await getPaginatedNotificationResult(pageInfo?.prev, true);
     console.log('getNewNotifications: notifications result', notificationsRes);
 
     // If we don't have a cache yet there are no "new" notifications
-    if (!cachedItems || !notificationsRes?.items) {
+    if (!storage[KEY_NOTIFICATION_ITEMS_CACHE] || !notificationsRes?.items) {
         return {};
-    }
-
-    let notifications: NotificationFragment[] = notificationsRes.items;
-    // TODO remove and replace with cursor once implemented in the API
-    if (cachedLatestTimestamp) {
-        const lastSeenIndex = notificationsRes.items.findIndex((item) => {
-            const time = getEventTime(item);
-            return (
-                time &&
-                DateTime.fromISO(time) > DateTime.fromISO(cachedLatestTimestamp)
-            );
-        });
-        if (lastSeenIndex === -1) {
-            notifications = [];
-        } else {
-            notifications = notificationsRes.items.slice(0, lastSeenIndex);
-        }
-        console.log('getNewNotifications: new notifications', notifications);
-    }
-
-    // update lastId to the latest notification
-    if (notifications.length) {
-        // Follow notifications don't have a timestamp, so we need to find the first notification with a timestamp
-        const firstWithTimestamp = notifications.find((n) => getEventTime(n));
-        if (firstWithTimestamp) {
-            const timestamp = getEventTime(firstWithTimestamp);
-            if (timestamp) {
-                await saveToCache(KEY_NOTIFICATION_LATEST_TIMESTAMP, timestamp);
-            }
-        }
     }
 
     if (!filter) {
         return {
-            notifications,
+            notifications: notificationsRes.items,
             cursor: notificationsRes.pageInfo.prev,
         };
     }
@@ -202,8 +164,8 @@ export const getNewNotifications = async (
         'notificationsFiltered',
     ]);
 
-    const filteredNotifications: NotificationFragment[] = notifications.filter(
-        (notification: NotificationFragment) => {
+    const filteredNotifications: NotificationFragment[] =
+        notificationsRes.items.filter((notification: NotificationFragment) => {
             switch (notification.__typename) {
                 case 'FollowNotification':
                     return syncStorage.notificationsForFollows !== false;
@@ -222,8 +184,7 @@ export const getNewNotifications = async (
                 default:
                     return false;
             }
-        }
-    );
+        });
 
     return {
         notifications: filteredNotifications,
@@ -233,7 +194,7 @@ export const getNewNotifications = async (
 
 export const getNextNotifications = async (): Promise<{
     notifications?: NotificationFragment[];
-    next?: any;
+    cursor?: any;
 }> => {
     const storage = await chrome.storage.local.get([
         KEY_NOTIFICATION_PAGE_INFO_CACHE,
@@ -245,7 +206,7 @@ export const getNextNotifications = async (): Promise<{
     if (notifications?.items) {
         return {
             notifications: notifications.items,
-            next: notifications.pageInfo.next,
+            cursor: notifications.pageInfo.next,
         };
     }
     return {};

@@ -28,15 +28,12 @@ import {
     NOTIFICATIONS_QUERY_LIMIT,
 } from './lib/notifications/lens-notifications';
 import {
-    getCached,
     KEY_MESSAGE_TIMESTAMPS,
     KEY_NOTIFICATION_ITEMS_CACHE,
-    KEY_NOTIFICATION_LATEST_TIMESTAMP,
     KEY_PENDING_PROXY_ACTIONS,
     KEY_WINDOW_TOPIC_MAP,
     type MessageTimestampMap,
     type PendingProxyActionMap,
-    saveToCache,
     type WindowTopicMap,
 } from './lib/stores/cache-store';
 import {
@@ -260,15 +257,6 @@ const getXmtpClient = async (): Promise<Client> => {
     });
 };
 
-const getCachedNotification = async (
-    id: string
-): Promise<NotificationFragment | undefined> => {
-    const notifications = await getCached<NotificationFragment[]>(
-        KEY_NOTIFICATION_ITEMS_CACHE
-    );
-    return notifications?.find((n: NotificationFragment) => n.id === id);
-};
-
 chrome.notifications.onClicked.addListener(async (notificationId) => {
     chrome.notifications.clear(notificationId);
 
@@ -298,12 +286,14 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
         return;
     }
 
-    const notification = await getCachedNotification(notificationId);
+    const storage = await chrome.storage.local.get([
+        KEY_NOTIFICATION_ITEMS_CACHE,
+    ]);
+    const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
+    const notification = notifications.find(
+        (n: NotificationFragment) => n.id === notificationId
+    );
     if (notification) {
-        const time = getEventTime(notification);
-        if (time) {
-            await saveToCache(KEY_NOTIFICATION_LATEST_TIMESTAMP, time);
-        }
         const url = await getNotificationLink(notification);
         await chrome.tabs.create({ url });
     } else {
@@ -334,14 +324,6 @@ chrome.notifications.onClosed.addListener(
                 [STORAGE_KEY_ENABLE_XMTP_NOTIFICATION]: true,
             });
             return;
-        }
-
-        const notification = await getCachedNotification(notificationId);
-        if (notification) {
-            const time = getEventTime(notification);
-            if (time) {
-                await saveToCache(KEY_NOTIFICATION_LATEST_TIMESTAMP, time);
-            }
         }
     }
 );
