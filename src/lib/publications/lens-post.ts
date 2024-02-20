@@ -1,8 +1,12 @@
 import Autolinker, { UrlMatch } from 'autolinker';
 
-import { APP_ID, LENS_PREVIEW_NODE } from '../../config';
+import { APP_ID, LENS_PREVIEW_NODE, LENS_HUB_CONTRACT } from '../../config';
 
-import { ensureCorrectChain, signTypedData } from '../evm/ethers-service';
+import {
+    ensureCorrectChain,
+    getSigner,
+    signTypedData,
+} from '../evm/ethers-service';
 import { deleteDraft } from '../stores/draft-store';
 
 import type { User } from '../user/user';
@@ -51,6 +55,7 @@ import { getIrys } from '../irys-service';
 import { formatHandleV2toV1 } from '../utils/lens-utils';
 import type { MetadataAttribute } from '@lens-protocol/metadata';
 import { DateTime } from 'luxon';
+import { LensHub__factory } from '../../contracts/types';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -310,37 +315,50 @@ const createPostTransaction = async (
         typedData.types,
         typedData.value
     );
+
     const request: BroadcastRequest = {
         id: postResult.id,
         signature,
     };
-    const broadcastRes = await broadcastPostOnChain(request);
+    try {
+        const broadcastRes = await broadcastPostOnChain(request);
 
-    if (isRelaySuccess(broadcastRes)) {
-        console.log(
-            'createPostTransaction: broadcast transaction success',
-            broadcastRes.txHash
-        );
-        return broadcastRes.txHash;
-    } else {
-        console.error(
-            'createPostTransaction: post with broadcast failed',
-            broadcastRes.reason
-        );
-        throw new Error(broadcastRes.reason);
+        if (isRelaySuccess(broadcastRes)) {
+            console.log(
+                'createPostTransaction: broadcast transaction success',
+                broadcastRes.txHash
+            );
+            return broadcastRes.txHash;
+        } else {
+            console.error(
+                'createPostTransaction: post with broadcast failed',
+                broadcastRes.reason
+            );
+        }
+    } catch (e) {
+        console.log('createPostTransaction: unknown error while broadcasting');
     }
 
-    // const lensHub = await getLensHub();
-    // const tx = await lensHub.post({
-    //     profileId: typedData.value.profileId,
-    //     contentURI: typedData.value.contentURI,
-    //     collectModule: typedData.value.collectModule,
-    //     collectModuleInitData: typedData.value.collectModuleInitData,
-    //     referenceModule: typedData.value.referenceModule,
-    //     referenceModuleInitData: typedData.value.referenceModuleInitData,
-    // });
-    // console.log('createPostTransaction: submitted transaction', tx);
-    // return tx.hash;
+    const signer = await getSigner();
+    const lensHub = LensHub__factory.connect(LENS_HUB_CONTRACT, signer);
+    console.log('createPostTransaction: lensHub', await lensHub.getAddress());
+
+    try {
+        const tx = await lensHub.post({
+            profileId: typedData.value.profileId,
+            contentURI: typedData.value.contentURI,
+            actionModules: typedData.value.actionModules,
+            actionModulesInitDatas: typedData.value.actionModulesInitDatas,
+            referenceModule: typedData.value.referenceModule,
+            referenceModuleInitData: typedData.value.referenceModuleInitData,
+        });
+        console.log('createPostTransaction: submitted transaction', tx);
+        return tx.hash;
+    } catch (e) {
+        console.log('createPostTransaction: error submitting transaction', e);
+    }
+
+    return null;
 };
 
 const createPostOnChain = async (
@@ -432,11 +450,18 @@ export const submitPost = async (
         console.log('submitPost: Using Lens Manager to create post');
         if (referenceModule || openActionModules?.length) {
             console.log('submitPost: Creating post on chain');
-            txHash = await createPostOnChain(
-                contentURI,
-                referenceModule,
-                openActionModules
-            );
+            try {
+                txHash = await createPostOnChain(
+                    contentURI,
+                    referenceModule,
+                    openActionModules
+                );
+            } catch (e) {
+                console.log(
+                    'submitPost: unable to use relay to create onchain post',
+                    e
+                );
+            }
         } else {
             console.log('submitPost: Creating post on Momoka');
             const publicationId = await createPostOnMomoka(contentURI);
