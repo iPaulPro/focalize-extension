@@ -361,8 +361,7 @@ const notifyOfPublishedPost = async (
     const currentUser: User = await getUser();
     if (!currentUser) return;
 
-    const postId = `${currentUser.profileId}-${publicationId}`;
-    const url = await getUrlForAnyPublicationMetadata(metadata, postId);
+    const url = await getUrlForAnyPublicationMetadata(metadata, publicationId);
 
     chrome.notifications.create(url, {
         type: 'basic',
@@ -381,18 +380,18 @@ const onNotificationsAlarm = async () => {
     if (!currentUser) return;
 
     const latestNotifications = await getNewNotifications(true);
-    console.log('onAlarmTriggered: notifications', latestNotifications);
+    console.log('onNotificationsAlarm: notifications', latestNotifications);
 
     try {
         await updateBadge();
     } catch (e) {
-        console.error('onAlarmTriggered: error updating badge', e);
+        console.error('onNotificationsAlarm: error updating badge', e);
     }
 
     const notifications: NotificationFragment[] | undefined =
         latestNotifications.notifications;
     console.log(
-        `onAlarmTriggered: ${
+        `onNotificationsAlarm: ${
             notifications?.length ?? 0
         } new notifications since last query`
     );

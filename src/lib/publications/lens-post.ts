@@ -114,12 +114,14 @@ export const generateImagePostMetadata = async (
         image: mediaImage,
         content,
         tags,
+        title,
         // contentWarning,
         locale,
         marketplace: {
             name: title || defaultTitle(handle),
             description,
             external_url: await buildExternalUrl(),
+            image: mediaImage.item,
         },
         appId: APP_ID,
     });
@@ -150,6 +152,7 @@ export const generateVideoPostMetadata = async (
         video: mediaVideo,
         attachments,
         content,
+        title,
         marketplace: {
             name: title || defaultTitle(handle),
             attributes,
@@ -226,6 +229,7 @@ export const generateAudioPostMetadata = async (
         attachments,
         content,
         tags,
+        title,
         // contentWarning,
         locale,
         marketplace: {
@@ -235,6 +239,7 @@ export const generateAudioPostMetadata = async (
             external_url: await buildExternalUrl(),
             attributes: createAudioMarketplaceAttributes(artist),
             animation_url: audioMedia.item,
+            image,
             description,
         },
         appId: APP_ID,
@@ -259,7 +264,7 @@ export const generateLinkPostMetadata = async (
         marketplace: {
             name: title || defaultTitle(handle),
             attributes,
-            external_url: await buildExternalUrl(),
+            external_url: url,
             description,
         },
         locale,

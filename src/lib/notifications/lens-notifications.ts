@@ -68,27 +68,30 @@ const cacheNotifications = async (
     console.log('cacheNotifications: newItems', newItems);
 
     if (newItems.length > 0) {
-        let pageInfo: PaginatedResultInfoFragment =
-            storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
-
-        if (!pageInfo) {
-            // If we don't have a cache yet, we need to set the entire pageInfo object
-            pageInfo = notificationRes.pageInfo;
-        }
-        // If we're prepending, we need to update only the prev cursor, and vice versa
-        else if (prepend) {
-            pageInfo.prev = notificationRes.pageInfo.prev;
-        } else {
-            pageInfo.next = notificationRes.pageInfo.next;
-        }
-
         await chrome.storage.local.set({
-            [KEY_NOTIFICATION_PAGE_INFO_CACHE]: pageInfo,
             [KEY_NOTIFICATION_ITEMS_CACHE]: prepend
                 ? [...newItems, ...notificationItemsCache]
                 : [...notificationItemsCache, ...newItems],
         });
     }
+
+    let pageInfo: PaginatedResultInfoFragment =
+        storage[KEY_NOTIFICATION_PAGE_INFO_CACHE];
+    console.log('cacheNotifications: cached pageInfo', pageInfo);
+    if (!pageInfo) {
+        // If we don't have a cache yet, we need to set the entire pageInfo object
+        pageInfo = notificationRes.pageInfo;
+    }
+    // If we're prepending, we need to update only the prev cursor, and vice versa
+    else if (prepend) {
+        pageInfo.prev = notificationRes.pageInfo.prev;
+    } else {
+        pageInfo.next = notificationRes.pageInfo.next;
+    }
+    console.log('cacheNotifications: new pageInfo', pageInfo);
+    await chrome.storage.local.set({
+        [KEY_NOTIFICATION_PAGE_INFO_CACHE]: pageInfo,
+    });
 };
 
 const getPaginatedNotificationResult = async (

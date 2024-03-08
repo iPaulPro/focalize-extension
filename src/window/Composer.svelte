@@ -82,12 +82,14 @@
         PublicationMetadata,
         URI
     } from '@lens-protocol/metadata';
-    import type {
-        CollectActionModuleInput,
-        OpenActionModuleInput,
-        ReferenceModuleInput,
+    import {
+        encodeData,
+        type CollectActionModuleInput,
+        type OpenActionModuleInput,
+        type ReferenceModuleInput,
     } from '@lens-protocol/client';
     import { toUri } from '@lens-protocol/metadata';
+    import { TIP_ACTION_MODULE } from '../config';
 
     let onGifDialogShown: () => {};
 
@@ -310,9 +312,20 @@
                 openActionModules.push({
                     collectOpenAction: collectModuleParams
                 });
+
+                const data = encodeData(
+                    [{name:"tipReceiver",type:"address"}],
+                    [$currentUser.address]
+                )
+                openActionModules.push({
+                    unknownOpenAction: {
+                        address: TIP_ACTION_MODULE,
+                        data
+                    }
+                })
             }
 
-            const publicationId = await submitPost(
+            postId = await submitPost(
                 $currentUser,
                 $draftId ?? uuid(),
                 postMetaData,
@@ -321,7 +334,6 @@
                 $useProfileManager,
             );
 
-            postId = `${$currentUser.profileId}-${publicationId}`;
             console.log('onSubmitClick: post id', postId);
 
             clearPostState();
