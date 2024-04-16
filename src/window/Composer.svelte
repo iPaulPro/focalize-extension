@@ -356,16 +356,6 @@
             //         data,
             //     },
             // });
-            // const data = encodeData(
-            //     [{name:"tipReceiver",type:"address"}],
-            //     [$currentUser.address]
-            // )
-            // openActionModules.push({
-            //     unknownOpenAction: {
-            //         address: TIP_ACTION_MODULE,
-            //         data
-            //     }
-            // })
 
             postId = await submitPost(
                 $currentUser,

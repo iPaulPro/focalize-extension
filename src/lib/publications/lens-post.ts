@@ -1,6 +1,6 @@
 import Autolinker, { UrlMatch } from 'autolinker';
 
-import { APP_ID, LENS_PREVIEW_NODE, LENS_HUB_CONTRACT } from '../../config';
+import { APP_ID, LENS_HUB_CONTRACT, TIP_ACTION_MODULE } from '../../config';
 
 import {
     ensureCorrectChain,
@@ -50,12 +50,14 @@ import {
     type ReferenceModuleInput,
     isRelaySuccess,
     isCreateMomokaPublicationResult,
+    encodeData,
 } from '@lens-protocol/client';
 import { getIrys } from '../irys-service';
 import { formatHandleV2toV1 } from '../utils/lens-utils';
 import type { MetadataAttribute } from '@lens-protocol/metadata';
 import { DateTime } from 'luxon';
 import { LensHub__factory } from '../../contracts/types';
+import { currentUser } from '../stores/user-store';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata
@@ -455,6 +457,23 @@ export const submitPost = async (
         console.log('submitPost: Using Lens Manager to create post');
         if (referenceModule || openActionModules?.length) {
             console.log('submitPost: Creating post on chain');
+
+            if (!openActionModules) {
+                openActionModules = [];
+            }
+
+            // Automatically enable tipping if posting on-chain
+            const data = encodeData(
+                [{ name: 'tipReceiver', type: 'address' }],
+                [user.address]
+            );
+            openActionModules.push({
+                unknownOpenAction: {
+                    address: TIP_ACTION_MODULE,
+                    data,
+                },
+            });
+
             try {
                 txHash = await createPostOnChain(
                     contentURI,
