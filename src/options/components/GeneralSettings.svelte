@@ -9,7 +9,6 @@
         nodeVideo,
         nodeSearch,
         usePopupComposer,
-        richTextComposer,
         autoSignMetadata,
     } from '../../lib/stores/preferences-store';
     import LensNodeSelect from './LensNodeSelect.svelte';
@@ -143,24 +142,24 @@
 
       <div class="w-full md:w-2/3 flex flex-col gap-6">
 
-        <div class="w-full flex">
-          <div class="pt-1">
-            <label class="switch">
-              <input type="checkbox" bind:checked={$richTextComposer}>
-              <span class="slider round flex justify-between items-center px-2
-                  shadow-none"></span>
-            </label>
-          </div>
+<!--        <div class="w-full flex">-->
+<!--          <div class="pt-1">-->
+<!--            <label class="switch">-->
+<!--              <input type="checkbox" bind:checked={$richTextComposer}>-->
+<!--              <span class="slider round flex justify-between items-center px-2-->
+<!--                  shadow-none"></span>-->
+<!--            </label>-->
+<!--          </div>-->
 
-          <div class="flex flex-col pl-4">
-            <div class="text-base font-medium dark:text-white">
-              Rich text formatting
-            </div>
-            <div class="text-base text-neutral-400">
-              Use rich text formatting in your posts, saved as Markdown
-            </div>
-          </div>
-        </div>
+<!--          <div class="flex flex-col pl-4">-->
+<!--            <div class="text-base font-medium dark:text-white">-->
+<!--              Rich text formatting-->
+<!--            </div>-->
+<!--            <div class="text-base text-neutral-400">-->
+<!--              Use rich text formatting in your posts, saved as Markdown-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
 
         <div class="w-full flex">
           <div class="pt-1">
