@@ -76,6 +76,10 @@
         }
     }
 
+    $: if (isEditing && linkInput) {
+        linkInput.focus();
+    }
+
     onMount(() => {
         linkUrl = editor.getAttributes('link').href;
         isEditing = !linkUrl || !linkUrl.length;
