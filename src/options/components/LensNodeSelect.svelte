@@ -1,16 +1,21 @@
 <script lang="ts">
     import Select from "svelte-select";
     import {LENS_NODES, type LensNode} from "../../lib/publications/lens-nodes";
-    import {darkMode} from "../../lib/stores/preferences-store";
+    import { darkMode } from '../../lib/stores/preferences-store';
     import NodeSelectionItem from "./NodeSelectionItem.svelte";
     import NodeChoiceItem from "./NodeChoiceItem.svelte";
     import type {Writable} from "svelte/store";
+    import { PublicationMetadataMainFocusType } from '@lens-protocol/client';
 
     export let preference: Writable<LensNode>;
     export let disabled = false;
     export let notifications = false;
+    export let focus: PublicationMetadataMainFocusType;
 
-    let nodes = notifications ? LENS_NODES.filter(node => node.notifications != null) : LENS_NODES;
+    const getNodes = () => {
+        return LENS_NODES.filter(node => node.focus.includes(focus));
+    }
+
     let selectedNode: LensNode;
 
     $: {
@@ -19,12 +24,12 @@
         }
     }
 
-    const onNodeChange = (event) => {
+    const onNodeChange = (event: CustomEvent) => {
         $preference = event.detail;
     }
 </script>
 
-<Select items={nodes}
+<Select items={getNodes()}
         itemId={'name'}
         label={'name'}
         clearable={false}
@@ -35,7 +40,7 @@
         bind:value={selectedNode}
         on:change={onNodeChange}
         --item-height="auto"
-        --item-is-active-bg="#DB4700"
+        --item-is-active-bg={$darkMode ? '#6B2300' : '#DB4700'}
         --item-hover-bg={$darkMode ? '#1F2937' : '#FFB38E'}
         --font-size="0.875rem"
         --list-background={$darkMode ? '#374354' : 'white'}

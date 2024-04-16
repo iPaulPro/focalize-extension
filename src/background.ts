@@ -814,7 +814,7 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
     }
 
     const path = nodeSearch.profiles.replace('{$handle}', handle);
-    await chrome.tabs.create({ url: nodeSearch.baseUrl + path });
+    await chrome.tabs.create({ url: 'https://' + nodeSearch.baseUrl + path });
 });
 
 chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {

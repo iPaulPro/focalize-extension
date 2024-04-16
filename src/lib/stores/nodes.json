@@ -1,7 +1,7 @@
 [
   {
     "name": "Hey",
-    "baseUrl": "https://hey.xyz",
+    "baseUrl": "hey.xyz",
     "posts": "/posts/{$id}",
     "profiles": "/u/{$handle}",
     "hexIdentifier": true,
@@ -9,71 +9,87 @@
     "focus": [
       "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
     ],
-    "fullHandle": false
+    "fullHandle": false,
+    "icon": "webp"
   },
   {
-    "name": "Amnisiac",
-    "baseUrl": "https://amnisiac.xyz",
-    "posts": "/posts/{$id}",
-    "profiles": "/u/{$handle}",
-    "hexIdentifier": true,
-    "notifications": null,
-    "focus": [
-      "AUDIO"
-    ],
-    "fullHandle": true
-  },
-  {
-    "name": "Beats",
-    "baseUrl": "https://beatsapp.xyz",
-    "posts": "/post/{$id}",
-    "profiles": "/profile/{$handle}",
-    "hexIdentifier": true,
-    "notifications": null,
-    "focus": [
-      "AUDIO"
-    ],
-    "fullHandle": true
-  },
-  {
-    "name": "LensPort",
-    "baseUrl": "https://lensport.io",
-    "posts": "/p/{$id}",
-    "profiles": "/{$handle}",
-    "hexIdentifier": false,
-    "notifications": "/notifications",
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false
-  },
-  {
-    "name": "Lensta",
-    "baseUrl": "https://app.lensta.xyz",
-    "posts": "/post/{$id}",
-    "profiles": "/profile/{$handle}",
-    "hexIdentifier": true,
-    "notifications": null,
-    "focus": [
-      "IMAGE"
-    ],
-    "fullHandle": true
-  },
-  {
-    "name": "Tape",
-    "baseUrl": "https://tape.xyz",
+    "name": "BloomersTV",
+    "baseUrl": "bloomers.tv",
     "posts": "/watch/{$id}",
-    "profiles": "/u/{$handle}",
+    "profiles": "/{$handle}",
     "hexIdentifier": true,
-    "notifications": "/notifications",
     "focus": [
       "VIDEO"
     ],
-    "fullHandle": false
+    "fullHandle": false,
+    "icon": "png"
+  },
+  {
+    "name": "Buttrfly",
+    "baseUrl": "buttrfly.app",
+    "posts": "/post/{$id}",
+    "profiles": "/profile/@{$handle}",
+    "hexIdentifier": true,
+    "notifications": "/notifications",
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ],
+    "fullHandle": false,
+    "icon": "png"
+  },
+  {
+    "name": "Firefly",
+    "baseUrl": "firefly.mask.social",
+    "posts": "/post/lens/{$id}",
+    "profiles": "/profile/lens/{$handle}",
+    "hexIdentifier": true,
+    "notifications": "/notifications",
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ],
+    "fullHandle": false,
+    "icon": "svg"
+  },
+  {
+    "name": "Kaira",
+    "baseUrl": "kaira.network",
+    "posts": "/posts/{$id}",
+    "profiles": "/{$handle}",
+    "hexIdentifier": true,
+    "notifications": "/notifications",
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ],
+    "fullHandle": false,
+    "icon": "svg"
+  },
+  {
+    "name": "Orb",
+    "baseUrl": "orb.club",
+    "posts": "/p/{$id}",
+    "profiles": "/@{$handle}",
+    "hexIdentifier": true,
+    "focus": [
+      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
+    ],
+    "fullHandle": false,
+    "icon": "svg"
+  },
+  {
+    "name": "Orna",
+    "baseUrl": "orna.art",
+    "posts": "/c/{$id}",
+    "profiles": "/u/{$handle}",
+    "hexIdentifier": true,
+    "focus": [
+      "IMAGE", "VIDEO", "AUDIO"
+    ],
+    "fullHandle": false,
+    "icon": "svg"
   },
   {
     "name": "Pinsta",
-    "baseUrl": "https://pinsta.xyz",
+    "baseUrl": "pinsta.xyz",
     "posts": "/pin/{$id}",
     "profiles": "/{$handle}",
     "hexIdentifier": true,
@@ -81,6 +97,20 @@
     "focus": [
       "IMAGE"
     ],
-    "fullHandle": false
+    "fullHandle": false,
+    "icon": "webp"
+  },
+  {
+    "name": "Tape",
+    "baseUrl": "tape.xyz",
+    "posts": "/watch/{$id}",
+    "profiles": "/u/{$handle}",
+    "hexIdentifier": true,
+    "notifications": "/notifications",
+    "focus": [
+      "VIDEO"
+    ],
+    "fullHandle": false,
+    "icon": "svg"
   }
 ]

@@ -30,9 +30,10 @@ export type LensNode = {
     posts: string;
     profiles: string;
     hexIdentifier: boolean;
-    notifications: string | null;
+    notifications?: string;
     focus: string[];
     fullHandle: boolean;
+    icon: string;
 };
 
 export const LENS_NODES: LensNode[] = [...nodes];
@@ -94,7 +95,11 @@ export const getNodeUrlForHandle = (
     const formattedHandle = node.fullHandle
         ? formatHandleV2toV1(handle.fullHandle)
         : handle.localName;
-    return node.baseUrl + node.profiles.replace('{$handle}', formattedHandle);
+    return (
+        'https://' +
+        node.baseUrl +
+        node.profiles.replace('{$handle}', formattedHandle)
+    );
 };
 
 export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {
@@ -106,7 +111,7 @@ export const getPublicationUrlFromNode = (node: LensNode, postId: string) => {
         id = profileId + '-' + publicationId;
     }
 
-    return node.baseUrl + node.posts.replace('{$id}', id);
+    return 'https://' + node.baseUrl + node.posts.replace('{$id}', id);
 };
 
 export const getUrlForPublicationMetadata = async (

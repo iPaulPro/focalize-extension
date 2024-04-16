@@ -240,7 +240,7 @@
               Short-form posts and links
             </div>
           </div>
-          <LensNodeSelect preference={nodePost}/>
+          <LensNodeSelect preference={nodePost} focus='TEXT_ONLY'/>
         </div>
 
         <div class="w-full flex gap-4 justify-between">
@@ -252,7 +252,7 @@
               Posts containing image attachments
             </div>
           </div>
-          <LensNodeSelect preference={nodeImage}/>
+          <LensNodeSelect preference={nodeImage} focus='IMAGE'/>
         </div>
 
         <div class="w-full flex gap-4 justify-between">
@@ -264,7 +264,7 @@
               Posts containing video attachments
             </div>
           </div>
-          <LensNodeSelect preference={nodeVideo}/>
+          <LensNodeSelect preference={nodeVideo} focus='VIDEO'/>
         </div>
 
         <div class="w-full flex gap-4 justify-between">
@@ -276,7 +276,7 @@
               Posts containing audio attachments
             </div>
           </div>
-          <LensNodeSelect preference={nodeAudio}/>
+          <LensNodeSelect preference={nodeAudio} focus='AUDIO'/>
         </div>
 
         <div class="w-full flex gap-4 justify-between">
@@ -288,7 +288,7 @@
               Long-form posts
             </div>
           </div>
-          <LensNodeSelect preference={nodeArticle}/>
+          <LensNodeSelect preference={nodeArticle} focus='ARTICLE'/>
         </div>
 
       </div>
