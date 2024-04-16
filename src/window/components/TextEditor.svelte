@@ -14,7 +14,7 @@
 
     const updateContent = () => {
         if ($content) {
-            setContent($content);
+            setContent?.($content);
         }
     }
 
@@ -23,6 +23,6 @@
     }
 </script>
 
-<div class="w-full relative {(isCompact || contentLength > 560) ? 'text-lg' : 'text-xl'}">
+<div class="w-full relative {(contentLength > 560) ? 'text-lg' : 'text-xl'}">
     <Tiptap bind:insertAtSelection bind:setContent isCompact={isCompact} />
 </div>

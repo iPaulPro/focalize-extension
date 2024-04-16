@@ -58,7 +58,7 @@
             content: $content,
             editorProps: {
                 attributes: () => ({
-                    class: `text-editor ${isCompact ? 'min-h-[6em]' : 'min-h-[8em]'}`,
+                    class: `text-editor ${isCompact ? 'min-h-[8em]' : 'min-h-[10em]'}`,
                 }),
                 handleKeyDown(view: EditorView, event: KeyboardEvent) {
                     return tribute.isActive && event.key === 'Enter';

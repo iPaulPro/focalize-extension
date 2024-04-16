@@ -40,7 +40,6 @@
     "@tiptap/extension-typography": "^2.2.4",
     "@tiptap/pm": "^2.2.4",
     "@tiptap/starter-kit": "^2.2.4",
-    "@tiptap/suggestion": "^2.2.4",
     "@tsconfig/svelte": "^5.0.2",
     "@typechain/ethers-v6": "^0.4.2",
     "@types/chrome": "^0.0.253",

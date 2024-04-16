@@ -615,7 +615,7 @@
 
         <div class="min-h-[12rem] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 dark:text-gray-100
                   {isSubmittingPost ? 'opacity-60' : ''}
-                  {isPopupWindow ? ' p-2 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-2 pb-2'}">
+                  {isPopupWindow ? ' px-2 pt-2 pb-1 rounded-b-xl' : 'mx-2 rounded-xl px-4 pt-2 pb-2'}">
 
           <div class="flex">
 
@@ -627,7 +627,7 @@
 
             <div class="w-full">
 
-              <div class="flex flex-col w-full pt-4 pb-4 pr-5 pl-2">
+              <div class="flex flex-col w-full pt-4 pr-5 pl-2 {isPopupWindow ? 'pb-2' : 'pb-4' }">
 
                 <TextEditor {content}
                             disabled={isSubmittingPost}
@@ -735,7 +735,7 @@
 
           {/if}
 
-          <div class="flex flex-wrap gap-6 ml-[4.5rem] {isPopupWindow ? 'pt-2 pb-0' : 'pt-2 pb-1'}
+          <div class="flex flex-wrap gap-6 ml-[4.5rem] {isPopupWindow ? 'pt-1 pb-0' : 'pt-2 pb-1'}
                {$collectSettings.isCollectible || isMediaPostType || $file || currentTabData ? ''
                   : 'border-t border-t-gray-200 dark:border-t-gray-800'}">
 

@@ -120,13 +120,11 @@ export const LensTag = Node.create<LensTagOptions>({
                     let isMention = false;
                     const { selection } = state;
                     const { empty, anchor } = selection;
-                    console.log('on Backspace: empty', empty, 'anchor', anchor);
                     if (!empty) {
                         return false;
                     }
 
                     state.doc.nodesBetween(anchor - 1, anchor, (node, pos) => {
-                        console.log('nodesBetween: node', node);
                         if (node.type.name === this.name) {
                             isMention = true;
                             tr.insertText('', pos, pos + node.nodeSize);
