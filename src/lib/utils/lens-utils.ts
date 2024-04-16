@@ -35,17 +35,11 @@ import {
     PublicationSchemaId,
     ThreeDFormat,
 } from '@lens-protocol/metadata';
-import { MENTION_REGEX } from '../editor/LexicalMentionPlugin';
 import {
     getAvatarForLensHandle,
     getAvatarFromAddress,
     truncateAddress,
 } from './utils';
-import {
-    getPreference,
-    KEY_NODE_SEARCH,
-    nodeSearch,
-} from '../stores/preferences-store';
 import { getNodeUrlForHandle, LENS_NODES } from '../publications/lens-nodes';
 
 export const hasMetadata = (
@@ -320,6 +314,18 @@ export const formatHandleV2toV1 = (handle: string): string => {
     const handleParts = handle.split('/');
     if (handleParts.length === 2) {
         return `${handleParts[1]}.${handleParts[0]}`;
+    }
+    return handle;
+};
+
+/**
+ * Format a handle from @domain/local to @local
+ * @param handle The handle to format
+ */
+export const formatHandleV2toLocalName = (handle: string): string => {
+    const handleParts = handle.split('/');
+    if (handleParts.length === 2) {
+        return `@${handleParts[1]}`;
     }
     return handle;
 };

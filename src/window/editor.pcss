@@ -1,3 +1,17 @@
+.text-editor {
+    @apply w-full bg-transparent pt-3
+    overflow-hidden break-keep [overflow-wrap:anywhere]
+    border-none resize-none focus:outline-none focus:ring-0 focus:border-none
+}
+
+.text-editor > * {
+    margin-bottom: 1.75rem !important;
+}
+
+.compact .text-editor > * {
+    margin-bottom: 1.25rem !important;
+}
+
 .editor-placeholder {
   overflow: hidden;
   position: absolute;
@@ -38,7 +52,7 @@
   background-color: #e2e8f0;
   padding: 0.25rem;
   font-family: Menlo, Consolas, Monaco, monospace;
-  font-size: 94%;
+  font-size: 86%;
   border-radius: 0.25rem;
 }
 
@@ -58,38 +72,20 @@
 .editor-code {
   background-color: rgb(240, 242, 245);
   font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 80%;
   display: block;
-  padding: 8px 8px 8px 52px;
+  padding: 8px 8px 8px 24px;
   line-height: 1.53;
   margin: 8px 0;
   tab-size: 2;
   white-space: pre;
   overflow-x: auto;
   position: relative;
+  border-radius: 0.5rem;
 }
 
-.editor-code:before {
-  content: attr(data-gutter);
-  position: absolute;
-  background-color: #eee;
-  left: 0;
-  top: 0;
-  border-right: 1px solid #ccc;
-  padding: 8px;
-  color: #777;
-  white-space: pre-wrap;
-  text-align: right;
-  min-width: 25px;
-}
-.editor-code:after {
-  content: attr(data-highlight-language);
-  top: 2%;
-  right: 5px;
-  padding: 3px;
-  font-size: 10px;
-  text-transform: uppercase;
-  position: absolute;
-  color: rgba(0, 0, 0, 0.5);
+.dark .editor-code {
+    @apply bg-gray-800;
 }
 
 .editor-paragraph {

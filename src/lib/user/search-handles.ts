@@ -30,9 +30,15 @@ let searchAbortController: AbortController;
 
 export const searchHandles = (
     query: string,
-    limit: number,
-    cb: (profiles: SimpleProfile[]) => void
-) =>
+    limit: number = 5,
+    cb?: (profiles: SimpleProfile[]) => void
+): Promise<SimpleProfile[]> =>
     searchProfiles(query)
-        .then((profiles) => cb(profiles.slice(0, limit).map(toSimpleProfile)))
-        .catch(() => {});
+        .then((profiles) => {
+            const simpleProfiles = profiles
+                .slice(0, limit)
+                .map(toSimpleProfile);
+            if (cb) cb(simpleProfiles);
+            return simpleProfiles;
+        })
+        .catch(() => []);

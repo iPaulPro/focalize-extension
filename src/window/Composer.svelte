@@ -34,8 +34,9 @@
         image,
         video,
         audio,
-        threeDAsset, album, date,
-        // contentWarning,
+        threeDAsset,
+        album,
+        date,
     } from '../lib/stores/state-store';
     import {currentUser} from '../lib/stores/user-store';
     import {
@@ -80,16 +81,13 @@
     import type {Web3File} from '../lib/ipfs-service';
     import type {
         PublicationMetadata,
-        URI
     } from '@lens-protocol/metadata';
     import {
-        encodeData,
         type CollectActionModuleInput,
         type OpenActionModuleInput,
         type ReferenceModuleInput,
     } from '@lens-protocol/client';
     import { toUri } from '@lens-protocol/metadata';
-    import { TIP_ACTION_MODULE } from '../config';
 
     let onGifDialogShown: () => {};
 
@@ -312,18 +310,62 @@
                 openActionModules.push({
                     collectOpenAction: collectModuleParams
                 });
-
-                const data = encodeData(
-                    [{name:"tipReceiver",type:"address"}],
-                    [$currentUser.address]
-                )
-                openActionModules.push({
-                    unknownOpenAction: {
-                        address: TIP_ACTION_MODULE,
-                        data
-                    }
-                })
             }
+
+            // const EMPTY_RECIPIENT = [ZeroAddress, '0'];
+            // const collectInitData = encodeData([
+            //     { type: 'uint160', name: 'amountFloor' },
+            //     { type: 'uint96', name: 'collectLimit' },
+            //     { type: 'address', name: 'currency' },
+            //     { type: 'uint16', name: 'referralFee' },
+            //     { type: 'bool', name: 'followerOnly' },
+            //     { type: 'uint72', name: 'endTimestamp' },
+            //     {
+            //         type: 'tuple(address,uint16)[5]',
+            //         name: 'recipients',
+            //         components: [
+            //             { type: 'address', name: 'recipient' },
+            //             { type: 'uint16', name: 'split' },
+            //         ],
+            //     },
+            // ], [
+            //     '0',
+            //     '100',
+            //     ZeroAddress,
+            //     '10',
+            //     false,
+            //     '0',
+            //     [
+            //         [$currentUser.address, '5000'],
+            //         ['0x10E1DEB36F41b4Fad35d10d0aB870a4dc52Dbb2c', '5000'],
+            //         EMPTY_RECIPIENT,
+            //         EMPTY_RECIPIENT,
+            //         EMPTY_RECIPIENT
+            //     ],
+            // ]);
+            // const data = encodeData(
+            //     [
+            //         { type: 'address', name: 'collectModule' },
+            //         { type: 'bytes', name: 'collectModuleInitData' },
+            //     ],
+            //     [PWYW_COLLECT_MODULE, collectInitData],
+            // );
+            // openActionModules.push({
+            //     unknownOpenAction: {
+            //         address: COLLECT_PUBLICATION_ACTION!,
+            //         data,
+            //     },
+            // });
+            // const data = encodeData(
+            //     [{name:"tipReceiver",type:"address"}],
+            //     [$currentUser.address]
+            // )
+            // openActionModules.push({
+            //     unknownOpenAction: {
+            //         address: TIP_ACTION_MODULE,
+            //         data
+            //     }
+            // })
 
             postId = await submitPost(
                 $currentUser,
@@ -589,7 +631,7 @@
 
                 <TextEditor {content}
                             disabled={isSubmittingPost}
-                            isCompact={isPopupWindow ?? false}
+                            isCompact={isPopupWindow}
                             bind:insertAtSelection/>
 
                 <EditorActionsBar disabled={isSubmittingPost}

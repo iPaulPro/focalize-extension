@@ -1,5 +1,12 @@
 <script lang='ts'>
-    import { autoUpdate, computePosition, flip, offset, shift, type ComputePositionConfig } from '@floating-ui/dom';
+    import {
+        autoUpdate,
+        computePosition,
+        flip,
+        offset,
+        shift,
+        type ComputePositionConfig,
+    } from '@floating-ui/dom';
     import { onDestroy } from 'svelte';
     import Portal from './Portal.svelte';
 
@@ -10,31 +17,45 @@
     export let showDelay: number = 0;
     export let hideDelay: number = 0;
     export let interactive: boolean = false;
+    export let placement: Placement | undefined = undefined;
+    export let autoUpdatePosition = true;
+
     export let config: ComputePositionConfig = {
         strategy: 'absolute',
-        middleware: [offset(6), flip(), shift({ padding: 5 })],
+        ...(placement !== undefined && {
+            placement,
+        }),
+        middleware: [
+            offset(6),
+            flip(),
+            shift({ padding: 5 }),
+        ],
     };
 
     let component: HTMLElement;
     let autoUpdateDisposer: () => void;
-    let activeAnchor: HTMLElement;
+    let activeAnchor: HTMLElement | undefined;
 
     let initialized = false;
     let showTimeout: ReturnType<typeof setTimeout>;
     let hideTimeout: ReturnType<typeof setTimeout>;
     let isShown = false;
 
-    const show = () => {
+    export const show = () => {
+        if (!activeAnchor) {
+            activeAnchor = anchors[0];
+        }
         component.style.display = 'block';
         isShown = true;
     };
 
-    const hide = () => {
+    export const hide = () => {
         component.style.display = '';
         isShown = false;
+        activeAnchor = undefined;
     };
 
-    const showWithDelay = (anchor: HTMLElement) => () => {
+    const showWithDelay = (anchor: HTMLElement | undefined) => () => {
         activeAnchor = anchor;
         clearTimeout(hideTimeout);
         showTimeout = setTimeout(show, showDelay);
@@ -80,10 +101,10 @@
             }
         }
 
-        if (!autoUpdateDisposer && activeAnchor && component) {
+        if (autoUpdatePosition && !autoUpdateDisposer && activeAnchor && component) {
             autoUpdateDisposer = autoUpdate(activeAnchor, component, updatePosition);
-            if (!autoUpdateDisposer) updatePosition();
         }
+        if (!autoUpdateDisposer) updatePosition();
     }
 
     onDestroy(() => {

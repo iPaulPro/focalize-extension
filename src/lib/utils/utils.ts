@@ -58,6 +58,7 @@ export const htmlFromMarkdown = (
     const converter = new showdown.Converter({
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
+        strikethrough: true,
     });
     return converter.makeHtml(markdown);
 };
