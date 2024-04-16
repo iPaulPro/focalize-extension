@@ -51,4 +51,7 @@ export default defineManifest((env) => ({
     omnibox: {
         keyword: 'lens',
     },
+    ...(!isProduction && {
+        host_permissions: ['https://api-v2-amoy.lens.dev'],
+    }),
 }));

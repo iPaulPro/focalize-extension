@@ -355,7 +355,8 @@
                                    bind:this={priceInput} bind:value={$collectSettings.price}
                                    on:change={onPriceValueChange}
                                    class="focus:ring-orange-500 border py-2 px-4 text-gray-900 dark:text-gray-100 font-medium
-                                   focus:border-orange-500 block w-44 pl-7 pr-24 rounded-xl text-base text-center dark:bg-gray-800
+                                   focus:border-orange-500 block w-48 pl-7 pr-24 rounded-xl text-base text-center dark:bg-gray-800
+                                   focus:border-orange-500 block w-48 pl-7 pr-24 rounded-xl text-base text-center dark:bg-gray-800
                                    {priceError ? 'border-red-600' : 'border-gray-300 dark:border-gray-600'}"/>
 
                             <div class="absolute inset-y-0 right-0 flex items-center">
@@ -383,7 +384,7 @@
                                             on:change={onCurrencyChange}
                                             class="focus:ring-orange-500 py-2 px-4 border-t border-r border-gray-300 border-b
                                             focus:border-orange-500 h-full pl-2 pr-7 border-transparent bg-transparent
-                                            text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-xl cursor-pointer">
+                                            text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-xl cursor-pointer max-w-[6rem]">
 
                                         {#each currencies as token}
                                             <option value={token}>

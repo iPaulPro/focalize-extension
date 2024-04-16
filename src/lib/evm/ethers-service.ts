@@ -36,18 +36,18 @@ const networkMap = {
         rpcUrls: ['https://polygon-rpc.com'],
         blockExplorerUrls: ['https://www.polygonscan.com/'],
     },
-    MUMBAI_TESTNET: {
-        chainId: toQuantity(80001), // '0x13881'
-        chainName: 'Mumbai',
+    AMOY_TESTNET: {
+        chainId: toQuantity(80002), // '0x13881'
+        chainName: 'Amoy',
         nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
-        rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
-        blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+        rpcUrls: ['https://rpc-amoy.polygon.technology'],
+        blockExplorerUrls: ['https://www.oklink.com/amoy/'],
     },
 };
 
 const rpcMap = new Map<number, string>([
     [137, 'https://polygon-mainnet.g.alchemy.com/v2/' + ALCHEMY_MATIC_API_KEY],
-    [80001, 'https://polygon-mumbai.infura.io/v3/' + INFURA_PROJECT_ID],
+    [80002, 'https://polygon-amoy.infura.io/v3/' + INFURA_PROJECT_ID],
 ]);
 
 export const getRpcUrl = (): string | undefined => rpcMap.get(chainId);
@@ -76,7 +76,7 @@ const createWalletConnectProvider = async () => {
             137:
                 'https://polygon-mainnet.g.alchemy.com/v2/' +
                 ALCHEMY_MATIC_API_KEY,
-            80001: 'https://polygon-mumbai.infura.io/v3/' + INFURA_PROJECT_ID,
+            80002: 'https://polygon-amoy.infura.io/v3/' + INFURA_PROJECT_ID,
         },
     });
     console.log('ethereumProvider', ethereumProvider);
@@ -186,8 +186,8 @@ const switchChains = async (id: number) => {
         console.error('switchChains: error switching chains', error);
         if (isError(error, 'UNKNOWN_ERROR')) {
             await provider.send('wallet_addEthereumChain', [
-                id === 80001
-                    ? networkMap.MUMBAI_TESTNET
+                id === 80002
+                    ? networkMap.AMOY_TESTNET
                     : networkMap.POLYGON_MAINNET,
             ]);
             return;

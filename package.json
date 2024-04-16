@@ -21,7 +21,7 @@
     "@google/model-viewer": "^3.3.0",
     "@irys/sdk": "^0.0.4",
     "@joeattardi/emoji-button": "^4.6.4",
-    "@lens-protocol/client": "^2.0.0-alpha.26",
+    "@lens-protocol/client": "^2.1.0",
     "@rollup/plugin-node-resolve": "^15.1.0",
     "@skeletonlabs/skeleton": "^1.6.2",
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
