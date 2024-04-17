@@ -1,9 +1,4 @@
-import {
-    getAvatarForLensHandle,
-    getAvatarFromAddress,
-    stripMarkdown,
-    truncate,
-} from '../utils/utils';
+import { stripMarkdown, truncate } from '../utils/utils';
 import {
     type LensNode,
     getNodeForPublication,
@@ -25,6 +20,7 @@ import {
     formatHandleV2toV1,
     getMetadataContent,
     getNotificationPublication,
+    getProfileAvatar,
 } from '../utils/lens-utils';
 import {
     isCommentPublication,
@@ -262,14 +258,9 @@ export const getNotificationWalletAddress = (
 
 export const getAvatarFromNotification = (
     notification: NotificationFragment
-): string | null => {
+): string | undefined => {
     const profile = getNotificationProfile(notification);
-    if (profile.handle) {
-        return getAvatarForLensHandle(profile.handle.fullHandle);
-    }
-
-    const wallet = getNotificationWalletAddress(notification);
-    return getAvatarFromAddress(wallet);
+    return getProfileAvatar(profile);
 };
 
 /**

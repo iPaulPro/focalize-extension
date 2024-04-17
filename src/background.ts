@@ -1,8 +1,6 @@
 import { DateTime } from 'luxon';
 import type { User } from './lib/user/user';
 import {
-    getAvatarForLensHandle,
-    getAvatarFromAddress,
     getXmtpKeys,
     launchThreadWindow,
     stripMarkdown,
@@ -55,7 +53,6 @@ import {
     waitForTransaction,
 } from './lib/lens-service';
 import type {
-    FollowNotificationFragment,
     NotificationFragment,
     ProfileFragment,
     PublicationMetadataFragment,
@@ -65,6 +62,7 @@ import {
     formatHandleV2toV1,
     getNotificationPublication,
     hasMetadata,
+    getProfileAvatar,
 } from './lib/utils/lens-utils';
 import { migrate } from './lib/utils/migrations';
 
@@ -672,9 +670,9 @@ const onMessagesAlarm = async () => {
                         ? `${messages.length} new messages`
                         : messages[0].content),
                 contextMessage: 'Focalize',
-                iconUrl: peerProfile?.handle
-                    ? getAvatarForLensHandle(peerProfile.handle.localName)
-                    : getAvatarFromAddress(peerAddress) ?? getAppIconUrl(),
+                iconUrl: peerProfile
+                    ? getProfileAvatar(peerProfile)
+                    : getAppIconUrl(),
                 silent: false,
             };
 

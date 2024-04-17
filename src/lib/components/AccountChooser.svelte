@@ -5,7 +5,7 @@
     import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
     import { onLogin } from '../user/user';
-    import { getAvatarForLensHandle, getAvatarFromAddress, truncateAddress } from '../utils/utils';
+    import { truncateAddress } from '../utils/utils';
     import DarkModeSwitch from './DarkModeSwitch.svelte';
     import {darkMode} from '../stores/preferences-store';
     import { getManagedProfiles, login } from '../lens-service';
@@ -13,6 +13,7 @@
     import { formatHandleV2toV1 } from '../utils/lens-utils';
     import { getAccounts } from '../evm/ethers-service';
     import {slide} from 'svelte/transition';
+    import { getProfileAvatar } from '../utils/lens-utils.js';
 
     export let anchorNode: Node | undefined = undefined;
     export let showSettings = true;
@@ -106,7 +107,7 @@
 
         {#each profiles as p, index}
 
-          {@const avatarUrl = p.handle ? getAvatarForLensHandle(p.handle.fullHandle) : getAvatarFromAddress(p.ownedBy.address)}
+          {@const avatarUrl = getProfileAvatar(p)}
 
           <div class="group min-w-[16rem] flex items-center p-2 m-1 rounded-xl gap-3 cursor-pointer
                hover:bg-orange-300 {standalone ? 'dark:hover:bg-gray-900' : 'dark:hover:bg-gray-800'}"

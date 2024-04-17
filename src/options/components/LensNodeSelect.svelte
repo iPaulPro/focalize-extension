@@ -10,10 +10,10 @@
     export let preference: Writable<LensNode>;
     export let disabled = false;
     export let notifications = false;
-    export let focus: PublicationMetadataMainFocusType;
+    export let focus: PublicationMetadataMainFocusType | undefined = undefined;
 
     const getNodes = () => {
-        return LENS_NODES.filter(node => node.focus.includes(focus));
+        return focus !== undefined ? LENS_NODES.filter(node => node.focus.includes(focus.valueOf())) : LENS_NODES;
     }
 
     let selectedNode: LensNode;

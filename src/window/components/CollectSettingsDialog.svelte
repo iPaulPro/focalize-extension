@@ -15,14 +15,13 @@
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {
         formatCryptoValue,
-        getAvatarForLensHandle,
         getAvatarFromAddress,
         truncateAddress
     } from '../../lib/utils/utils';
     import CollectFeeSplitInput from './CollectFeeSplitInput.svelte';
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
-    import { formatHandleV2toV1 } from '../../lib/utils/lens-utils';
+    import { formatHandleV2toV1, getAvatarForLensHandle } from '../../lib/utils/lens-utils';
 
     export let isCompact: boolean = false;
 

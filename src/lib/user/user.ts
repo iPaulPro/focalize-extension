@@ -1,7 +1,7 @@
-import { currentUser, getUser, saveUser } from '../stores/user-store';
-import { getAvatarForLensHandle } from '../utils/utils';
+import { getUser, saveUser } from '../stores/user-store';
 import { isAuthenticated } from '../lens-service';
 import type { ProfileFragment } from '@lens-protocol/client';
+import { getProfileAvatar } from '../utils/lens-utils';
 
 export type User = {
     address: string;
@@ -20,9 +20,7 @@ export enum UserError {
 }
 
 export const userFromProfile = (profile: ProfileFragment): User => {
-    const avatarUrl = profile.handle
-        ? getAvatarForLensHandle(profile.handle.fullHandle)
-        : undefined;
+    const avatarUrl = getProfileAvatar(profile);
 
     return {
         address: profile.ownedBy.address,

@@ -72,6 +72,18 @@ const chromeStorage = new ChromeStorageProvider();
 const lensClient: LensClient = new LensClient({
     environment: isMainnet ? production : development,
     storage: chromeStorage,
+    params: {
+        profile: {
+            thumbnail: {
+                width: '48px',
+                height: 'auto',
+            },
+            cover: {
+                width: '512px',
+                height: 'auto',
+            },
+        },
+    },
 });
 
 export const isAuthenticated = (): Promise<boolean> =>

@@ -1,8 +1,6 @@
 <script lang="ts">
     import {
         formatFollowerCount,
-        getAvatarForLensHandle,
-        getAvatarFromAddress,
         launchThreadWindow, truncateAddress,
     } from '../utils/utils';
     import {onMount} from 'svelte';
@@ -17,6 +15,7 @@
     import { cubicOut } from 'svelte/easing';
     import { getMutualFollowers, getProfile } from '../lens-service';
     import type { ProfileFragment, PaginatedResult } from '@lens-protocol/client';
+    import { getProfileAvatar } from '../utils/lens-utils.js';
 
     export let profile: ProfileFragment;
 
@@ -24,7 +23,7 @@
     let mutualFollows: PaginatedResult<ProfileFragment>;
     let isMessaging = false;
 
-    $: avatarUrl = profile.handle && getAvatarForLensHandle(profile.handle.fullHandle);
+    $: avatarUrl = getProfileAvatar(profile, false);
     $: userProfileUrl = profile.handle && $nodeSearch && getNodeUrlForHandle($nodeSearch, profile.handle);
     $: isCurrentUserProfile = profile && profile.id === $currentUser?.profileId;
 
@@ -184,7 +183,7 @@
 
         <div class="flex flex-shrink-0 overlap">
           {#each mutualFollows.items.slice(0,3) as mutualFollow}
-            <img src={mutualFollow.handle ? getAvatarForLensHandle(mutualFollow.handle.fullHandle) : getAvatarFromAddress(mutualFollow.ownedBy.address)} alt="Avatar"
+            <img src={getProfileAvatar(mutualFollow)} alt="Avatar"
                  class="w-7 h-7 rounded-full object-cover bg-gray-300 text-white border-2 border-white dark:border-gray-900">
           {/each}
         </div>

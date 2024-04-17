@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
-    import {getAvatarForLensHandle, getAvatarFromAddress, getSearchParamsMap, truncateAddress} from '../../../lib/utils/utils';
+    import {getSearchParamsMap, truncateAddress} from '../../../lib/utils/utils';
     import {findThread, getPeerName, getThread, isLensThread, type Peer, type Thread} from '../../../lib/xmtp-service';
     import {ensureUser} from '../../../lib/user/user';
     import ImageAvatar from '../../../assets/ic_avatar.svg';
@@ -19,7 +19,7 @@
     import NewThreadRecipientInput from './components/NewThreadRecipientInput.svelte';
     import {newThread} from '../../../lib/xmtp-service.js';
     import {getProfiles} from '../../../lib/lens-service';
-    import { formatHandleV2toV1 } from '../../../lib/utils/lens-utils';
+    import { formatHandleV2toV1, getProfileAvatar } from '../../../lib/utils/lens-utils';
 
     let loading = true;
     let thread: Thread;
@@ -120,9 +120,7 @@
     };
 
     $: peerProfile = thread?.peer?.profile;
-    $: avatarUrl = peerProfile?.handle
-        ? getAvatarForLensHandle(peerProfile.handle.fullHandle)
-        : getAvatarFromAddress(thread?.conversation?.peerAddress);
+    $: avatarUrl = peerProfile && getProfileAvatar(peerProfile);
     $: peerName = thread?.peer && getPeerName(thread);
     $: peerHandle = thread && getPeerHandle();
 

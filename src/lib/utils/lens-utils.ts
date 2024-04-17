@@ -35,11 +35,7 @@ import {
     PublicationSchemaId,
     ThreeDFormat,
 } from '@lens-protocol/metadata';
-import {
-    getAvatarForLensHandle,
-    getAvatarFromAddress,
-    truncateAddress,
-} from './utils';
+import { getAvatarFromAddress, truncateAddress } from './utils';
 import { getNodeUrlForHandle, LENS_NODES } from '../publications/lens-nodes';
 
 export const hasMetadata = (
@@ -352,10 +348,46 @@ export const getProfileDisplayName = (profile: ProfileFragment): string => {
     return truncateAddress(profile.ownedBy.address);
 };
 
-export const getProfileAvatar = (profile: ProfileFragment): string =>
-    profile.handle
-        ? getAvatarForLensHandle(profile.handle.fullHandle, 64)
-        : getAvatarFromAddress(profile.ownedBy.address, 64);
+export const getProfileAvatar = (
+    profile: ProfileFragment,
+    thumbnail: boolean = true
+): string => {
+    let profileImage = undefined;
+
+    if (profile.handle && profile.metadata?.picture) {
+        if (profile.metadata?.picture?.__typename === 'ImageSet') {
+            if (
+                !profile.metadata.picture.thumbnail &&
+                !profile.metadata.picture.optimized
+            ) {
+                profileImage = profile.metadata.picture.raw.uri;
+            }
+            profileImage = thumbnail
+                ? profile.metadata.picture.thumbnail?.uri
+                : profile.metadata.picture.optimized?.uri;
+        } else {
+            if (
+                !profile.metadata.picture.image.thumbnail &&
+                !profile.metadata.picture.image.optimized
+            ) {
+                profileImage = profile.metadata.picture.image.raw.uri;
+            }
+            profileImage = thumbnail
+                ? profile.metadata.picture.image.thumbnail?.uri
+                : profile.metadata.picture.image.optimized?.uri;
+        }
+    }
+
+    return profileImage ?? getAvatarFromAddress(profile.ownedBy.address);
+};
+
+export const getAvatarForLensHandle = (
+    handle: string,
+    size: number = 128
+): string => {
+    const formattedHandle = formatHandleV2toV1(handle);
+    return `https://cdn.stamp.fyi/avatar/${formattedHandle}?s=${size}`;
+};
 
 export const getProfileUrl = (profile: ProfileFragment): string => {
     if (profile.handle) {

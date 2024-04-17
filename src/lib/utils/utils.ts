@@ -36,14 +36,6 @@ export const isOnToolbar = async (): Promise<boolean> => {
     return settings.isOnToolbar;
 };
 
-export const getAvatarForLensHandle = (
-    handle: string,
-    size: number = 128
-): string => {
-    const formattedHandle = formatHandleV2toV1(handle);
-    return `https://cdn.stamp.fyi/avatar/${formattedHandle}?s=${size}`;
-};
-
 export const getAvatarFromAddress = (
     address: string,
     size: number = 128

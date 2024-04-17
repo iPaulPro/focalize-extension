@@ -52,6 +52,6 @@ export default defineManifest((env) => ({
         keyword: 'lens',
     },
     ...(!isProduction && {
-        host_permissions: ['https://api-v2-amoy.lens.dev'],
+        host_permissions: ['*://api-v2-amoy.lens.dev/*'],
     }),
 }));

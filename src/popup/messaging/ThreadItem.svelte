@@ -2,7 +2,7 @@
     //@ts-ignore
     import tippy from 'sveltejs-tippy';
     import ImageAvatar from '../../assets/ic_avatar.svg';
-    import {getAvatarForLensHandle, getAvatarFromAddress, getEnsFromAddress, truncate} from '../../lib/utils/utils';
+    import {getEnsFromAddress, truncate} from '../../lib/utils/utils';
     import {type CompactMessage, getPeerName, isLensThread, isUnread, type Thread} from '../../lib/xmtp-service';
     import {createEventDispatcher} from 'svelte';
     import {DateTime} from 'luxon';
@@ -10,6 +10,7 @@
     import ProfileHoverCard from '../../lib/components/ProfileHoverCard.svelte';
     import AutoRelativeTimeView from '../../lib/components/AutoRelativeTimeView.svelte';
     import {getLatestMessage} from '../../lib/stores/cache-store';
+    import { getProfileAvatar } from '../../lib/utils/lens-utils';
 
     const dispatch = createEventDispatcher();
 
@@ -22,7 +23,7 @@
     $: peerProfile = thread?.peer?.profile;
     $: peerAddress = thread?.peer?.profile?.ownedBy.address ?? thread?.peer?.wallet?.address!;
     $: unread = thread?.unread;
-    $: avatarUrl = peerProfile?.handle ? getAvatarForLensHandle(peerProfile.handle.fullHandle) : getAvatarFromAddress(peerAddress);
+    $: avatarUrl = peerProfile && getProfileAvatar(peerProfile);
     $: peerName = thread?.peer && getPeerName(thread, ens);
 
     const latestMessage = getLatestMessage(thread?.conversation?.topic);
