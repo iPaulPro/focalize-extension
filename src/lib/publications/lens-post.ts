@@ -1,5 +1,3 @@
-import Autolinker, { UrlMatch } from 'autolinker';
-
 import { APP_ID, LENS_HUB_CONTRACT, TIP_ACTION_MODULE } from '../../config';
 
 import {
@@ -546,29 +544,3 @@ chrome.runtime.onConnect.addListener((port) => {
         publicationState.set(state);
     });
 });
-
-export const getUrlsFromText = (content: string): string[] => {
-    const matches = Autolinker.parse(content, {
-        phone: false,
-        email: false,
-        stripPrefix: false,
-        urls: {
-            tldMatches: true,
-        },
-    });
-    console.log('autolink: matches =', matches);
-
-    if (matches.length === 0) {
-        return [];
-    }
-
-    const urlMatches = matches.filter(
-        (match): match is UrlMatch => match instanceof UrlMatch
-    );
-    return urlMatches.map((match) => {
-        if (match.getUrlMatchType() === 'tld') {
-            return 'https://' + match.getUrl();
-        }
-        return match.getUrl();
-    });
-};
