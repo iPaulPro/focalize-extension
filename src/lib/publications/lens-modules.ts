@@ -141,12 +141,7 @@ export const collectSettingsToModuleInput = (
             value: collectSettings.price.toString(),
         };
 
-        const recipients: RecipientDataInput[] = [
-            {
-                recipient: '0x10E1DEB36F41b4Fad35d10d0aB870a4dc52Dbb2c', // focalize.eth
-                split: 2,
-            },
-        ];
+        const recipients: RecipientDataInput[] = [];
 
         if (collectSettings.recipients?.length) {
             collectSettings.recipients.forEach((recipient) => {
@@ -158,7 +153,7 @@ export const collectSettingsToModuleInput = (
         } else {
             recipients.push({
                 recipient: address,
-                split: 98,
+                split: 100,
             });
         }
 

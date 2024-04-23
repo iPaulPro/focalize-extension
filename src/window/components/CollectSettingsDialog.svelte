@@ -176,8 +176,8 @@
         if (!$collectSettings.recipients?.length) return;
 
         const numRecipients = $collectSettings.recipients.length;
-        const splitAmount = Math.floor(98 / numRecipients * 100) / 100;
-        const remainder = Math.round((98 - splitAmount * numRecipients) * 100) / 100;
+        const splitAmount = Math.floor(100 / numRecipients * 100) / 100;
+        const remainder = Math.round((100 - splitAmount * numRecipients) * 100) / 100;
 
         $collectSettings.recipients = $collectSettings.recipients.map((recipient, index) => ({
             ...recipient,
@@ -224,7 +224,7 @@
         if ($currentUser && (!$collectSettings.recipients)) {
             $collectSettings.recipients = [{
                 address: $currentUser.address,
-                split: 98,
+                split: 100,
                 identity: {
                     lens: $currentUser.handle,
                 }
@@ -249,7 +249,7 @@
     $: if ($collectSettings.recipients) {
         const total = $collectSettings.recipients?.filter((recipient: Recipient) => recipient.split)
             .reduce((acc: number, recipient: Recipient) => acc + recipient.split, 0) ?? 0;
-        splitError = total !== 98 ? `Revenue shares must add up to 100%` : null;
+        splitError = total !== 100 ? `Revenue shares must add up to 100%` : null;
     }
 
     $: if (priceInput && $isPaid && $collectSettings.price === undefined) {
@@ -268,7 +268,7 @@
         $hasReferralFee = $collectSettings.referralFee !== undefined;
         $splitRevenue = $collectSettings.recipients?.length !== undefined;
 
-        const order = ['USDC', 'DAI', 'WETH', 'WMATIC'];
+        const order = ['BONSAI', 'USDC', 'DAI', 'WETH', 'WMATIC'];
         currencies = (await getEnabledModuleCurrencies())
             .sort((a, b) => order.indexOf(a.symbol) - order.indexOf(b.symbol));
 
@@ -489,7 +489,7 @@
                                                     <button type="button"
                                                             class="rounded-full p-1 hover:bg-gray-300 dark:hover:bg-gray-500 group"
                                                             on:click={() => removeRecipient(recipient)}
-                                                            class:hidden={$collectSettings.recipients.length === 0}>
+                                                            class:hidden={$collectSettings.recipients.length === 1}>
                                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                              stroke-width="2"
                                                              stroke-linecap="round" stroke-linejoin="round"
@@ -503,30 +503,6 @@
 
                                             {/each}
                                         {/if}
-
-                                        <div class="flex items-center gap-2">
-                                            <div class="flex grow gap-3 items-center opacity-60">
-                                                <img loading="lazy" decoding="async"
-                                                     src={getAvatarForLensHandle('focalize.lens')} alt="avatar"
-                                                     class="w-7 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
-
-                                                <div class="text-base">
-                                                    focalize.lens
-                                                </div>
-                                            </div>
-
-                                            <div class="relative mr-8">
-                                                <div class="w-20 py-2 flex justify-center items-center
-                                                     text-center text-base font-medium dark:text-gray-100
-                                                     bg-gray-100 dark:bg-gray-600
-                                                     !bg-opacity-50 border-transparent rounded-xl">
-                                                    2
-                                                </div>
-                                                <div class="absolute inset-y-0 right-2 flex items-center text-gray-400">
-                                                    %
-                                                </div>
-                                            </div>
-                                        </div>
 
                                         {#if addingRecipient}
 
@@ -777,22 +753,7 @@
 
     </div>
 
-    <div class="flex-none flex items-center justify-between {isCompact ? 'p-2' : 'p-3'} border-t border-gray-200 dark:border-gray-700">
-        <div class="flex items-center text-xs px-2 text-neutral-800 dark:text-neutral-300 cursor-help"
-             use:tippy={({
-             content: 'A 2% fee is automatically collected when your NFT is sold',
-             appendTo: 'parent'
-           })}>
-            {#if $isPaid}
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="inline w-4"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span class="pl-1.5">Focalize receives 2% of the initial sale</span>
-            {/if}
-        </div>
+    <div class="flex-none flex items-center justify-end {isCompact ? 'p-2' : 'p-3'} border-t border-gray-200 dark:border-gray-700">
         <button type="button" on:click={onDoneClick}
                 disabled={
                   priceError !== null ||

@@ -12,8 +12,8 @@
             required_error: 'Share is not set',
             invalid_type_error: 'Share must be a number',
         })
-        .refine(value => value >= 0.01 && value <= 98, {
-            message: 'Shares must be between 0.01% and 98%',
+        .refine(value => value >= 0.01 && value <= 100, {
+            message: 'Shares must be between 0.01% and 100%',
         }).refine(value => Number(value.toFixed(2)) === value, {
             message: 'Shares can have up to two decimal points',
         });
@@ -48,14 +48,14 @@
         }
     });
 
-    $: if (inputElement && recipient && autoUpdate && $total > 98 && inputElement !== document.activeElement) {
-        const diff = $total - 98;
+    $: if (inputElement && recipient && autoUpdate && $total > 100 && inputElement !== document.activeElement) {
+        const diff = $total - 100;
         recipient.split = Math.max(0, recipient.split - diff);
         onSuccessfulValueChange();
     }
 
-    $: if ($total !== 98) {
-        console.log('total is not 98', $total);
+    $: if ($total !== 100) {
+        console.log('total is not 100', $total);
         error = ERROR_TOTAL_NOT_100;
     } else {
         error = undefined;
@@ -76,7 +76,7 @@
     {/if}
 
     <div class="relative">
-      <input type="number" placeholder="25" min="0" max="98" disabled={splitEvenly}
+      <input type="number" placeholder="25" min="0" max="100" disabled={splitEvenly}
              bind:value={recipient.split} bind:this={inputElement}
              on:input={() => onValueChange(inputElement.valueAsNumber)}
              class="w-20 text-center rounded-xl text-base font-medium focus:ring-orange-500 focus:border-orange-500
