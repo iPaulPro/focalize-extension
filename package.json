@@ -67,7 +67,7 @@
     "isomorphic-dompurify": "^1.6.0",
     "jose": "^4.14.4",
     "language-tags": "^1.0.8",
-    "lens-modules": "^1.0.11",
+    "lens-modules": "^1.0.14",
     "luxon": "^3.4.4",
     "metamask-extension-provider": "^3.0.0",
     "mime": "^3.0.0",

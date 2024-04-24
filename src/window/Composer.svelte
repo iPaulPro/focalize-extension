@@ -289,14 +289,16 @@
         await ensureDraft();
 
         let collectModuleParams: CollectActionModuleInput | null = null;
-        try {
-            collectModuleParams = collectSettingsToModuleInput($currentUser.address, $collectSettings);
-        } catch (e) {
-            console.error(e);
-            if (e instanceof Error) {
-                toast.error(e.message, {duration: 5000});
+        if ($collectSettings.isCollectible) {
+            try {
+                collectModuleParams = collectSettingsToModuleInput($currentUser.address, $collectSettings);
+            } catch (e) {
+                console.error(e);
+                if (e instanceof Error) {
+                    toast.error(e.message, {duration: 5000});
+                }
+                return;
             }
-            return;
         }
 
         try {

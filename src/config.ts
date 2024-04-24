@@ -64,8 +64,8 @@ export const TIP_ACTION_MODULE: string = isMainnet
     : '0x6111e258a6d00d805DcF1249900895c7aA0cD186';
 
 export const PWYW_COLLECT_MODULE: string = isMainnet
-    ? '0xD9968D6A7C0B550a9a66aC202de66E95673e676B'
-    : '0xD9968D6A7C0B550a9a66aC202de66E95673e676B';
+    ? '0x7fbD7496CaE2DAcad7a62350DA8488E31eC026eA'
+    : '0x3d06AA6ca4FC7eE0D5581B85CB52CA7714175e43';
 
 export const COLLECT_PUBLICATION_ACTION = isMainnet
     ? LensContracts.mainnet.Modules.act.find(
