@@ -60,7 +60,7 @@
       <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer">
         <img loading="lazy" decoding="async" src={notificationAvatar ?? ImageAvatar} alt="avatar"
              bind:this={avatarElement}
-             class="w-8 h-8 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
+             class="w-10 h-10 aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
       </a>
 
       {#if notificationDateTime}

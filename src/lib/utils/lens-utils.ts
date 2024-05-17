@@ -361,20 +361,22 @@ export const getProfileAvatar = (
                 !profile.metadata.picture.optimized
             ) {
                 profileImage = profile.metadata.picture.raw.uri;
+            } else {
+                profileImage = thumbnail
+                    ? profile.metadata.picture.thumbnail?.uri
+                    : profile.metadata.picture.optimized?.uri;
             }
-            profileImage = thumbnail
-                ? profile.metadata.picture.thumbnail?.uri
-                : profile.metadata.picture.optimized?.uri;
         } else {
             if (
                 !profile.metadata.picture.image.thumbnail &&
                 !profile.metadata.picture.image.optimized
             ) {
                 profileImage = profile.metadata.picture.image.raw.uri;
+            } else {
+                profileImage = thumbnail
+                    ? profile.metadata.picture.image.thumbnail?.uri
+                    : profile.metadata.picture.image.optimized?.uri;
             }
-            profileImage = thumbnail
-                ? profile.metadata.picture.image.thumbnail?.uri
-                : profile.metadata.picture.image.optimized?.uri;
         }
     }
 

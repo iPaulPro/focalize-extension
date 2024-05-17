@@ -28,7 +28,7 @@ import {
     type FollowNotificationFragment,
     type ReactionNotificationFragment,
 } from '@lens-protocol/client';
-import { DateTime } from 'luxon';
+import { AUCTION_ACTION_MODULE, TIP_ACTION_MODULE } from '../../config';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 
@@ -263,6 +263,24 @@ export const getAvatarFromNotification = (
     return getProfileAvatar(profile);
 };
 
+const getActionVerb = (notification: ActedNotificationFragment): string => {
+    const action = notification.actions[0].action;
+    if (
+        action.__typename === 'KnownCollectOpenActionResult' &&
+        action.type !== 'UnknownOpenActionModule'
+    ) {
+        return 'collected';
+    } else if (action.__typename === 'UnknownOpenActionResult') {
+        if (action.address === TIP_ACTION_MODULE) {
+            return 'tipped on';
+        }
+        if (action.address === AUCTION_ACTION_MODULE) {
+            return 'bid on';
+        }
+    }
+    return 'acted on';
+};
+
 /**
  * Returns a human-readable action for the notification
  */
@@ -272,7 +290,8 @@ export const getNotificationAction = (
     switch (notification.__typename) {
         case 'ActedNotification':
             return (
-                'collected your ' +
+                getActionVerb(notification) +
+                ' your ' +
                 (isCommentPublication(notification.publication)
                     ? 'comment'
                     : 'post')
@@ -414,9 +433,12 @@ export const getEventTime = (
 export const isBatchedNotification = (
     notification: NotificationFragment
 ): notification is BatchedNotification =>
-    notification.__typename === 'FollowNotification' ||
-    notification.__typename === 'ReactionNotification' ||
-    notification.__typename === 'ActedNotification';
+    (notification.__typename === 'FollowNotification' &&
+        notification.followers.length > 1) ||
+    (notification.__typename === 'ReactionNotification' &&
+        notification.reactions.length > 1) ||
+    (notification.__typename === 'ActedNotification' &&
+        notification.actions.length > 1);
 
 export const getBatchedNotificationCount = (
     notification: BatchedNotification

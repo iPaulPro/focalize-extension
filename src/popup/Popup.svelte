@@ -142,7 +142,7 @@
 
     <div on:click={scrollToTop}
          class="w-full flex justify-end items-center px-4 gap-2">
-      <button type="button" bind:this={createButton}
+      <button type="button" bind:this={createButton} on:click={onCreatePostClick}
               class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

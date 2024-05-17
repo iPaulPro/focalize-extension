@@ -53,14 +53,6 @@
 
     const addNewNotifications = async () => {
         if (newNotifications.length) {
-            const batchedNewNotifications = newNotifications.filter(isBatchedNotification);
-            if (batchedNewNotifications.length) {
-                const batchedNotifications = notifications.filter(isBatchedNotification);
-                notifications.forEach(notification => {
-
-                })
-            }
-
             notifications = [...newNotifications, ...notifications];
         }
 

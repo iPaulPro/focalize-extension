@@ -94,7 +94,7 @@
      {isNew ? 'bg-white dark:bg-gray-700/60' : ''}">
 
     <div on:click={() => expanded = !expanded}
-        class='w-full flex py-4 px-4 gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700'>
+        class='w-full min-h-28 flex items-center py-4 px-4 gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700'>
 
         <NotificationIcon {notification} />
 
@@ -102,7 +102,7 @@
             <div class='w-full flex overflow-hidden items-center'>
                 <div class='flex-grow flex'>
                     {#each profiles.slice(0, 10) as profile}
-                        <ProfileAvatar {profile} border overlap/>
+                        <ProfileAvatar {profile} size='w-9 h-9' border overlap/>
                     {/each}
                 </div>
 
@@ -150,7 +150,7 @@
             <div class='border-t dark:border-gray-700 py-2 pr-8'>
                 {#each getSubNotifications() as sub}
                     <a href={getProfileUrl(sub.profile)} target="_blank" class='notification'>
-                        <ProfileAvatar profile={sub.profile} />
+                        <ProfileAvatar profile={sub.profile} size='w-9 h-9' />
                         <div class='flex flex-col flex-grow'>
                             <div class='text-sm font-semibold'>
                                 {getProfileDisplayName(sub.profile)}

@@ -74,3 +74,7 @@ export const COLLECT_PUBLICATION_ACTION = isMainnet
     : LensContracts.testnet.Modules.act.find(
           (a) => a.name === 'CollectPublicationAction'
       )?.address;
+
+export const AUCTION_ACTION_MODULE: string = isMainnet
+    ? '0x857b5e09d54AD26580297C02e4596537a2d3E329'
+    : '0xd935e230819AE963626B31f292623106A3dc3B19';

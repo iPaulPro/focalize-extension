@@ -6,6 +6,7 @@
         offset,
         shift,
         type ComputePositionConfig,
+        type Placement,
     } from '@floating-ui/dom';
     import { onDestroy } from 'svelte';
     import Portal from './Portal.svelte';
