@@ -55,7 +55,6 @@ import { formatHandleV2toV1 } from '../utils/lens-utils';
 import type { MetadataAttribute } from '@lens-protocol/metadata';
 import { DateTime } from 'luxon';
 import { LensHub__factory } from '../../contracts/types';
-import { currentUser } from '../stores/user-store';
 
 const uploadMetadata = async (
     metadata: PublicationMetadata

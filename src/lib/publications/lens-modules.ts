@@ -135,14 +135,16 @@ export const collectSettingsToModuleInput = (
         return null;
     };
 
+    let amount: AmountInput | null = null;
     if (collectSettings.price && collectSettings.token) {
-        const amount: AmountInput = {
+        amount = {
             currency: collectSettings.token.contract.address,
             value: collectSettings.price.toString(),
         };
+    }
 
-        const recipients: RecipientDataInput[] = [];
-
+    const recipients: RecipientDataInput[] = [];
+    if (collectSettings.recipients?.length) {
         if (collectSettings.recipients?.length) {
             collectSettings.recipients.forEach((recipient) => {
                 recipients.push({
@@ -150,13 +152,7 @@ export const collectSettingsToModuleInput = (
                     split: recipient.split,
                 } as RecipientDataInput);
             });
-        } else {
-            recipients.push({
-                recipient: address,
-                split: 100,
-            });
         }
-
         const totalSplit: number = recipients.reduce(
             (acc: number, recipient: RecipientDataInput) =>
                 acc + recipient.split,
@@ -165,42 +161,38 @@ export const collectSettingsToModuleInput = (
         if (totalSplit !== 100) {
             throw new Error('Total revenue split must equal 100%');
         }
-
-        const multirecipientCollectOpenAction: MultirecipientFeeCollectModuleInput =
-            {
-                amount,
-                recipients,
-                followerOnly: collectSettings.followerOnly ?? false,
-            };
-
-        if (collectSettings.referralFee) {
-            multirecipientCollectOpenAction.referralFee =
-                collectSettings.referralFee;
-        }
-
-        if (collectSettings.limit) {
-            multirecipientCollectOpenAction.collectLimit =
-                collectSettings.limit.toString();
-        }
-
-        if (collectSettings.timed) {
-            multirecipientCollectOpenAction.endsAt = getEndTimestamp();
-        }
-
-        return { multirecipientCollectOpenAction };
     }
 
-    const simpleCollectOpenAction: SimpleCollectOpenActionModuleInput = {
+    if (amount && recipients.length > 0) {
+        const input: MultirecipientFeeCollectModuleInput = {
+            amount,
+            recipients,
+            followerOnly: collectSettings.followerOnly ?? false,
+        };
+        if (collectSettings.referralFee) {
+            input.referralFee = collectSettings.referralFee;
+        }
+        if (collectSettings.limit) {
+            input.collectLimit = collectSettings.limit.toString();
+        }
+        if (collectSettings.timed) {
+            input.endsAt = getEndTimestamp();
+        }
+        return { multirecipientCollectOpenAction: input };
+    }
+
+    const input: SimpleCollectOpenActionModuleInput = {
+        recipient: address,
         followerOnly: collectSettings.followerOnly ?? false,
     };
-
+    if (amount) {
+        input.amount = amount;
+    }
     if (collectSettings.limit) {
-        simpleCollectOpenAction.collectLimit = collectSettings.limit.toString();
+        input.collectLimit = collectSettings.limit.toString();
     }
-
     if (collectSettings.timed) {
-        simpleCollectOpenAction.endsAt = getEndTimestamp();
+        input.endsAt = getEndTimestamp();
     }
-
-    return { simpleCollectOpenAction };
+    return { simpleCollectOpenAction: input };
 };
