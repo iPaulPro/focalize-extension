@@ -61,7 +61,7 @@ export const ENS_REVERSE_RECORDS_ADDRESS: string = getParamOrExit(
 
 export const TIP_ACTION_MODULE: string = isMainnet
     ? '0x22cb67432C101a9b6fE0F9ab542c8ADD5DD48153'
-    : '0x6111e258a6d00d805DcF1249900895c7aA0cD186';
+    : '0x2cB57904A3E28Ff861f78dA410157E0b6c086aba';
 
 export const PWYW_COLLECT_MODULE: string = isMainnet
     ? '0x7fbD7496CaE2DAcad7a62350DA8488E31eC026eA'
