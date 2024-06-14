@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { INFURA_IPFS_PROJECT_ID, INFURA_IPFS_PROJECT_SECRET } from '../config';
+import {
+    INFURA_GATEWAY_URL,
+    INFURA_IPFS_PROJECT_ID,
+    INFURA_IPFS_PROJECT_SECRET,
+} from '../config';
 
 const AUTH_TOKEN = `${INFURA_IPFS_PROJECT_ID}:${INFURA_IPFS_PROJECT_SECRET}`;
 
@@ -68,7 +72,7 @@ export const getCidFromIpfsUrl = (ipfsUrl: string): string => {
 
 export const ipfsUrlToGatewayUrl = (
     ipfsUrl: string | undefined,
-    gatewayDomain: string = 'https://ipfs.io/ipfs/'
+    gatewayDomain: string = INFURA_GATEWAY_URL
 ): string | undefined => {
     if (!ipfsUrl || ipfsUrl.length === 0 || !ipfsUrl.startsWith('ipfs://'))
         return ipfsUrl;

@@ -61,11 +61,11 @@
                     {#if postId}
                         <button type='button' on:click={onViewPostClick}
                                 class='mr-4 py-1.5 px-6 flex justify-center items-center rounded-lg
-                    bg-orange-600 hover:bg-orange-800 dark:bg-orange-600 dark:hover:bg-orange-700
-                    disabled:bg-neutral-400 dark:disabled:bg-gray-600
-                    focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
-                    text-white text-center text-sm dark:disabled:text-gray-400 font-medium
-                    transition ease-in duration-200 shadow-md'>
+                                bg-orange-600 hover:bg-orange-800 dark:bg-orange-600 dark:hover:bg-orange-700
+                                disabled:bg-neutral-400 dark:disabled:bg-gray-600
+                                focus:ring-orange-400 focus:ring-offset-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+                                text-white text-center text-sm dark:disabled:text-gray-400 font-medium
+                                transition ease-in duration-200 shadow-md'>
                             View on
                             {#await getNodeName() then name} {name} {/await}
                             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'
@@ -112,12 +112,12 @@
                 </div>
 
                 <div class='flex flex-col w-full pr-2 pl-1.5 pt-3 shrink'>
-
                     {#if currentUser.name}
                         <div class='text-base font-medium'>
                             {currentUser.name}
                         </div>
                     {/if}
+
                     <div class='text-orange-700 dark:text-orange-300 font-medium'>
                         &#64;{currentUser.handle}
                     </div>
