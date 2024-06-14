@@ -18,7 +18,7 @@
 <img loading='lazy' decoding='async' src={src ?? ImageAvatar} alt='avatar'
      bind:this={avatarElement}
      class="{size} {border && 'border-2 border-white dark:border-gray-800'} {overlap && '-ml-2 first:ml-0'}
-     aspect-square rounded-full object-cover bg-gray-300 text-white hover:opacity-80">
+     aspect-square rounded-full object-cover bg-gray-300 text-white z-0 hover:z-10">
 
 {#if avatarElement && profile}
     <FloatingComponent anchors={[avatarElement]} showDelay={500} hideDelay={200} interactive={true}>

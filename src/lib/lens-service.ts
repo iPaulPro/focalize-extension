@@ -75,7 +75,7 @@ const lensClient: LensClient = new LensClient({
     params: {
         profile: {
             thumbnail: {
-                width: '48px',
+                width: '80px',
                 height: 'auto',
             },
             cover: {
