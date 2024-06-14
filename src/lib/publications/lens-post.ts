@@ -451,50 +451,34 @@ export const submitPost = async (
     let txHash: string | null = null;
 
     if (useLensManager && user.canUseRelay) {
-        console.log('submitPost: Using Lens Manager to create post');
-        if (referenceModule || openActionModules?.length) {
-            console.log('submitPost: Creating post on chain');
+        console.log('submitPost: Using Lens Manager to create onchain post...');
+        if (!openActionModules) {
+            openActionModules = [];
+        }
 
-            if (!openActionModules) {
-                openActionModules = [];
-            }
+        // Automatically enable tipping if posting on-chain
+        const data = encodeData(
+            [{ name: 'tipReceiver', type: 'address' }],
+            [user.address]
+        );
+        openActionModules.push({
+            unknownOpenAction: {
+                address: TIP_ACTION_MODULE,
+                data,
+            },
+        });
 
-            // Automatically enable tipping if posting on-chain
-            const data = encodeData(
-                [{ name: 'tipReceiver', type: 'address' }],
-                [user.address]
+        try {
+            txHash = await createPostOnChain(
+                contentURI,
+                referenceModule,
+                openActionModules
             );
-            openActionModules.push({
-                unknownOpenAction: {
-                    address: TIP_ACTION_MODULE,
-                    data,
-                },
-            });
-
-            try {
-                txHash = await createPostOnChain(
-                    contentURI,
-                    referenceModule,
-                    openActionModules
-                );
-            } catch (e) {
-                console.log(
-                    'submitPost: unable to use relay to create onchain post',
-                    e
-                );
-            }
-        } else {
-            console.log('submitPost: Creating post on Momoka');
-            const publicationId = await createPostOnMomoka(contentURI);
-            if (publicationId) {
-                console.log(
-                    'submitPost: Created post on Momoka',
-                    publicationId
-                );
-                publicationState.set(PublicationState.SUCCESS);
-                await deleteDraft(draftId);
-                return publicationId;
-            }
+        } catch (e) {
+            console.log(
+                'submitPost: unable to use relay to create onchain post',
+                e
+            );
         }
     }
 
