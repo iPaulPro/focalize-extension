@@ -14,6 +14,9 @@
     import { getAccounts } from '../evm/ethers-service';
     import {slide} from 'svelte/transition';
     import { getProfileAvatar } from '../utils/lens-utils.js';
+    import {createEventDispatcher} from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     export let anchorNode: Node | undefined = undefined;
     export let showSettings = true;
@@ -37,6 +40,7 @@
 
         const authenticatedProfile = await login(profile);
         await onLogin(authenticatedProfile);
+        dispatch('login');
     };
 
     const getSortedProfiles = async (account: string): Promise<ProfileFragment[]> => {

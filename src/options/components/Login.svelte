@@ -4,7 +4,7 @@
     import focalizeLogo from '../../assets/focalize-logo-large.svg';
     import toast from 'svelte-french-toast';
     import DialogOuter from '../../lib/components/DialogOuter.svelte';
-    import {tick} from 'svelte';
+    import { onMount, tick } from 'svelte';
     import ConnectWalletDialog from './ConnectWalletDialog.svelte';
     import {createEventDispatcher} from 'svelte';
     import {fade} from 'svelte/transition';
@@ -13,6 +13,7 @@
     import type { ProfileFragment } from '@lens-protocol/client';
     import AccountChooser from '../../lib/components/AccountChooser.svelte';
     import { onLogin } from '../../lib/user/user';
+    import { slide } from 'svelte/transition';
 
     const dispatch = createEventDispatcher();
 
@@ -20,6 +21,9 @@
     let showWalletConnectDialog = false;
     let profilePickerDialog: HTMLDialogElement;
     let showProfilePickerDialog = false;
+    let isSigningIn = false;
+    let ignoreWalletDialogClose = false;
+    let svgLogo: SVGSVGElement;
 
     const showConnectWalletDialog = async () => {
         showWalletConnectDialog = true;
@@ -35,6 +39,8 @@
 
     const authenticate = async (wallet: WalletConnection) => {
         console.log('authenticate: wallet', wallet);
+        ignoreWalletDialogClose = true;
+        await tick();
         walletConnectDialog?.close();
 
         let profiles: ProfileFragment[];
@@ -44,6 +50,7 @@
             if (e instanceof NoProfileError) {
                 dispatch('noProfile');
             }
+            isSigningIn = false;
             return;
         }
 
@@ -52,12 +59,19 @@
         } else if (profiles.length > 1) {
             await showProfilePicker();
         } else {
-            const profile = await login(profiles[0]);
-            await onLogin(profile);
+            try {
+                const profile = await login(profiles[0]);
+                await onLogin(profile);
+            } catch (e) {
+                console.error('Login cancelled',e);
+            } finally {
+                isSigningIn = false;
+            }
         }
     };
 
     const onSignInClick = async () => {
+        isSigningIn = true;
         try {
             await showConnectWalletDialog();
         } catch (e) {
@@ -66,23 +80,47 @@
         }
     };
 
+    const onWalletConnectDialogClose = () => {
+        showWalletConnectDialog = false;
+        if (!ignoreWalletDialogClose) {
+            isSigningIn = false;
+        }
+    };
+
+    onMount(() => {
+        svgLogo.classList.add('active');
+    });
 </script>
 
-<main class="w-full h-[100dvh]">
+<main class="w-full h-[100dvh] relative">
+
+    <div class="absolute top-0 bottom-0 left-0 right-0 opacity-50 -z-20 overflow-hidden">
+        <div class="glowing">
+            <span style="--i:1;"></span><span style="--i:2;"></span><span style="--i:3;"></span>
+        </div>
+
+        <div class="glowing">
+            <span style="--i:1;"></span><span style="--i:2;"></span><span style="--i:3;"></span>
+        </div>
+    </div>
 
   <div class="w-full h-full flex justify-center items-center">
 
     <div class="flex flex-col items-center gap-4 pb-36" in:fade>
 
-      <InlineSVG src={focalizeLogo} alt="Focalize Logo" class="h-32" tabindex="-1" />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="h-32" bind:this={svgLogo}>
+        <g fill="#FF6014" fill-rule="nonzero" stroke="#FF6014" stroke-width="4">
+          <path d="M384.52 38.642c-23.34 3.486-49.102 14.016-72.23 29.313-18.716 12.38-33.233 24.546-49.459 41.124-13.734 14.087-20.922 22.483-31.525 36.784-17.08 22.98-29.248 44.468-41.417 72.714-4.982 11.668-12.525 31.803-15.656 41.977-2.349 7.47-8.233 27.446-7.544 28.246.311.2 1.566-.782 3.274-1.992 13.948-9.392 40.42-22.483 69.527-34.365 27.753-11.312 56.361-19.352 83.546-23.55 8.61-1.352 11.884-2.134 12.596-2.988 2.063-2.775-.214-15.653-3.345-18.997-5.195-5.478-45.047-4.553-71.59 1.708-3.132.711-5.836 1.21-5.978 1.067-.427-.498 5.337-6.973 10.888-12.309 25.832-24.546 62.054-42.475 104.61-51.796 10.96-2.348 12.738-3.486 12.667-8.04-.071-3.7-3.63-11.597-5.978-13.162-.925-.57-3.7-1.637-6.262-2.348-6.334-1.708-30.671-1.708-38.072 0-2.705.57-5.124.996-5.267.854-.569-.57 11.814-15.653 18.005-21.914 13.663-13.874 28.536-25.187 54.938-41.978 2.348-1.494 4.697-3.344 5.195-4.197 1.21-1.993.427-5.906-2.135-10.46-3.416-5.976-7.828-7.328-18.787-5.691ZM266.745 285.243c-29.533 4.838-76.927 22.554-99.7 37.353-5.124 3.344-6.191 4.34-6.618 6.26-.214 1.282-.427 34.437-.427 73.71v69.803a1 1 0 0 0 1.46.887c5.763-2.99 9.072-5.422 9.926-7.296C172.772 462.92 188.505 364.266 209 341c13.379-15.226 51.412-25.732 70.768-33.132 8.113-3.13 9.038-4.198 7.686-9.605-1.352-5.336-4.84-11.74-6.832-12.664-1.708-.783-9.963-.997-13.877-.356Z" class="svg-elem-1"></path>
+        </g>
+      </svg>
 
-      <button type="button" on:click={onSignInClick}
+      <button type="button" on:click={onSignInClick} disabled={isSigningIn}
               class="group mt-24 py-3 px-6 flex justify-center items-center gap-2.5
-              bg-orange-600 hover:bg-orange-500
+              bg-orange-600 hover:bg-orange-500 disabled:bg-gray-900 disabled:cursor-wait
               rounded-full border border-white border-opacity-10
               text-white text-center text-lg font-medium
-              transition-all ease-in duration-200 hover:-translate-y-0.5
-              shadow-none hover:shadow-lg hover:shadow-orange-700 active:shadow-md active:shadow-orange-700
+              transition-all ease-in duration-200 enabled:hover:-translate-y-0.5
+              shadow-none enabled:hover:shadow-lg enabled:hover:shadow-orange-700 active:shadow-md active:shadow-orange-700
               focus:ring-offset-2 focus:ring-orange-400 focus:outline-0 focus:ring-2 active:ring-0 active:ring-offset-0">
         <svg viewBox='0 0 290 186' fill='currentColor'
              class='w-10 -scale-x-100 group-hover:scale-x-100 drop-shadow-sm group-hover:drop-shadow-dark'>
@@ -92,19 +130,22 @@
         <span class="drop-shadow-sm group-hover:drop-shadow-dark">Sign in with Lens</span>
       </button>
 
+        {#if isSigningIn}
+            <div class="text-xs text-gray-500 dark:text-gray-400" transition:slide>Awaiting wallet connection...</div>
+        {/if}
     </div>
 
   </div>
 </main>
 
 {#if showWalletConnectDialog}
-  <dialog id="walletConnectDialog" bind:this={walletConnectDialog} on:close={() => showWalletConnectDialog = false}
+  <dialog id="walletConnectDialog" bind:this={walletConnectDialog} on:close={onWalletConnectDialogClose}
           class="w-2/3 max-w-md rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800
           dark:border-gray-700">
     <DialogOuter>
       <ConnectWalletDialog
           on:select={(e) => authenticate(e.detail)}
-          on:dismiss={() => walletConnectDialog.close()}/>
+          on:dismiss={onWalletConnectDialogClose}/>
     </DialogOuter>
   </dialog>
 {/if}
@@ -114,7 +155,133 @@
           class="w-1/3 max-w-sm rounded-2xl shadow-2xl p-0 border border-gray-200 dark:bg-gray-800
           dark:border-gray-700">
     <DialogOuter>
-      <AccountChooser standalone={true}/>
+      <AccountChooser standalone={true} on:login={() => isSigningIn = false} />
     </DialogOuter>
   </dialog>
 {/if}
+
+<style>
+    svg .svg-elem-1 {
+        stroke-dashoffset: 1512.15771484375px;
+        stroke-dasharray: 1512.15771484375px;
+        fill: transparent;
+        animation: dash 1s cubic-bezier(0.47, 0, 0.745, 0.715) 0.5s forwards, fill 0.7s cubic-bezier(0.47, 0, 0.745, 0.715) 1.3s forwards;
+    }
+
+    @keyframes dash {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes fill {
+        to {
+            fill: rgb(255, 96, 20);
+        }
+    }
+
+
+    .glowing {
+        position: relative;
+        min-width: 700px;
+        height: 550px;
+        margin: -150px;
+        transform-origin: right;
+        animation: colorChange 15s linear infinite;
+    }
+
+    .glowing:nth-child(even) {
+        transform-origin: left;
+    }
+
+    @keyframes colorChange {
+        0% {
+            filter: hue-rotate(0deg);
+            transform: rotate(0deg);
+        }
+        100% {
+            filter: hue-rotate(360deg);
+            transform: rotate(360deg);
+        }
+    }
+
+    .glowing span {
+        position: absolute;
+        top: calc(80px * var(--i));
+        left: calc(80px * var(--i));
+        bottom: calc(80px * var(--i));
+        right: calc(80px * var(--i));
+    }
+
+    .glowing span::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: -8px;
+        width: 15px;
+        height: 15px;
+        background: #f00;
+        border-radius: 50%;
+    }
+
+    .glowing span:nth-child(3n + 1)::before {
+        background: rgba(134,255,0,1);
+        box-shadow: 0 0 20px rgba(134,255,0,1),
+        0 0 40px rgba(134,255,0,1),
+        0 0 60px rgba(134,255,0,1),
+        0 0 80px rgba(134,255,0,1),
+        0 0 0 8px rgba(134,255,0,.1);
+    }
+
+    .glowing span:nth-child(3n + 2)::before {
+        background: rgba(255,214,0,1);
+        box-shadow: 0 0 20px rgba(255,214,0,1),
+        0 0 40px rgba(255,214,0,1),
+        0 0 60px rgba(255,214,0,1),
+        0 0 80px rgba(255,214,0,1),
+        0 0 0 8px rgba(255,214,0,.1);
+    }
+
+    .glowing span:nth-child(3n + 3)::before {
+        background: rgba(0,226,255,1);
+        box-shadow: 0 0 20px rgba(0,226,255,1),
+        0 0 40px rgba(0,226,255,1),
+        0 0 60px rgba(0,226,255,1),
+        0 0 80px rgba(0,226,255,1),
+        0 0 0 8px rgba(0,226,255,.1);
+    }
+
+    .glowing span:nth-child(3n + 1) {
+        animation: animate 30s alternate infinite;
+    }
+
+    .glowing span:nth-child(3n + 2) {
+        animation: animate-reverse 9s alternate infinite;
+    }
+
+    .glowing span:nth-child(3n + 3) {
+        animation: animate 24s alternate infinite;
+    }
+
+    @keyframes animate {
+        0% {
+            transform: rotate(180deg);
+        }
+        50% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes animate-reverse {
+        0% {
+            transform: rotate(360deg);
+        }
+
+        50% {
+            transform: rotate(180deg);
+        }
+    }
+</style>
