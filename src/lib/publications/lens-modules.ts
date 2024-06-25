@@ -25,7 +25,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput | undefined>[] =
         {
             value: undefined,
             label: 'Everyone can reply',
-            summary: 'Any Lens user can add a comment',
+            summary: 'Any Lens user can comment and share',
             icon: 'earth',
         },
         {
@@ -33,34 +33,34 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput | undefined>[] =
                 followerOnlyReferenceModule: true,
             } satisfies ReferenceModuleInput,
             label: 'Followers only',
-            summary: 'Only your followers can comment',
+            summary: 'Only your followers can comment and share',
             icon: 'followers',
         },
         {
             value: {
                 degreesOfSeparationReferenceModule: {
                     commentsRestricted: true,
-                    mirrorsRestricted: false,
-                    quotesRestricted: false,
+                    mirrorsRestricted: true,
+                    quotesRestricted: true,
                     degreesOfSeparation: 1,
                 },
             } satisfies ReferenceModuleInput,
             label: 'Friends only',
-            summary: 'Only profiles that you follow can comment',
+            summary: 'Only profiles that you follow can comment and share',
             icon: 'friends',
         },
         {
             value: {
                 degreesOfSeparationReferenceModule: {
                     commentsRestricted: true,
-                    mirrorsRestricted: false,
-                    quotesRestricted: false,
+                    mirrorsRestricted: true,
+                    quotesRestricted: true,
                     degreesOfSeparation: 2,
                 },
             } satisfies ReferenceModuleInput,
             label: 'Friends of friends',
             summary:
-                'Only profiles that you follow, and the profiles they\nfollow, can comment',
+                'Only profiles that you follow, and the profiles they\nfollow, can comment and share',
             icon: 'friends_of_friends',
         },
         {
@@ -73,7 +73,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput | undefined>[] =
                 },
             } satisfies ReferenceModuleInput,
             label: 'No comments',
-            summary: 'No one can comment, including you',
+            summary: 'No one can comment or share, including you',
             icon: 'lock',
         },
     ];
