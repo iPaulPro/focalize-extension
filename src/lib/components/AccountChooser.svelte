@@ -1,6 +1,8 @@
 <script lang="ts">
     // @ts-ignore
     import InlineSVG from 'svelte-inline-svg';
+    // @ts-ignore
+    import tippy from 'sveltejs-tippy';
     import {currentUser} from '../stores/user-store'
     import LoadingSpinner from './LoadingSpinner.svelte'
     import ImageAvatar from '../../assets/ic_avatar.svg';
@@ -10,7 +12,7 @@
     import {darkMode} from '../stores/preferences-store';
     import { getManagedProfiles, login } from '../lens-service';
     import type { ProfileFragment } from '@lens-protocol/client';
-    import { formatHandleV2toV1 } from '../utils/lens-utils';
+    import { formatHandleV2toV1, getProfileUrl } from '../utils/lens-utils';
     import { getAccounts } from '../evm/ethers-service';
     import {slide} from 'svelte/transition';
     import { getProfileAvatar } from '../utils/lens-utils.js';
@@ -35,6 +37,11 @@
 
     const onProfileSelected = async (profile: ProfileFragment) => {
         if (profile.id === $currentUser?.profileId) {
+            const url = getProfileUrl(profile);
+            if (url) {
+                window.open(url, '_blank');
+                window.close();
+            }
             return;
         }
 
@@ -135,7 +142,17 @@
             </div>
 
             {#if $currentUser?.handle === p.handle?.fullHandle && profiles.length > 1}
-              <div class="mr-1 p-1.5 rounded-full bg-orange"></div>
+                {#if p.id === $currentUser?.profileId}
+                    <svg class='w-4 h-4 color-white' viewBox='0 0 24 24' fill='none'
+                         stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'
+                         use:tippy={({delay: 0, content: 'View Profile'})}>
+                        <g fill='none' fill-rule='evenodd'>
+                            <path
+                                d='M18 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8c0-1.1.9-2 2-2h5M15 3h6v6M10 14L20.2 3.8' />
+                        </g>
+                    </svg>
+                {/if}
+                <div class="mr-1 p-1.5 rounded-full bg-orange group-hover:hidden"></div>
             {/if}
 
           </div>

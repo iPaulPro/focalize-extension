@@ -73,7 +73,7 @@ export const REFERENCE_ITEMS: SelectOption<ReferenceModuleInput | undefined>[] =
                 },
             } satisfies ReferenceModuleInput,
             label: 'No comments',
-            summary: 'No one can comment or share, including you',
+            summary: 'No one can comment or share',
             icon: 'lock',
         },
     ];
