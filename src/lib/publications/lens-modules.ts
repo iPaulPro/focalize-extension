@@ -95,13 +95,6 @@ export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
     { value: 168, label: '1 week' },
 ];
 
-export const getEnabledModuleCurrencies = async (): Promise<
-    Erc20Fragment[]
-> => {
-    const currencies = await enabledModuleCurrencies();
-    return currencies.items;
-};
-
 export const collectSettingsToModuleInput = (
     address: string,
     collectSettings: CollectSettings

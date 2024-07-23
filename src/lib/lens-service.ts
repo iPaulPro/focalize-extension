@@ -406,12 +406,27 @@ export const broadcastPostOnChain = async (
     return res.unwrap();
 };
 
-export const enabledModuleCurrencies = async (): Promise<
-    PaginatedResult<Erc20Fragment>
-> =>
+export const enabledModuleCurrencies = async (
+    cursor?: any
+): Promise<PaginatedResult<Erc20Fragment>> =>
     lensClient.modules.fetchCurrencies({
         limit: LimitType.Fifty,
+        cursor,
     });
+
+export const getAllModuleCurrencies = async (): Promise<Erc20Fragment[]> => {
+    const currencies: Erc20Fragment[] = [];
+    let cursor: any = null;
+    let hasMore = true;
+    while (hasMore) {
+        const res = await enabledModuleCurrencies(cursor);
+        currencies.push(...res.items);
+        cursor = res.pageInfo.next;
+        hasMore = res.pageInfo.next !== null;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return currencies;
+};
 
 export const waitForTransaction = async ({
     txHash,

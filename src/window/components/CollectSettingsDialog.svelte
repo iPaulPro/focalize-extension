@@ -10,7 +10,7 @@
     import type { Erc20Fragment } from '@lens-protocol/client';
 
     import {currentUser} from '../../lib/stores/user-store';
-    import {COLLECT_DURATION_ITEMS, getEnabledModuleCurrencies} from '../../lib/publications/lens-modules';
+    import {COLLECT_DURATION_ITEMS} from '../../lib/publications/lens-modules';
     import CollectSettingsSwitch from './CollectSettingsSwitch.svelte';
     import {collectSettings, type Recipient} from '../../lib/stores/state-store';
     import {
@@ -22,6 +22,8 @@
     import CollectRecipientInput from './CollectRecipientInput.svelte';
     import LoadingSpinner from '../../lib/components/LoadingSpinner.svelte';
     import { formatHandleV2toV1, getAvatarForLensHandle } from '../../lib/utils/lens-utils';
+    import { SUPPORTED_CURRENCIES } from '../../lib/utils/supported-currencies';
+    import { getAllModuleCurrencies } from '../../lib/lens-service';
 
     export let isCompact: boolean = false;
 
@@ -60,7 +62,7 @@
     }).min(new Date(), 'End time must be in the future');
 
     let currencies: Erc20Fragment[];
-    let token: Erc20Fragment;
+    let selectedTokenSymbol: string;
 
     let priceError: string | null = null;
     let limitError: string | null = null;
@@ -86,7 +88,7 @@
         const value = target.value;
         const price = validatePrice(Number(value));
         if (price && !$collectSettings.token) {
-            $collectSettings.token = token;
+            $collectSettings.token = currencies.find(c => c.symbol === selectedTokenSymbol);
         }
     };
 
@@ -141,13 +143,6 @@
 
     const onDoneClick = async () => {
         dispatch('done');
-    };
-
-    const onCurrencyChange = () => {
-        if (!$collectSettings) {
-            $collectSettings = {};
-        }
-        $collectSettings.token = token;
     };
 
     const addRecipient = (recipient: Recipient) => {
@@ -258,8 +253,8 @@
 
     $: recipientsAtCapacity = $collectSettings.recipients?.length === 4;
 
-    $: if (isPaid && !$collectSettings.token && currencies?.length) {
-        $collectSettings.token = currencies[0];
+    $: if (currencies?.length) {
+        $collectSettings.token = currencies.find(c => c.symbol === selectedTokenSymbol);
     }
 
     onMount(async () => {
@@ -268,9 +263,8 @@
         $hasReferralFee = $collectSettings.referralFee !== undefined;
         $splitRevenue = $collectSettings.recipients?.length !== undefined;
 
-        const order = ['BONSAI', 'USDC', 'DAI', 'WETH', 'WMATIC'];
-        currencies = (await getEnabledModuleCurrencies())
-            .sort((a, b) => order.indexOf(a.symbol) - order.indexOf(b.symbol));
+        currencies = (await getAllModuleCurrencies())
+            .filter((currency) => SUPPORTED_CURRENCIES.includes(currency.contract.address));
 
         console.log('onMount', $collectSettings);
         if ($collectSettings.endDate) {
@@ -278,6 +272,10 @@
             endDateValue = endDate.toISODate();
             endTimeValue = endDate.toISOTime({includeOffset: false, suppressMilliseconds: true});
             console.log('onMount: endDateValue', endDateValue, 'endTimeValue', endTimeValue);
+        }
+
+        if ($collectSettings.token) {
+            selectedTokenSymbol = $collectSettings.token.symbol;
         }
     });
 </script>
@@ -379,14 +377,13 @@
 
                                 {:else}
 
-                                    <select id="Currency" name="currency" bind:value={token}
-                                            on:change={onCurrencyChange}
+                                    <select id="Currency" name="currency" bind:value={selectedTokenSymbol}
                                             class="focus:ring-orange-500 py-2 px-4 border-t border-r border-gray-300 border-b
                                             focus:border-orange-500 h-full pl-2 pr-7 border-transparent bg-transparent
                                             text-gray-500 dark:text-gray-300 sm:text-sm rounded-r-xl cursor-pointer max-w-[6rem]">
 
                                         {#each currencies as token}
-                                            <option value={token}>
+                                            <option value={token.symbol}>
                                                 {token.symbol}
                                             </option>
                                         {/each}

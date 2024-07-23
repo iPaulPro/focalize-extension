@@ -87,7 +87,7 @@
                         content: 'Collection price',
                     }}>
                     {#if $collectSettings.price && $collectSettings.token}
-                        <span>{$collectSettings.price}</span>
+                        <span>{Intl.NumberFormat().format($collectSettings.price)}</span>
                         <span class='opacity-60 text-lg pt-0.5'>${$collectSettings.token.symbol}</span>
                     {:else}
                         <span>Free</span>
