@@ -24,7 +24,6 @@ import { z, ZodType } from 'zod';
 import { getDefaultProvider } from '../evm/get-default-provider';
 import type { NotificationFragment } from '@lens-protocol/client';
 import { getEventTime } from '../notifications/lens-notifications';
-import { formatHandleV2toV1 } from './lens-utils';
 
 export const POPUP_MIN_HEIGHT = 350;
 
@@ -555,7 +554,7 @@ export const validateRecipient = (node: HTMLElement, parameters: any) => {
 export const isEthereumAddress = (address: string): boolean =>
     /^0x[a-fA-F0-9]{40}$/.test(address);
 
-export const formatCryptoValue = (num: number): number => {
+export const formatCryptoValue = (num: number): string => {
     const formattedNum = num.toFixed(8);
-    return parseFloat(formattedNum);
+    return Intl.NumberFormat().format(parseFloat(formattedNum));
 };

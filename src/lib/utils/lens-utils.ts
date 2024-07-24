@@ -305,11 +305,12 @@ export const getCoverFromMetadata = (
 /**
  * Format a handle from domain/local to local.domain
  * @param handle The handle to format
+ * @deprecated Use formatHandleV2toLocalName instead
  */
 export const formatHandleV2toV1 = (handle: string): string => {
     const handleParts = handle.split('/');
     if (handleParts.length === 2) {
-        return `${handleParts[1]}.${handleParts[0]}`;
+        return `${handleParts[1]}`;
     }
     return handle;
 };

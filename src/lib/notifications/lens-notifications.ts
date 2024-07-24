@@ -17,7 +17,7 @@ import type {
     PaginatedResultInfoFragment,
 } from '@lens-protocol/client';
 import {
-    formatHandleV2toV1,
+    formatHandleV2toLocalName,
     getMetadataContent,
     getNotificationPublication,
     getProfileAvatar,
@@ -338,7 +338,7 @@ export const getNotificationHandle = (
 ): string => {
     const handle = getNotificationProfile(notification)?.handle;
     return handle
-        ? formatHandleV2toV1(handle.fullHandle)
+        ? formatHandleV2toLocalName(handle.fullHandle)
         : getNotificationWalletAddress(notification);
 };
 

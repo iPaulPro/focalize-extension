@@ -80,9 +80,12 @@
     <span class="text-sm text-gray-900 dark:text-gray-300 pt-1">
       <a href={userProfileUrl || polygonScanUrl} target="_blank" rel="noreferrer"
          bind:this={handleElement}
-         class="!no-underline !text-black dark:!text-white font-semibold hover:!underline">
+         class="!no-underline !text-black dark:!text-white hover:!underline">
         {#if notificationDisplayName}
-          <span>{truncate(notificationDisplayName, 25)}</span>
+          <span class='font-semibold'>{truncate(notificationDisplayName, 25)}</span>
+            {#if notificationHandle}
+              <span class="text-gray-500 dark:text-gray-400">{truncate(notificationHandle, 15)}</span>
+            {/if}
         {:else if notificationHandle}
           <span>{truncate(notificationHandle, 25)}</span>
         {:else if notificationWalletAddress}
