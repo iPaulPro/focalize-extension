@@ -61,6 +61,10 @@ dialog:focus-visible {
 	outline: none;
 }
 
+html:has(dialog[open]) {
+    overflow: hidden;
+}
+
 .dark input {
 	color-scheme: dark;
 }

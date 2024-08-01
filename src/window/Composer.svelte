@@ -511,7 +511,7 @@
 
     const openInPopupWindow = async () => {
         await ensureDraft();
-        await launchComposerWindow(undefined, $draftId);
+        await launchComposerWindow(undefined, $draftId, true);
     };
 
     $: if ($draftId !== postDraft?.id) {
