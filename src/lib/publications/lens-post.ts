@@ -442,7 +442,7 @@ export const submitPost = async (
     );
 
     const metadataId: string = await uploadMetadata(publicationMetadata);
-    const contentURI = `https://gateway.irys.xyz/${metadataId}`;
+    const contentURI = `ar://${metadataId}`;
     console.log('submitPost: Uploaded metadata to Irys with URI', contentURI);
 
     // At this point we know the metadata is valid and available on IPFS, so show optimistic completion

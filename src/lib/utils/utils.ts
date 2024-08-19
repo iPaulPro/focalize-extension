@@ -104,7 +104,8 @@ export const launchComposerWindow = async (
         icon?: string;
         image?: string;
     },
-    draftId?: string
+    draftId?: string,
+    override: boolean = false
 ) => {
     console.log('launchComposerWindow', tags);
     const path = chrome.runtime.getURL('src/window/index.html');
@@ -136,7 +137,7 @@ export const launchComposerWindow = async (
         true
     );
 
-    if (usePopups) {
+    if (usePopups || override) {
         const currentWindow = await chrome.windows.getCurrent();
         const windowRight =
             currentWindow.left !== undefined &&

@@ -16,6 +16,7 @@ import {
     type Erc20Fragment,
     type AnyPublicationFragment,
     isRelaySuccess,
+    type DegreesOfSeparationReferenceModuleInput,
 } from '@lens-protocol/client';
 import type {
     IObservableStorageProvider,
@@ -372,6 +373,22 @@ export const postOnChain = async (
 ) =>
     lensClient.publication.postOnchain({
         referenceModule,
+        contentURI,
+        openActionModules,
+    });
+
+export const commentOnChain = async (
+    commentOn: string,
+    contentURI: string,
+    referenceModule?: ReferenceModuleInput,
+    openActionModules?: OpenActionModuleInput[],
+    degreesOfSeparationReferenceModule?: DegreesOfSeparationReferenceModuleInput
+) =>
+    lensClient.publication.commentOnchain({
+        commentOn,
+        referenceModule: degreesOfSeparationReferenceModule
+            ? { degreesOfSeparationReferenceModule }
+            : referenceModule,
         contentURI,
         openActionModules,
     });
