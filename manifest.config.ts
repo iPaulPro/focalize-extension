@@ -12,7 +12,7 @@ export default defineManifest((env) => ({
     }`,
     short_name: 'Focalize',
     version,
-    version_name: '2.0.0-beta.18',
+    version_name: '2.0.0-beta.19',
     description: 'Social app built on Lens Protocol with DMs via XMTP',
     permissions: [
         'activeTab',
