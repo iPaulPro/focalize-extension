@@ -155,12 +155,12 @@ export const notificationsFiltered: Writable<boolean> = chromeStorageSync(
 
 export const notificationsForFollows: Writable<boolean> = chromeStorageSync(
     KEY_NOTIFICATIONS_FOR_FOLLOWS,
-    true,
+    false,
 );
 
 export const notificationsForMirrors: Writable<boolean> = chromeStorageSync(
     KEY_NOTIFICATIONS_FOR_MIRRORS,
-    true,
+    false,
 );
 
 export const notificationsForPostActions: Writable<boolean> = chromeStorageSync(
@@ -180,7 +180,7 @@ export const notificationsForMentions: Writable<boolean> = chromeStorageSync(
 
 export const notificationsForReactions: Writable<boolean> = chromeStorageSync(
     KEY_NOTIFICATIONS_FOR_REACTIONS,
-    true,
+    false,
 );
 
 export const notificationsForQuotes: Writable<boolean> = chromeStorageSync(
@@ -193,7 +193,7 @@ export const notificationsForGroups: Writable<boolean> = chromeStorageSync(
     true,
 );
 
-export const notificationsForActions: Writable<boolean> = chromeStorageSync(
+export const notificationsForAccountActions: Writable<boolean> = chromeStorageSync(
     KEY_NOTIFICATIONS_FOR_ACCOUNT_ACTIONS,
     true,
 );

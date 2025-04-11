@@ -46,6 +46,7 @@ import {
     KEY_NOTIFICATIONS_FOR_GROUPS,
 } from '@/lib/stores/preferences-store';
 import { onError } from '@/lib/utils/error-utils';
+import { browser } from 'wxt/browser/chrome';
 
 export const NOTIFICATIONS_QUERY_LIMIT = 50;
 

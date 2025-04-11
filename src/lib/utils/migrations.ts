@@ -43,7 +43,7 @@ const deleteMessagePreferences = async () => {
     await savePreference(KEY_SELECTED_MAIN_TAB, 0);
 };
 
-const enableSignless = async () => {
+const resetSignless = async () => {
     await deletePreference(KEY_USE_PROFILE_MANAGER);
     await deletePreference(KEY_USE_RELAY);
     await savePreference(KEY_DISPATCHER_DIALOG_SHOWN, false);
@@ -64,7 +64,7 @@ export const migrate = async (previousVersion: string) => {
         case '2':
             // TODO: Migrate from v1/v2 to v3
             await deleteMessagePreferences();
-            await enableSignless();
+            await resetSignless();
             await clearNotificationCache();
             await resetNodes();
             clearUser();

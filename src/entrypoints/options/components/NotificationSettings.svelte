@@ -16,7 +16,7 @@
         notificationsForMirrors,
         notificationsForReactions,
         notificationsForGroups,
-        notificationsForActions,
+        notificationsForAccountActions,
     } from '@/lib/stores/preferences-store';
     import type { RefreshInterval } from '@/lib/types/RefreshInterval';
 
@@ -58,7 +58,7 @@
     </h1>
 
     <h2 class="pt-2 text-lg text-neutral-400">
-        Control how and when you'll see system notifications
+        Configure notifications and control how and when you'll see system notifications
     </h2>
 
     <div class="w-full border-b border-b-gray-200 py-3 dark:border-b-gray-700 md:py-6"></div>
@@ -68,11 +68,11 @@
             <div class="w-full shrink-0 grow-0 md:w-1/3">
                 <div class="flex flex-col pb-6 pr-6">
                     <div class="text-lg font-medium text-neutral-800 dark:text-white">
-                        Desktop notifications
+                        Lens notifications
                     </div>
                     <div class="text-base text-neutral-400">
-                        Focalize can create system notifications for every notification you receive
-                        on Lens
+                        Options for how often to check for new notifications and what you want to
+                        see
                     </div>
                 </div>
             </div>
@@ -90,9 +90,9 @@
 
                     <div class="flex flex-col pl-4">
                         <div class="text-base font-medium dark:text-white">
-                            Notifications enabled
+                            Auto-refresh enabled
                         </div>
-                        <div class="text-base text-neutral-400">Notify of activity on Lens</div>
+                        <div class="text-base text-neutral-400">Check for new activity on Lens</div>
                     </div>
                 </div>
 
@@ -133,6 +133,47 @@
                     </div>
                 </div>
 
+                <div class="flex w-full xl:w-4/5 2xl:w-3/5">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input type="checkbox" bind:checked={$notificationsFiltered} />
+                            <span
+                                class="slider round flex items-center justify-between px-2 shadow-none"
+                            ></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">
+                            Filter notifications
+                        </div>
+                        <div class="text-base text-neutral-400">
+                            Only show me relevant notifications
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full border-b border-b-gray-200 pt-6 dark:border-b-gray-700"></div>
+
+        <div
+            class="flex flex-col pb-6 pt-10 md:flex-row md:gap-12 {!$notificationsEnabled
+                ? 'opacity-40'
+                : 'opacity-100'}"
+        >
+            <div class="w-full shrink-0 grow-0 md:w-1/3">
+                <div class="flex flex-col pb-6 pr-6">
+                    <div class="text-lg font-medium text-neutral-800 dark:text-white">
+                        System notifications
+                    </div>
+                    <div class="text-base text-neutral-400">
+                        Specify which kinds of events you'll receive system notifications for
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex w-full flex-col gap-6 md:w-2/3">
                 <div
                     class="flex w-full xl:w-4/5 2xl:w-3/5 {!$notificationsEnabled
                         ? 'opacity-40'
@@ -173,36 +214,15 @@
                         notifications={true}
                     />
                 </div>
-            </div>
-        </div>
 
-        <div class="w-full border-b border-b-gray-200 pt-6 dark:border-b-gray-700"></div>
-
-        <div
-            class="flex flex-col pb-6 pt-10 md:flex-row md:gap-12 {!$notificationsEnabled
-                ? 'opacity-40'
-                : 'opacity-100'}"
-        >
-            <div class="w-full shrink-0 grow-0 md:w-1/3">
-                <div class="flex flex-col pb-6 pr-6">
-                    <div class="text-lg font-medium text-neutral-800 dark:text-white">
-                        Customize
-                    </div>
-                    <div class="text-base text-neutral-400">
-                        Specify which kinds of events you'll receive system notifications for
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex w-full flex-col gap-6 md:w-2/3">
                 <div
-                    class="flex w-full xl:w-4/5 2xl:w-3/5 {!$notificationsEnabled
+                    class="flex w-full border-t pt-6 {$notificationsGrouped
                         ? 'opacity-40'
                         : 'opacity-100'}"
                 >
                     <div class="pt-1">
                         <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsFiltered} />
+                            <input type="checkbox" bind:checked={$notificationsForAccountActions} />
                             <span
                                 class="slider round flex items-center justify-between px-2 shadow-none"
                             ></span>
@@ -211,49 +231,7 @@
 
                     <div class="flex flex-col pl-4">
                         <div class="text-base font-medium dark:text-white">
-                            Filter notifications
-                            <span
-                                class="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-normal dark:bg-gray-700"
-                                >Beta</span
-                            >
-                        </div>
-                        <div class="text-base text-neutral-400">
-                            Only show me relevant notifications
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex w-full">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForPostActions} />
-                            <span
-                                class="slider round flex items-center justify-between px-2 shadow-none"
-                            ></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">Post action alerts</div>
-                        <div class="text-base text-neutral-400">
-                            Notify about post actions, like collects and tips
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex w-full">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForActions} />
-                            <span
-                                class="slider round flex items-center justify-between px-2 shadow-none"
-                            ></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">
-                            Account action alerts
+                            Account Action alerts
                         </div>
                         <div class="text-base text-neutral-400">
                             Notify about account actions, like tips
@@ -261,10 +239,36 @@
                     </div>
                 </div>
 
-                <div class="flex w-full">
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
                     <div class="pt-1">
                         <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForComments} />
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForPostActions}
+                                disabled={$notificationsGrouped}
+                            />
+                            <span
+                                class="slider round flex items-center justify-between px-2 shadow-none"
+                            ></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">Post Action alerts</div>
+                        <div class="text-base text-neutral-400">
+                            Notify about post actions, like collects and tips
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForComments}
+                                disabled={$notificationsGrouped}
+                            />
                             <span
                                 class="slider round flex items-center justify-between px-2 shadow-none"
                             ></span>
@@ -279,26 +283,14 @@
                     </div>
                 </div>
 
-                <div class="flex w-full">
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
                     <div class="pt-1">
                         <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForFollows} />
-                            <span
-                                class="slider round flex items-center justify-between px-2 shadow-none"
-                            ></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">Follow alerts</div>
-                        <div class="text-base text-neutral-400">Notify of new followers</div>
-                    </div>
-                </div>
-
-                <div class="flex w-full">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForMentions} />
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForMentions}
+                                disabled={$notificationsGrouped}
+                            />
                             <span
                                 class="slider round flex items-center justify-between px-2 shadow-none"
                             ></span>
@@ -313,46 +305,14 @@
                     </div>
                 </div>
 
-                <div class="flex w-full">
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
                     <div class="pt-1">
                         <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForMirrors} />
-                            <span
-                                class="slider round flex items-center justify-between px-2 shadow-none"
-                            ></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">Repost alerts</div>
-                        <div class="text-base text-neutral-400">
-                            Notify when someone reposts my content
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex w-full">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForReactions} />
-                            <span
-                                class="slider round flex items-center justify-between px-2 shadow-none"
-                            ></span>
-                        </label>
-                    </div>
-
-                    <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">Reaction alerts</div>
-                        <div class="text-base text-neutral-400">
-                            Notify when someone likes my content
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex w-full">
-                    <div class="pt-1">
-                        <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForQuotes} />
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForQuotes}
+                                disabled={$notificationsGrouped}
+                            />
                             <span
                                 class="slider round flex items-center justify-between px-2 shadow-none"
                             ></span>
@@ -367,10 +327,14 @@
                     </div>
                 </div>
 
-                <div class="flex w-full">
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
                     <div class="pt-1">
                         <label class="switch">
-                            <input type="checkbox" bind:checked={$notificationsForGroups} />
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForGroups}
+                                disabled={$notificationsGrouped}
+                            />
                             <span
                                 class="slider round flex items-center justify-between px-2 shadow-none"
                             ></span>
@@ -381,6 +345,70 @@
                         <div class="text-base font-medium dark:text-white">Group alerts</div>
                         <div class="text-base text-neutral-400">
                             Notify about group membership requests and approvals
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForFollows}
+                                disabled={$notificationsGrouped}
+                            />
+                            <span
+                                class="slider round flex items-center justify-between px-2 shadow-none"
+                            ></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">Follow alerts</div>
+                        <div class="text-base text-neutral-400">Notify of new followers</div>
+                    </div>
+                </div>
+
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForMirrors}
+                                disabled={$notificationsGrouped}
+                            />
+                            <span
+                                class="slider round flex items-center justify-between px-2 shadow-none"
+                            ></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">Repost alerts</div>
+                        <div class="text-base text-neutral-400">
+                            Notify when someone reposts my content
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex w-full {$notificationsGrouped ? 'opacity-40' : 'opacity-100'}">
+                    <div class="pt-1">
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                bind:checked={$notificationsForReactions}
+                                disabled={$notificationsGrouped}
+                            />
+                            <span
+                                class="slider round flex items-center justify-between px-2 shadow-none"
+                            ></span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col pl-4">
+                        <div class="text-base font-medium dark:text-white">Reaction alerts</div>
+                        <div class="text-base text-neutral-400">
+                            Notify when someone likes my content
                         </div>
                     </div>
                 </div>

@@ -47,10 +47,6 @@
         reload();
     }
 
-    const updateNotificationsTimestamp = async (isoDate?: string) => {
-        $notificationsTimestamp = isoDate ?? DateTime.now().toISO() ?? new Date().toISOString();
-    };
-
     const addNewNotifications = async () => {
         if (newNotifications.length) {
             notifications = [...newNotifications, ...notifications];
@@ -62,8 +58,10 @@
         scrollElement.scrollTop = 0;
     };
 
-    const onLatestNotificationSeen = async () =>
-        updateNotificationsTimestamp(getEventTime(notifications[0]));
+    const onLatestNotificationSeen = async () => {
+        const isoDate = getEventTime(notifications[0]);
+        $notificationsTimestamp = isoDate ?? new Date().toISOString();
+    };
 
     const getLastNotificationUpdateDate = async () => {
         // eslint-disable-next-line no-undef

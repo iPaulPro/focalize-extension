@@ -93,8 +93,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.3(ethers@6.13.5(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typechain@8.3.2(typescript@5.7.3))(typescript@5.7.3)
       '@types/chrome':
-        specifier: ^0.0.280
-        version: 0.0.280
+        specifier: ^0.0.313
+        version: 0.0.313
       '@types/emoji-mart':
         specifier: ^3.0.9
         version: 3.0.14
@@ -1712,6 +1712,9 @@ packages:
 
   '@types/chrome@0.0.280':
     resolution: {integrity: sha512-AotSmZrL9bcZDDmSI1D9dE7PGbhOur5L0cKxXd7IqbVizQWCY4gcvupPUVsQ4FfDj3V2tt/iOpomT9EY0s+w1g==}
+
+  '@types/chrome@0.0.313':
+    resolution: {integrity: sha512-9R5T7gTaYZhkxlu+Ho4wk9FL+y/werWQY2yjGWSqCuiTsqS7nL/BE5UMTP6rU7J+oIG2FRKqrEycHhJATeltVA==}
 
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
@@ -7971,6 +7974,11 @@ snapshots:
       typescript: 5.7.3
 
   '@types/chrome@0.0.280':
+    dependencies:
+      '@types/filesystem': 0.0.36
+      '@types/har-format': 1.2.16
+
+  '@types/chrome@0.0.313':
     dependencies:
       '@types/filesystem': 0.0.36
       '@types/har-format': 1.2.16
