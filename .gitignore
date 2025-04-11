@@ -198,6 +198,7 @@ web_modules/
 .env.production.local
 .env.local
 .env.staging
+.env.submit
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

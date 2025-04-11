@@ -10,18 +10,12 @@ on:
 
 env:
   VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
-  VITE_LENS_API: ${{ secrets.VITE_LENS_API }}
-  VITE_LENS_HUB_CONTRACT: ${{ secrets.VITE_LENS_HUB_CONTRACT }}
-  VITE_LENS_PREVIEW_NODE: ${{ secrets.VITE_LENS_PREVIEW_NODE }}
-  VITE_ENS_REVERSE_RECORDS: ${{ secrets.VITE_ENS_REVERSE_RECORDS }}
-  VITE_INFURA_PROJECT_ID: ${{ secrets.VITE_INFURA_PROJECT_ID }}
-  VITE_INFURA_IPFS_PROJECT_ID: ${{ secrets.VITE_INFURA_IPFS_PROJECT_ID }}
-  VITE_INFURA_IPFS_PROJECT_SECRET: ${{ secrets.VITE_INFURA_IPFS_PROJECT_SECRET }}
-  VITE_INFURA_GATEWAY_URL: ${{ secrets.VITE_INFURA_GATEWAY_URL }}
   VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
   VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.VITE_WALLETCONNECT_PROJECT_ID }}
   VITE_ALCHEMY_ETH_API_KEY: ${{ secrets.VITE_ALCHEMY_ETH_API_KEY }}
-  VITE_ALCHEMY_MATIC_API_KEY: ${{ secrets.VITE_ALCHEMY_MATIC_API_KEY }}
+  VITE_LENS_APP: ${{ secrets.VITE_LENS_APP }}
+  VITE_LENS_GLOBAL_FEED: ${{ secrets.VITE_LENS_GLOBAL_FEED }}
+  VITE_LENS_GLOBAL_NAMESPACE: ${{ secrets.VITE_LENS_GLOBAL_NAMESPACE }}
 
 jobs:
   release:
@@ -31,18 +25,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install and Build
+      - name: Install and build for Chrome
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
         run: |
-          npm ci
-          npm run build
+          pnpm install --frozen-lockfile
+          pnpm build
 
-      - name: Create Zip
-        run: zip -r focalize-${{  github.ref_name }}.zip dist
+      - name: Create Chrome release zip
+        run: zip -r focalize-${{ github.ref_name }}-chrome.zip .output/chrome-mv3
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "focalize-${{  github.ref_name }}.zip"
+          artifacts: "focalize-${{ github.ref_name }}-chrome.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
