@@ -13,6 +13,8 @@
     import { getAccountAvatar } from '../utils/lens-utils.js';
     import { createEventDispatcher } from 'svelte';
     import { onError } from '@/lib/utils/error-utils';
+    import { get } from '@/lib/stores/chrome-storage-store';
+    import { type User } from '@/lib/types/User';
 
     const dispatch = createEventDispatcher<any>();
 
@@ -64,12 +66,13 @@
     };
 
     const getSortedAccounts = async (walletAddress: string): Promise<AccountAvailable[]> => {
+        const user = await get<User | null>(currentUser);
         const accountsAvailable = await getManagedAccounts(walletAddress);
         // show the current account first, then sort first by username presence, then alphabetically
         return [...accountsAvailable].sort((a, b) => {
-            if ($currentUser?.account === a.account.address) {
+            if (user?.account === a.account.address) {
                 return -1;
-            } else if ($currentUser?.account === b.account.address) {
+            } else if (user?.account === b.account.address) {
                 return 1;
             }
 
@@ -88,8 +91,9 @@
     };
 
     const getWalletAddress = async () => {
-        if ($currentUser?.address) {
-            return $currentUser.address;
+        const user = await get<User | null>(currentUser);
+        if (user?.address) {
+            return user.address;
         }
 
         const signer = await getSigner();

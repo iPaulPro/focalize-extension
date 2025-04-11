@@ -19,7 +19,6 @@
     $: activeTab = $queryParams.tab;
 
     $: if ($currentUser) {
-        console.log('currentUser', $currentUser);
         if (!$currentUser.signless && !$dispatcherDialogShown && !enableDispatcherDialog?.open) {
             enableDispatcherDialog?.showModal();
         }

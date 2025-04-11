@@ -200,13 +200,15 @@ export const ensureCorrectChain = async () => {
 
 export const getAccounts = async (): Promise<string[]> => {
     const provider = await getProvider();
-    let accounts = await provider.send('eth_requestAccounts', []);
-    if (!accounts || accounts.length === 0) {
-        try {
-            accounts = await provider.listAccounts();
-        } catch (e) {
-            console.error('getAccounts: Unable to get accounts from provider', e);
-        }
+    let accounts: string[] = [];
+    try {
+        const signers = await provider.listAccounts();
+        accounts = signers.map((signer) => signer.address);
+    } catch (e) {
+        console.error('getAccounts: Unable to get accounts from provider', e);
+    }
+    if (!accounts.length) {
+        accounts = await provider.send('eth_requestAccounts', []);
     }
     return accounts;
 };
