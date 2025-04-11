@@ -1,34 +1,22 @@
 import { getUser, saveUser } from '../stores/user-store';
-import { isAuthenticated } from '../lens-service';
-import type { ProfileFragment } from '@lens-protocol/client';
-import { getProfileAvatar } from '../utils/lens-utils';
+import { getMe, isAuthenticated } from '../lens-service';
+import type { Account } from '@lens-protocol/client';
+import { getAccountAvatar } from '../utils/lens-utils';
+import { User } from '@/lib/types/User';
+import { sleep } from '@/lib/utils/utils';
+import { clearNotificationCache } from '@/lib/stores/cache-store';
+import { onError } from '@/lib/utils/error-utils';
 
-export type User = {
-    address: string;
-    profileId: string;
-    handle: string | undefined;
-    name: string | undefined | null;
-    avatarUrl: string | undefined;
-    canUseRelay: boolean;
-};
-
-export enum UserError {
-    WALLET_NOT_CONNECTED,
-    NOT_AUTHENTICATED,
-    NO_PROFILE,
-    UNKNOWN,
-}
-
-export const userFromProfile = (profile: ProfileFragment): User => {
-    const avatarUrl = getProfileAvatar(profile);
+const userFromAccount = (address: string, account: Account, signless: boolean): User => {
+    const avatarUrl = getAccountAvatar(account);
 
     return {
-        address: profile.ownedBy.address,
-        profileId: profile.id,
-        handle: profile.handle?.fullHandle,
-        name: profile.metadata?.displayName,
+        address,
+        account: account.address,
+        username: account.username?.value,
+        name: account.metadata?.name,
         avatarUrl,
-        canUseRelay: profile.signless,
+        signless,
     };
 };
 
@@ -39,22 +27,39 @@ export const ensureUser = async () => {
     const authenticated = await isAuthenticated();
     if (authenticated) {
         const savedUser = await getUser();
-        if (savedUser) {
+        if (savedUser && savedUser.account) {
             return { user: savedUser };
         }
     }
 
-    chrome.runtime.openOptionsPage();
+    await browser.runtime.openOptionsPage();
     window?.close();
 };
 
-export const onLogin = async (profile: ProfileFragment) => {
-    const user = userFromProfile(profile);
-    await saveUser(user);
-    console.log('Authenticated user', user);
+export const onLogin = async (address: string, account?: Account) => {
+    if (!account) {
+        await saveUser({ address });
+        return;
+    }
 
     try {
-        await chrome.runtime.sendMessage({
+        const me = await getMe();
+        const user = userFromAccount(address, account, me?.isSignless ?? false);
+        await saveUser(user);
+        console.log('Authenticated user', user);
+    } catch (e) {
+        if (e instanceof Error) {
+            onError(e);
+        }
+    }
+
+    await clearNotificationCache();
+
+    // delay to avoid hitting rate limits
+    await sleep(5000);
+
+    try {
+        await browser.runtime.sendMessage({
             type: 'setNotificationsAlarm',
             enabled: true,
         });

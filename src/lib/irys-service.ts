@@ -1,10 +1,7 @@
 import { WebIrys } from '@irys/sdk';
 import { JsonRpcProvider, type Signer, Wallet } from 'ethers';
 import { getProvider, getRpcUrl } from './evm/ethers-service';
-import {
-    getPreference,
-    KEY_AUTO_SIGN_METADATA,
-} from './stores/preferences-store';
+import { getPreference, KEY_AUTO_SIGN_METADATA } from './stores/preferences-store';
 
 class IrysProvider {
     private readonly provider: JsonRpcProvider;

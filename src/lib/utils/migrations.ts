@@ -1,59 +1,73 @@
 import {
     ALL_NODE_KEYS,
     deletePreference,
-    getPreference,
-    KEY_NODE_ARTICLE,
+    KEY_DISPATCHER_DIALOG_SHOWN,
+    KEY_MESSAGES_HIDE_EMPTY,
+    KEY_MESSAGES_PLAY_SOUNDS,
+    KEY_MESSAGES_REFRESH_ENABLED,
+    KEY_MESSAGES_REFRESH_INTERVAL,
+    KEY_MESSAGES_UNREAD_TOPICS,
     KEY_NODE_NOTIFICATIONS,
     KEY_NODE_SEARCH,
-    KEY_NODE_VIDEO,
-} from '../stores/preferences-store';
-import { LENS_NODES, type LensNode } from '../publications/lens-nodes';
-import { KEY_WALLET_CONNECTION, saveToCache } from '../stores/cache-store';
+    KEY_USE_PROFILE_MANAGER,
+    KEY_USE_RELAY,
+    savePreference,
+} from '@/lib/stores/preferences-store';
+import {
+    clearNotificationCache,
+    KEY_MESSAGE_TIMESTAMPS,
+    KEY_PENDING_PROXY_ACTIONS,
+    KEY_PROFILE_ID_BY_ADDRESS,
+    KEY_PROFILES,
+    KEY_SELECTED_MAIN_TAB,
+    KEY_SELECTED_MESSAGES_TAB,
+    KEY_WINDOW_TOPIC_MAP,
+} from '@/lib/stores/cache-store';
+import { clearUser, KEY_KNOWN_SENDERS } from '@/lib/stores/user-store';
+import nodes from '../stores/nodes.json';
 
-const updateSavedLensterNodes = async () => {
-    const syncStorage = await chrome.storage.sync.get([
-        ...ALL_NODE_KEYS,
-        KEY_NODE_NOTIFICATIONS,
-        KEY_NODE_SEARCH,
-    ]);
-    Object.entries(syncStorage).forEach(([key, value]) => {
-        if (value.name === 'Lenster') {
-            chrome.storage.sync.set({ [key]: LENS_NODES[0] });
-        }
-    });
+const deleteMessagePreferences = async () => {
+    await deletePreference(KEY_MESSAGES_REFRESH_ENABLED);
+    await deletePreference(KEY_MESSAGES_REFRESH_INTERVAL);
+    await deletePreference(KEY_MESSAGES_UNREAD_TOPICS);
+    await deletePreference(KEY_MESSAGES_HIDE_EMPTY);
+    await deletePreference(KEY_MESSAGES_PLAY_SOUNDS);
+    await deletePreference(KEY_PENDING_PROXY_ACTIONS);
+    await deletePreference(KEY_MESSAGE_TIMESTAMPS);
+    await deletePreference(KEY_SELECTED_MESSAGES_TAB);
+    await deletePreference(KEY_WINDOW_TOPIC_MAP);
+    await deletePreference(KEY_PROFILES);
+    await deletePreference(KEY_PROFILE_ID_BY_ADDRESS);
+    await deletePreference(KEY_KNOWN_SENDERS);
+
+    await savePreference(KEY_SELECTED_MAIN_TAB, 0);
 };
 
-const updateNodes = async () => {
-    await updateSavedLensterNodes();
-
-    const nodeArticle = await getPreference<LensNode>(KEY_NODE_ARTICLE);
-    if (nodeArticle?.name === 'Share') {
-        await chrome.storage.sync.set({
-            [KEY_NODE_ARTICLE]: LENS_NODES[0],
-        });
-    }
-
-    const nodeVideo = await getPreference<LensNode>(KEY_NODE_VIDEO);
-    if (nodeVideo?.name === 'Lenstube') {
-        await chrome.storage.sync.set({
-            [KEY_NODE_VIDEO]: LENS_NODES.find((n) => n.name === 'Tape'),
-        });
-    }
+const enableSignless = async () => {
+    await deletePreference(KEY_USE_PROFILE_MANAGER);
+    await deletePreference(KEY_USE_RELAY);
+    await savePreference(KEY_DISPATCHER_DIALOG_SHOWN, false);
 };
 
-const moveWalletCacheToLocal = async () => {
-    const walletConnection = await getPreference(KEY_WALLET_CONNECTION);
-    if (walletConnection) {
-        await saveToCache(KEY_WALLET_CONNECTION, walletConnection);
-        await deletePreference(KEY_WALLET_CONNECTION);
+const resetNodes = async () => {
+    for (const node in ALL_NODE_KEYS) {
+        await savePreference(node, nodes[0]);
     }
+    await savePreference(KEY_NODE_NOTIFICATIONS, nodes[0]);
+    await savePreference(KEY_NODE_SEARCH, nodes[0]);
 };
 
 export const migrate = async (previousVersion: string) => {
-    switch (previousVersion) {
-        case '1.9.10':
-            await updateNodes();
-            await moveWalletCacheToLocal();
+    const versionParts = previousVersion.split('.');
+    switch (versionParts[0]) {
+        case '1':
+        case '2':
+            // TODO: Migrate from v1/v2 to v3
+            await deleteMessagePreferences();
+            await enableSignless();
+            await clearNotificationCache();
+            await resetNodes();
+            clearUser();
             break;
     }
 };

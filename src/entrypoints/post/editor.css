@@ -1,0 +1,137 @@
+@import '../../lib/styles/app.pcss';
+
+.tiptap {
+  background: white;
+}
+
+.text-editor {
+  @apply w-full resize-none overflow-hidden break-keep border-none bg-transparent pt-1 ![overflow-wrap:anywhere] focus:border-none focus:outline-none focus:ring-0;
+}
+
+.text-editor:focus {
+  border: none !important;
+}
+
+.text-editor > * {
+  margin-bottom: 1.75rem !important;
+}
+
+.compact .text-editor > * {
+  margin-bottom: 1.25rem !important;
+}
+
+.editor-placeholder {
+  overflow: hidden;
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 15px;
+  left: 10px;
+  font-style: normal !important;
+  font-size: 1.5rem;
+  line-height: 1.75rem;
+  font-weight: 300;
+  color: rgb(107 114 128);
+  user-select: none;
+  display: inline-block;
+  pointer-events: none;
+}
+
+.editor-text-bold {
+  font-weight: bold;
+}
+
+.editor-text-italic {
+  font-style: italic;
+}
+
+.editor-text-underline {
+  text-decoration: underline;
+}
+
+.editor-text-strikethrough {
+  text-decoration: line-through;
+}
+
+.editor-text-underlineStrikethrough {
+  text-decoration: underline line-through;
+}
+
+.editor-text-code {
+  background-color: #e2e8f0;
+  padding: 0.25rem;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 86%;
+  border-radius: 0.25rem;
+}
+
+.dark .editor-text-code {
+  background-color: #475569;
+}
+
+.editor-link,
+.editor-text-hashtag,
+.suggestion {
+  color: #a33500;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.dark .editor-link,
+.dark .editor-text-hashtag,
+.dark .suggestion {
+  color: rgba(255, 179, 142, 1);
+}
+
+.editor-code {
+  background-color: rgb(240, 242, 245);
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 80%;
+  display: block;
+  padding: 8px 8px 8px 24px;
+  line-height: 1.53;
+  margin: 8px 0;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+  position: relative;
+  border-radius: 0.5rem;
+}
+
+.dark .editor-code {
+  @apply bg-gray-800;
+}
+
+.editor-paragraph {
+  position: relative;
+  color: black;
+}
+
+.dark .editor-paragraph {
+  @apply text-gray-100;
+}
+
+.editor-quote {
+  margin: 0 0 0 20px;
+  color: rgb(81, 82, 86);
+  border-left-color: #a33500;
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding-left: 16px;
+  font-size: 90%;
+}
+
+.dark .editor-quote {
+  color: #d1d5db;
+}
+
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *))::after,
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *))::before {
+  content: none;
+}
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
+  background-color: #e2e8f0;
+  padding: 0.25rem;
+  font-family: Menlo, Consolas, Monaco, monospace;
+  font-size: 86%;
+  border-radius: 0.25rem;
+}

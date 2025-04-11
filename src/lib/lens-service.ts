@@ -1,110 +1,118 @@
 import {
-    development,
-    production,
-    LensClient,
-    LimitType,
-    LensTransactionStatusType,
-    type NotificationFragment,
-    type PaginatedResult,
-    type ProfileFragment,
-    type CreateOnchainPostBroadcastItemResultFragment,
-    type OpenActionModuleInput,
-    type ReferenceModuleInput,
-    type RelayErrorFragment,
-    type RelaySuccessFragment,
-    type BroadcastRequest,
-    type Erc20Fragment,
-    type AnyPublicationFragment,
-    isRelaySuccess,
-    type DegreesOfSeparationReferenceModuleInput,
+    Account,
+    AccountAvailable,
+    AccountGraphsFollowStats,
+    BigDecimal,
+    EvmAddress,
+    evmAddress,
+    Feed,
+    Group,
+    GroupsOrderBy,
+    IStorageProvider,
+    MeResult,
+    Notification,
+    PageSize,
+    Paginated,
+    Post,
+    PublicClient,
+    Repost,
+    SessionClient,
+    mainnet,
+    staging,
 } from '@lens-protocol/client';
-import type {
-    IObservableStorageProvider,
-    StorageProviderSubscriber,
-    StorageSubscription,
-} from '@lens-protocol/storage';
-import WalletConnection from './evm/WalletConnection';
-import { clearNotificationCache } from './stores/cache-store';
-import { isMainnet } from '../config';
+import {
+    createGroup,
+    enableSignless,
+    fetchAccount,
+    fetchAccountGraphStats,
+    fetchAccounts,
+    fetchAccountsAvailable,
+    fetchFeed,
+    fetchFollowersYouKnow,
+    fetchGroup,
+    fetchGroups,
+    fetchMeDetails,
+    fetchNotifications,
+    fetchPost,
+    follow,
+    post,
+    removeSignless,
+    setAccountMetadata,
+    unfollow,
+    createAccountWithUsername,
+    fetchUsername,
+    deposit,
+    withdraw,
+    wrapTokens,
+    unwrapTokens,
+    fetchAccountBalances,
+} from '@lens-protocol/client/actions';
+import WalletConnection from '@/lib/types/WalletConnection';
+import { handleOperationWith } from '@lens-protocol/client/ethers';
+import { account } from '@lens-protocol/metadata';
+import { uploadJson } from '@/lib/grove-service';
+import { APP_ADDRESS, CURRENT_CHAIN_ID, GLOBAL_NAMESPACE_ADDRESS, isMainnet } from '@/lib/config';
+import { NoSessionError, NoWalletError } from '@/lib/utils/error-utils';
+import { type SimpleCollect } from '@/lib/types/SimpleCollect';
+import { SUPPORTED_CURRENCIES } from '@/lib/utils/supported-currencies';
 
-export class NoProfileError extends Error {
-    constructor() {
-        super('No profile found');
-        this.name = 'NoProfileError';
-        Object.setPrototypeOf(this, NoProfileError.prototype);
-    }
-}
-
-class ChromeStorageProvider implements IObservableStorageProvider {
-    getItem(key: string): Promise<string | null> | string | null {
-        return chrome.storage.local
-            .get(key)
-            .then((storage) => storage[key] ?? null);
-    }
-
-    setItem = (
-        key: string,
-        value: string
-    ): Promise<string> | Promise<void> | void | string =>
-        chrome.storage.local.set({ [key]: value });
-
-    removeItem = (key: string): Promise<string> | Promise<void> | void =>
-        chrome.storage.local.remove(key);
-
-    subscribe = (
-        key: string,
-        subscriber: StorageProviderSubscriber
-    ): StorageSubscription => {
-        chrome.storage.onChanged.addListener((changes, namespace) => {
-            if (namespace === 'local' && key in changes) {
-                subscriber(changes[key].newValue, changes[key].oldValue);
-            }
-        });
-
-        return {
-            unsubscribe: () =>
-                chrome.storage.onChanged.removeListener(() => {}),
-        };
-    };
-}
-
-const chromeStorage = new ChromeStorageProvider();
-
-const lensClient: LensClient = new LensClient({
-    environment: isMainnet ? production : development,
-    storage: chromeStorage,
-    params: {
-        profile: {
-            thumbnail: {
-                width: '80px',
-                height: 'auto',
-            },
-            cover: {
-                width: '512px',
-                height: 'auto',
-            },
-        },
+const storageProvider: IStorageProvider = {
+    getItem: function (key: string): Promise<string | null> | string | null {
+        return browser.storage.local.get(key).then((storage) => storage[key] ?? null);
     },
+    setItem: function (
+        key: string,
+        value: string,
+    ): Promise<string> | Promise<void> | void | string {
+        return browser.storage.local.set({ [key]: value });
+    },
+    removeItem: function (key: string): Promise<string> | Promise<void> | void {
+        return browser.storage.local.remove(key);
+    },
+};
+
+const publicClient = PublicClient.create({
+    environment: isMainnet ? mainnet : staging,
+    storage: storageProvider,
 });
 
-export const isAuthenticated = (): Promise<boolean> =>
-    lensClient.authentication.isAuthenticated();
+const getSigner = async () => {
+    const { ensureCorrectChain, getSigner } = await import('./evm/ethers-service');
 
-export const connectWalletAndGetProfiles = async (
-    walletConnection: WalletConnection
-): Promise<ProfileFragment[]> => {
-    const { initEthers, getAccounts, clearProvider, ensureCorrectChain } =
-        await import('./evm/ethers-service');
+    await ensureCorrectChain();
+
+    const signer = await getSigner();
+    if (!signer) return false;
+
+    return signer;
+};
+
+export const getClient = async (): Promise<SessionClient | PublicClient> => {
+    const resumed = await publicClient.resumeSession();
+    if (resumed.isOk()) {
+        return resumed.value;
+    }
+    return publicClient;
+};
+
+export const isAuthenticated = async (): Promise<boolean> => {
+    const client = await getClient();
+    return client.isSessionClient();
+};
+
+export const connectWalletAndGetAccounts = async (
+    walletConnection: WalletConnection,
+): Promise<readonly AccountAvailable[]> => {
+    const { initEthers, getAccounts, clearProvider, ensureCorrectChain } = await import(
+        './evm/ethers-service'
+    );
 
     let address: string | undefined;
     try {
         const accounts = await initEthers(walletConnection);
         address = accounts[0];
     } catch (e) {
-        console.warn(
-            'authenticateUser: Unable to get address from cached provider',
-            e
-        );
+        console.warn('authenticateUser: Unable to get address from cached provider', e);
     }
 
     if (!address) {
@@ -117,367 +125,702 @@ export const connectWalletAndGetProfiles = async (
         }
     }
 
-    if (!address) throw new Error('No address found');
+    if (!address) throw new NoWalletError();
     console.log('authenticate: Authenticating with address', address);
 
     await ensureCorrectChain();
 
-    const ownedBy = [address];
-    const res = await getProfiles({ ownedBy });
-    return res.items;
+    return getManagedAccounts(address);
+};
+
+/**
+ * Onboard the current signer wallet
+ * @returns the authenticated wallet address of the onboarding user
+ */
+export const onboard = async (): Promise<string> => {
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    console.log('onboard: logging in with wallet', signer.address);
+
+    const authenticatedRes = await publicClient.login({
+        onboardingUser: {
+            app: evmAddress(APP_ADDRESS),
+            wallet: evmAddress(signer.address),
+        },
+        signMessage: async (message: string) => {
+            return signer.signMessage(message);
+        },
+    });
+    console.log('onboard: login res', authenticatedRes);
+
+    if (authenticatedRes.isErr()) {
+        throw authenticatedRes.error;
+    }
+
+    return signer.address;
 };
 
 export const login = async (
-    profile: ProfileFragment
-): Promise<ProfileFragment> => {
-    console.log('authenticate: Logging in with profile', profile);
-    await clearNotificationCache();
-
-    const { getSigner } = await import('./evm/ethers-service');
+    walletAddress: string,
+    accountAvailable: AccountAvailable,
+): Promise<Account> => {
     const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
 
-    const { id, text } = await lensClient.authentication.generateChallenge({
-        for: profile.id,
-        signedBy: signer.address,
+    console.log('login: logging in with wallet', walletAddress, 'account', accountAvailable);
+
+    const res = await publicClient.login({
+        ...(accountAvailable.__typename === 'AccountManaged'
+            ? {
+                  accountManager: {
+                      app: evmAddress(APP_ADDRESS),
+                      manager: evmAddress(walletAddress),
+                      account: evmAddress(accountAvailable.account.address),
+                  },
+              }
+            : {
+                  accountOwner: {
+                      app: evmAddress(APP_ADDRESS),
+                      owner: evmAddress(walletAddress),
+                      account: evmAddress(accountAvailable.account.address),
+                  },
+              }),
+        signMessage: async (message: string) => {
+            return signer.signMessage(message);
+        },
     });
-    console.log('authenticate: Lens challenge response', { id, text });
 
-    const signature = await signer.signMessage(text);
-    console.log('authenticate: Signed Lens challenge', signature);
+    console.log('login: res', res);
 
-    try {
-        await lensClient.authentication.authenticate({ id, signature });
-        console.log('authenticate: successfully authenticated');
-    } catch (e) {
-        console.error('authenticate: Lens auth error', e);
-        throw e;
+    if (res.isErr()) {
+        throw res.error;
     }
 
-    return profile;
+    return accountAvailable.account;
 };
 
 export const logOut = async () => {
-    await lensClient.authentication.logout();
-    await chrome.storage.local.clear();
-    await chrome.runtime.sendMessage({ type: 'loggedOut' });
+    const client = await getClient();
+    if (client.isSessionClient()) {
+        await client?.logout();
+    }
+    await browser.storage.local.clear();
+    await browser.storage.sync.clear();
+    await browser.runtime.sendMessage({ type: 'loggedOut' });
     const { clearProvider } = await import('./evm/ethers-service');
     await clearProvider();
 };
 
-export const getProfile = async ({
-    profileId,
-    handle,
+export const getAccount = async ({
+    address,
+    username,
 }: {
-    profileId?: string;
-    handle?: string;
-}): Promise<ProfileFragment | null> =>
-    lensClient.profile.fetch({ forProfileId: profileId, forHandle: handle });
+    address?: string;
+    username?: string;
+}): Promise<Account | null> => {
+    const client = await getClient();
 
-export const getProfiles = async ({
-    ownedBy,
-    profileIds,
-    cursor,
-}: {
-    ownedBy?: string[];
-    profileIds?: string[];
-    cursor?: any;
-}): Promise<PaginatedResult<ProfileFragment>> =>
-    lensClient.profile.fetchAll({
-        where: { ownedBy, profileIds },
-        limit: LimitType.Fifty,
-        cursor,
-    });
-
-export const getAllProfiles = async ({
-    ownedBy,
-    profileIds,
-}: {
-    ownedBy?: string[];
-    profileIds?: string[];
-}): Promise<ProfileFragment[]> => {
-    const chunkSize = 50;
-    let profiles: ProfileFragment[] = [];
-    let cursor: any = null;
-    let hasMore = true;
-    while (hasMore) {
-        let currentPointers: string[] = [];
-
-        if (profileIds) {
-            currentPointers = profileIds.slice(0, chunkSize);
-        } else if (ownedBy) {
-            currentPointers = ownedBy.slice(0, chunkSize);
+    if (address) {
+        const res = await fetchAccount(client, {
+            address: evmAddress(address),
+        });
+        console.log('getAccount: account res', res);
+        if (res.isErr()) {
+            return null;
         }
-
-        const res = await getProfiles({
-            ownedBy: ownedBy ? currentPointers : undefined,
-            profileIds: profileIds ? currentPointers : undefined,
-            cursor,
-        });
-
-        profiles = profiles.concat(res.items);
-
-        cursor = res.pageInfo.next;
-        hasMore =
-            res.pageInfo.next !== null &&
-            (profileIds?.length !== undefined || ownedBy?.length != undefined);
+        return res.value;
     }
 
-    return profiles;
-};
-
-export const getManagedProfiles = async (
-    address: string
-): Promise<ProfileFragment[]> => {
-    let profiles: ProfileFragment[] = [];
-    let cursor: any = null;
-    let hasMore = true;
-    while (hasMore) {
-        const managedProfiles = await lensClient.wallet.profilesManaged({
-            for: address,
-            cursor,
-            limit: LimitType.Fifty,
-        });
-        profiles.push(...managedProfiles.items);
-        cursor = managedProfiles.pageInfo.next;
-        hasMore = managedProfiles.pageInfo.next !== null;
+    if (!username) {
+        throw new Error('No account ID or username provided');
     }
-    return profiles;
+
+    const res = await fetchAccount(client, {
+        username: {
+            localName: username,
+        },
+    });
+    console.log('getAccount: account res', res);
+    if (res.isErr()) {
+        return null;
+    }
+    return res.value;
 };
 
-export const searchProfiles = async (
-    query: string,
-    limit: LimitType = LimitType.Ten
-): Promise<ProfileFragment[]> => {
-    const searchProfiles = await lensClient.search.profiles({
-        where: {},
-        query,
-        limit: LimitType.Ten,
+export const getAccounts = async (address: string): Promise<Account[]> => {
+    const client = await getClient();
+
+    const res = await fetchAccountsAvailable(client, {
+        managedBy: evmAddress(address),
     });
 
-    return searchProfiles.items;
-};
+    console.log('getAccounts: res', res);
 
-export const getMutualFollowers = async (
-    profileId: string
-): Promise<PaginatedResult<ProfileFragment>> => {
-    const userProfileId = await lensClient.authentication.getProfileId();
-    if (!userProfileId) throw new Error('No authenticated profile found');
-    return lensClient.profile.mutualFollowers({
-        observer: userProfileId,
-        viewing: profileId,
-        limit: LimitType.Fifty,
-    });
-};
-
-export const followProfile = async (profileId: string): Promise<boolean> => {
-    const res = await lensClient.profile.follow({ follow: [{ profileId }] });
-
-    if (res.isFailure()) {
-        console.error(
-            'unfollowProfile: Error following profile',
-            profileId,
-            res.error
-        );
-        // TODO submit follow transaction directly on broadcast failure
-        return false;
+    if (res.isOk()) {
+        const accountsOwned = res.value.items
+            .filter((item) => item.__typename === 'AccountOwned')
+            .map((item) => item.account);
+        return accountsOwned;
     }
+
+    return [];
+};
+
+export const getManagedAccounts = async (address: string): Promise<readonly AccountAvailable[]> => {
+    const res = await fetchAccountsAvailable(publicClient, {
+        managedBy: evmAddress(address),
+        pageSize: PageSize.Fifty,
+    });
+
+    console.log('getManagedAccounts: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value.items;
+};
+
+export const searchAccounts = async (query: string): Promise<readonly Account[]> => {
+    const client = await getClient();
+    const res = await fetchAccounts(client, {
+        filter: {
+            searchBy: {
+                localNameQuery: query,
+                namespaces: [evmAddress(GLOBAL_NAMESPACE_ADDRESS)],
+            },
+        },
+        pageSize: PageSize.Ten,
+    });
+    if (res.isErr()) {
+        return [];
+    }
+    return res.value.items;
+};
+
+export const getMutualFollowers = async (accountAddress: string): Promise<Account[]> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) return [];
+
+    const authenticatedUser = client.getAuthenticatedUser();
+    if (authenticatedUser.isErr()) {
+        return [];
+    }
+
+    const res = await fetchFollowersYouKnow(client, {
+        observer: evmAddress(authenticatedUser.value.address),
+        target: evmAddress(accountAddress),
+        pageSize: PageSize.Fifty,
+    });
+
+    console.log('getMutualFollowers: res', res);
+
+    if (res.isErr()) {
+        return [];
+    }
+
+    return res.value.items.map((item) => item.follower);
+};
+
+export const followAccount = async (address: string): Promise<boolean> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await follow(client, {
+        account: evmAddress(address),
+    })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
+
+    console.log('followAccount: follow res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    console.log('followAccount: successfully followed, txhash=', res.value);
 
     return true;
 };
 
-export const unfollowProfile = async (profileId: string): Promise<boolean> => {
-    const res = await lensClient.profile.unfollow({ unfollow: [profileId] });
+export const unfollowAccount = async (address: string): Promise<boolean> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
 
-    if (res.isFailure()) {
-        console.error(
-            'unfollowProfile: Error unfollowing profile',
-            profileId,
-            res.error
-        );
-        // TODO submit unfollow transaction directly on broadcast failure
-        return false;
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await unfollow(client, {
+        account: evmAddress(address),
+    })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
+
+    console.log('unfollowAccount: unfollow res', res);
+
+    if (res.isErr()) {
+        throw res.error;
     }
+
+    console.log('unfollowAccount: successfully unfollowed, txhash=', res.value);
 
     return true;
 };
 
-export const enableProfileManager = async (): Promise<boolean> => {
-    const { ensureCorrectChain } = await import('./evm/ethers-service');
+export const enableAccountManager = async () => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
 
-    await ensureCorrectChain();
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
 
-    const res = await lensClient.profile.createChangeProfileManagersTypedData({
-        approveSignless: true,
-    });
+    const res = await enableSignless(client)
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
 
-    if (res.isFailure()) {
-        console.error(
-            'enableProfileManager: Error creating typed data',
-            res.error
-        );
-        return false;
+    console.log('enableAccountManager: enableSignless res', res);
+
+    if (res.isErr()) {
+        throw res.error;
     }
 
-    const { id, typedData } = res.unwrap();
+    console.log('enableAccountManager: successfully enabled signless, txhash=', res.value);
+};
 
-    const { signTypedData } = await import('./evm/ethers-service');
-    const signedTypedData = await signTypedData(
-        typedData.domain,
-        typedData.types,
-        typedData.value
-    );
+export const disableAccountManager = async () => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
 
-    const broadcastOnchainResult =
-        await lensClient.transaction.broadcastOnchain({
-            id,
-            signature: signedTypedData,
-        });
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
 
-    const onchainRelayResult = broadcastOnchainResult.unwrap();
-    if (isRelaySuccess(onchainRelayResult)) {
-        console.log(
-            `Successfully changed profile managers with transaction with id ${onchainRelayResult}, txHash: ${onchainRelayResult.txHash}`
-        );
+    const res = await removeSignless(client)
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
 
-        return true;
+    console.log('disableAccountManager: removeSignless res', res);
+
+    if (res.isErr()) {
+        throw res.error;
     }
 
-    console.warn(`enableProfileManager: Something went wrong`);
-    // TODO submit enableProfileManager transaction directly on broadcast failure
-    return false;
+    console.log('disableAccountManager: successfully disabled signless, txhash=', res.value);
 };
 
 export const getNotifications = async (
-    cursor?: any,
-    highSignalFilter: boolean = false
-): Promise<PaginatedResult<NotificationFragment>> => {
-    const res = await lensClient.notifications.fetch({
-        where: { highSignalFilter },
+    cursor?: never,
+    highSignalFilter: boolean = false,
+): Promise<Paginated<Notification>> => {
+    const client = await getClient();
+    console.log('getNotifications: client=', client, 'cursor', cursor);
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const res = await fetchNotifications(client, {
         cursor,
+        filter: {
+            includeLowScore: !highSignalFilter,
+        },
     });
 
-    if (res.isFailure()) {
-        throw new Error('Error fetching notifications');
+    console.log('getNotifications: fetchNotifications res', res);
+
+    if (res.isErr()) {
+        throw res.error;
     }
 
-    return res.unwrap();
+    return res.value;
 };
 
-export const postOnMomoka = async (contentURI: string) =>
-    lensClient.publication.postOnMomoka({ contentURI });
+export const createPost = async (
+    contentUri: string,
+    feed: EvmAddress,
+    simpleCollect: SimpleCollect | null,
+    followerOnly: boolean = false,
+): Promise<string | null> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
 
-export const postOnChain = async (
-    contentURI: string,
-    referenceModule?: ReferenceModuleInput,
-    openActionModules?: OpenActionModuleInput[]
-) =>
-    lensClient.publication.postOnchain({
-        referenceModule,
-        contentURI,
-        openActionModules,
-    });
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
 
-export const commentOnChain = async (
-    commentOn: string,
-    contentURI: string,
-    referenceModule?: ReferenceModuleInput,
-    openActionModules?: OpenActionModuleInput[],
-    degreesOfSeparationReferenceModule?: DegreesOfSeparationReferenceModuleInput
-) =>
-    lensClient.publication.commentOnchain({
-        commentOn,
-        referenceModule: degreesOfSeparationReferenceModule
-            ? { degreesOfSeparationReferenceModule }
-            : referenceModule,
-        contentURI,
-        openActionModules,
-    });
+    const res = await post(client, {
+        contentUri,
+        feed,
+        ...(simpleCollect && {
+            actions: [{ simpleCollect }],
+        }),
+        ...(followerOnly && {
+            rules: {
+                required: [
+                    {
+                        followersOnlyRule: {
+                            quotesRestricted: true,
+                            repostRestricted: true,
+                            repliesRestricted: true,
+                        },
+                    },
+                ],
+            },
+        }),
+    })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
 
-export const createPostTypedData = async (
-    contentURI: string,
-    referenceModule?: ReferenceModuleInput,
-    openActionModules?: OpenActionModuleInput[]
-): Promise<CreateOnchainPostBroadcastItemResultFragment> => {
-    const res = await lensClient.publication.createOnchainPostTypedData({
-        referenceModule,
-        contentURI,
-        openActionModules,
-    });
+    console.log('postOnChain: post res', res);
 
-    if (res.isFailure()) {
-        throw new Error('Error creating post typed data');
+    if (res.isErr()) {
+        throw res.error;
     }
 
-    return res.unwrap();
+    return res.value;
 };
 
-export const broadcastPostOnChain = async (
-    request: BroadcastRequest
-): Promise<RelaySuccessFragment | RelayErrorFragment> => {
-    const res = await lensClient.transaction.broadcastOnchain(request);
-
-    if (res.isFailure()) {
-        throw new Error('Error broadcasting post onchain');
-    }
-
-    return res.unwrap();
-};
-
-export const enabledModuleCurrencies = async (
-    cursor?: any
-): Promise<PaginatedResult<Erc20Fragment>> =>
-    lensClient.modules.fetchCurrencies({
-        limit: LimitType.Fifty,
-        cursor,
-    });
-
-export const getAllModuleCurrencies = async (): Promise<Erc20Fragment[]> => {
-    const currencies: Erc20Fragment[] = [];
-    let cursor: any = null;
-    let hasMore = true;
-    while (hasMore) {
-        const res = await enabledModuleCurrencies(cursor);
-        currencies.push(...res.items);
-        cursor = res.pageInfo.next;
-        hasMore = res.pageInfo.next !== null;
-        await new Promise((resolve) => setTimeout(resolve, 200));
-    }
-    return currencies;
-};
-
-export const waitForTransaction = async ({
+export const getPost = async ({
     txHash,
-    txId,
+    post,
 }: {
     txHash?: string;
-    txId?: string;
-}): Promise<LensTransactionStatusType> => {
-    const res = await lensClient.transaction.waitUntilComplete({
-        forTxHash: txHash,
-        forTxId: txId,
-    });
-
-    if (!res || res.status === LensTransactionStatusType.Failed) {
-        throw new Error('Error waiting for transaction');
+    post?: string;
+}): Promise<Post | Repost | null> => {
+    const client = await getClient();
+    const res = await fetchPost(client, { txHash, post });
+    console.log('getPost: res', res);
+    if (res.isErr()) {
+        return null;
     }
-
-    return res.status;
+    return res.value;
 };
 
-export const getPublication = async ({
-    txHash,
-    txId,
-}: {
-    txHash?: string;
-    txId?: string;
-}): Promise<AnyPublicationFragment | null> =>
-    lensClient.publication.fetch({
-        forTxHash: txHash,
-        forId: txId,
-    });
+export const getGraphStats = async (account: string): Promise<AccountGraphsFollowStats | null> => {
+    const res = await fetchAccountGraphStats(publicClient, { account });
+    console.log('geGraphStats: res', res);
+    if (res.isErr()) {
+        return null;
+    }
+    return res.value;
+};
 
-export const getNextPublicationId = async (): Promise<string> => {
-    const from = await lensClient.authentication.getProfileId();
-    if (!from) throw new Error('No authenticated address found');
-    return lensClient.publication.predictNextOnChainPublicationId({ from });
+export const getMe = async (): Promise<MeResult | null> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const res = await fetchMeDetails(client);
+    console.log('getMe: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const switchAccounts = async (account: string): Promise<void> => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const res = await client.switchAccount({
+        account: evmAddress(account),
+    });
+    console.log('switchAccounts: res', res);
+    if (res.isErr()) {
+        throw res.error;
+    }
+};
+
+export const getMemberGroups = async (account: string): Promise<readonly Group[]> => {
+    const client = await getClient();
+    const res = await fetchGroups(client, {
+        filter: {
+            member: evmAddress(account),
+        },
+        pageSize: PageSize.Fifty,
+        orderBy: GroupsOrderBy.Alphabetical,
+    });
+    console.log('getMemberGroups: fetchGroups res', res);
+    if (res.isErr()) {
+        return [];
+    }
+    return res.value.items;
+};
+
+export const searchGroups = async (searchQuery: string): Promise<readonly Group[]> => {
+    const client = await getClient();
+    const res = await fetchGroups(client, {
+        filter: { searchQuery },
+        pageSize: PageSize.Ten,
+        orderBy: GroupsOrderBy.Alphabetical,
+    });
+    console.log('getMemberGroups: fetchGroups res', res);
+    if (res.isErr()) {
+        return [];
+    }
+    return res.value.items;
+};
+
+export const getGroup = async (groupAddress: string): Promise<Group | null> => {
+    const client = await getClient();
+    const res = await fetchGroup(client, {
+        group: evmAddress(groupAddress),
+    });
+    console.log('getGroup: fetchGroup res', res);
+    if (res.isErr()) {
+        return null;
+    }
+    return res.value;
+};
+
+export const newGroup = async (metadataUri: string) => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await createGroup(client, { metadataUri })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
+    console.log('newGroup: createGroup res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const getFeed = async (feedAddress: string): Promise<Feed | null> => {
+    if (!feedAddress || feedAddress.length === 0) return null;
+    const client = await getClient();
+    const res = await fetchFeed(client, {
+        feed: evmAddress(feedAddress),
+    });
+    console.log('getFeed: res', res);
+    if (res.isErr()) {
+        return null;
+    }
+    return res.value;
+};
+
+export type EditAccountInput = {
+    bio: string | undefined;
+    coverPicture: string | undefined;
+    name: string | undefined;
+    picture: string | undefined;
+};
+
+export const editAccount = async (input: EditAccountInput) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const metadata = account({
+        name: input.name,
+        bio: input.bio,
+        picture: input.picture,
+        coverPicture: input.coverPicture,
+    });
+    const metadataUri = await uploadJson(metadata);
+
+    const res = await setAccountMetadata(client, { metadataUri })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
+
+    console.log('editAccount: setAccountMetadata res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const isUsernameAvailable = async (username: string): Promise<boolean> => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const res = await fetchUsername(client, {
+        username: {
+            localName: username,
+        },
+    });
+    console.log('isUsernameAvailable: fetchUsername res', res);
+
+    if (res.isErr()) {
+        return false;
+    }
+
+    return res.value === null;
+};
+
+export const createAccount = async (
+    username: string,
+    metadataUri: string,
+): Promise<Account | null> => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await createAccountWithUsername(client, {
+        username: {
+            localName: username,
+        },
+        metadataUri,
+    })
+        .andThen(handleOperationWith(signer))
+        .andThen(client?.waitForTransaction);
+    console.log('createAccount: createAccountWithUsername res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    const txHash = res.value;
+    const accountRes = await fetchAccount(client, { txHash });
+    console.log('createAccount: fetchAccount res', accountRes);
+    if (accountRes.isErr()) {
+        throw accountRes.error;
+    }
+
+    const account = accountRes.value;
+    if (!account) {
+        throw new Error('Unable to create account');
+    }
+
+    const switchRes = await client.switchAccount({
+        account: evmAddress(account.address),
+    });
+    console.log('createAccount: switchAccount res', accountRes);
+    if (switchRes.isErr()) {
+        throw switchRes.error;
+    }
+
+    return account;
+};
+
+export const depositGHO = async (value: BigDecimal) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await deposit(client, {
+        native: value,
+    }).andThen(handleOperationWith(signer));
+    console.log('depositGho: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const withdrawGHO = async (value: BigDecimal) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await withdraw(client, {
+        native: value,
+    }).andThen(handleOperationWith(signer));
+    console.log('withdrawGho: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const withdrawErc20 = async (tokenAddress: string, value: BigDecimal) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await withdraw(client, {
+        erc20: {
+            currency: evmAddress(tokenAddress),
+            value,
+        },
+    }).andThen(handleOperationWith(signer));
+    console.log('withdrawErc20: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const wrapGHO = async (value: BigDecimal) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await wrapTokens(client, {
+        amount: value,
+    }).andThen(handleOperationWith(signer));
+    console.log('wrapGho: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const unwrapGHO = async (value: BigDecimal) => {
+    const client = await getClient();
+    if (!client.isSessionClient()) throw new NoSessionError();
+
+    const signer = await getSigner();
+    if (!signer) throw new NoWalletError();
+
+    const res = await unwrapTokens(client, {
+        amount: value,
+    }).andThen(handleOperationWith(signer));
+    console.log('unwrapGho: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
+};
+
+export const getBalances = async () => {
+    const client = await getClient();
+    if (!client?.isSessionClient()) throw new NoSessionError();
+
+    const res = await fetchAccountBalances(client, {
+        includeNative: true,
+        tokens: SUPPORTED_CURRENCIES.filter((c) => {
+            return (
+                c.contract.chainId === Number(CURRENT_CHAIN_ID) &&
+                (c.symbol === `WGRASS` || c.symbol === `WGHO`)
+            );
+        }).map((c) => c.contract.address),
+    });
+    console.log('getBalances: res', res);
+
+    if (res.isErr()) {
+        throw res.error;
+    }
+
+    return res.value;
 };

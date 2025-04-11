@@ -3,114 +3,76 @@
     "name": "Hey",
     "baseUrl": "hey.xyz",
     "posts": "/posts/{$id}",
-    "profiles": "/u/{$handle}",
+    "accounts": "/u/{$username}",
+    "groups": "/g/{$address}",
     "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false,
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "fullUsername": false,
     "icon": "webp"
   },
   {
     "name": "BloomersTV",
     "baseUrl": "bloomers.tv",
     "posts": "/watch/{$id}",
-    "profiles": "/{$handle}",
+    "accounts": "/{$username}",
     "hexIdentifier": true,
-    "focus": [
-      "VIDEO"
-    ],
-    "fullHandle": false,
-    "icon": "png"
-  },
-  {
-    "name": "Buttrfly",
-    "baseUrl": "buttrfly.app",
-    "posts": "/post/{$id}",
-    "profiles": "/profile/@{$handle}",
-    "hexIdentifier": true,
-    "notifications": "/notifications",
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false,
+    "focus": ["VIDEO"],
+    "fullUsername": false,
     "icon": "png"
   },
   {
     "name": "Firefly",
     "baseUrl": "firefly.mask.social",
     "posts": "/post/lens/{$id}",
-    "profiles": "/profile/lens/{$handle}",
+    "accounts": "/profile/lens/{$username}",
     "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false,
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "fullUsername": false,
     "icon": "svg"
   },
   {
     "name": "Kaira",
     "baseUrl": "kaira.network",
     "posts": "/posts/{$id}",
-    "profiles": "/{$handle}",
+    "accounts": "/{$username}",
     "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false,
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "fullUsername": false,
     "icon": "svg"
   },
   {
     "name": "Orb",
     "baseUrl": "orb.club",
     "posts": "/p/{$id}",
-    "profiles": "/@{$handle}",
+    "accounts": "/@{$username}",
     "hexIdentifier": true,
-    "focus": [
-      "TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"
-    ],
-    "fullHandle": false,
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "fullUsername": false,
     "icon": "svg"
   },
   {
-    "name": "Orna",
-    "baseUrl": "orna.art",
-    "posts": "/c/{$id}",
-    "profiles": "/u/{$handle}",
-    "hexIdentifier": true,
-    "focus": [
-      "IMAGE", "VIDEO", "AUDIO"
-    ],
-    "fullHandle": false,
-    "icon": "svg"
-  },
-  {
-    "name": "Pinsta",
-    "baseUrl": "pinsta.xyz",
-    "posts": "/pin/{$id}",
-    "profiles": "/{$handle}",
+    "name": "Soclly",
+    "baseUrl": "app.soclly.com",
+    "posts": "/posts/{$id}",
+    "accounts": "/u/{$username}",
     "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": [
-      "IMAGE"
-    ],
-    "fullHandle": false,
-    "icon": "webp"
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "fullUsername": false,
+    "icon": "svg"
   },
   {
     "name": "Tape",
     "baseUrl": "tape.xyz",
     "posts": "/watch/{$id}",
-    "profiles": "/u/{$handle}",
+    "accounts": "/u/{$username}",
     "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": [
-      "VIDEO"
-    ],
-    "fullHandle": false,
+    "focus": ["VIDEO"],
+    "fullUsername": false,
     "icon": "svg"
   }
 ]

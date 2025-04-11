@@ -1,205 +1,114 @@
-import type {
-    AnyPublicationFragment,
-    ArticleMetadataV3Fragment,
-    AudioMetadataV3Fragment,
-    CheckingInMetadataV3Fragment,
-    CommentFragment,
-    EmbedMetadataV3Fragment,
-    EventMetadataV3Fragment,
-    ImageMetadataV3Fragment,
-    LinkMetadataV3Fragment,
-    LiveStreamMetadataV3Fragment,
-    MintMetadataV3Fragment,
-    NotificationFragment,
-    PostFragment,
-    QuoteFragment,
-    SpaceMetadataV3Fragment,
-    StoryMetadataV3Fragment,
-    TextOnlyMetadataV3Fragment,
-    ThreeDMetadataV3Fragment,
-    TransactionMetadataV3Fragment,
-    VideoMetadataV3Fragment,
-    PublicationMetadataFragment,
-    ProfileFragment,
-} from '@lens-protocol/client';
+import type { Account, Feed, Group, Post, ReferencedPost, Repost } from '@lens-protocol/client';
 import {
     type AnyMedia,
     type MediaAudio,
-    type MediaImage,
-    type MediaVideo,
-    type PublicationMetadata,
-    type EncryptableURI,
     MediaAudioMimeType,
+    type MediaImage,
     MediaImageMimeType,
+    type MediaVideo,
     MediaVideoMimeType,
-    PublicationSchemaId,
+    type PostMetadata,
+    PostMetadataSchemaId,
     ThreeDFormat,
+    type URI,
 } from '@lens-protocol/metadata';
 import { getAvatarFromAddress, truncateAddress } from './utils';
-import { getNodeUrlForHandle, LENS_NODES } from '../publications/lens-nodes';
+import { getNodeUrlForUsername, LENS_NODES } from '../lens/lens-nodes';
+import { GLOBAL_FEED_ADDRESS } from '@/lib/config';
+import { GROVE_GATEWAY_URL } from '@/lib/grove-service';
+
+export const GLOBAL_FEED: Feed = {
+    __typename: 'Feed',
+    address: GLOBAL_FEED_ADDRESS,
+    createdAt: '2025-02-08T21:21:39+00:00',
+    metadata: {
+        __typename: 'FeedMetadata',
+        id: 'global-feed',
+        name: 'Global feed',
+        description: 'Public feed that anyone can post to',
+    },
+    owner: '0x5FCD072a0BD58B6fa413031582E450FE724dba6D',
+    operations: null,
+    rules: {
+        __typename: 'FeedRules',
+        anyOf: [],
+        required: [],
+    },
+};
 
 export const hasMetadata = (
-    publication: AnyPublicationFragment
-): publication is
-    | (CommentFragment & { metadata: PublicationMetadataFragment })
-    | (PostFragment & { metadata: PublicationMetadataFragment })
-    | (QuoteFragment & { metadata: PublicationMetadataFragment }) => {
-    if ('metadata' in publication) {
-        return publication.metadata !== undefined;
-    }
-    return false;
-};
+    post: Post | Repost | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    'metadata' in post && post.metadata !== undefined;
 
-const isPublicationWithMetadata = (
-    publication: CommentFragment | PostFragment | QuoteFragment,
-    metadataType: string
-): boolean => publication.metadata.__typename === metadataType;
+const isPostWithMetadata = (post: Post | ReferencedPost, metadataType: string): boolean =>
+    post.metadata.__typename === metadataType;
 
-export const isArticlePublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: ArticleMetadataV3Fragment })
-    | (PostFragment & { metadata: ArticleMetadataV3Fragment })
-    | (QuoteFragment & { metadata: ArticleMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'ArticleMetadataV3');
+export const isArticlePost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'ArticleMetadata');
 
-export const isAudioPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: AudioMetadataV3Fragment })
-    | (PostFragment & { metadata: AudioMetadataV3Fragment })
-    | (QuoteFragment & { metadata: AudioMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'AudioMetadataV3');
+export const isAudioPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'AudioMetadata');
 
-export const isCheckingInPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: CheckingInMetadataV3Fragment })
-    | (PostFragment & { metadata: CheckingInMetadataV3Fragment })
-    | (QuoteFragment & { metadata: CheckingInMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'CheckingInMetadataV3');
+export const isImagePost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'ImageMetadata');
 
-export const isEmbedPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: EmbedMetadataV3Fragment })
-    | (PostFragment & { metadata: EmbedMetadataV3Fragment })
-    | (QuoteFragment & { metadata: EmbedMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'EmbedMetadataV3');
+export const isLinkPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'LinkMetadata');
 
-export const isEventPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: EventMetadataV3Fragment })
-    | (PostFragment & { metadata: EventMetadataV3Fragment })
-    | (QuoteFragment & { metadata: EventMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'EventMetadataV3');
+export const isLiveStreamPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'LiveStreamMetadata');
 
-export const isImagePublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: ImageMetadataV3Fragment })
-    | (PostFragment & { metadata: ImageMetadataV3Fragment })
-    | (QuoteFragment & { metadata: ImageMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'ImageMetadataV3');
+export const isMintPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'MintMetadata');
 
-export const isLinkPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: LinkMetadataV3Fragment })
-    | (PostFragment & { metadata: LinkMetadataV3Fragment })
-    | (QuoteFragment & { metadata: LinkMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'LinkMetadataV3');
+export const isSpacePost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'SpaceMetadata');
 
-export const isLiveStreamPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: LiveStreamMetadataV3Fragment })
-    | (PostFragment & { metadata: LiveStreamMetadataV3Fragment })
-    | (QuoteFragment & { metadata: LiveStreamMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'LiveStreamMetadataV3');
+export const isStoryPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'StoryMetadata');
 
-export const isMintPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: MintMetadataV3Fragment })
-    | (PostFragment & { metadata: MintMetadataV3Fragment })
-    | (QuoteFragment & { metadata: MintMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'MintMetadataV3');
+export const isTextOnlyPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'TextOnlyMetadata');
 
-export const isSpacePublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: SpaceMetadataV3Fragment })
-    | (PostFragment & { metadata: SpaceMetadataV3Fragment })
-    | (QuoteFragment & { metadata: SpaceMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'SpaceMetadataV3');
+export const isThreeDPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'ThreeDMetadata');
 
-export const isStoryPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: StoryMetadataV3Fragment })
-    | (PostFragment & { metadata: StoryMetadataV3Fragment })
-    | (QuoteFragment & { metadata: StoryMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'StoryMetadataV3');
+export const isTransactionPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'TransactionMetadata');
 
-export const isTextOnlyPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: TextOnlyMetadataV3Fragment })
-    | (PostFragment & { metadata: TextOnlyMetadataV3Fragment })
-    | (QuoteFragment & { metadata: TextOnlyMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'TextOnlyMetadataV3');
+export const isVideoPost = (
+    post: Post | ReferencedPost,
+): post is (Post & { metadata: PostMetadata }) | (ReferencedPost & { metadata: PostMetadata }) =>
+    isPostWithMetadata(post, 'VideoMetadata');
 
-export const isThreeDPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: ThreeDMetadataV3Fragment })
-    | (PostFragment & { metadata: ThreeDMetadataV3Fragment })
-    | (QuoteFragment & { metadata: ThreeDMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'ThreeDMetadataV3');
-
-export const isTransactionPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: TransactionMetadataV3Fragment })
-    | (PostFragment & { metadata: TransactionMetadataV3Fragment })
-    | (QuoteFragment & { metadata: TransactionMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'TransactionMetadataV3');
-
-export const isVideoPublication = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): publication is
-    | (CommentFragment & { metadata: VideoMetadataV3Fragment })
-    | (PostFragment & { metadata: VideoMetadataV3Fragment })
-    | (QuoteFragment & { metadata: VideoMetadataV3Fragment }) =>
-    isPublicationWithMetadata(publication, 'VideoMetadataV3');
-
-export const getMetadataContent = (
-    publication: CommentFragment | PostFragment | QuoteFragment
-): string | undefined => {
-    if (publication.metadata.__typename !== 'EventMetadataV3') {
-        return publication.metadata.content;
+export const getMetadataContent = (post: Post | ReferencedPost): string | undefined => {
+    if (post.metadata && 'content' in post.metadata) {
+        return post.metadata.content;
     }
 
-    return undefined;
-};
-
-export const getNotificationPublication = (
-    notification: NotificationFragment
-): CommentFragment | PostFragment | QuoteFragment | undefined => {
-    switch (notification.__typename) {
-        case 'CommentNotification':
-            return notification.comment;
-        case 'MentionNotification':
-            return notification.publication;
-        case 'MirrorNotification':
-            return notification.publication;
-        case 'QuoteNotification':
-            return notification.quote;
-        case 'ReactionNotification':
-            return notification.publication;
-    }
     return undefined;
 };
 
@@ -276,125 +185,151 @@ export const getThreeDMimeTypeString = (format: ThreeDFormat): string => {
 };
 
 export const isAudioMedia = (media: AnyMedia): media is MediaAudio =>
-    Object.values(MediaAudioMimeType).includes(
-        media.type as MediaAudioMimeType
-    );
+    Object.values(MediaAudioMimeType).includes(media.type as MediaAudioMimeType);
 
 export const isVideoMedia = (media: AnyMedia): media is MediaVideo =>
-    Object.values(MediaVideoMimeType).includes(
-        media.type as MediaVideoMimeType
-    );
+    Object.values(MediaVideoMimeType).includes(media.type as MediaVideoMimeType);
 
 export const isImageMedia = (media: AnyMedia): media is MediaImage =>
-    Object.values(MediaImageMimeType).includes(
-        media.type as MediaImageMimeType
-    );
+    Object.values(MediaImageMimeType).includes(media.type as MediaImageMimeType);
 
-export const getCoverFromMetadata = (
-    metadata: PublicationMetadata
-): EncryptableURI | undefined => {
+export const getCoverFromMetadata = (metadata: PostMetadata): URI | undefined => {
     switch (metadata.$schema) {
-        case PublicationSchemaId.AUDIO_LATEST:
+        case PostMetadataSchemaId.AUDIO_LATEST:
             return metadata.lens.audio.cover;
-        case PublicationSchemaId.VIDEO_LATEST:
+        case PostMetadataSchemaId.VIDEO_LATEST:
             return metadata.lens.video.cover;
     }
     return undefined;
 };
 
 /**
- * Format a handle from domain/local to local.domain
- * @param handle The handle to format
- * @deprecated Use formatHandleV2toLocalName instead
+ * Format a username from domain/local to local.domain
+ * @param username The username to format
+ * @deprecated Use formatUsernameV2toLocalName instead
  */
-export const formatHandleV2toV1 = (handle: string): string => {
-    const handleParts = handle.split('/');
-    if (handleParts.length === 2) {
-        return `${handleParts[1]}`;
+export const formatUsernameV2toV1 = (username: string): string => {
+    const usernameParts = username.split('/');
+    if (usernameParts.length === 2) {
+        return `${usernameParts[1]}.${usernameParts[0]}`;
     }
-    return handle;
+    return username;
 };
 
 /**
- * Format a handle from @domain/local to @local
- * @param handle The handle to format
+ * Format a username from @domain/local to @local
+ * @param username The username to format
  */
-export const formatHandleV2toLocalName = (handle: string): string => {
-    const handleParts = handle.split('/');
-    if (handleParts.length === 2) {
-        return `@${handleParts[1]}`;
+export const formatUsernameV2toLocalName = (username: string): string => {
+    const usernameParts = username.split('/');
+    if (usernameParts.length === 2) {
+        return `@${usernameParts[1]}`;
     }
-    return handle;
+    return username;
+};
+
+export const getAccountDisplayName = (account: Account): string => {
+    if (account.metadata?.name) {
+        return account.metadata.name;
+    } else if (account.username) {
+        return account.username.localName;
+    }
+    return truncateAddress(account.owner);
+};
+
+export const getAccountAvatar = (account: Account, thumbnail: boolean = true): string => {
+    let accountPicture = account.metadata?.picture;
+    if (accountPicture && thumbnail) {
+        accountPicture = accountPicture.replace('/lens/', '/lens/tr:h-80/');
+    }
+
+    return (accountPicture && parseUri(accountPicture)) ?? getAvatarFromAddress(account.owner);
+};
+
+export const getGroupIcon = (group: Group, thumbnail: boolean = true): string | null => {
+    let icon = group.metadata?.icon;
+    if (icon && thumbnail) {
+        icon = icon.replace('/lens/', '/lens/tr:h-80/');
+    }
+
+    return icon && parseUri(icon);
+};
+
+export const getAvatarForLensUsername = (username: string, size: number = 128): string => {
+    const formattedUsername = formatUsernameV2toV1(username);
+    return `https://cdn.stamp.fyi/avatar/${formattedUsername}?s=${size}`;
+};
+
+export const getAccountUrl = (account: Account): string | null => {
+    if (account.username) {
+        return getNodeUrlForUsername(LENS_NODES[0], account.username);
+    }
+    return null;
+};
+
+export const isCommentPost = (post: Post | ReferencedPost): boolean => {
+    return post && 'commentOn' in post && Boolean(post.commentOn?.id);
+};
+
+export const getCidFromIpfsUrl = (ipfsUrl: string): string => {
+    if (!ipfsUrl.startsWith('ipfs://')) throw new Error('IPFS urls must begin with ipfs://');
+    return ipfsUrl.replace('ipfs://', '').replace(/^\/+|\/+$/g, '');
+};
+
+export const getKeyFromLensUrl = (lensUrl: string): string => {
+    if (!lensUrl.startsWith('lens://')) throw new Error('Grove urls must begin with lens://');
+    return lensUrl.replace('lens://', '').replace(/^\/+|\/+$/g, '');
+};
+
+export const ipfsUrlToGatewayUrl = (
+    ipfsUrl: string | undefined,
+    gatewayDomain: string = 'https://ipfs.io/ipfs/',
+): string | undefined => {
+    if (!ipfsUrl || ipfsUrl.length === 0 || !ipfsUrl.startsWith('ipfs://')) return ipfsUrl;
+    const cid = getCidFromIpfsUrl(ipfsUrl);
+    const gatewayUrl = gatewayDomain + cid;
+    const path = ipfsUrl.split(cid)[1];
+    return path ? `${gatewayUrl}${path}` : gatewayUrl;
+};
+
+export const arweaveUrlToGatewayUrl = (
+    arUrl: string | undefined,
+    gatewayDomain: string = 'https://arweave.net/',
+): string | undefined => {
+    if (!arUrl || arUrl.length === 0 || !arUrl.startsWith('ar://')) return arUrl;
+    const txId = arUrl.replace('ar://', '').replace(/^\/+|\/+$/g, '');
+    return `${gatewayDomain}${txId}`;
+};
+
+export const lensUrlToGatewayUrl = (
+    lensUrl: string | undefined,
+    gatewayDomain: string = GROVE_GATEWAY_URL,
+): string | undefined => {
+    if (!lensUrl || lensUrl.length === 0 || !lensUrl.startsWith('lens://')) return lensUrl;
+    const key = getKeyFromLensUrl(lensUrl);
+    return `${gatewayDomain}${key}`;
 };
 
 /**
- * Format a handle from local.domain to domain/local
- * @param handle The handle to format
+ * Parse a URI and convert it to a gateway URL if it is an IPFS, Arweave, or Lens URL
+ * @param uri The URI to parse
  */
-export const formatHandleV1toV2 = (handle: string): string => {
-    // format the handle from paulburke.lens to lens/paulburke
-    const handleParts = handle.split('.');
-    if (handleParts.length === 2) {
-        return `${handleParts[1]}/${handleParts[0]}`;
-    }
-    return handle;
-};
+export const parseUri = (uri: string): string | undefined => {
+    if (!uri) return undefined;
 
-export const getProfileDisplayName = (profile: ProfileFragment): string => {
-    if (profile.metadata?.displayName) {
-        return profile.metadata.displayName;
-    } else if (profile.handle) {
-        return profile.handle.localName;
-    }
-    return truncateAddress(profile.ownedBy.address);
-};
-
-export const getProfileAvatar = (
-    profile: ProfileFragment,
-    thumbnail: boolean = true
-): string => {
-    let profileImage = undefined;
-
-    if (profile.handle && profile.metadata?.picture) {
-        if (profile.metadata?.picture?.__typename === 'ImageSet') {
-            if (
-                !profile.metadata.picture.thumbnail &&
-                !profile.metadata.picture.optimized
-            ) {
-                profileImage = profile.metadata.picture.raw.uri;
-            } else {
-                profileImage = thumbnail
-                    ? profile.metadata.picture.thumbnail?.uri
-                    : profile.metadata.picture.optimized?.uri;
-            }
-        } else {
-            if (
-                !profile.metadata.picture.image.thumbnail &&
-                !profile.metadata.picture.image.optimized
-            ) {
-                profileImage = profile.metadata.picture.image.raw.uri;
-            } else {
-                profileImage = thumbnail
-                    ? profile.metadata.picture.image.thumbnail?.uri
-                    : profile.metadata.picture.image.optimized?.uri;
-            }
+    try {
+        const { protocol } = new URL(uri);
+        switch (protocol) {
+            case 'ipfs:':
+                return ipfsUrlToGatewayUrl(uri);
+            case 'ar:':
+                return arweaveUrlToGatewayUrl(uri);
+            case 'lens:':
+                return lensUrlToGatewayUrl(uri);
+            default:
+                return uri;
         }
+    } catch {
+        return undefined;
     }
-
-    return profileImage ?? getAvatarFromAddress(profile.ownedBy.address);
-};
-
-export const getAvatarForLensHandle = (
-    handle: string,
-    size: number = 128
-): string => {
-    const formattedHandle = formatHandleV2toV1(handle);
-    return `https://cdn.stamp.fyi/avatar/${formattedHandle}?s=${size}`;
-};
-
-export const getProfileUrl = (profile: ProfileFragment): string => {
-    if (profile.handle) {
-        return getNodeUrlForHandle(LENS_NODES[0], profile.handle);
-    }
-    return `https://hey.xyz/p/${profile.id}`;
 };

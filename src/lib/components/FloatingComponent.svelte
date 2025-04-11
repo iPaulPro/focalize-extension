@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
     import {
         autoUpdate,
         computePosition,
@@ -26,11 +26,7 @@
         ...(placement !== undefined && {
             placement,
         }),
-        middleware: [
-            offset(6),
-            flip(),
-            shift({ padding: 5 }),
-        ],
+        middleware: [offset(6), flip(), shift({ padding: 5 })],
     };
 
     let component: HTMLElement;
@@ -46,12 +42,16 @@
         if (!activeAnchor) {
             activeAnchor = anchors[0];
         }
-        component.style.display = 'block';
+        if (component) {
+            component.style.display = 'block';
+        }
         isShown = true;
     };
 
     export const hide = () => {
-        component.style.display = '';
+        if (component) {
+            component.style.display = '';
+        }
         isShown = false;
         activeAnchor = undefined;
     };
@@ -63,7 +63,7 @@
     };
 
     const hideWithDelay = () => {
-        if (interactive && component.matches(':hover')) {
+        if (interactive && component?.matches(':hover')) {
             return;
         }
         hideTimeout = setTimeout(hide, hideDelay);
@@ -120,7 +120,7 @@
 </script>
 
 <Portal>
-    <div bind:this={component} class='hidden absolute w-max top-0 left-0 z-[9999]'>
+    <div bind:this={component} class="absolute left-0 top-0 z-[9999] hidden w-max">
         {#if isShown}
             <slot></slot>
         {/if}

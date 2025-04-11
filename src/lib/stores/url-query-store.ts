@@ -36,9 +36,7 @@ queryParams.set = (value: { [key: string]: string }) => {
 };
 
 const { update } = queryParams;
-queryParams.update = (
-    updater: (value: { [key: string]: string }) => { [key: string]: string }
-) => {
+queryParams.update = (updater: (value: { [key: string]: string }) => { [key: string]: string }) => {
     update((value) => {
         const newValue = updater(value);
         syncURLQueryParams(newValue);

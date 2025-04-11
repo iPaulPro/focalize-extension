@@ -3,7 +3,7 @@ const config = {
         './src/**/*.{html,js,svelte,ts}',
         require('path').join(
             require.resolve('@skeletonlabs/skeleton'),
-            '../**/*.{html,js,svelte,ts}'
+            '../**/*.{html,js,svelte,ts}',
         ),
     ],
 

@@ -1,11 +1,13 @@
 <script lang="ts">
-    import {truncate} from '../utils/utils';
+    import { truncate } from '../utils/utils';
     import DOMPurify from 'isomorphic-dompurify';
 
     export let text: string = '';
     export let maxLength: number | undefined = undefined;
-    export let classNames: string = 'leading-tight whitespace-pre-wrap break-keep ![overflow-wrap:anywhere]';
-    export let anchorClass: string = '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
+    export let classNames: string =
+        'leading-tight whitespace-pre-wrap break-keep ![overflow-wrap:anywhere]';
+    export let anchorClass: string =
+        '!no-underline !text-orange-600 dark:!text-orange-300 hover:!text-orange-400 dark:hover:!text-orange-500';
     export let linkify: boolean = true;
 
     let formattedText: string = '';
@@ -15,21 +17,27 @@
         if (!truncatedText?.length) return;
 
         // First, strip the domain part from the @mentions
-        truncatedText = truncatedText.replace(/@[a-zA-Z0-9_]+\/([a-zA-Z0-9_]+)/g, (_, localName) => {
-            return `@${localName}`;
-        });
+        truncatedText = truncatedText.replace(
+            /@[a-zA-Z0-9_]+\/([a-zA-Z0-9_]+)/g,
+            (_, localName) => {
+                return `@${localName}`;
+            },
+        );
 
         // Then, replace the links with anchors
-        let formatted = truncatedText.replace(/(?<!\w)(https?:\/\/)?(www\.)?((?:[^\s\W]+(\.[^\s\W]+)+)+[^\s]*)(?!\w)/gi, (_, __, ___, url) => {
-            let cleanUrl = url.replace(/[\.,;!?]+$/, '');
-            let punctuation = url.slice(cleanUrl.length);
-            return `<a href="https://${cleanUrl}" class="${anchorClass}" target="_blank">${cleanUrl}</a>${punctuation}`;
-        });
+        let formatted = truncatedText.replace(
+            /(?<!\w)(https?:\/\/)?(www\.)?((?:[^\s\W]+(\.[^\s\W]+)+)+[^\s]*)(?!\w)/gi,
+            (_, __, ___, url) => {
+                let cleanUrl = url.replace(/[.,;!?]+$/, '');
+                let punctuation = url.slice(cleanUrl.length);
+                return `<a href="https://${cleanUrl}" class="${anchorClass}" target="_blank">${cleanUrl}</a>${punctuation}`;
+            },
+        );
 
         if (linkify) {
             // Replace @mentions with anchors
-            formatted = formatted.replace(/@(\w+)/g, (_, handle) => {
-                return `<a href="https://hey.xyz/u/${handle}" class="${anchorClass}" target="_blank">@${handle}</a>`;
+            formatted = formatted.replace(/@(\w+)/g, (_, username) => {
+                return `<a href="https://share.lens.xyz/u/lens/${username}" class="${anchorClass}" target="_blank">@${username}</a>`;
             });
 
             // Replace hashtags with anchors
@@ -51,5 +59,6 @@
 </script>
 
 <div class={classNames}>
-  {@html formattedText}
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html formattedText}
 </div>

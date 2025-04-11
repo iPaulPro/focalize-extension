@@ -34,13 +34,11 @@ const adapters: { [key in StorageName]: AdapterDictionary } = {
     managed: {},
 };
 
-if (!chrome.storage) {
-    throw new Error(
-        'You are missing the `storage` permission in your manifest.'
-    );
+if (!browser.storage) {
+    throw new Error('You are missing the `storage` permission in your manifest.');
 }
 
-chrome.storage.onChanged.addListener((changes, area) => {
+browser.storage.onChanged.addListener((changes, area) => {
     // I'm not sure if or when this is the case, but rather be safe than sorry.
     if (area === 'session') return;
 
@@ -52,33 +50,27 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 /**
  * Creates a new {@link ChromeStorageStore} for a given key.
- * Data will be published to/read from chrome.storage.local.
+ * Data will be published to/read from browser.storage.local.
  * This is a {@link Writable} instance, and can be used in place of
  * svelte stores.
  * @param key The key to store in the `local` chrome storage area.
  * @param defaultValue The default value to set upon creation.
  * @throws If the `storage` permission is not present in your manifest.
  */
-export function chromeStorageLocal<T>(
-    key: string,
-    defaultValue?: T
-): ChromeStorageStore<T> {
+export function chromeStorageLocal<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
     return new ChromeStorageStore('local', key, defaultValue);
 }
 
 /**
  * Creates a new {@link ChromeStorageStore} for a given key.
- * Data will be published to/read from chrome.storage.sync.
+ * Data will be published to/read from browser.storage.sync.
  * This is a {@link Writable} instance, and can be used in place of
  * svelte stores.
  * @param key The key to store in the `sync` chrome storage area.
  * @param defaultValue The default value to set upon creation.
  * @throws If the `storage` permission is not present in your manifest.
  */
-export function chromeStorageSync<T>(
-    key: string,
-    defaultValue?: T
-): ChromeStorageStore<T> {
+export function chromeStorageSync<T>(key: string, defaultValue?: T): ChromeStorageStore<T> {
     return new ChromeStorageStore('sync', key, defaultValue);
 }
 
@@ -93,9 +85,9 @@ class ChromeStorageStore<T> implements Writable<T> {
     constructor(
         private area: StorageName,
         private key: string,
-        private defaultValue?: T
+        private defaultValue?: T,
     ) {
-        this.storageArea = chrome.storage[this.area];
+        this.storageArea = browser.storage[this.area];
         const dv = this.defaultValue;
         if (dv !== undefined) {
             this.storageArea.get(this.key, (item) => {
@@ -120,8 +112,8 @@ class ChromeStorageStore<T> implements Writable<T> {
     get(): Promise<T> {
         return new Promise((resolve, reject) => {
             this.storageArea.get(this.key, (item) => {
-                if (chrome.runtime.lastError) {
-                    reject(chrome.runtime.lastError);
+                if (browser.runtime.lastError) {
+                    reject(browser.runtime.lastError);
                 }
                 resolve(item[this.key]);
             });
@@ -130,8 +122,7 @@ class ChromeStorageStore<T> implements Writable<T> {
 
     subscribe(run: Subscriber<T>): Unsubscriber {
         const subscriberArray =
-            adapters[this.area][this.key] ??
-            (adapters[this.area][this.key] = []);
+            adapters[this.area][this.key] ?? (adapters[this.area][this.key] = []);
         subscriberArray.push(run);
         this.storageArea.get(this.key, (item) => {
             run(item[this.key]);

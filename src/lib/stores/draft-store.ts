@@ -2,10 +2,10 @@ import { v4 as uuid } from 'uuid';
 import { DateTime } from 'luxon';
 
 import { readable } from 'svelte/store';
-import type { PostDraft } from '../publications/PostDraft';
+import type { PostDraft } from '../types/PostDraft';
 
 const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
-    const storage = await chrome.storage.local.get('postDrafts');
+    const storage = await browser.storage.local.get('postDrafts');
     if (storage.postDrafts) {
         return new Map(JSON.parse(storage.postDrafts));
     }
@@ -13,22 +13,20 @@ const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
 };
 
 export const postDrafts = readable<Map<string, PostDraft>>(new Map(), (set) => {
-    const listener = (changes: {
-        [p: string]: chrome.storage.StorageChange;
-    }) => {
+    const listener = (changes: { [p: string]: chrome.storage.StorageChange }) => {
         if (changes.postDrafts) {
             set(new Map(JSON.parse(changes.postDrafts.newValue)));
         }
     };
 
-    chrome.storage.onChanged.addListener(listener);
+    browser.storage.onChanged.addListener(listener);
 
     getDrafts().then((drafts) => {
         if (drafts) set(drafts);
     });
 
     return () => {
-        chrome.storage.onChanged.removeListener(listener);
+        browser.storage.onChanged.removeListener(listener);
     };
 });
 
@@ -48,7 +46,7 @@ export const saveDraft = async (draft: PostDraft) => {
 
     drafts.set(draft.id, draft);
 
-    await chrome.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
+    await browser.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
 
     return draft;
 };
@@ -59,5 +57,5 @@ export const deleteDraft = async (id: string) => {
 
     drafts.delete(id);
 
-    await chrome.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
+    await browser.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
 };

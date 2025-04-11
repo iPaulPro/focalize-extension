@@ -1,70 +1,81 @@
-import showdown from 'showdown';
+import showdown, { type ShowdownExtension } from 'showdown';
 import * as cheerio from 'cheerio';
 import { fromEvent, Subject, takeUntil } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { DateTime } from 'luxon';
-import type { DecodedMessage } from '@xmtp/xmtp-js';
 
-import {
-    getPreference,
-    KEY_MESSAGES_UNREAD_TOPICS,
-    KEY_NOTIFICATIONS_TIMESTAMP,
-    KEY_USE_POPUP_COMPOSER,
-} from '../stores/preferences-store';
+import { getPreference, KEY_USE_POPUP_COMPOSER } from '../stores/preferences-store';
 import {
     getCached,
     KEY_ENS_NAME_MAP,
     KEY_NOTIFICATION_ITEMS_CACHE,
-    KEY_WINDOW_TOPIC_MAP,
+    KEY_NOTIFICATIONS_TIMESTAMP,
     saveToCache,
 } from '../stores/cache-store';
 import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
 
 import { getDefaultProvider } from '../evm/get-default-provider';
-import type { NotificationFragment } from '@lens-protocol/client';
-import { getEventTime } from '../notifications/lens-notifications';
+import type { Notification } from '@lens-protocol/client';
+import { getEventTime } from '../lens/lens-notifications';
+import { browser } from 'wxt/browser/chrome';
 
 export const POPUP_MIN_HEIGHT = 350;
 
-export const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const isOnToolbar = async (): Promise<boolean> => {
-    const settings = await chrome.action.getUserSettings();
+    const settings = await browser.action.getUserSettings();
     return settings.isOnToolbar;
 };
 
-export const getAvatarFromAddress = (
-    address: string,
-    size: number = 128
-): string => {
+export const getAvatarFromAddress = (address: string, size: number = 128): string => {
     return `https://cdn.stamp.fyi/avatar/${address}?s=${size}`;
 };
 
+const createShowdownMentionExtension = (): ShowdownExtension => ({
+    type: 'lang',
+    regex: /(?<=^|\s)@(\w+\/([\dA-Za-z]\w{2,25}))/,
+    replace: '[@$2](https://share.lens.xyz/u/$1)',
+});
+
+const createShowdownGroupExtension = (
+    groups: Map<string, string> | undefined,
+): ShowdownExtension => ({
+    type: 'lang',
+    regex: /#(0x[a-fA-F0-9]{40})/,
+    replace: (match: any, address: any) => {
+        if (groups && !(groups instanceof Map)) {
+            groups = new Map(Object.entries(groups));
+        }
+        const groupName = groups?.get(address);
+        return groupName ? `**#${groupName}**` : match;
+    },
+});
+
 export const htmlFromMarkdown = (
-    markdown: string | undefined
+    markdown: string | undefined,
+    cachedGroups?: Map<string, string>,
 ): string | undefined => {
     if (!markdown) return undefined;
+
     const converter = new showdown.Converter({
         simpleLineBreaks: true,
         simplifiedAutoLink: true,
         strikethrough: true,
+        openLinksInNewWindow: true,
+        extensions: [createShowdownMentionExtension, createShowdownGroupExtension(cachedGroups)],
     });
     return converter.makeHtml(markdown);
 };
 
-export const extractTextFromHtml = (
-    html: string | undefined
-): string | undefined => {
+export const extractTextFromHtml = (html: string | undefined): string | undefined => {
     if (!html) return undefined;
     const $ = cheerio.load(html);
     return $.text();
 };
 
-export const stripMarkdown = (
-    markdown: string | undefined
-): string | undefined => {
+export const stripMarkdown = (markdown: string | undefined): string | undefined => {
     if (!markdown) return undefined;
     const html = htmlFromMarkdown(markdown);
     return extractTextFromHtml(html);
@@ -72,28 +83,19 @@ export const stripMarkdown = (
 
 export const truncate = (
     str: string | null | undefined,
-    limit: number | undefined
+    limit: number | undefined,
 ): string | null | undefined => {
-    return !str || !limit || str.length <= limit
-        ? str
-        : str.slice(0, limit - 1) + '…';
+    return !str || !limit || str.length <= limit ? str : str.slice(0, limit - 1) + '…';
 };
 
-export const truncateAddress = (
-    address: string,
-    maxLength: number = 8
-): string => {
+export const truncateAddress = (address: string, maxLength: number = 8): string => {
     if (address.length <= maxLength) {
         return address;
     }
     const ellipsis = '…';
     const startLength = Math.ceil((maxLength + ellipsis.length) / 2) + 1;
     const endLength = Math.floor((maxLength + ellipsis.length) / 2);
-    return (
-        address.slice(0, startLength) +
-        ellipsis +
-        address.slice(address.length - endLength)
-    );
+    return address.slice(0, startLength) + ellipsis + address.slice(address.length - endLength);
 };
 
 export const launchComposerWindow = async (
@@ -105,21 +107,17 @@ export const launchComposerWindow = async (
         image?: string;
     },
     draftId?: string,
-    override: boolean = false
+    override: boolean = false,
 ) => {
     console.log('launchComposerWindow', tags);
-    const path = chrome.runtime.getURL('src/window/index.html');
+    const path = browser.runtime.getURL('/post.html');
     const url = new URL(path);
 
     if (tags) {
         if (tags.url) url.searchParams.append('url', tags.url);
-        if (tags.title)
-            url.searchParams.append('title', truncate(tags.title, 160) ?? '');
+        if (tags.title) url.searchParams.append('title', truncate(tags.title, 160) ?? '');
         if (tags.description)
-            url.searchParams.append(
-                'desc',
-                truncate(tags.description, 160) ?? ''
-            );
+            url.searchParams.append('desc', truncate(tags.description, 160) ?? '');
         if (tags.icon) url.searchParams.append('icon', tags.icon);
         if (tags.image) url.searchParams.append('image', tags.image);
     } else {
@@ -132,16 +130,12 @@ export const launchComposerWindow = async (
         }
     }
 
-    const usePopups = await getPreference<boolean>(
-        KEY_USE_POPUP_COMPOSER,
-        true
-    );
+    const usePopups = await getPreference<boolean>(KEY_USE_POPUP_COMPOSER, true);
 
     if (usePopups || override) {
-        const currentWindow = await chrome.windows.getCurrent();
+        const currentWindow = await browser.windows.getCurrent();
         const windowRight =
-            currentWindow.left !== undefined &&
-            currentWindow.width !== undefined
+            currentWindow.left !== undefined && currentWindow.width !== undefined
                 ? currentWindow.left + currentWindow.width
                 : 0;
         const options: chrome.windows.CreateData = {
@@ -157,9 +151,9 @@ export const launchComposerWindow = async (
         if (currentWindow.top) {
             options.top = currentWindow.top;
         }
-        await chrome.windows.create(options);
+        await browser.windows.create(options);
     } else {
-        await chrome.tabs.create({ url: url.toString() });
+        await browser.tabs.create({ url: url.toString() });
     }
 
     if (typeof window !== 'undefined') {
@@ -168,7 +162,7 @@ export const launchComposerWindow = async (
 };
 
 export const launchComposerTab = async (draftId?: string) => {
-    const path = chrome.runtime.getURL('src/window/index.html');
+    const path = browser.runtime.getURL('/post.html');
     const url = new URL(path);
     const searchParams: Record<string, string> = getSearchParams();
 
@@ -180,65 +174,8 @@ export const launchComposerTab = async (draftId?: string) => {
         url.searchParams.set('draft', draftId);
     }
 
-    await chrome.tabs.create({ url: url.toString() });
+    await browser.tabs.create({ url: url.toString() });
     window.close();
-};
-
-export const launchThreadWindow = async ({
-    topic,
-    address,
-}: { topic?: string; address?: string } = {}) => {
-    let url = chrome.runtime.getURL('src/popup/messaging/thread/index.html');
-    if (topic) {
-        url += '?topic=' + encodeURIComponent(topic);
-    } else if (address) {
-        url += '?address=' + encodeURIComponent(address);
-    }
-
-    if (topic) {
-        const storage = await chrome.storage.local.get(KEY_WINDOW_TOPIC_MAP);
-        const windowTopicMap = storage[KEY_WINDOW_TOPIC_MAP] ?? {};
-        const existingWindow = windowTopicMap[topic];
-        if (existingWindow) {
-            try {
-                await chrome.windows.update(existingWindow, { focused: true });
-                if (typeof window !== 'undefined') {
-                    window.close();
-                }
-                return;
-            } catch (e) {
-                delete windowTopicMap[topic];
-                await chrome.storage.local.set({
-                    [KEY_WINDOW_TOPIC_MAP]: windowTopicMap,
-                });
-            }
-        }
-    }
-
-    const currentWindow = await chrome.windows.getCurrent();
-    const windowRight =
-        currentWindow.left && currentWindow.width
-            ? currentWindow.left + currentWindow.width
-            : 0;
-    const options: chrome.windows.CreateData = {
-        url,
-        focused: true,
-        type: 'popup',
-        width: 400,
-        height: 600,
-    };
-    if (windowRight > 0) {
-        options.left = windowRight - 400;
-    }
-    if (currentWindow.top) {
-        options.top = currentWindow.top;
-    }
-
-    await chrome.windows.create(options);
-
-    if (typeof window !== 'undefined') {
-        window.close();
-    }
 };
 
 interface ScrollEndListenerOptions {
@@ -248,7 +185,7 @@ interface ScrollEndListenerOptions {
 
 export const scrollEndListener = (
     node: HTMLElement,
-    options: ScrollEndListenerOptions = {}
+    options: ScrollEndListenerOptions = {},
 ): { destroy: () => void } => {
     const { delay = 200, onScrollEnd } = options;
     const destroy = new Subject<void>();
@@ -274,16 +211,13 @@ export const hideOnScroll = (node: HTMLElement, parameters: any) => {
     const reversed = parameters.reversed ?? false;
 
     const handleScroll = () => {
-        const direction =
-            targetElement.scrollTop > lastScrollTop ? 'down' : 'up';
+        const direction = targetElement.scrollTop > lastScrollTop ? 'down' : 'up';
         lastScrollTop = targetElement.scrollTop;
 
         node.style.transition = 'transform 0.3s, opacity 0.3s';
 
         if (direction === 'down') {
-            node.style.transform = reversed
-                ? 'translateY(50%)'
-                : 'translateY(-50%)';
+            node.style.transform = reversed ? 'translateY(50%)' : 'translateY(-50%)';
             node.style.opacity = '0';
         } else {
             node.style.transform = reversed ? '' : 'translateY(0)';
@@ -318,29 +252,15 @@ export interface OpenGraphTags {
 
 export const getOpenGraphTags = (): OpenGraphTags => ({
     title:
-        document.head
-            .querySelector("meta[property='og:title']")
-            ?.getAttribute('content') ??
-        document.head
-            .querySelector("meta[name='twitter:title']")
-            ?.getAttribute('content'),
+        document.head.querySelector("meta[property='og:title']")?.getAttribute('content') ??
+        document.head.querySelector("meta[name='twitter:title']")?.getAttribute('content'),
     description:
-        document.head
-            .querySelector("meta[property='og:description']")
-            ?.getAttribute('content') ??
-        document.head
-            .querySelector("meta[name='description']")
-            ?.getAttribute('content') ??
-        document.head
-            .querySelector("meta[name='twitter:description']")
-            ?.getAttribute('content'),
+        document.head.querySelector("meta[property='og:description']")?.getAttribute('content') ??
+        document.head.querySelector("meta[name='description']")?.getAttribute('content') ??
+        document.head.querySelector("meta[name='twitter:description']")?.getAttribute('content'),
     image:
-        document.head
-            .querySelector("meta[property='og:image']")
-            ?.getAttribute('content') ??
-        document.head
-            .querySelector("meta[name='twitter:image']")
-            ?.getAttribute('content'),
+        document.head.querySelector("meta[property='og:image']")?.getAttribute('content') ??
+        document.head.querySelector("meta[name='twitter:image']")?.getAttribute('content'),
 });
 
 export const formatFollowerCount = (count: number): string => {
@@ -367,24 +287,14 @@ export const getSearchParamsMap = (search: string): Record<string, string> => {
     return result;
 };
 
-export const isToday = (
-    date: DateTime,
-    now: DateTime = DateTime.now()
-): boolean => {
+export const isToday = (date: DateTime, now: DateTime = DateTime.now()): boolean => {
     const startOfToday = now.startOf('day');
     const startOfTomorrow = startOfToday.plus({ days: 1 });
     return date >= startOfToday && date < startOfTomorrow;
 };
 
-export const isPeerMessage = (message: DecodedMessage): boolean => {
-    return message.senderAddress === message.conversation.peerAddress;
-};
-
-export const getEnsFromAddress = async (
-    address: string
-): Promise<string | undefined> => {
-    const ensNameMap =
-        (await getCached<{ [id: string]: string }>(KEY_ENS_NAME_MAP)) ?? {};
+export const getEnsFromAddress = async (address: string): Promise<string | undefined> => {
+    const ensNameMap = (await getCached<{ [id: string]: string }>(KEY_ENS_NAME_MAP)) ?? {};
 
     if (ensNameMap[address]) {
         return ensNameMap[address];
@@ -401,9 +311,7 @@ export const getEnsFromAddress = async (
     return ens ?? undefined;
 };
 
-export const getAddressFromEns = async (
-    ens: string
-): Promise<string | null> => {
+export const getAddressFromEns = async (ens: string): Promise<string | null> => {
     const provider = getDefaultProvider();
     return provider.resolveName(ens);
 };
@@ -412,37 +320,29 @@ export const buildXmtpStorageKey = (address: string): string => {
     return `xmtp-${address}`;
 };
 
-export const getXmtpKeys = async (
-    address: string
-): Promise<Uint8Array | null> => {
+export const getXmtpKeys = async (address: string): Promise<Uint8Array | null> => {
     const storageKey = buildXmtpStorageKey(address);
-    const storage = await chrome.storage.local.get(storageKey);
+    const storage = await browser.storage.local.get(storageKey);
     const savedKeys = storage[storageKey];
     return savedKeys ? Buffer.from(savedKeys, 'binary') : null;
 };
 
-export const getNotificationCountSinceLastOpened = async (
-    timestamp?: string
-): Promise<number> => {
+export const getNotificationCountSinceLastOpened = async (timestamp?: string): Promise<number> => {
     if (!timestamp) {
-        const syncStorage = await chrome.storage.sync.get([
-            KEY_NOTIFICATIONS_TIMESTAMP,
-        ]);
+        const syncStorage = await browser.storage.sync.get([KEY_NOTIFICATIONS_TIMESTAMP]);
         timestamp = syncStorage[KEY_NOTIFICATIONS_TIMESTAMP];
     }
     const lastUpdateDate = timestamp ? DateTime.fromISO(timestamp) : null;
 
     if (!lastUpdateDate) return 0;
 
-    const storage = await chrome.storage.local.get([
-        KEY_NOTIFICATION_ITEMS_CACHE,
-    ]);
+    const storage = await browser.storage.local.get([KEY_NOTIFICATION_ITEMS_CACHE]);
     const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
     if (!notifications || notifications.length === 0) {
         return 0;
     }
 
-    const newNotifications = notifications.filter((n: NotificationFragment) => {
+    const newNotifications = notifications.filter((n: Notification) => {
         const eventTime = getEventTime(n);
         if (!eventTime) return false;
         return DateTime.fromISO(eventTime) > lastUpdateDate;
@@ -452,27 +352,20 @@ export const getNotificationCountSinceLastOpened = async (
 };
 
 export const updateBadge = async () => {
-    const storage = await chrome.storage.sync.get([KEY_MESSAGES_UNREAD_TOPICS]);
-    const newNotifications: number =
-        await getNotificationCountSinceLastOpened();
-    const newMessages: number =
-        storage[KEY_MESSAGES_UNREAD_TOPICS]?.length ?? 0;
+    const newNotifications: number = await getNotificationCountSinceLastOpened();
 
-    const count = newNotifications + newMessages;
-    const countString: string = count > 99 ? '99+' : `${count}`;
+    const countString: string = newNotifications > 99 ? '99+' : `${newNotifications}`;
     const title =
-        count > 0
-            ? `${countString} new notifications and unread messages`
-            : 'Focalize';
+        newNotifications > 0 ? `${countString} new notifications` : 'Focalize | Share on Lens';
 
-    await chrome.action.setBadgeBackgroundColor({ color: '#6B2300' });
-    await chrome.action.setBadgeText({ text: count > 0 ? countString : '' });
-    await chrome.action.setTitle({ title });
+    await browser.action.setBadgeBackgroundColor({ color: '#6B2300' });
+    await browser.action.setBadgeText({ text: newNotifications > 0 ? countString : '' });
+    await browser.action.setTitle({ title });
 };
 
 export const clearBadge = async () => {
-    await chrome.action.setBadgeText({ text: '' });
-    await chrome.action.setTitle({ title: 'Focalize' });
+    await browser.action.setBadgeText({ text: '' });
+    await browser.action.setTitle({ title: 'Focalize | Share on Lens' });
 };
 
 export const getSearchParams = (): Record<string, string> => {
@@ -481,13 +374,11 @@ export const getSearchParams = (): Record<string, string> => {
 };
 
 export const isPopup = async (): Promise<boolean> => {
-    const window = await chrome.windows.getCurrent();
+    const window = await browser.windows.getCurrent();
     return window.type === 'popup';
 };
 
-export const resizeTextarea = async (
-    textarea: HTMLTextAreaElement | undefined
-) => {
+export const resizeTextarea = async (textarea: HTMLTextAreaElement | undefined) => {
     if (!textarea) return;
 
     await tick();
@@ -509,22 +400,15 @@ export const resizeTextarea = async (
     }
 };
 
-const ethereumAddressTest = z
-    .string()
-    .refine((value) => /^0x[a-fA-F0-9]{40}$/.test(value), {
-        message: 'Invalid Ethereum address',
-    });
+const ethereumAddressTest = z.string().refine((value) => /^0x[a-fA-F0-9]{40}$/.test(value), {
+    message: 'Invalid Ethereum address',
+});
 
-const domainNameTest = z
-    .string()
-    .refine((value) => /\.(lens|eth|test)$/.test(value), {
-        message: 'Invalid username',
-    });
+const domainNameTest = z.string().refine((value) => /\.(lens|eth|test)$/.test(value), {
+    message: 'Invalid username',
+});
 
-export const addressOrDomainNameType: ZodType = z.union([
-    ethereumAddressTest,
-    domainNameTest,
-]);
+export const addressOrDomainNameType: ZodType = z.union([ethereumAddressTest, domainNameTest]);
 
 export const validateRecipient = (node: HTMLElement, parameters: any) => {
     const onValidate: () => void = parameters.onValidate;
@@ -552,8 +436,7 @@ export const validateRecipient = (node: HTMLElement, parameters: any) => {
     };
 };
 
-export const isEthereumAddress = (address: string): boolean =>
-    /^0x[a-fA-F0-9]{40}$/.test(address);
+export const isEthereumAddress = (address: string): boolean => /^0x[a-fA-F0-9]{40}$/.test(address);
 
 export const formatCryptoValue = (num: number): string => {
     const formattedNum = num.toFixed(8);

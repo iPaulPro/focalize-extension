@@ -1,10 +1,9 @@
-export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+export const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 
 export const IMAGE_TYPES = [
     'image/gif',
     'image/jpeg',
     'image/png',
-    'image/svg+xml',
     'image/tiff',
     'image/webp',
     'image/x-ms-bmp',
@@ -12,13 +11,7 @@ export const IMAGE_TYPES = [
 
 export const AUDIO_TYPES = ['audio/wav', 'audio/mpeg', 'audio/ogg'];
 
-export const VIDEO_TYPES = [
-    'video/ogg',
-    'video/ogv',
-    'video/mp4',
-    'video/webm',
-    'video/x-m4v',
-];
+export const VIDEO_TYPES = ['video/ogg', 'video/ogv', 'video/mp4', 'video/webm', 'video/x-m4v'];
 
 export const THREE_D_TYPES = [
     'model/gltf+json',
@@ -50,9 +43,5 @@ export const isThreeDFile = (file: File): boolean => {
 export const isUnsupportedTreeDFile = (file: File): boolean => {
     const fileName = file.name;
     const fileExtension = fileName.split('.').pop()?.toLowerCase();
-    return (
-        fileExtension === 'obj' ||
-        fileExtension === 'fbx' ||
-        fileExtension === 'vrm'
-    );
+    return fileExtension === 'obj' || fileExtension === 'fbx' || fileExtension === 'vrm';
 };
