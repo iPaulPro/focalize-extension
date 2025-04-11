@@ -1,6 +1,4 @@
 <script lang="ts">
-    //@ts-ignore
-    import tippy from 'sveltejs-tippy';
     import {darkMode, messagesUnreadCount, unreadNotificationsCount} from '../lib/stores/preferences-store';
     import {storePopup, TabGroup, Tab} from '@skeletonlabs/skeleton';
     import NotificationsList from './notifications/NotificationsList.svelte';
@@ -18,6 +16,7 @@
     import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
     import CurrentUserAvatar from '../lib/components/CurrentUserAvatar.svelte';
     import FloatingComponent from '../lib/components/FloatingComponent.svelte';
+    import { showV3Prompt } from "../lib/stores/cache-store";
 
     let notificationsList: NotificationsList;
     let conversationsList: ThreadList;
@@ -178,6 +177,23 @@
 </div>
 
 <Toaster/>
+
+{#if $showV3Prompt}
+    <div class="absolute top-0 left-0 right-0 h-24 p-8 text-center text-white flex justify-center items-center
+       bg-red-700 dark:bg-red-400 font-semibold text-2xl z-[100]">
+        New version for Lens V3 coming soon!
+        <div class="absolute inset-y-0 right-0">
+            <button type="button" on:click={() => $showV3Prompt = false}
+                    class="text-white opacity-80 hover:opacity-100 p-2 rounded-full">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+{/if}
 
 <FloatingComponent anchors={[createButton]} interactive={true} hideDelay={200} showDelay={0}>
     <ul class='w-48 shadow-xl bg-white dark:bg-gray-700 rounded-xl text-black dark:text-white overflow-hidden'>

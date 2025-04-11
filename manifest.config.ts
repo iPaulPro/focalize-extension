@@ -7,13 +7,11 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 export default defineManifest((env) => ({
     manifest_version: 3,
-    name: `Focalize -  ${
-        isProduction ? 'DApp for Lens Protocol (Beta)' : 'Debug'
-    }`,
+    name: `Focalize - ${isProduction ? 'Extension for Lens' : 'Deprecated'}`,
     short_name: 'Focalize',
     version,
-    version_name: '2.0.0-beta.19',
-    description: 'Social app built on Lens Protocol with DMs via XMTP',
+    version_name: '2.0.0',
+    description: 'Social app built on Lens Chain and Protocol',
     permissions: [
         'activeTab',
         'scripting',

@@ -146,3 +146,9 @@ export const KEY_WALLET_CONNECTION = 'walletConnection';
 export const walletConnection: Writable<WalletConnection> = chromeStorageSync(
     KEY_WALLET_CONNECTION
 );
+
+export const KEY_SHOW_V3_PROMPT = 'showV3Prompt';
+export const showV3Prompt: Writable<boolean> = chromeStorageLocal(
+    KEY_SHOW_V3_PROMPT,
+    true
+);
