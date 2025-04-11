@@ -13,6 +13,7 @@
     "build:staging": "wxt build --mode staging",
     "build:firefox": "wxt build -b firefox",
     "zip": "wxt zip",
+    "zip:staging": "wxt zip --mode staging",
     "zip:firefox": "wxt zip -b firefox",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "postinstall": "wxt prepare",
