@@ -160,7 +160,7 @@
             const nextNotifications = await getNextNotifications();
             cursor = nextNotifications.cursor;
 
-            if (!nextNotifications.notifications?.length || !nextNotifications.cursor) {
+            if (!nextNotifications.notifications?.length) {
                 loaded();
                 complete();
                 return;
