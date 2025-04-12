@@ -644,7 +644,7 @@
 </script>
 
 <main
-    class="min-h-full w-full bg-neutral-50 dark:bg-gray-950 {isPopupWindow ? 'compact' : ''}"
+    class="min-h-full w-full bg-neutral-50 dark:bg-gray-900 {isPopupWindow ? 'compact' : ''}"
     on:drop|preventDefault|stopPropagation={onFileDropped}
     on:dragenter|preventDefault|stopPropagation={() => setFileIsDragged(true)}
     on:dragover|preventDefault|stopPropagation={() => setFileIsDragged(true)}
@@ -663,7 +663,7 @@
                 class="container mx-auto min-h-full max-w-screen-md {isPopupWindow ? '' : 'pt-6'}"
             >
                 <div
-                    class="min-h-[12rem] border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900
+                    class="min-h-[12rem] border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800
                         dark:text-gray-100 {isSubmittingPost ? 'opacity-60' : ''} {isPopupWindow
                         ? ' rounded-b-xl px-2 pb-1 pt-2'
                         : 'mx-2 rounded-xl px-4 pb-2 pt-2'}"
@@ -831,7 +831,7 @@
 
                                     <div class="flex flex-col truncate">
                                         <div
-                                            class="flex items-center gap-1 px-3 pb-0.5 font-semibold text-orange-600 dark:text-orange-300"
+                                            class="flex items-center gap-1 px-3 pb-0.5 font-semibold text-orange-600 dark:text-orange-200"
                                         >
                                             <svg
                                                 class="h-4 w-4"
@@ -988,7 +988,7 @@
                             type="button"
                             on:click={showCollectSettingsDialog}
                             class="flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold
-                            text-orange-700 hover:bg-gray-100 dark:text-orange-300 dark:hover:bg-gray-600"
+                            text-orange-700 hover:bg-gray-100 dark:text-orange-200 dark:hover:bg-gray-600"
                         >
                             <svg
                                 class="inline h-5 w-5"
@@ -1056,7 +1056,7 @@
                                 class="dark:!hover:bg-gray-600 dark:!hover:text-gray-100 !h-fit !w-fit !rounded-full
                                     !border-none !bg-white !text-sm !text-gray-800 !shadow !ring-0
                                     hover:!bg-gray-100 focus:!border-none focus:!outline-none focus:!ring-0
-                                    dark:!bg-gray-900 dark:!text-gray-300"
+                                    dark:!bg-gray-800 dark:!text-gray-300"
                             >
                                 <div slot="prepend" class="pr-1">
                                     <svg
@@ -1115,7 +1115,7 @@
                             class="dark:!hover:bg-gray-600 dark:!hover:text-gray-100 !h-fit !w-fit !rounded-full
                                 !border-none !bg-white !text-sm !text-gray-800 !shadow !ring-0
                                 hover:!bg-gray-100 focus:!border-none focus:!outline-none focus:!ring-0
-                                dark:!bg-gray-900 dark:!text-gray-300"
+                                dark:!bg-gray-800 dark:!text-gray-300"
                         >
                             <div slot="prepend" class="pr-1">
                                 <svg

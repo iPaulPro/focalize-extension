@@ -139,7 +139,7 @@
                         </div>
                     {/if}
 
-                    <div class="font-medium text-orange-700 dark:text-orange-300">
+                    <div class="font-medium text-orange-700 dark:text-orange-200">
                         &#64;{$currentUser.username}
                     </div>
 

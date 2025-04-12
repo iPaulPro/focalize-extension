@@ -236,7 +236,7 @@
     }
 
     .is-active {
-        @apply bg-gray-100 text-orange-700 dark:bg-gray-800 dark:text-orange-300;
+        @apply bg-gray-100 text-orange-700 dark:bg-gray-800 dark:text-orange-200;
     }
 
     .command-icon {

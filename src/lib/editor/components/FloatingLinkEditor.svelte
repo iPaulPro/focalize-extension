@@ -120,7 +120,7 @@
                 href={linkHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="flex-grow truncate text-orange-700 dark:text-orange-300"
+                class="flex-grow truncate text-orange-700 dark:text-orange-200"
             >
                 {linkUrl}
             </a>

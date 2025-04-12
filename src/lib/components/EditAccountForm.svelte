@@ -254,7 +254,7 @@
                 {#if $currentUser}
                     <div class="flex max-w-screen-md flex-col gap-12 pb-4">
                         <div class="flex flex-col gap-1">
-                            <label for="account" class="px-4 text-lg opacity-65">
+                            <label for="account" class="px-4 text-base opacity-65">
                                 Account Address
                             </label>
                             <div class="relative">
@@ -298,7 +298,7 @@
                     </div>
                     <div class="flex max-w-screen-md flex-col gap-12 pb-4">
                         <label for="username" class="flex flex-col gap-1">
-                            <div class="px-4 text-lg opacity-65">Username</div>
+                            <div class="px-4 text-base opacity-65">Username</div>
                             <input
                                 value={$currentUser.username
                                     ? '@' + $currentUser.username
@@ -315,7 +315,7 @@
 
                 <div class="flex max-w-screen-md flex-col gap-12 pb-4">
                     <label for="name" class="flex flex-col gap-1">
-                        <div class="px-4 text-lg opacity-65">Name</div>
+                        <div class="px-4 text-base opacity-65">Name</div>
                         <input
                             bind:value={$formData.name}
                             type="text"
@@ -329,7 +329,7 @@
 
                 <div class="flex max-w-screen-md flex-col gap-12 pb-4">
                     <label for="bio" class="flex flex-col gap-1">
-                        <div class="px-4 text-lg opacity-65">Bio</div>
+                        <div class="px-4 text-base opacity-65">Bio</div>
                         <textarea
                             bind:value={$formData.bio}
                             id="bio"
@@ -373,9 +373,11 @@
 </form>
 
 <style>
-    input,
+    input {
+        @apply px-4 py-2 text-lg;
+    }
     textarea {
-        @apply px-4 py-3 text-xl;
+        @apply px-4 py-3 text-lg;
     }
 
     input,
