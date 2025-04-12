@@ -109,3 +109,9 @@ export const groupMap: Writable<{ [address: string]: string }> = chromeStorageLo
     KEY_GROUPS_CACHE,
     {},
 );
+
+export const KEY_NOTIFICATIONS_ACTIVE_FILTER = 'notificationsActiveFilter';
+export const notificationsActiveFilter: Writable<number> = chromeStorageLocal(
+    KEY_NOTIFICATIONS_ACTIVE_FILTER,
+    0,
+);

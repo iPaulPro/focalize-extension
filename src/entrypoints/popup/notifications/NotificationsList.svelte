@@ -5,6 +5,12 @@
         getNextNotifications,
         isBatchedNotification,
         getNotificationIdentifier,
+        isActionNotification,
+        isMentionNotification,
+        isCommentNotification,
+        isReactionNotification,
+        isGroupNotification,
+        isFollowNotification,
     } from '@/lib/lens/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import NotificationItem from './NotificationItem.svelte';
@@ -16,6 +22,7 @@
         notificationsScrollTop,
         notificationsTimestamp,
         KEY_NOTIFICATIONS_TIMESTAMP,
+        notificationsActiveFilter,
     } from '@/lib/stores/cache-store';
     import { get } from '@/lib/stores/chrome-storage-store';
     import { onMount, tick } from 'svelte';
@@ -27,17 +34,29 @@
         scrollElement.scrollTop = 0;
     };
 
+    enum NotificationFilter {
+        All,
+        Actions,
+        Comments,
+        Follows,
+        Groups,
+        Likes,
+        Mentions,
+    }
+
     let lastUpdate: DateTime | undefined;
 
     let notifications: Notification[] = [];
+    let unfilteredNotifications: Notification[] = [];
     let newNotifications: Notification[] = [];
     let cursor: any = null;
     let infiniteId = 0;
     let listElement: HTMLUListElement;
     let scrollElement: HTMLElement;
+    let tabContainerElement: HTMLElement;
 
     const reload = () => {
-        notifications = [];
+        unfilteredNotifications = [];
         cursor = null;
         infiniteId++;
     };
@@ -49,7 +68,7 @@
 
     const addNewNotifications = async () => {
         if (newNotifications.length) {
-            notifications = [...newNotifications, ...notifications];
+            unfilteredNotifications = [...newNotifications, ...unfilteredNotifications];
         }
 
         newNotifications = [];
@@ -120,6 +139,7 @@
         const firstNotification = findFirstVisibleListItem();
         const eventTime = getEventTime(firstNotification);
         if (
+            $notificationsActiveFilter === NotificationFilter.All &&
             firstNotification &&
             $notificationsTimestamp &&
             eventTime &&
@@ -138,9 +158,9 @@
             if (!cursor) {
                 const cachedNotifications = await get(notificationsCache);
                 if (cachedNotifications?.length) {
-                    notifications = cachedNotifications;
+                    unfilteredNotifications = cachedNotifications;
                     loaded();
-                    console.log('infiniteHandler: using cache');
+                    console.log('infiniteHandler: using cache, size=', cachedNotifications.length);
 
                     const pageInfo = await get(notificationPageInfoCache);
                     cursor = pageInfo.next;
@@ -164,7 +184,10 @@
                 return;
             }
 
-            notifications = [...notifications, ...nextNotifications.notifications];
+            unfilteredNotifications = [
+                ...unfilteredNotifications,
+                ...nextNotifications.notifications,
+            ];
             loaded();
 
             if (!cursor) {
@@ -179,6 +202,72 @@
     onMount(async () => {
         lastUpdate = await getLastNotificationUpdateDate();
     });
+
+    $: if (unfilteredNotifications) {
+        switch ($notificationsActiveFilter) {
+            case NotificationFilter.Actions:
+                notifications = unfilteredNotifications.filter(isActionNotification);
+                break;
+            case NotificationFilter.Mentions:
+                notifications = unfilteredNotifications.filter(isMentionNotification);
+                break;
+            case NotificationFilter.Comments:
+                notifications = unfilteredNotifications.filter(isCommentNotification);
+                break;
+            case NotificationFilter.Likes:
+                notifications = unfilteredNotifications.filter(isReactionNotification);
+                break;
+            case NotificationFilter.Groups:
+                notifications = unfilteredNotifications.filter(isGroupNotification);
+                break;
+            case NotificationFilter.Follows:
+                notifications = unfilteredNotifications.filter(isFollowNotification);
+                break;
+            case NotificationFilter.All:
+                notifications = unfilteredNotifications;
+                break;
+        }
+    }
+
+    const centerActiveTab = () => {
+        if (tabContainerElement) {
+            const activeTab = tabContainerElement.children.item(
+                $notificationsActiveFilter.valueOf(),
+            );
+            if (activeTab) {
+                const containerWidth = tabContainerElement.clientWidth;
+                const tabWidth = activeTab.clientWidth;
+                const tabOffset =
+                    activeTab.getBoundingClientRect().left -
+                    tabContainerElement.getBoundingClientRect().left;
+
+                if (activeTab === tabContainerElement.lastElementChild) {
+                    // If the last item is clicked, scroll it fully into view
+                    tabContainerElement.scrollTo({
+                        left: tabContainerElement.scrollWidth - containerWidth,
+                        behavior: 'smooth',
+                    });
+                } else if (tabOffset < 0 || tabOffset + tabWidth > containerWidth) {
+                    let scrollPosition = tabOffset - containerWidth / 2 + tabWidth / 2;
+
+                    // Ensure the scroll position doesn't exceed the container's scrollable bounds
+                    scrollPosition = Math.max(
+                        0,
+                        Math.min(scrollPosition, tabContainerElement.scrollWidth - containerWidth),
+                    );
+
+                    tabContainerElement.scrollTo({
+                        left: scrollPosition,
+                        behavior: 'smooth',
+                    });
+                }
+            }
+        }
+    };
+
+    $: if ($notificationsActiveFilter !== undefined) {
+        centerActiveTab();
+    }
 </script>
 
 <div
@@ -188,8 +277,70 @@
 >
     <ul
         bind:this={listElement}
-        class="z-0 h-fit w-full divide-y divide-gray-200 bg-gray-100 dark:divide-gray-700 dark:bg-gray-800"
+        class="z-0 h-full w-full divide-y divide-gray-200 bg-gray-100 dark:divide-gray-700 dark:bg-gray-800"
     >
+        <div
+            bind:this={tabContainerElement}
+            class="no-scrollbar flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto bg-white px-4 py-2 dark:bg-gray-900"
+        >
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.All)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.All}
+            >
+                All
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Actions)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Actions}
+            >
+                Actions
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Comments)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Comments}
+            >
+                Comments
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Follows)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Follows}
+            >
+                Follows
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Groups)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Groups}
+            >
+                Groups
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Likes)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Likes}
+            >
+                Likes
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Mentions)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Mentions}
+            >
+                Mentions
+            </button>
+        </div>
+
         {#each notifications as notification (getNotificationIdentifier(notification))}
             <li>
                 {#if isBatchedNotification(notification)}
@@ -201,7 +352,11 @@
         {/each}
 
         <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
-            <div slot="noMore"></div>
+            <div slot="noMore" class="flex h-full items-center justify-center">
+                {#if notifications.length === 0}
+                    No notifications
+                {/if}
+            </div>
 
             <div
                 slot="noResults"
@@ -253,3 +408,12 @@
         </button>
     </div>
 {/if}
+
+<style>
+    .filter-tab {
+        @apply rounded-full px-4 py-1 text-sm font-medium text-gray-500 hover:bg-gray-200 active:bg-gray-300 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600;
+    }
+    .filter-tab.active {
+        @apply border border-orange-200 bg-orange-50 text-gray-900 dark:border-orange-700 dark:bg-orange-800 dark:text-gray-100 dark:active:bg-gray-600;
+    }
+</style>
