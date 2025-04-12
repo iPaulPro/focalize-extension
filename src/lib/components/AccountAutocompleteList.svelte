@@ -33,36 +33,39 @@
     }
 </script>
 
-<ul class="mentions flex flex-col">
-    {#each items as account, i (account.address)}
-        <li
-            class="flex cursor-pointer flex-row overflow-hidden hover:bg-gray-100 dark:hover:bg-gray-600 {i ===
-            selectedIndex
-                ? 'highlight'
-                : ''}"
-            on:click={() => selectItem(i)}
-        >
-            <div class="flex flex-1 items-center overflow-hidden px-1">
-                <div class="mr-3 flex h-10 w-10 flex-col items-center justify-center">
-                    <img
-                        class="mx-auto h-10 w-10 rounded-full object-cover"
-                        alt={`${account.username}'s avatar`}
-                        src={getAccountAvatar(account)}
-                    />
-                </div>
-                <div class="mr-8 flex-1 overflow-hidden pl-1">
-                    <div class="truncate text-base font-medium text-black dark:text-white">
-                        {account.metadata?.name ??
-                            (account.username?.localName && `@${account.username?.localName}`) ??
-                            truncateAddress(account.address)}
+<div class="no-scrollbar h-full max-h-72 overflow-y-auto">
+    <ul class="mentions flex flex-col">
+        {#each items as account, i (account.address)}
+            <li
+                class="flex cursor-pointer flex-row overflow-hidden hover:bg-gray-100 dark:hover:bg-gray-800 {i ===
+                selectedIndex
+                    ? 'bg-gray-200 dark:bg-gray-900'
+                    : ''}"
+                on:click={() => selectItem(i)}
+            >
+                <div class="flex flex-1 items-center overflow-hidden px-1">
+                    <div class="mr-3 flex h-10 w-10 flex-col items-center justify-center">
+                        <img
+                            class="mx-auto h-10 w-10 rounded-full object-cover"
+                            alt={`${account.username}'s avatar`}
+                            src={getAccountAvatar(account)}
+                        />
                     </div>
-                    <div class="truncate text-sm text-gray-600 dark:text-gray-200">
-                        {account.metadata?.name && account.username
-                            ? formatUsernameV2toLocalName(account.username.value)
-                            : ''}
+                    <div class="mr-8 flex-1 overflow-hidden pl-1">
+                        <div class="truncate text-base font-medium text-black dark:text-white">
+                            {account.metadata?.name ??
+                                (account.username?.localName &&
+                                    `@${account.username?.localName}`) ??
+                                truncateAddress(account.address)}
+                        </div>
+                        <div class="truncate text-sm text-gray-600 dark:text-gray-200">
+                            {account.metadata?.name && account.username
+                                ? formatUsernameV2toLocalName(account.username.value)
+                                : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </li>
-    {/each}
-</ul>
+            </li>
+        {/each}
+    </ul>
+</div>

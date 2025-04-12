@@ -1,5 +1,5 @@
 import { type SuggestionKeyDownProps, type SuggestionProps } from '@tiptap/suggestion';
-import { type Group, mainnet, PublicClient, staging } from '@lens-protocol/client';
+import { type Group, mainnet, PageSize, PublicClient, staging } from '@lens-protocol/client';
 import GroupAutocompleteList from '@/lib/components/GroupAutocompleteList.svelte';
 import tippy, { type Instance } from 'tippy.js';
 import BuiltInMention, { MentionOptions } from '@tiptap/extension-mention';
@@ -26,9 +26,10 @@ const suggestion = {
             filter: {
                 searchQuery: query,
             },
+            pageSize: PageSize.Ten,
         });
         if (groups.isOk()) {
-            return [...groups.value.items];
+            return [...groups.value.items].toSpliced(0, 4);
         }
 
         return [];

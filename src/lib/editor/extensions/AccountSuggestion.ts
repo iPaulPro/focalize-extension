@@ -1,5 +1,5 @@
 import { type SuggestionKeyDownProps, type SuggestionProps } from '@tiptap/suggestion';
-import { type Account, mainnet, PublicClient, staging } from '@lens-protocol/client';
+import { type Account, mainnet, PageSize, PublicClient, staging } from '@lens-protocol/client';
 import { fetchAccounts } from '@lens-protocol/client/actions';
 import AccountAutocompleteList from '@/lib/components/AccountAutocompleteList.svelte';
 import tippy, { type Instance } from 'tippy.js';
@@ -20,9 +20,10 @@ const suggestion = {
                     localNameQuery: query,
                 },
             },
+            pageSize: PageSize.Ten,
         });
         if (accounts.isOk()) {
-            return [...accounts.value.items];
+            return [...accounts.value.items].splice(0, 4);
         }
 
         return [];
