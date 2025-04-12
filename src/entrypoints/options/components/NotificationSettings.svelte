@@ -19,6 +19,9 @@
         notificationsForAccountActions,
     } from '@/lib/stores/preferences-store';
     import type { RefreshInterval } from '@/lib/types/RefreshInterval';
+    import { onMount } from 'svelte';
+    import { get } from '@/lib/stores/chrome-storage-store';
+    import { clearNotificationCache } from '@/lib/stores/cache-store';
 
     const collection: RefreshInterval[] = [
         { value: 1, label: '1 min' },
@@ -50,6 +53,18 @@
                 .catch(console.error);
         }
     };
+
+    let currentlyFiltered = false;
+
+    onMount(async () => {
+        currentlyFiltered = await get(notificationsFiltered);
+        notificationsFiltered.subscribe(async (value) => {
+            if (currentlyFiltered !== value) {
+                await clearNotificationCache();
+                currentlyFiltered = value;
+            }
+        });
+    });
 </script>
 
 <div class="h-screen overflow-auto px-4 pb-24 pt-6 md:px-8">
