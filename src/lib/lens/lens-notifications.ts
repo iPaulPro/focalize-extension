@@ -70,6 +70,10 @@ export type BatchedNotification =
 
 export type ActionNotification = AccountActionExecutedNotification | PostActionExecutedNotification;
 
+export type GroupNotification =
+    | GroupMembershipRequestApprovedNotification
+    | GroupMembershipRequestRejectedNotification;
+
 export type KnownAction =
     | SimpleCollectPostActionExecuted
     | TippingAccountActionExecuted
@@ -88,6 +92,44 @@ export const isKnownNotification = (notification: any): notification is KnownNot
     notification.__typename === 'AccountActionExecutedNotification' ||
     notification.__typename === 'GroupMembershipRequestApprovedNotification' ||
     notification.__typename === 'GroupMembershipRequestRejectedNotification';
+
+export const isBatchedNotification = (
+    notification: Notification,
+): notification is BatchedNotification =>
+    (notification.__typename === 'FollowNotification' && notification.followers.length > 1) ||
+    (notification.__typename === 'ReactionNotification' && notification.reactions.length > 1) ||
+    (notification.__typename === 'PostActionExecutedNotification' &&
+        notification.actions.length > 1) ||
+    (notification.__typename === 'AccountActionExecutedNotification' &&
+        notification.actions.length > 1);
+
+export const isActionNotification = (
+    notification: Notification,
+): notification is ActionNotification =>
+    notification.__typename === 'PostActionExecutedNotification' ||
+    notification.__typename === 'AccountActionExecutedNotification';
+
+export const isMentionNotification = (
+    notification: Notification,
+): notification is MentionNotification => notification.__typename === 'MentionNotification';
+
+export const isCommentNotification = (
+    notification: Notification,
+): notification is CommentNotification => notification.__typename === 'CommentNotification';
+
+export const isReactionNotification = (
+    notification: Notification,
+): notification is ReactionNotification => notification.__typename === 'ReactionNotification';
+
+export const isGroupNotification = (
+    notification: Notification,
+): notification is GroupNotification =>
+    notification.__typename === 'GroupMembershipRequestApprovedNotification' ||
+    notification.__typename === 'GroupMembershipRequestRejectedNotification';
+
+export const isFollowNotification = (
+    notification: Notification,
+): notification is FollowNotification => notification.__typename === 'FollowNotification';
 
 export const isKnownAction = (action: any): action is KnownAction =>
     action.__typename === 'SimpleCollectPostActionExecuted' ||
@@ -118,7 +160,7 @@ const filterForNewNotifications = async (notifications: readonly Notification[])
 const cacheNotifications = async (
     notifications: Notification[],
     pageInfo: PaginatedResultInfo,
-    prepend: boolean,
+    prepend?: boolean,
 ) => {
     if (notifications.length === 0) return;
 
@@ -273,7 +315,7 @@ export const getNextNotifications = async (): Promise<{
 
     if (notificationsRes?.items) {
         const notifications = await filterForNewNotifications(notificationsRes.items);
-        await cacheNotifications(notifications, notificationsRes.pageInfo, true);
+        await cacheNotifications(notifications, notificationsRes.pageInfo);
 
         return {
             notifications,
@@ -527,22 +569,6 @@ export const getNotificationIdentifier = (notification: Notification): string | 
         return notification.id + getEventTime(notification)?.toString();
     }
 };
-
-export const isBatchedNotification = (
-    notification: Notification,
-): notification is BatchedNotification =>
-    (notification.__typename === 'FollowNotification' && notification.followers.length > 1) ||
-    (notification.__typename === 'ReactionNotification' && notification.reactions.length > 1) ||
-    (notification.__typename === 'PostActionExecutedNotification' &&
-        notification.actions.length > 1) ||
-    (notification.__typename === 'AccountActionExecutedNotification' &&
-        notification.actions.length > 1);
-
-export const isActionNotification = (
-    notification: Notification,
-): notification is ActionNotification =>
-    notification.__typename === 'PostActionExecutedNotification' ||
-    notification.__typename === 'AccountActionExecutedNotification';
 
 export const getBatchedNotificationCount = (notification: BatchedNotification): number => {
     switch (notification.__typename) {

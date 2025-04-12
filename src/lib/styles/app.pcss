@@ -9,11 +9,11 @@
 
 @layer components {
     .tab {
-        @apply bg-white focus:outline-none focus:ring-0 enabled:hover:bg-gray-50 enabled:hover:text-gray-700 dark:bg-gray-800 enabled:dark:hover:bg-gray-700 enabled:dark:hover:text-white;
+        @apply focus:outline-none focus:ring-0 enabled:hover:bg-gray-50 enabled:hover:text-gray-700 dark:bg-gray-800 enabled:dark:hover:bg-gray-700 enabled:dark:hover:text-white;
     }
 
     .tab.active {
-        @apply bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white;
+        @apply text-gray-900 dark:bg-gray-700 dark:text-white;
     }
 }
 
@@ -530,4 +530,13 @@ button.emoji-picker__category-button.active {
 .mentions li:last-child {
     border-bottom-left-radius: 0.75rem !important;
     border-bottom-right-radius: 0.75rem !important;
+}
+
+.no-scrollbar {
+    scrollbar-width: none;
+}
+
+.infinite-loading-container,
+.infinite-status-prompt {
+    height: 100%;
 }

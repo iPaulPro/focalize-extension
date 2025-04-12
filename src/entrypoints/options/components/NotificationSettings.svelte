@@ -231,7 +231,7 @@
                 </div>
 
                 <div
-                    class="flex w-full border-t pt-6 {$notificationsGrouped
+                    class="flex w-full border-t border-gray-200 pt-6 dark:border-gray-700 {$notificationsGrouped
                         ? 'opacity-40'
                         : 'opacity-100'}"
                 >

@@ -127,7 +127,7 @@
 >
     <div
         on:click={() => (expanded = !expanded)}
-        class="flex min-h-28 w-full cursor-pointer items-center gap-2 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700"
+        class="flex min-h-28 w-full cursor-pointer items-start gap-2 px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700"
     >
         <NotificationIcon {notification} />
 
