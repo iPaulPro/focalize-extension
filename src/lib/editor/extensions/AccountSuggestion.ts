@@ -23,7 +23,7 @@ const suggestion = {
             pageSize: PageSize.Ten,
         });
         if (accounts.isOk()) {
-            return [...accounts.value.items].splice(0, 4);
+            return accounts.value.items.slice(0, 4);
         }
 
         return [];

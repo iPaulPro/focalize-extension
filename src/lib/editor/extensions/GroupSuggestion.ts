@@ -29,7 +29,7 @@ const suggestion = {
             pageSize: PageSize.Ten,
         });
         if (groups.isOk()) {
-            return [...groups.value.items].toSpliced(0, 4);
+            return groups.value.items.slice(0, 4);
         }
 
         return [];
