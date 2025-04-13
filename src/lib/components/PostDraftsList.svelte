@@ -8,6 +8,8 @@
     import PostDraftMenu from './PostDraftMenu.svelte';
     import { createEventDispatcher } from 'svelte';
     import type { PostDraft } from '../types/PostDraft';
+    import { GROUP_MENTION_REGEX } from '@/lib/utils/regex';
+    import { groupMap } from '@/lib/stores/cache-store';
 
     const dispatch = createEventDispatcher<any>();
 
@@ -26,7 +28,7 @@
 
             <div
                 class="flex h-24 shrink-0 items-center border-b border-gray-200 pl-4 pr-1 hover:bg-gray-50
-         dark:border-gray-700 dark:hover:bg-gray-900"
+              dark:border-gray-700 dark:hover:bg-gray-900"
             >
                 <div
                     class="block h-full min-w-0 grow cursor-pointer"
@@ -42,6 +44,11 @@
                                 {item.title ??
                                     (item.content && item.content.length > 0
                                         ? item.content
+                                              .replace(GROUP_MENTION_REGEX, (match, address) => {
+                                                  const groupName = $groupMap?.[address];
+                                                  return `#${groupName ?? address}`;
+                                              })
+                                              .replace('@lens/', '@')
                                         : undefined) ??
                                     '(no content)'}
                             </div>

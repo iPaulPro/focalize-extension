@@ -7,6 +7,7 @@ import { PluginKey } from '@tiptap/pm/state';
 import { getCached, KEY_GROUPS_CACHE, saveToCache } from '@/lib/stores/cache-store';
 import { fetchGroups } from '@lens-protocol/client/actions';
 import { isMainnet } from '@/lib/config';
+import { GROUP_MENTION_REGEX } from '@/lib/utils/regex';
 
 const PLUGIN_NAME = 'group-mention';
 
@@ -154,9 +155,8 @@ export const GroupMention = BuiltInMention.extend<GroupMentionOptions>({
                 },
                 parse: {
                     updateDOM(element: HTMLBodyElement) {
-                        const pattern = /#(0x[a-fA-F0-9]{40})/g;
                         element.innerHTML = element.innerHTML.replace(
-                            pattern,
+                            GROUP_MENTION_REGEX,
                             (match: string, address: string): string => {
                                 const groupName = groups.get(address);
                                 if (!groupName) return match;
