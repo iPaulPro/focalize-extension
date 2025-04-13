@@ -78,6 +78,7 @@
     };
 
     const onLatestNotificationSeen = async () => {
+        if (!notifications[0]) return;
         const isoDate = getEventTime(notifications[0]);
         $notificationsTimestamp = isoDate ?? new Date().toISOString();
     };
@@ -109,10 +110,12 @@
         } else {
             // Only update the timestamp if we're not restoring the scroll position since new notifications are visible
             await onLatestNotificationSeen();
-            console.log(
-                'restoreScroll: updating notifications timestamp',
-                getEventTime(notifications[0]),
-            );
+            if (notifications[0]) {
+                console.log(
+                    'restoreScroll: updating notifications timestamp',
+                    getEventTime(notifications[0]),
+                );
+            }
         }
     };
 
@@ -352,7 +355,12 @@
         {/each}
 
         <InfiniteLoading on:infinite={infiniteHandler} identifier={infiniteId}>
-            <div slot="noMore" class="flex h-full items-center justify-center">
+            <div
+                slot="noMore"
+                class={notifications.length === 0
+                    ? 'flex h-full items-center justify-center py-12 opacity-65'
+                    : 'hidden'}
+            >
                 {#if notifications.length === 0}
                     No notifications
                 {/if}

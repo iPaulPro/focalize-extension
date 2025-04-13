@@ -204,7 +204,9 @@
                     </div>
 
                     <div class="flex flex-col pl-4">
-                        <div class="text-base font-medium dark:text-white">Group notifications</div>
+                        <div class="text-base font-medium dark:text-white">
+                            Bundle notifications
+                        </div>
                         <div class="text-base text-neutral-400">
                             Only show one notification with my unseen Lens activity count
                         </div>
