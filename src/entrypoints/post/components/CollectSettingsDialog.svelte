@@ -389,9 +389,9 @@
                                 bind:this={priceInput}
                                 bind:value={$collectSettings.price}
                                 on:change={onPriceValueChange}
-                                class="block block w-48 w-48 rounded-xl rounded-xl border
-                                   px-4 py-2 pl-7 pl-7 pr-24 pr-24 text-center text-center text-base
-                                   text-base font-medium text-gray-900 focus:border-orange-500 focus:border-orange-500 focus:ring-orange-500 dark:bg-gray-800 dark:bg-gray-800 dark:text-gray-100
+                                class="block w-48 rounded-xl border px-4 py-2 pl-7 pr-24 text-center text-base
+                                    font-medium text-gray-900 focus:border-orange-500 focus:ring-orange-500
+                                    dark:bg-gray-800 dark:text-gray-100
                                    {priceError
                                     ? 'border-red-600'
                                     : 'border-gray-300 dark:border-gray-600'}"
@@ -499,7 +499,7 @@
                                                     }}
                                                 >
                                                     <svg
-                                                        class="inline h-4 w-4 cursor-help p-[0.075rem] opacity-60"
+                                                        class="h-4 w-4 cursor-help p-[0.075rem] opacity-60"
                                                         viewBox="0 0 24 24"
                                                         fill="none"
                                                         stroke="currentColor"
@@ -710,7 +710,7 @@
                                             }}
                                         >
                                             <svg
-                                                class="inline h-4 w-4 cursor-help p-[0.075rem] opacity-60"
+                                                class="h-4 w-4 cursor-help p-[0.075rem] opacity-60"
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 stroke="currentColor"
