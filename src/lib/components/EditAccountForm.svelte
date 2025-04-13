@@ -1,6 +1,6 @@
 <script lang="ts">
     import { currentUser } from '@/lib/stores/user-store';
-    import { editAccount, type EditAccountInput, getAccount } from '@/lib/lens-service';
+    import { editAccount, getAccount } from '@/lib/lens-service';
     import { writable } from 'svelte/store';
     import { toast } from 'svelte-sonner';
     import { imageMimeTypesJoined, MAX_FILE_SIZE } from '@/lib/utils/file-utils';
@@ -9,6 +9,9 @@
     import CoverPlaceholder from '/images/lens-cover.webp';
     import AvatarPlaceholder from '/images/lens-avatar.svg';
     import { onError } from '@/lib/utils/error-utils';
+    import type { EditAccountInput } from '@/lib/types/EditAccountInput';
+    import { updateUser } from '@/lib/user/user';
+    import { type MetadataAttribute, MetadataAttributeType } from '@lens-protocol/metadata';
 
     let pictureInput: HTMLInputElement;
     let coverPictureInput: HTMLInputElement;
@@ -16,34 +19,97 @@
     let isUploading = false;
     let localPictureUrl: string | null = null;
     let localCoverPictureUrl: string | null = null;
+    let websiteValue: string | undefined;
+    let locationValue: string | undefined;
 
     const formData = writable<EditAccountInput>({
         name: undefined,
         bio: undefined,
         picture: undefined,
         coverPicture: undefined,
+        attributes: undefined,
     });
 
     const getAccountMetadata = async () => {
         if (!$currentUser) return;
         const account = await getAccount({ address: $currentUser.account });
         console.log('getAccountMetadata: got account', account);
+
+        if (account) {
+            await updateUser(account);
+        }
+
+        const attrs: MetadataAttribute[] | undefined = account?.metadata?.attributes?.map((a) => {
+            if (a.type === 'BOOLEAN') {
+                return {
+                    type: MetadataAttributeType.BOOLEAN,
+                    key: a.key,
+                    value: a.value,
+                };
+            } else if (a.type === 'STRING') {
+                return {
+                    type: MetadataAttributeType.STRING,
+                    key: a.key,
+                    value: a.value,
+                };
+            } else if (a.type === 'NUMBER') {
+                return {
+                    type: MetadataAttributeType.NUMBER,
+                    key: a.key,
+                    value: a.value,
+                };
+            }
+            return {
+                type: a.type,
+                key: a.key,
+                value: a.value,
+            };
+        });
+
         formData.set({
             name: account?.metadata?.name ?? undefined,
             bio: account?.metadata?.bio ?? undefined,
             picture: account?.metadata?.picture ?? undefined,
             coverPicture: account?.metadata?.coverPicture ?? undefined,
+            attributes: attrs ?? undefined,
         });
+
+        websiteValue = account?.metadata?.attributes?.find((attr) => attr.key === 'website')?.value;
+        locationValue = account?.metadata?.attributes?.find(
+            (attr) => attr.key === 'location',
+        )?.value;
     };
 
     $: if ($currentUser) {
         getAccountMetadata();
     }
 
+    const updateFormDataAttr = (key: string, value: string | undefined) => {
+        let attrs = $formData.attributes || [];
+        const attr = attrs.find((attr) => attr.key === key);
+        if (attr) {
+            if (!value) {
+                attrs = attrs.filter((a) => a.key !== key);
+            } else {
+                attr.value = value;
+            }
+        } else if (value) {
+            attrs.push({
+                type: MetadataAttributeType.STRING,
+                key,
+                value,
+            });
+        }
+        $formData.attributes = attrs;
+    };
+
     const handleSubmit = async () => {
         isSubmitting = true;
         try {
+            updateFormDataAttr('website', websiteValue);
+            updateFormDataAttr('location', locationValue);
             console.log('handleSubmit: updating account with form', $formData);
+
             const txHash = await editAccount($formData);
             console.log('handleSubmit: updated account', txHash);
             toast.success('Account updated', {
@@ -338,6 +404,35 @@
                             placeholder="Tell the world about yourself"
                         />
                     </label>
+                </div>
+
+                <div class="flex max-w-screen-md gap-12 pb-4">
+                    <div class="flex-1">
+                        <label for="website" class="flex flex-col gap-1">
+                            <div class="px-4 text-base opacity-65">Website</div>
+                            <input
+                                bind:value={websiteValue}
+                                type="text"
+                                id="website"
+                                name="website"
+                                class="w-full rounded-md border border-gray-200 p-2 dark:border-gray-700"
+                                placeholder="https://vitalik.eth.limo"
+                            />
+                        </label>
+                    </div>
+                    <div class="flex-1">
+                        <label for="location" class="flex flex-col gap-1">
+                            <div class="px-4 text-base opacity-65">Location</div>
+                            <input
+                                bind:value={locationValue}
+                                type="text"
+                                id="location"
+                                name="location"
+                                class="w-full rounded-md border border-gray-200 p-2 dark:border-gray-700"
+                                placeholder="Canada"
+                            />
+                        </label>
+                    </div>
                 </div>
 
                 <button

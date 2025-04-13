@@ -26,14 +26,14 @@ let cachedProvider: BrowserProvider | undefined;
 const networkMap = {
     LENS_CHAIN: {
         chainId: toQuantity(LENS_CHAIN_ID),
-        chainName: 'Lens Chain',
+        chainName: 'Lens',
         nativeCurrency: { name: 'GHO', symbol: 'GHO', decimals: 18 },
         rpcUrls: ['https://rpc.lens.xyz'],
         blockExplorerUrls: ['https://explorer.lens.xyz'],
     },
     LENS_SEPOLIA: {
         chainId: toQuantity(LENS_TESTNET_CHAIN_ID),
-        chainName: 'Lens Chain Testnet',
+        chainName: 'Lens Testnet',
         nativeCurrency: { name: 'GRASS', symbol: 'GRASS', decimals: 18 },
         rpcUrls: ['https://rpc.testnet.lens.xyz'],
         blockExplorerUrls: ['https://explorer.testnet.lens.xyz/'],

@@ -55,6 +55,7 @@ import { APP_ADDRESS, CURRENT_CHAIN_ID, GLOBAL_NAMESPACE_ADDRESS, isMainnet } fr
 import { NoSessionError, NoWalletError } from '@/lib/utils/error-utils';
 import { type SimpleCollect } from '@/lib/types/SimpleCollect';
 import { SUPPORTED_CURRENCIES } from '@/lib/utils/supported-currencies';
+import type { EditAccountInput } from '@/lib/types/EditAccountInput';
 
 const storageProvider: IStorageProvider = {
     getItem: function (key: string): Promise<string | null> | string | null {
@@ -605,13 +606,6 @@ export const getFeed = async (feedAddress: string): Promise<Feed | null> => {
     return res.value;
 };
 
-export type EditAccountInput = {
-    bio: string | undefined;
-    coverPicture: string | undefined;
-    name: string | undefined;
-    picture: string | undefined;
-};
-
 export const editAccount = async (input: EditAccountInput) => {
     const client = await getClient();
     if (!client.isSessionClient()) throw new NoSessionError();
@@ -624,6 +618,7 @@ export const editAccount = async (input: EditAccountInput) => {
         bio: input.bio,
         picture: input.picture,
         coverPicture: input.coverPicture,
+        attributes: input.attributes,
     });
     const metadataUri = await uploadJson(metadata);
 
