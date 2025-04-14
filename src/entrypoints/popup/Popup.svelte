@@ -1,7 +1,7 @@
 <script lang="ts">
     import { darkMode } from '@/lib/stores/preferences-store';
     import { storePopup, TabGroup, Tab } from '@skeletonlabs/skeleton';
-    import NotificationsList from './notifications/NotificationsList.svelte';
+    import NotificationsList from '@/entrypoints/popup/components/NotificationsList.svelte';
     import { clearBadge, getOpenGraphTags, launchComposerWindow } from '@/lib/utils/utils';
     import { onMount } from 'svelte';
     import { Toaster } from 'svelte-sonner';

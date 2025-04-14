@@ -35,7 +35,7 @@ import { getUrlForPostMetadata } from '@/lib/lens/lens-nodes';
 import { getUser } from '../stores/user-store';
 import { getBlobUrl } from '@/lib/lens/lens-notifications';
 import { sleep } from '@/lib/utils/utils';
-import { EvmAddress } from '@lens-protocol/client';
+import { EvmAddress, type Post, type ReferencedPost } from '@lens-protocol/client';
 import { type SimpleCollect } from '@/lib/types/SimpleCollect';
 
 const uploadMetadata = async (metadata: PostMetadata): Promise<string> => {
@@ -311,6 +311,7 @@ export const submitPost = async (
     }
 
     if (!txHash) {
+        postState.set(PostState.ERROR);
         throw new Error('Unable to create post transaction');
     }
 
@@ -329,16 +330,16 @@ export const submitPost = async (
 
     deleteDraft(draftId).catch(console.warn);
 
-    await notifyOfPublishedPost(metadata, post.id);
+    await notifyOfPublishedPost(metadata, post as Post);
 
     return post.id;
 };
 
-const notifyOfPublishedPost = async (metadata: PostMetadata, postId: string) => {
+const notifyOfPublishedPost = async (metadata: PostMetadata, post: Post | ReferencedPost) => {
     const currentUser: User | undefined = await getUser();
     if (!currentUser) return;
 
-    const url = await getUrlForPostMetadata(metadata, postId);
+    const url = await getUrlForPostMetadata(metadata, post);
     const imageUrl =
         currentUser.avatarUrl ?? `https://cdn.stamp.fyi/avatar/${currentUser.address}?s=96`;
     const iconUrl = await getBlobUrl(imageUrl);

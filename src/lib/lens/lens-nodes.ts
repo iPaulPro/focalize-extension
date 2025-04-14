@@ -1,5 +1,5 @@
 import nodes from '../stores/nodes.json';
-import type { Post, ReferencedPost, Username } from '@lens-protocol/client';
+import type { Post, ReferencedPost, Repost, Username } from '@lens-protocol/client';
 import {
     formatUsernameV2toV1,
     isArticlePost,
@@ -54,11 +54,16 @@ export const getNodeUrlForUsername = (node: LensNode, username: Username) => {
     return 'https://' + node.baseUrl + node.accounts.replace('{$username}', formatted);
 };
 
-export const getPostUrlFromNode = (node: LensNode, postId: string) => {
-    return 'https://' + node.baseUrl + node.posts.replace('{$id}', postId);
+export const getPostUrlFromNode = (node: LensNode, post: Post | ReferencedPost | Repost) => {
+    return (
+        'https://' + node.baseUrl + node.posts.replace('{$id}', node.useSlug ? post.slug : post.id)
+    );
 };
 
-export const getUrlForPostMetadata = async (metadata: PostMetadata, postId: string) => {
+export const getUrlForPostMetadata = async (
+    metadata: PostMetadata,
+    post: Post | ReferencedPost | Repost,
+) => {
     const node = await getNodeForPostMetadata(metadata);
-    return getPostUrlFromNode(node, postId);
+    return getPostUrlFromNode(node, post);
 };

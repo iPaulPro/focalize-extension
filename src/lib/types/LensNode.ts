@@ -9,6 +9,7 @@ export type LensNode = {
     focus: string[];
     fullUsername: boolean;
     icon: string;
+    useSlug?: boolean;
 };
 
 /**

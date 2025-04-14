@@ -9,49 +9,8 @@
     "notifications": "/notifications",
     "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
     "fullUsername": false,
-    "icon": "webp"
-  },
-  {
-    "name": "BloomersTV",
-    "baseUrl": "bloomers.tv",
-    "posts": "/watch/{$id}",
-    "accounts": "/{$username}",
-    "hexIdentifier": true,
-    "focus": ["VIDEO"],
-    "fullUsername": false,
-    "icon": "png"
-  },
-  {
-    "name": "Firefly",
-    "baseUrl": "firefly.mask.social",
-    "posts": "/post/lens/{$id}",
-    "accounts": "/profile/lens/{$username}",
-    "hexIdentifier": true,
-    "notifications": "/notifications",
-    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
-    "fullUsername": false,
-    "icon": "svg"
-  },
-  {
-    "name": "Kaira",
-    "baseUrl": "kaira.network",
-    "posts": "/posts/{$id}",
-    "accounts": "/{$username}",
-    "hexIdentifier": true,
-    "notifications": "/notifications",
-    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
-    "fullUsername": false,
-    "icon": "svg"
-  },
-  {
-    "name": "Orb",
-    "baseUrl": "orb.club",
-    "posts": "/p/{$id}",
-    "accounts": "/@{$username}",
-    "hexIdentifier": true,
-    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
-    "fullUsername": false,
-    "icon": "svg"
+    "icon": "webp",
+    "useSlug": true
   },
   {
     "name": "Soclly",
@@ -62,17 +21,7 @@
     "notifications": "/notifications",
     "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
     "fullUsername": false,
-    "icon": "svg"
-  },
-  {
-    "name": "Tape",
-    "baseUrl": "tape.xyz",
-    "posts": "/watch/{$id}",
-    "accounts": "/u/{$username}",
-    "hexIdentifier": true,
-    "notifications": "/notifications",
-    "focus": ["VIDEO"],
-    "fullUsername": false,
-    "icon": "svg"
+    "icon": "svg",
+    "useSlug": true
   }
 ]

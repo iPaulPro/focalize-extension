@@ -513,9 +513,9 @@ export const getNotificationLink = async (notification: Notification): Promise<s
             break;
         }
         case 'CommentNotification':
-            return getPostUrlFromNode(node, notification.comment.id);
+            return getPostUrlFromNode(node, notification.comment);
         case 'QuoteNotification':
-            return getPostUrlFromNode(node, notification.quote.id);
+            return getPostUrlFromNode(node, notification.quote);
         case 'AccountActionExecutedNotification': {
             const username =
                 'executedBy' in notification.actions[0]
@@ -530,7 +530,7 @@ export const getNotificationLink = async (notification: Notification): Promise<s
         case 'MentionNotification':
         case 'ReactionNotification':
         case 'RepostNotification':
-            return getPostUrlFromNode(node, notification.post.id);
+            return getPostUrlFromNode(node, notification.post);
     }
 
     const syncStorage = await browser.storage.sync.get(KEY_NODE_NOTIFICATIONS);

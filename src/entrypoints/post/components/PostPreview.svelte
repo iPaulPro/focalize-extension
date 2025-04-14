@@ -9,6 +9,8 @@
     import { getCoverFromMetadata, parseUri } from '@/lib/utils/lens-utils';
     import { onMount } from 'svelte';
     import { getCached, KEY_GROUPS_CACHE } from '@/lib/stores/cache-store';
+    import { getPost } from '@/lib/lens-service';
+    import { toast } from 'svelte-sonner';
 
     export let postMetaData: PostMetadata;
     export let postId: string;
@@ -24,7 +26,12 @@
 
     const onViewPostClick = async () => {
         if (!postMetaData || !postId) return;
-        const url = await getUrlForPostMetadata(postMetaData, postId);
+        const post = await getPost({ post: postId });
+        if (!post) {
+            toast.error('Post not found');
+            return;
+        }
+        const url = await getUrlForPostMetadata(postMetaData, post);
         // eslint-disable-next-line no-undef
         browser.notifications.clear(url);
         window.open(url, '_blank');
