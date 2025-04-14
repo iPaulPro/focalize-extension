@@ -293,7 +293,7 @@
         placeholder="Description (optional)"
         rows={useContentAsDescription ? 3 : 5}
         class="input mt-1 {useContentAsDescription
-            ? 'opacity-50 focus:opacity-100'
+            ? `opacity-50 focus:opacity-100 ${$description?.length ? 'editor-text-strikethrough' : ''}`
             : 'opacity-100'}"
         bind:value={$description}
         {disabled}

@@ -536,6 +536,7 @@
 
     const clearCurrentTabData = () => {
         currentTabData = undefined;
+        $sharingLink = null;
     };
 
     const ensureDraft = async () => {
@@ -767,7 +768,7 @@
                                 <EditorActionsBar
                                     disabled={isSubmittingPost}
                                     isCompact={isPopupWindow ?? false}
-                                    showAttachmentButtons={$sharingLink === undefined}
+                                    showAttachmentButtons={!$sharingLink}
                                     on:emojiSelected={(e) =>
                                         textEditorComponent?.insertAtSelection(e.detail)}
                                     on:fileSelected={(e) => setAttachment(e.detail)}
