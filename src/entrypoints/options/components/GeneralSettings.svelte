@@ -305,7 +305,7 @@
                         <div class="text-base font-medium dark:text-white">Articles</div>
                         <div class="text-base text-neutral-400">Long-form posts</div>
                     </div>
-                    <LensNodeSelect preference={nodeArticle} focus={MainContentFocus.TextOnly} />
+                    <LensNodeSelect preference={nodeArticle} focus={MainContentFocus.Article} />
                 </div>
             </div>
         </div>

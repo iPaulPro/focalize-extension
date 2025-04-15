@@ -31,6 +31,8 @@ export const getNodeForPostMetadata = async (metadata: PostMetadata): Promise<Le
             return storage[KEY_NODE_AUDIO];
         case PostMetadataSchemaId.VIDEO_LATEST:
             return storage[KEY_NODE_VIDEO];
+        case PostMetadataSchemaId.ARTICLE_LATEST:
+            return storage[KEY_NODE_ARTICLE];
     }
     return storage[KEY_NODE_POST];
 };
@@ -55,6 +57,15 @@ export const getNodeUrlForUsername = (node: LensNode, username: Username) => {
 };
 
 export const getPostUrlFromNode = (node: LensNode, post: Post | ReferencedPost | Repost) => {
+    if (node.posts.includes('{$username}') && post.author.username) {
+        return (
+            'https://' +
+            node.baseUrl +
+            node.posts
+                .replace('{$username}', post.author.username.localName)
+                .replace('{$id}', node.useSlug ? post.slug : post.id)
+        );
+    }
     return (
         'https://' + node.baseUrl + node.posts.replace('{$id}', node.useSlug ? post.slug : post.id)
     );

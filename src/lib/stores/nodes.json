@@ -5,11 +5,21 @@
     "posts": "/posts/{$id}",
     "accounts": "/u/{$username}",
     "groups": "/g/{$address}",
-    "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
     "fullUsername": false,
     "icon": "webp",
+    "useSlug": true
+  },
+  {
+    "name": "Fountain",
+    "baseUrl": "fountain.ink",
+    "posts": "/p/{$username}/{$id}",
+    "accounts": "/u/{$username}",
+    "notifications": "/notifications",
+    "focus": ["ARTICLE"],
+    "fullUsername": false,
+    "icon": "svg",
     "useSlug": true
   },
   {
@@ -17,9 +27,8 @@
     "baseUrl": "app.soclly.com",
     "posts": "/posts/{$id}",
     "accounts": "/u/{$username}",
-    "hexIdentifier": true,
     "notifications": "/notifications",
-    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK"],
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
     "fullUsername": false,
     "icon": "svg",
     "useSlug": true

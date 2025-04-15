@@ -62,7 +62,6 @@ export const migrate = async (previousVersion: string) => {
     switch (versionParts[0]) {
         case '1':
         case '2':
-            // TODO: Migrate from v1/v2 to v3
             await deleteMessagePreferences();
             await resetSignless();
             await clearNotificationCache();

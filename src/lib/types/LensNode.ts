@@ -4,7 +4,6 @@ export type LensNode = {
     posts: string;
     accounts: string;
     groups?: string;
-    hexIdentifier: boolean;
     notifications?: string;
     focus: string[];
     fullUsername: boolean;
