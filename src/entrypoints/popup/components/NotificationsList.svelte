@@ -119,7 +119,9 @@
         }
     };
 
-    const findFirstVisibleListItem = (): Notification => {
+    const findFirstVisibleListItem = (): Notification | undefined => {
+        if (!listElement || !notifications.length) return undefined;
+
         const parentTop = listElement.parentElement?.getBoundingClientRect()?.top ?? 0;
         const listItemElements = listElement.querySelectorAll('li');
         let firstVisibleListItemIndex = 0;
@@ -140,6 +142,8 @@
         $notificationsScrollTop = node.scrollTop;
 
         const firstNotification = findFirstVisibleListItem();
+        if (!firstNotification) return;
+
         const eventTime = getEventTime(firstNotification);
         if (
             $notificationsActiveFilter === NotificationFilter.All &&

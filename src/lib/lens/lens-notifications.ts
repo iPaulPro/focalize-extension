@@ -559,6 +559,10 @@ export const getEventTime = (notification: Notification): DateTime | undefined =
             return notification.quote.timestamp;
         case 'FollowNotification':
             return notification.followers[0].followedAt;
+        case 'GroupMembershipRequestApprovedNotification':
+            return notification.approvedAt;
+        case 'GroupMembershipRequestRejectedNotification':
+            return notification.rejectedAt;
         default:
             return undefined;
     }
