@@ -4,8 +4,10 @@ import { DateTime } from 'luxon';
 import { readable } from 'svelte/store';
 import type { PostDraft } from '../types/PostDraft';
 
-const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
-    const storage = await browser.storage.local.get('postDrafts');
+export const KEY_POST_DRAFTS = 'postDrafts';
+
+export const getDrafts = async (): Promise<Map<string, PostDraft> | undefined> => {
+    const storage = await browser.storage.local.get(KEY_POST_DRAFTS);
     if (storage.postDrafts) {
         return new Map(JSON.parse(storage.postDrafts));
     }
@@ -46,7 +48,7 @@ export const saveDraft = async (draft: PostDraft) => {
 
     drafts.set(draft.id, draft);
 
-    await browser.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
+    await browser.storage.local.set({ [KEY_POST_DRAFTS]: JSON.stringify([...drafts]) });
 
     return draft;
 };
@@ -57,5 +59,5 @@ export const deleteDraft = async (id: string) => {
 
     drafts.delete(id);
 
-    await browser.storage.local.set({ postDrafts: JSON.stringify([...drafts]) });
+    await browser.storage.local.set({ [KEY_POST_DRAFTS]: JSON.stringify([...drafts]) });
 };

@@ -27,6 +27,9 @@ import { clearUser, KEY_KNOWN_SENDERS } from '@/lib/stores/user-store';
 import nodes from '../stores/nodes.json';
 import { DateTime } from 'luxon';
 import { browser } from 'wxt/browser/chrome';
+import { getDrafts, KEY_POST_DRAFTS } from '@/lib/stores/draft-store';
+import { SUPPORTED_CURRENCIES } from '@/lib/utils/supported-currencies';
+import { CURRENT_CHAIN_ID } from '@/lib/config';
 
 const deleteMessagePreferences = async () => {
     await deletePreference(KEY_MESSAGES_REFRESH_ENABLED);
@@ -52,11 +55,33 @@ const resetSignless = async () => {
 };
 
 const resetNodes = async () => {
-    for (const node in ALL_NODE_KEYS) {
+    for (const node of ALL_NODE_KEYS) {
         await savePreference(node, nodes[0]);
     }
     await savePreference(KEY_NODE_NOTIFICATIONS, nodes[0]);
     await savePreference(KEY_NODE_SEARCH, nodes[0]);
+};
+
+const updateDrafts = async () => {
+    const drafts = await getDrafts();
+    if (!drafts) return;
+
+    const updatedDrafts = new Map<string, any>();
+    const currencies = SUPPORTED_CURRENCIES.filter(
+        (c) => c.contract.chainId === Number(CURRENT_CHAIN_ID),
+    );
+
+    // try to find the token in the supported currencies
+    for (const [id, draft] of drafts) {
+        if (draft.collectFee?.token) {
+            draft.collectFee.token =
+                currencies.find((c) => c.symbol === draft.collectFee?.token?.symbol) ??
+                currencies[0];
+        }
+        updatedDrafts.set(id, draft);
+    }
+
+    await browser.storage.local.set({ [KEY_POST_DRAFTS]: JSON.stringify([...updatedDrafts]) });
 };
 
 const notifyUser = () => {
@@ -88,8 +113,11 @@ export const migrate = async (previousVersion: string) => {
             await resetSignless();
             await clearNotificationCache();
             await resetNodes();
+            await updateDrafts();
             clearUser();
             notifyUser();
-            break;
+            return true;
+        default:
+            return false;
     }
 };

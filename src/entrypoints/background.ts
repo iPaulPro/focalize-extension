@@ -28,6 +28,7 @@ import type { Account, Notification } from '@lens-protocol/client';
 import { formatUsernameV2toLocalName } from '@/lib/utils/lens-utils';
 import { migrate } from '@/lib/utils/migrations';
 import { browser } from 'wxt/browser/chrome';
+import { KEY_POST_DRAFTS } from '@/lib/stores/draft-store';
 
 export default defineBackground({
     type: 'module',
@@ -200,6 +201,8 @@ export default defineBackground({
 
             const storage = await browser.storage.local.get([KEY_NOTIFICATION_ITEMS_CACHE]);
             const notifications = storage[KEY_NOTIFICATION_ITEMS_CACHE];
+            if (!notifications.length) return;
+
             const notification = notifications
                 .filter(isKnownNotification)
                 .find((n: KnownNotification) => n.id === notificationId);
@@ -292,10 +295,10 @@ export default defineBackground({
 
         browser.alarms.onAlarm.addListener(onAlarmTriggered);
 
-        const onLogoutMessage = async (res: (response?: any) => void) =>
+        const onLogoutMessage = async (res?: (response?: any) => void) =>
             browser.alarms.clearAll().then(() => {
                 clearAllNotifications();
-                res();
+                res?.();
             });
 
         const onMessage = (req: any, res: (response?: any) => void): boolean => {
@@ -382,7 +385,23 @@ export default defineBackground({
                 details.reason === browser.runtime.OnInstalledReason.UPDATE &&
                 details.previousVersion
             ) {
-                await migrate(details.previousVersion);
+                try {
+                    const migrated = await migrate(details.previousVersion);
+                    if (migrated) {
+                        await onLogoutMessage();
+                    }
+                } catch {
+                    // likely unable to recover; save drafts and clear everything else
+                    const localStorage = await browser.storage.local.get(KEY_POST_DRAFTS);
+                    const postDrafts = localStorage[KEY_POST_DRAFTS];
+
+                    await browser.storage.local.clear();
+                    await browser.storage.sync.clear();
+
+                    await browser.storage.local.set({
+                        [KEY_POST_DRAFTS]: postDrafts,
+                    });
+                }
             }
         });
     },
