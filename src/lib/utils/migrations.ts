@@ -25,6 +25,8 @@ import {
 } from '@/lib/stores/cache-store';
 import { clearUser, KEY_KNOWN_SENDERS } from '@/lib/stores/user-store';
 import nodes from '../stores/nodes.json';
+import { DateTime } from 'luxon';
+import { browser } from 'wxt/browser/chrome';
 
 const deleteMessagePreferences = async () => {
     await deletePreference(KEY_MESSAGES_REFRESH_ENABLED);
@@ -57,6 +59,26 @@ const resetNodes = async () => {
     await savePreference(KEY_NODE_SEARCH, nodes[0]);
 };
 
+const notifyUser = () => {
+    const id = new Date().toISOString();
+
+    browser.notifications.create(id, {
+        type: 'basic',
+        eventTime: DateTime.now().toMillis(),
+        requireInteraction: true,
+        title: 'Focalize V3 Update',
+        message: 'Focalize has been updated to Lens V3 on Lens Chain. Please log back in.',
+        contextMessage: 'Focalize',
+        iconUrl: '/icon/128.png',
+    });
+
+    browser.notifications.onClicked.addListener(async (notificationId) => {
+        if (notificationId !== id) return;
+        browser.notifications.clear(notificationId);
+        await browser.runtime.openOptionsPage();
+    });
+};
+
 export const migrate = async (previousVersion: string) => {
     const versionParts = previousVersion.split('.');
     switch (versionParts[0]) {
@@ -67,6 +89,7 @@ export const migrate = async (previousVersion: string) => {
             await clearNotificationCache();
             await resetNodes();
             clearUser();
+            notifyUser();
             break;
     }
 };
