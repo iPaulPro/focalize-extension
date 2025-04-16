@@ -1268,7 +1268,7 @@
         class="max-h-screen w-2/3 max-w-lg overflow-hidden rounded-2xl border border-gray-200 p-0
             shadow-2xl dark:border-gray-700 dark:bg-gray-800"
     >
-        <DialogOuter title="Digital collectible settings">
+        <DialogOuter title="Collect settings">
             <CollectSettingsDialog
                 on:done={onCollectSettingsDialogDone}
                 isCompact={isPopupWindow}

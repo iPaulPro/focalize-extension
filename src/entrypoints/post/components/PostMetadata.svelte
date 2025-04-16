@@ -81,7 +81,7 @@
         <div class="flex items-center justify-between text-gray-800 dark:text-gray-200">
             <div class="flex flex-col gap-0.5">
                 <div class="text-sm font-medium text-orange-700 dark:text-orange-200">
-                    Digital collectible
+                    Collectible post
                 </div>
 
                 <div

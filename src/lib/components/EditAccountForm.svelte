@@ -6,8 +6,8 @@
     import { imageMimeTypesJoined, MAX_FILE_SIZE } from '@/lib/utils/file-utils';
     import { uploadImmutableFile } from '@/lib/grove-service';
     import { parseUri } from '@/lib/utils/lens-utils';
-    import CoverPlaceholder from '/images/lens-cover.webp';
-    import AvatarPlaceholder from '/images/lens-avatar.svg';
+    import CoverPlaceholder from '~/assets/lens-cover.webp';
+    import AvatarPlaceholder from '~/assets/lens-avatar.svg';
     import { onError } from '@/lib/utils/error-utils';
     import type { EditAccountInput } from '@/lib/types/EditAccountInput';
     import { updateUser } from '@/lib/user/user';
