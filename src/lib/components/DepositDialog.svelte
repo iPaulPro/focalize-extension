@@ -41,7 +41,7 @@
             walletBalance = await getNativeBalance(signer.address);
         }
 
-        if (!fundingSource) {
+        if (fundingSource === undefined) {
             if (Number(accountBalance) > 0) {
                 fundingSource = FundingSource.ACCOUNT;
             } else if (Number(walletBalance) > 0) {
