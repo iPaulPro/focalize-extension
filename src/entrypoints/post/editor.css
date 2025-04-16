@@ -4,6 +4,10 @@
   background: white;
 }
 
+.dark .tiptap {
+  background: #212936;
+}
+
 .text-editor {
   @apply w-full resize-none overflow-hidden break-keep border-none bg-transparent pt-1 ![overflow-wrap:anywhere] focus:border-none focus:outline-none focus:ring-0;
 }
