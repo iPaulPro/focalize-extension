@@ -8,7 +8,7 @@ Originally created for [ETHOnline 2022](https://ethglobal.com/showcase/focalize-
 
 🏆 Winner of First Prize from IPFS/Filecoin
 
-🌿 Recipient of Lens Builders Program Grant
+🌿 Recipient of Lens Builders Program Grant (x2)
 
 ---
 
@@ -17,7 +17,7 @@ Originally created for [ETHOnline 2022](https://ethglobal.com/showcase/focalize-
 Focalize can be installed from the Chrome Web Store:
 
 <a href="https://chrome.google.com/webstore/detail/focalize/iebmcaohopockfafpfoeoaopihocflci" target="_blank" rel="noreferrer">
-    <img alt="Available in the Chrome Web Store" src="https://storage.googleapis.com/web-dev-uploads/image/WlD8wC6g8khYWPJUsQceQkhXSlv1/HRs9MPufa1J1h5glNhut.png" width="256">
+    <img alt="Available in the Chrome Web Store" src="https://developer.chrome.com/static/docs/webstore/branding/image/HRs9MPufa1J1h5glNhut.png" width="256">
 </a>
 
 ### Alternatively install from source:
@@ -40,12 +40,12 @@ Drag and drop the unzipped folder onto the Extensions page (chrome://extensions)
 
 2. Run `npm build`
 
-The `/dist` folder is the unpacked extension.
+The `/output/chrome-mv3` folder is the unpacked extension.
 
 ## Credits
 
 Created by [Paul Burke](https://paulburke.co)
 
-[Follow on Lens](https://hey.xyz/u/paulburke)
+[Follow on Lens](https://hey.xyz/u/focalize)
 
 [Follow on Twitter](https://twitter.com/FocalizeExt)
