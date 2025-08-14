@@ -1,7 +1,7 @@
 import { deleteDraft } from '../stores/draft-store';
 import type { User } from '../types/User';
 import { PostState, postState } from '../stores/state-store';
-import { getPost, isAuthenticated, createPost } from '../lens-service';
+import { createPost, getPost, isAuthenticated } from '../lens-service';
 import type { MetadataAttribute } from '@lens-protocol/metadata';
 import {
     type AnyMedia,
@@ -28,8 +28,6 @@ import {
     video,
     type VideoMetadata,
 } from '@lens-protocol/metadata';
-
-import { getIrys } from '../irys-service';
 import { DateTime } from 'luxon';
 import { getUrlForPostMetadata } from '@/lib/lens/lens-nodes';
 import { getUser } from '../stores/user-store';
@@ -37,17 +35,7 @@ import { getBlobUrl } from '@/lib/lens/lens-notifications';
 import { sleep } from '@/lib/utils/utils';
 import { EvmAddress, type Post, type ReferencedPost } from '@lens-protocol/client';
 import { type SimpleCollect } from '@/lib/types/SimpleCollect';
-
-const uploadMetadata = async (metadata: PostMetadata): Promise<string> => {
-    console.log('makeMetadataFile: Creating metadata file for', metadata);
-
-    const irys = await getIrys();
-    const tx = await irys.upload(JSON.stringify(metadata), {
-        tags: [{ name: 'Content-Type', value: 'application/json' }],
-    });
-
-    return tx.id;
-};
+import { uploadJson } from '@/lib/grove-service';
 
 const defaultTitle = (username?: string): string => `Post by @${username ?? 'anonymous'}`;
 
@@ -295,8 +283,8 @@ export const submitPost = async (
     const postMetadata = PostMetadataSchema.parse(metadata);
     console.log('submitPost: Parsed and validated metadata', postMetadata);
 
-    const metadataId: string = await uploadMetadata(postMetadata);
-    const contentURI = `ar://${metadataId}`;
+    console.log('submitPost: Uploading metadata file...');
+    const contentURI: string = await uploadJson(postMetadata);
     console.log('submitPost: Uploaded metadata to Irys with URI', contentURI);
 
     // At this point we know the metadata is valid and available on arweave, so show optimistic completion
