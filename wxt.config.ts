@@ -34,7 +34,7 @@ export default defineConfig({
         return {
             name: `Focalize - ${isProduction ? 'Extension for Lens' : 'DEBUG'}`,
             short_name: 'Focalize',
-            version_name: '3.0.0-beta.1',
+            version_name: '3.0.1',
             description: 'Social app built on Lens Chain and Lens Protocol',
             permissions: ['activeTab', 'scripting', 'storage', 'notifications', 'alarms'],
             minimum_chrome_version: '91',
