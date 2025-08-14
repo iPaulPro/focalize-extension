@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import type { CollectSettings } from '../types/CollectSettings';
-import { bigDecimal, DateTime as LensDateTime, evmAddress } from '@lens-protocol/client';
-import type { AmountInput, Recipient, SimpleCollect } from '@/lib/types/SimpleCollect';
+import { DateTime as LensDateTime, evmAddress } from '@lens-protocol/client';
+import type { Erc20Input, Recipient, SimpleCollect } from '@/lib/types/SimpleCollect';
 import { ContentWarning } from '@lens-protocol/metadata';
 
 export type SelectOption<Type> = {
@@ -42,7 +42,7 @@ export const COLLECT_DURATION_ITEMS: SelectOption<number>[] = [
     { value: 168, label: '1 week' },
 ];
 
-export const collectSettingsToModuleInput = (
+export const toSimpleCollect = (
     address: string,
     collectSettings: CollectSettings,
 ): SimpleCollect | null => {
@@ -69,12 +69,18 @@ export const collectSettingsToModuleInput = (
         return null;
     };
 
-    let amount: AmountInput | null = null;
+    let erc20: Erc20Input | undefined = undefined;
+    let native: string | undefined = undefined;
+
     if (collectSettings.price && collectSettings.token) {
-        amount = {
-            currency: collectSettings.token.contract.address,
-            value: bigDecimal(String(collectSettings.price)),
-        };
+        if (collectSettings.token.__typename === 'NativeToken') {
+            native = String(collectSettings.price);
+        } else {
+            erc20 = {
+                currency: collectSettings.token.contract.address,
+                value: String(collectSettings.price),
+            };
+        }
     }
 
     const recipients: Recipient[] = [];
@@ -96,10 +102,11 @@ export const collectSettingsToModuleInput = (
         }
     }
 
-    if (amount && recipients.length > 0) {
+    if ((native || erc20) && recipients.length > 0) {
         const input: SimpleCollect = {
             payToCollect: {
-                amount,
+                erc20,
+                native,
                 recipients,
             },
             ...(collectSettings.followerOnly && {
@@ -127,9 +134,10 @@ export const collectSettingsToModuleInput = (
             },
         }),
     };
-    if (amount) {
+    if (erc20 || native) {
         input.payToCollect = {
-            amount,
+            erc20,
+            native,
             recipients: [
                 {
                     percent: 100,

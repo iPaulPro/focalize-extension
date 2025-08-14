@@ -19,6 +19,7 @@ import {
     SessionClient,
     mainnet,
     staging,
+    CreatePostRequest,
 } from '@lens-protocol/client';
 import {
     createGroup,
@@ -448,7 +449,7 @@ export const createPost = async (
     const signer = await getSigner();
     if (!signer) throw new NoWalletError();
 
-    const res = await post(client, {
+    const req: CreatePostRequest = {
         contentUri,
         feed,
         ...(simpleCollect && {
@@ -467,11 +468,13 @@ export const createPost = async (
                 ],
             },
         }),
-    })
+    };
+    console.log('createPost: req', req);
+
+    const res = await post(client, req)
         .andThen(handleOperationWith(signer))
         .andThen(client?.waitForTransaction);
-
-    console.log('postOnChain: post res', res);
+    console.log('createPost: res', res);
 
     if (res.isErr()) {
         throw res.error;

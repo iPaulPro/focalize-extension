@@ -8,7 +8,7 @@
         SUPPORTED_MIME_TYPES,
     } from '@/lib/utils/file-utils';
     import { CONTENT_WARNING_ITEMS, type SelectOption } from '@/lib/lens/lens-modules';
-    import { collectSettingsToModuleInput, REFERENCE_ITEMS } from '@/lib/lens/lens-modules';
+    import { toSimpleCollect, REFERENCE_ITEMS } from '@/lib/lens/lens-modules';
     import {
         generateAudioPostMetadata,
         generateImagePostMetadata,
@@ -304,10 +304,7 @@
         let collectModuleParams: SimpleCollect | null = null;
         if ($collectSettings.isCollectible) {
             try {
-                collectModuleParams = collectSettingsToModuleInput(
-                    $currentUser.address,
-                    $collectSettings,
-                );
+                collectModuleParams = toSimpleCollect($currentUser.address, $collectSettings);
             } catch (e) {
                 console.error(e);
                 if (e instanceof Error) {

@@ -1,7 +1,7 @@
-import { BigDecimal, DateTime, EvmAddress } from '@lens-protocol/client';
+import { DateTime, EvmAddress } from '@lens-protocol/client';
 
-export type AmountInput = {
-    value: BigDecimal;
+export type Erc20Input = {
+    value: string;
     currency: EvmAddress;
 };
 
@@ -26,6 +26,7 @@ export type SimpleCollect = {
     payToCollect?: {
         referralShare?: number | null | undefined;
         recipients: Recipient[];
-        amount: AmountInput;
+        erc20?: Erc20Input;
+        native?: string;
     };
 };

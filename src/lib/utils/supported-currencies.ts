@@ -1,6 +1,28 @@
-import { Erc20 } from '@lens-protocol/client';
+import { Erc20, NativeToken } from '@lens-protocol/client';
 
-export const SUPPORTED_CURRENCIES: Erc20[] = [
+export const SUPPORTED_CURRENCIES: (Erc20 | NativeToken)[] = [
+    {
+        __typename: 'NativeToken',
+        name: 'Grass',
+        symbol: 'GRASS',
+        decimals: 18,
+        contract: {
+            __typename: 'NetworkAddress',
+            address: '0x000000000000000000000000000000000000800A',
+            chainId: 37111,
+        },
+    },
+    {
+        __typename: 'NativeToken',
+        name: 'GHO',
+        symbol: 'GHO',
+        decimals: 18,
+        contract: {
+            __typename: 'NetworkAddress',
+            address: '0x000000000000000000000000000000000000800A',
+            chainId: 232,
+        },
+    },
     {
         __typename: 'Erc20',
         name: 'Wrapped Grass',
