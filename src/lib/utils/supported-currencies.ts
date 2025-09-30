@@ -67,15 +67,4 @@ export const SUPPORTED_CURRENCIES: (Erc20 | NativeToken)[] = [
             chainId: 232,
         },
     },
-    {
-        __typename: 'Erc20',
-        name: 'Bonsai',
-        symbol: 'BONSAI',
-        decimals: 18,
-        contract: {
-            __typename: 'NetworkAddress',
-            address: '0xB0588f9A9cADe7CD5f194a5fe77AcD6A58250f82',
-            chainId: 232,
-        },
-    },
 ];

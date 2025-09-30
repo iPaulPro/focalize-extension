@@ -15,7 +15,7 @@
     class="cursor-pointer py-2 pl-2 pr-4 text-sm hover:bg-orange-300 active:bg-orange dark:text-gray-100 dark:hover:bg-gray-800"
 >
     {#if group}
-        <div class="flex w-max items-center gap-2">
+        <div class="flex w-full min-w-0 max-w-64 items-center gap-2">
             {#if group.metadata?.icon}
                 <img
                     src={getGroupIcon(group)}
@@ -25,14 +25,14 @@
                     decoding="async"
                 />
             {/if}
-            <div class="flex flex-col">
-                <div>
+            <div class="flex w-full min-w-0 flex-col">
+                <div class="truncate">
                     {group.metadata?.name
                         ? `#${group.metadata?.name}`
                         : truncateAddress(group.address)}
                 </div>
                 {#if group.metadata?.description}
-                    <div class="text-xs opacity-65">{group.metadata.description}</div>
+                    <div class="truncate text-xs opacity-65">{group.metadata.description}</div>
                 {/if}
             </div>
         </div>

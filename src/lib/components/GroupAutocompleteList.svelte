@@ -46,18 +46,18 @@
                 on:click={() => selectItem(i)}
             >
                 <div class="flex flex-1 items-center overflow-hidden px-1">
-                    <div class="mr-3 flex h-10 w-10 flex-col items-center justify-center">
+                    <div class="mr-3 flex h-8 w-8 flex-col items-center justify-center">
                         <img
-                            class="mx-auto h-10 w-10 rounded-full object-cover"
+                            class="mx-auto h-8 w-8 rounded-full object-cover"
                             alt={`${group.metadata?.name}'s icon`}
                             src={getGroupIcon(group)}
                         />
                     </div>
-                    <div class="mr-8 flex-1 overflow-hidden pl-1">
+                    <div class="mr-2 flex-1 overflow-hidden pl-1">
                         <div class="truncate text-base font-medium text-black dark:text-white">
                             {group.metadata?.name ?? truncateAddress(group.address)}
                         </div>
-                        <div class="truncate text-sm text-gray-600 dark:text-gray-200">
+                        <div class="truncate text-xs text-gray-600 dark:text-gray-200">
                             {#if group.operations?.isMember}
                                 <svg
                                     class="mr-2 inline h-4 w-4"
