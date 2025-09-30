@@ -7,6 +7,7 @@
     {#if notification.__typename === 'PostActionExecutedNotification'}
         {#if notification.actions[0].__typename === 'SimpleCollectPostActionExecuted'}
             <svg
+                xmlns="http://www.w3.org/2000/svg"
                 class="w-5 text-green-600 dark:text-green-400"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -21,6 +22,7 @@
             </svg>
         {:else if notification.actions[0].__typename === 'TippingPostActionExecuted'}
             <svg
+                xmlns="http://www.w3.org/2000/svg"
                 class="w-5 text-green-600 dark:text-green-400"
                 viewBox="0 0 640 640"
                 fill="currentColor"
@@ -32,6 +34,7 @@
             </svg>
         {:else}
             <svg
+                xmlns="http://www.w3.org/2000/svg"
                 class="w-5 text-green-600 dark:text-green-400"
                 viewBox="0 0 512 512"
                 fill="currentColor"
@@ -43,20 +46,34 @@
             </svg>
         {/if}
     {:else if notification.__typename === 'AccountActionExecutedNotification'}
-        <svg
-            class="w-5 text-green-600 dark:text-green-400"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-        >
-            <line x1="12" y1="1" x2="12" y2="23" />
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
+        {#if notification.actions[0].__typename === 'TippingAccountActionExecuted'}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 text-green-600 dark:text-green-400"
+                viewBox="0 0 640 640"
+                fill="currentColor"
+            >
+                <!--!Font Awesome Free v7.0.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                <path
+                    d="M176 176C176 211.3 147.3 240 112 240L112 400C147.3 400 176 428.7 176 464L464 464C464 428.7 492.7 400 528 400L528 240C492.7 240 464 211.3 464 176L176 176zM64 192C64 156.7 92.7 128 128 128L512 128C547.3 128 576 156.7 576 192L576 448C576 483.3 547.3 512 512 512L128 512C92.7 512 64 483.3 64 448L64 192zM320 208C381.9 208 432 258.1 432 320C432 381.9 381.9 432 320 432C258.1 432 208 381.9 208 320C208 258.1 258.1 208 320 208zM304 252C293 252 284 261 284 272C284 281.7 290.9 289.7 300 291.6L300 340L296 340C285 340 276 349 276 360C276 371 285 380 296 380L344 380C355 380 364 371 364 360C364 349 355 340 344 340L340 340L340 272C340 261 331 252 320 252L304 252z"
+                />
+            </svg>
+        {:else}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 text-green-600 dark:text-green-400"
+                viewBox="0 0 512 512"
+                fill="currentColor"
+            >
+                <!--!Font Awesome Pro v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2025 Fonticons, Inc.-->
+                <path
+                    d="M512 32c0 113.6-84.6 207.5-194.2 222c-7.1-53.4-30.6-101.6-65.3-139.3C290.8 46.3 364 0 448 0l32 0c17.7 0 32 14.3 32 32zM0 96C0 78.3 14.3 64 32 64l32 0c123.7 0 224 100.3 224 224l0 32 0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-160C100.3 320 0 219.7 0 96z"
+                />
+            </svg>
+        {/if}
     {:else if notification.__typename === 'CommentNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-violet-600 dark:text-violet-400"
             viewBox="0 0 24 24"
             fill="none"
@@ -71,6 +88,7 @@
         </svg>
     {:else if notification.__typename === 'FollowNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-sky-600 dark:text-sky-400"
             viewBox="0 0 24 24"
             fill="none"
@@ -86,6 +104,7 @@
         </svg>
     {:else if notification.__typename === 'MentionNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-orange-600 dark:text-orange-400"
             viewBox="0 0 24 24"
             fill="none"
@@ -99,6 +118,7 @@
         </svg>
     {:else if notification.__typename === 'RepostNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-yellow-600 dark:text-yellow-400"
             viewBox="0 0 24 24"
             fill="none"
@@ -113,6 +133,7 @@
         </svg>
     {:else if notification.__typename === 'ReactionNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-red-600 dark:text-red-400"
             viewBox="0 0 24 24"
             fill="none"
@@ -127,6 +148,7 @@
         </svg>
     {:else if notification.__typename === 'QuoteNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 p-0.5 text-red-600 dark:text-red-400"
             viewBox="0 0 448 512"
             fill="currentColor"
@@ -138,6 +160,7 @@
         </svg>
     {:else if notification.__typename === 'GroupMembershipRequestApprovedNotification' || notification.__typename === 'GroupMembershipRequestRejectedNotification'}
         <svg
+            xmlns="http://www.w3.org/2000/svg"
             class="w-5 text-purple-600 dark:text-purple-400"
             viewBox="0 0 24 24"
             fill="none"
