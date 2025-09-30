@@ -3,6 +3,7 @@
     import { createEventDispatcher } from 'svelte';
     import { EmojiButton } from '@joeattardi/emoji-button';
     import { darkMode } from '../../stores/preferences-store';
+    import { supportedMimeTypesJoined } from '@/lib/utils/file-utils';
 
     export let disabled: boolean = false;
     export let isCompact: boolean;
@@ -38,7 +39,13 @@
 </script>
 
 <div class="-ml-2 flex gap-3">
-    <input type="file" class="hidden" on:change={onFileSelected} bind:this={fileInput} />
+    <input
+        type="file"
+        class="hidden"
+        accept={supportedMimeTypesJoined()}
+        on:change={onFileSelected}
+        bind:this={fileInput}
+    />
 
     {#if showAttachmentButtons}
         <button

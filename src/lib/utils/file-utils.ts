@@ -1,4 +1,4 @@
-export const MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
+export const MAX_FILE_SIZE = 125 * 1024 * 1024; // 125MB
 
 export const IMAGE_TYPES = [
     'image/gif',
