@@ -15,6 +15,7 @@
     import { onError } from '@/lib/utils/error-utils';
     import { get } from '@/lib/stores/chrome-storage-store';
     import { type User } from '@/lib/types/User';
+    import { GLOBAL_NAMESPACE_ADDRESS } from '@/lib/config';
 
     const dispatch = createEventDispatcher<any>();
 
@@ -209,7 +210,11 @@
                             </div>
                             <div class="text-xs text-gray-600 dark:text-gray-300">
                                 {p.account.username
-                                    ? `@${p.account.username.value}`
+                                    ? `@${
+                                          p.account.username.namespace === GLOBAL_NAMESPACE_ADDRESS
+                                              ? p.account.username.localName
+                                              : p.account.username.value
+                                      }`
                                     : truncateAddress(p.account.address)}
                             </div>
                         </div>
