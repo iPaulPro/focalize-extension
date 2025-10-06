@@ -10,7 +10,8 @@
         isCommentNotification,
         isReactionNotification,
         isGroupNotification,
-        isFollowNotification, isTokenDistributedNotification,
+        isFollowNotification,
+        isTokenDistributedNotification,
     } from '@/lib/lens/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import NotificationItem from './NotificationItem.svelte';
@@ -284,11 +285,11 @@
 <div
     bind:this={scrollElement}
     use:scrollEndListener={{ onScrollEnd }}
-    class="z-0 h-full w-full overflow-y-auto"
+    class="z-0 h-full w-full overflow-y-auto bg-gray-100 dark:bg-gray-800"
 >
     <ul
         bind:this={listElement}
-        class="z-0 h-full w-full divide-y divide-gray-200 bg-gray-100 dark:divide-gray-700 dark:bg-gray-800"
+        class="z-0 h-full w-full divide-y divide-gray-200 dark:divide-gray-700"
     >
         <div
             bind:this={tabContainerElement}

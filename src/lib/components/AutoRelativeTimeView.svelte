@@ -17,7 +17,7 @@
         diff.as('minutes') <= shortRelativeCutoff;
     const isWithinOneMinute = (diff: Duration) => diff.as('minutes') < 1;
     const isWithinTenSeconds = (diff: Duration) => diff.as('seconds') <= 10;
-    const isWithinOneWeek = (diff: Duration) => diff.as('weeks') < 1;
+    const isWithinOneWeek = (diff: Duration) => diff.as('days') <= 6;
 
     const isYesterday = (date: DateTime, now: DateTime) => {
         const startOfToday = now.startOf('day');
