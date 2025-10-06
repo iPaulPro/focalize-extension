@@ -10,7 +10,7 @@
         isCommentNotification,
         isReactionNotification,
         isGroupNotification,
-        isFollowNotification,
+        isFollowNotification, isTokenDistributedNotification,
     } from '@/lib/lens/lens-notifications';
     import InfiniteLoading from 'svelte-infinite-loading';
     import NotificationItem from './NotificationItem.svelte';
@@ -42,6 +42,7 @@
         Groups,
         Likes,
         Mentions,
+        Rewards,
     }
 
     let lastUpdate: DateTime | undefined;
@@ -230,6 +231,9 @@
             case NotificationFilter.Follows:
                 notifications = unfilteredNotifications.filter(isFollowNotification);
                 break;
+            case NotificationFilter.Rewards:
+                notifications = unfilteredNotifications.filter(isTokenDistributedNotification);
+                break;
             case NotificationFilter.All:
                 notifications = unfilteredNotifications;
                 break;
@@ -345,6 +349,14 @@
                 class:active={$notificationsActiveFilter === NotificationFilter.Mentions}
             >
                 Mentions
+            </button>
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = NotificationFilter.Rewards)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === NotificationFilter.Rewards}
+            >
+                Rewards
             </button>
         </div>
 

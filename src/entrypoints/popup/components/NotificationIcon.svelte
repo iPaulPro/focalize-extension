@@ -134,7 +134,7 @@
     {:else if notification.__typename === 'ReactionNotification'}
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="w-5 text-red-600 dark:text-red-400"
+            class="w-5 text-red-700 dark:text-red-500"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -173,6 +173,22 @@
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+    {:else if notification.__typename === 'TokenDistributedNotification'}
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 text-green-600 dark:text-green-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <path
+                d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"
+            />
+            <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
         </svg>
     {/if}
 </div>

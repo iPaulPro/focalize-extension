@@ -16,7 +16,7 @@ import { tick } from 'svelte';
 import { z, ZodType } from 'zod';
 
 import { getDefaultProvider } from '../evm/get-default-provider';
-import type { Notification } from '@lens-protocol/client';
+import type { BigDecimal, Notification } from '@lens-protocol/client';
 import { getEventTime } from '../lens/lens-notifications';
 import { browser } from 'wxt/browser/chrome';
 
@@ -440,5 +440,10 @@ export const isEthereumAddress = (address: string): boolean => /^0x[a-fA-F0-9]{4
 
 export const formatCryptoValue = (num: number): string => {
     const formattedNum = num.toFixed(8);
+    return Intl.NumberFormat().format(parseFloat(formattedNum));
+};
+
+export const formatBigDecimal = (num: BigDecimal, digits: number = 4): string => {
+    const formattedNum = parseFloat(num).toFixed(digits);
     return Intl.NumberFormat().format(parseFloat(formattedNum));
 };

@@ -28,6 +28,7 @@ import {
     type QuoteNotification,
     type MentionNotification,
     type RepostNotification,
+    type TokenDistributedNotification,
 } from '@lens-protocol/client';
 import { LensNode } from '@/lib/types/LensNode';
 import {
@@ -60,7 +61,8 @@ export type KnownNotification =
     | PostActionExecutedNotification
     | AccountActionExecutedNotification
     | GroupMembershipRequestApprovedNotification
-    | GroupMembershipRequestRejectedNotification;
+    | GroupMembershipRequestRejectedNotification
+    | TokenDistributedNotification;
 
 export type BatchedNotification =
     | FollowNotification
@@ -130,6 +132,11 @@ export const isGroupNotification = (
 export const isFollowNotification = (
     notification: Notification,
 ): notification is FollowNotification => notification.__typename === 'FollowNotification';
+
+export const isTokenDistributedNotification = (
+    notification: Notification,
+): notification is TokenDistributedNotification =>
+    notification.__typename === 'TokenDistributedNotification';
 
 export const isKnownAction = (action: any): action is KnownAction =>
     action.__typename === 'SimpleCollectPostActionExecuted' ||
@@ -563,6 +570,8 @@ export const getEventTime = (notification: Notification): DateTime | undefined =
             return notification.approvedAt;
         case 'GroupMembershipRequestRejectedNotification':
             return notification.rejectedAt;
+        case 'TokenDistributedNotification':
+            return notification.actionDate;
         default:
             return undefined;
     }
