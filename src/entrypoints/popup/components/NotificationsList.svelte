@@ -46,6 +46,10 @@
         Rewards,
     }
 
+    const filterItemList: number[] = Object.keys(NotificationFilter)
+        .filter((key) => isNaN(Number(key)))
+        .map((key) => NotificationFilter[key as keyof typeof NotificationFilter]);
+
     let lastUpdate: DateTime | undefined;
 
     let notifications: Notification[] = [];
@@ -287,80 +291,25 @@
     use:scrollEndListener={{ onScrollEnd }}
     class="z-0 h-full w-full overflow-y-auto bg-gray-100 dark:bg-gray-800"
 >
+    <div
+        bind:this={tabContainerElement}
+        class="no-scrollbar flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto bg-white px-4 py-2 dark:bg-gray-900"
+    >
+        {#each filterItemList as filterItem, index (index)}
+            <button
+                type="button"
+                on:click={() => ($notificationsActiveFilter = filterItem)}
+                class="filter-tab"
+                class:active={$notificationsActiveFilter === filterItem}
+            >
+                {NotificationFilter[filterItem]}
+            </button>
+        {/each}
+    </div>
     <ul
         bind:this={listElement}
         class="z-0 h-full w-full divide-y divide-gray-200 dark:divide-gray-700"
     >
-        <div
-            bind:this={tabContainerElement}
-            class="no-scrollbar flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto bg-white px-4 py-2 dark:bg-gray-900"
-        >
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.All)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.All}
-            >
-                All
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Actions)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Actions}
-            >
-                Actions
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Comments)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Comments}
-            >
-                Comments
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Follows)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Follows}
-            >
-                Follows
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Groups)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Groups}
-            >
-                Groups
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Likes)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Likes}
-            >
-                Likes
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Mentions)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Mentions}
-            >
-                Mentions
-            </button>
-            <button
-                type="button"
-                on:click={() => ($notificationsActiveFilter = NotificationFilter.Rewards)}
-                class="filter-tab"
-                class:active={$notificationsActiveFilter === NotificationFilter.Rewards}
-            >
-                Rewards
-            </button>
-        </div>
-
         {#each notifications as notification (getNotificationIdentifier(notification))}
             <li>
                 {#if isBatchedNotification(notification)}
