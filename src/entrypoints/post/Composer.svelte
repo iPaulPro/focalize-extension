@@ -383,7 +383,7 @@
         }
 
         if (f.size > MAX_FILE_SIZE) {
-            fileError('File too large. Max file size is 8MB');
+            fileError('File too large. Max file size is 125MB');
             return;
         }
 
