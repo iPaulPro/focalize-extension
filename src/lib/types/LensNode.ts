@@ -9,6 +9,7 @@ export type LensNode = {
     fullUsername: boolean;
     icon: string;
     useSlug?: boolean;
+    rewards?: string;
 };
 
 /**

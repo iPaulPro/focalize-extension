@@ -78,3 +78,10 @@ export const getUrlForPostMetadata = async (
     const node = await getNodeForPostMetadata(metadata);
     return getPostUrlFromNode(node, post);
 };
+
+export const getRewardsUrlFromNode = (node: LensNode): string | null => {
+    if (!node.rewards) {
+        return null;
+    }
+    return 'https://' + node.baseUrl + node.rewards;
+};

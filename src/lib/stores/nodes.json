@@ -9,7 +9,8 @@
     "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
     "fullUsername": false,
     "icon": "webp",
-    "useSlug": true
+    "useSlug": true,
+    "rewards": "/settings/rewards"
   },
   {
     "name": "Fountain",
@@ -31,6 +32,7 @@
     "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
     "fullUsername": false,
     "icon": "svg",
-    "useSlug": true
+    "useSlug": true,
+    "rewards": "/settings/tokens"
   }
 ]

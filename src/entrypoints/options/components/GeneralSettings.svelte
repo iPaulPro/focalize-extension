@@ -7,6 +7,8 @@
         nodeImage,
         nodeVideo,
         nodeSearch,
+        nodeGroup,
+        nodeRewards,
         usePopupComposer,
         autoSignMetadata,
         dispatcherDialogShown,
@@ -17,7 +19,6 @@
     import { disableAccountManager, enableAccountManager, getMe } from '@/lib/lens-service';
     import { toast } from 'svelte-sonner';
     import { onMount } from 'svelte';
-    import { nodeGroup } from '@/lib/stores/preferences-store.js';
     import { onError } from '@/lib/utils/error-utils';
 
     let signlessEnabled: boolean;
@@ -268,6 +269,14 @@
                         <div class="text-base text-neutral-400">Events regarding groups</div>
                     </div>
                     <LensNodeSelect preference={nodeGroup} />
+                </div>
+
+                <div class="flex w-full justify-between gap-4">
+                    <div class="flex flex-col">
+                        <div class="text-base font-medium dark:text-white">Rewards</div>
+                        <div class="text-base text-neutral-400">Notifications about rewards</div>
+                    </div>
+                    <LensNodeSelect preference={nodeRewards} />
                 </div>
 
                 <div class="flex w-full justify-between gap-4">

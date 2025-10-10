@@ -445,5 +445,8 @@ export const formatCryptoValue = (num: number): string => {
 
 export const formatBigDecimal = (num: BigDecimal, digits: number = 4): string => {
     const formattedNum = parseFloat(num).toFixed(digits);
-    return Intl.NumberFormat().format(parseFloat(formattedNum));
+    return Intl.NumberFormat(undefined, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+    }).format(parseFloat(formattedNum));
 };

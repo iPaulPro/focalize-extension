@@ -1,5 +1,10 @@
 import { stripMarkdown, truncate } from '../utils/utils';
-import { getNodeForPost, getNodeUrlForUsername, getPostUrlFromNode } from './lens-nodes';
+import {
+    getNodeForPost,
+    getNodeUrlForUsername,
+    getPostUrlFromNode,
+    getRewardsUrlFromNode,
+} from './lens-nodes';
 import {
     KEY_NOTIFICATION_ITEMS_CACHE,
     KEY_NOTIFICATION_PAGE_INFO_CACHE,
@@ -45,6 +50,7 @@ import {
     KEY_NOTIFICATIONS_FOR_REACTIONS,
     KEY_NOTIFICATIONS_FOR_ACCOUNT_ACTIONS,
     KEY_NOTIFICATIONS_FOR_GROUPS,
+    KEY_NODE_REWARDS,
 } from '@/lib/stores/preferences-store';
 import { onError } from '@/lib/utils/error-utils';
 import { browser } from 'wxt/browser/chrome';
@@ -93,7 +99,8 @@ export const isKnownNotification = (notification: any): notification is KnownNot
     notification.__typename === 'PostActionExecutedNotification' ||
     notification.__typename === 'AccountActionExecutedNotification' ||
     notification.__typename === 'GroupMembershipRequestApprovedNotification' ||
-    notification.__typename === 'GroupMembershipRequestRejectedNotification';
+    notification.__typename === 'GroupMembershipRequestRejectedNotification' ||
+    notification.__typename === 'TokenDistributedNotification';
 
 export const isBatchedNotification = (
     notification: Notification,
@@ -502,10 +509,17 @@ export const getNodeForNotification = async (notification: Notification): Promis
         return getNodeForPost(post);
     }
 
-    const storage = await browser.storage.sync.get([KEY_NODE_POST, KEY_NODE_GROUP]);
-    return isGroupMembershipNotification(notification)
-        ? storage[KEY_NODE_GROUP]
-        : storage[KEY_NODE_POST];
+    const storage = await browser.storage.sync.get([
+        KEY_NODE_POST,
+        KEY_NODE_GROUP,
+        KEY_NODE_REWARDS,
+    ]);
+    if (isGroupMembershipNotification(notification)) {
+        return storage[KEY_NODE_GROUP];
+    } else if (isTokenDistributedNotification(notification)) {
+        return storage[KEY_NODE_REWARDS];
+    }
+    return storage[KEY_NODE_POST];
 };
 
 export const getNotificationLink = async (notification: Notification): Promise<string> => {
@@ -538,10 +552,18 @@ export const getNotificationLink = async (notification: Notification): Promise<s
         case 'ReactionNotification':
         case 'RepostNotification':
             return getPostUrlFromNode(node, notification.post);
+        case 'TokenDistributedNotification': {
+            const url = getRewardsUrlFromNode(node);
+            if (url) {
+                return url;
+            }
+            break;
+        }
     }
 
     const syncStorage = await browser.storage.sync.get(KEY_NODE_NOTIFICATIONS);
     return (
+        'https://' +
         syncStorage[KEY_NODE_NOTIFICATIONS].baseUrl +
         syncStorage[KEY_NODE_NOTIFICATIONS].notifications
     );

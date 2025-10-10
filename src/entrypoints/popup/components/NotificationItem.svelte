@@ -51,7 +51,7 @@
         `https://polygonscan.com/address/${notificationWalletAddress}`;
     $: rewardString =
         notification.__typename === 'TokenDistributedNotification' && notification.amount
-            ? `${formatBigDecimal(notification.amount.value, notification.amount.__typename === 'NativeAmount' ? 2 : 6)} ${notification.amount.asset.symbol}`
+            ? `${formatBigDecimal(notification.amount.value, notification.amount.__typename === 'NativeAmount' ? 2 : 6)} $${notification.amount.asset.symbol}`
             : '';
 
     const launchNotification = async () => {

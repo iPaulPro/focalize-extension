@@ -19,6 +19,7 @@ export const KEY_NODE_ARTICLE = 'nodeArticle.v2';
 export const KEY_NODE_GROUP = 'nodeGroup';
 export const KEY_NODE_NOTIFICATIONS = 'nodeNotifications';
 export const KEY_NODE_SEARCH = 'nodeSearch';
+export const KEY_NODE_REWARDS = 'nodeRewards';
 export const KEY_NOTIFICATIONS_REFRESH_ENABLED = 'notificationsEnabled';
 export const KEY_NOTIFICATIONS_REFRESH_INTERVAL = 'notificationsRefreshInterval';
 export const KEY_NOTIFICATIONS_GROUPED = 'notificationsGrouped';
@@ -73,6 +74,7 @@ export const ALL_NODE_KEYS = [
     KEY_NODE_ARTICLE,
     KEY_NODE_POST,
     KEY_NODE_GROUP,
+    KEY_NODE_REWARDS,
 ];
 
 /**
@@ -122,6 +124,8 @@ export const nodeAudio: Writable<LensNode> = chromeStorageSync(KEY_NODE_AUDIO, n
 export const nodeArticle: Writable<LensNode> = chromeStorageSync(KEY_NODE_ARTICLE, nodes[0]);
 
 export const nodeGroup: Writable<LensNode> = chromeStorageSync(KEY_NODE_GROUP, nodes[0]);
+
+export const nodeRewards: Writable<LensNode> = chromeStorageSync(KEY_NODE_REWARDS, nodes[0]);
 
 export const nodeNotifications: Writable<LensNode> = chromeStorageSync(
     KEY_NODE_NOTIFICATIONS,
