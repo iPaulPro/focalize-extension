@@ -25,9 +25,15 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
-      - name: Install and build for Chrome
+      - name: Install dependencies
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          pnpm install --frozen-lockfile
+
+      - name: Create Chrome release zip
+        run: pnpm zip
+        env:
           VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
           VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
           VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.VITE_WALLETCONNECT_PROJECT_ID }}
@@ -35,23 +41,18 @@ jobs:
           VITE_LENS_APP: ${{ secrets.VITE_LENS_APP }}
           VITE_LENS_GLOBAL_FEED: ${{ secrets.VITE_LENS_GLOBAL_FEED }}
           VITE_LENS_GLOBAL_NAMESPACE: ${{ secrets.VITE_LENS_GLOBAL_NAMESPACE }}
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-
-      - name: Create Chrome release zip
-        run: zip -r focalize-${{ github.ref_name }}-chrome.zip .output/chrome-mv3
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "focalize-${{ github.ref_name }}-chrome.zip"
+          artifacts: ".output/*-chrome.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Submit to Chrome Web Store
         run: |
           pnpm wxt submit \
             --chrome-zip .output/*-chrome.zip \
+            --chrome-skip-submit-review
         env:
           CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}

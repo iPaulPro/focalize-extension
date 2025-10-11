@@ -9,7 +9,7 @@
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
     "dev:staging": "wxt --mode staging",
-    "build": "wxt build ",
+    "build": "wxt build",
     "build:dev": "wxt build --mode development",
     "build:staging": "wxt build --mode staging",
     "build:firefox": "wxt build -b firefox",
