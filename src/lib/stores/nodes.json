@@ -24,6 +24,17 @@
     "useSlug": true
   },
   {
+    "name": "Box",
+    "baseUrl": "lens.box",
+    "posts": "/p/{$id}",
+    "accounts": "/u/{$username}",
+    "notifications": "/activity",
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
+    "fullUsername": false,
+    "icon": "svg",
+    "useSlug": true
+  },
+  {
     "name": "Soclly",
     "baseUrl": "app.soclly.com",
     "posts": "/posts/{$id}",
