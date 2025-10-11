@@ -8,31 +8,33 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
-  VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
-  VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.VITE_WALLETCONNECT_PROJECT_ID }}
-  VITE_ALCHEMY_ETH_API_KEY: ${{ secrets.VITE_ALCHEMY_ETH_API_KEY }}
-  VITE_LENS_APP: ${{ secrets.VITE_LENS_APP }}
-  VITE_LENS_GLOBAL_FEED: ${{ secrets.VITE_LENS_GLOBAL_FEED }}
-  VITE_LENS_GLOBAL_NAMESPACE: ${{ secrets.VITE_LENS_GLOBAL_NAMESPACE }}
-
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
-          version: 10
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install and build for Chrome
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
+          VITE_CHAIN_ID: ${{ secrets.VITE_CHAIN_ID }}
+          VITE_GIPHY_KEY: ${{ secrets.VITE_GIPHY_KEY }}
+          VITE_WALLETCONNECT_PROJECT_ID: ${{ secrets.VITE_WALLETCONNECT_PROJECT_ID }}
+          VITE_ALCHEMY_ETH_API_KEY: ${{ secrets.VITE_ALCHEMY_ETH_API_KEY }}
+          VITE_LENS_APP: ${{ secrets.VITE_LENS_APP }}
+          VITE_LENS_GLOBAL_FEED: ${{ secrets.VITE_LENS_GLOBAL_FEED }}
+          VITE_LENS_GLOBAL_NAMESPACE: ${{ secrets.VITE_LENS_GLOBAL_NAMESPACE }}
         run: |
           pnpm install --frozen-lockfile
           pnpm build
@@ -45,3 +47,13 @@ jobs:
         with:
           artifacts: "focalize-${{ github.ref_name }}-chrome.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Submit to Chrome Web Store
+        run: |
+          pnpm wxt submit \
+            --chrome-zip .output/*-chrome.zip \
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
