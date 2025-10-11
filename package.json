@@ -4,6 +4,7 @@
   "private": true,
   "version": "3.0.2",
   "type": "module",
+  "packageManager": "pnpm@10.13.1",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
