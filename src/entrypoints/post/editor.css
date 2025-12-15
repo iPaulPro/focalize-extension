@@ -139,3 +139,15 @@
   font-size: 86%;
   border-radius: 0.25rem;
 }
+
+.ProseMirror:focus {
+    outline: none;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+}

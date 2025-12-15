@@ -1,5 +1,18 @@
 [
   {
+    "name": "Palus",
+    "baseUrl": "palus.app",
+    "posts": "/posts/{$id}",
+    "accounts": "/u/{$username}",
+    "groups": "/g/{$address}",
+    "notifications": "/notifications",
+    "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
+    "fullUsername": false,
+    "icon": "svg",
+    "useSlug": true,
+    "rewards": "/settings/rewards"
+  },
+  {
     "name": "Hey",
     "baseUrl": "hey.xyz",
     "posts": "/posts/{$id}",
@@ -32,6 +45,16 @@
     "focus": ["TEXT_ONLY", "IMAGE", "VIDEO", "AUDIO", "LINK", "ARTICLE"],
     "fullUsername": false,
     "icon": "svg",
+    "useSlug": true
+  },
+  {
+    "name": "BloomersTV",
+    "baseUrl": "bloomers.tv",
+    "posts": "/watch/{$id}",
+    "accounts": "/{$handle}",
+    "focus": ["VIDEO"],
+    "fullUsername": false,
+    "icon": "png",
     "useSlug": true
   },
   {

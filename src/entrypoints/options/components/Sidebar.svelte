@@ -3,6 +3,7 @@
     import { releaseDismissed } from '@/lib/stores/preferences-store';
     import { getLatestRelease } from '@/lib/github-service';
     import { queryParams } from '@/lib/stores/url-query-store';
+    import { htmlFromMarkdown } from '@/lib/utils/utils';
 
     type Tab = {
         name: string;
@@ -39,7 +40,7 @@
     }
 
     // eslint-disable-next-line no-undef
-    const getVersionName = () => browser.runtime.getManifest().version_name;
+    const getVersionName = () => browser.runtime.getManifest().version;
 
     const onShareFeedbackClick = () => {
         window.open('https://github.com/iPaulPro/focalize-extension/issues', '_blank');
@@ -107,7 +108,11 @@
         <div class="flex flex-col">
             {#await getLatestRelease() then release}
                 {#if $releaseDismissed !== release.name}
-                    <div
+                    <a
+                        href="https://github.com/iPaulPro/focalize-extension/releases/tag/{'v' +
+                            getVersionName()}"
+                        target="_blank"
+                        rel="noreferrer"
                         class="relative m-3 flex flex-col gap-1 rounded border bg-white p-4 hover:bg-orange-50 dark:border-gray-700
                    dark:bg-gray-800 dark:hover:bg-gray-700"
                     >
@@ -140,11 +145,10 @@
                             </a>
                         </div>
 
-                        <p
-                            class="line-clamp-6 whitespace-pre-wrap text-gray-500 dark:text-gray-400"
-                        >
-                            {release.body}
-                        </p>
+                        <div class="markdown line-clamp-6">
+                            <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+                            {@html htmlFromMarkdown(release.body)}
+                        </div>
 
                         <button
                             on:click={() => ($releaseDismissed = release.name)}
@@ -152,7 +156,7 @@
                         >
                             Dismiss
                         </button>
-                    </div>
+                    </a>
                 {/if}
             {/await}
 

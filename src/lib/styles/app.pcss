@@ -442,18 +442,6 @@ button.emoji-picker__category-button.active {
     border-radius: 50% !important;
 }
 
-.ProseMirror:focus {
-    outline: none;
-}
-
-.tiptap p.is-editor-empty:first-child::before {
-    color: #adb5bd;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-}
-
 #content .tippy-box {
     background-color: transparent !important;
     padding: 0 !important;
@@ -518,4 +506,12 @@ button.emoji-picker__category-button.active {
 
 .no-scrollbar {
     scrollbar-width: none;
+}
+
+.markdown h3 {
+    font-weight: bold;
+}
+
+.markdown ul {
+    list-style: inside;
 }
